@@ -131,7 +131,8 @@ public class Joint {
 	 *            - the model-space bind transform of the parent joint.
 	 */
 	protected void calcInverseBindTransform(Matrix4f parentBindTransform) {
-		Matrix4f bindTransform = parentBindTransform.mul(localBindTransform);
+		Matrix4f bindTransform = new Matrix4f();
+		new Matrix4f(parentBindTransform).mul(localBindTransform, bindTransform);
 		bindTransform.invert(inverseBindTransform);
 		for (Joint child : children) {
 			child.calcInverseBindTransform(bindTransform);

@@ -19,7 +19,7 @@ public class SkeletonLoader {
 	private int jointCount = 0;
 
 	public SkeletonLoader(XmlNode visualSceneNode, List<String> boneOrder) {
-		this.armatureData = visualSceneNode.getChild("visual_scene").getChildWithAttribute("node", "id", "Armature");
+		this.armatureData = visualSceneNode.getChild("visual_scene").getChild("node");
 		this.boneOrder = boneOrder;
 	}
 	
@@ -39,7 +39,7 @@ public class SkeletonLoader {
 	
 	private JointData extractMainJointData(XmlNode jointNode, boolean isRoot){
 		String nameId = jointNode.getAttribute("id");
-		int index = boneOrder.indexOf(nameId);
+		int index = boneOrder.indexOf(nameId.replace("venusaur_skeleton_", ""));
 		String[] matrixData = jointNode.getChild("matrix").getData().split(" ");
 		Matrix4f matrix = new Matrix4f(convertData(matrixData));
 		matrix.transpose();

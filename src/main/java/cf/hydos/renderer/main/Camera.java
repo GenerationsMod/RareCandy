@@ -77,6 +77,8 @@ public class Camera implements ICamera {
 		viewMatrix.rotate((float) Math.toRadians(yaw), new Vector3f(0, 1, 0), viewMatrix);
 		Vector3f negativeCameraPos = new Vector3f(-position.x, -position.y, -position.z);
 		viewMatrix.translate(negativeCameraPos, viewMatrix);
+
+		viewMatrix.translate(0, 7, -250);
 	}
 
 	private static Matrix4f createProjectionMatrix() {

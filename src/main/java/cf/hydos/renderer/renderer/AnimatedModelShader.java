@@ -9,7 +9,7 @@ import cf.hydos.renderer.utils.MyFile;
 
 public class AnimatedModelShader extends ShaderProgram {
 
-	private static final int MAX_JOINTS = 50;// max number of joints in a skeleton
+	private static final int MAX_JOINTS = 64;// max number of joints in a skeleton
 	private static final int DIFFUSE_TEX_UNIT = 0;
 
 	private static final MyFile VERTEX_SHADER = new MyFile("shaders/animatedEntity", "animatedEntityVertex.glsl");
@@ -27,8 +27,7 @@ public class AnimatedModelShader extends ShaderProgram {
 	 * the diffuse texture will be sampled from texture unit 0.
 	 */
 	public AnimatedModelShader() {
-		super(VERTEX_SHADER, FRAGMENT_SHADER, "in_position", "in_textureCoords", "in_normal", "in_jointIndices",
-				"in_weights");
+		super(VERTEX_SHADER, FRAGMENT_SHADER, "in_position", "in_textureCoords", "in_normal", "in_jointIndices", "in_weights");
 		super.storeAllUniformLocations(projectionViewMatrix, diffuseMap, lightDirection, jointTransforms);
 		connectTextureUnits();
 	}

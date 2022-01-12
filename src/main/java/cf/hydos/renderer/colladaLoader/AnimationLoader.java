@@ -29,7 +29,7 @@ public class AnimationLoader {
 		float[] times = getKeyTimes();
 		float duration = times[times.length-1];
 		KeyFrameData[] keyFrames = initKeyFrames(times);
-		List<XmlNode> animationNodes = animationData.getChildren("animation");
+		List<XmlNode> animationNodes = animationData.getChild("animation").getChildren("animation");
 		for(XmlNode jointNode : animationNodes){
 			loadJointTransforms(keyFrames, jointNode, rootNode);
 		}
@@ -37,7 +37,7 @@ public class AnimationLoader {
 	}
 
 	private float[] getKeyTimes(){
-		XmlNode timeData = animationData.getChild("animation").getChild("source").getChild("float_array");
+		XmlNode timeData = animationData.getChild("animation").getChild("animation").getChild("source").getChild("float_array");
 		String[] rawTimes = timeData.getData().split(" ");
 		float[] times = new float[rawTimes.length];
 		for(int i=0;i<times.length;i++){
@@ -94,7 +94,7 @@ public class AnimationLoader {
 	}
 
 	private String findRootJointName(){
-		XmlNode skeleton = jointHierarchy.getChild("visual_scene").getChildWithAttribute("node", "id", "Armature");
+		XmlNode skeleton = jointHierarchy.getChild("visual_scene").getChildWithAttribute("node", "id", "venusaur_skeleton");
 		return skeleton.getChild("node").getAttribute("id");
 	}
 

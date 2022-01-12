@@ -12,9 +12,9 @@ import cf.hydos.renderer.utils.MyFile;
  */
 public class GeneralSettings {
 	
-	public static final String MODEL_FILE = "model.dae";
-	public static final String ANIM_FILE = "model.dae";
-	public static final String DIFFUSE_FILE = "diffuse.png";
+	public static final String MODEL_FILE = "e.dae";
+	public static final String ANIM_FILE = "e.dae";
+	public static final String DIFFUSE_FILE = "shinyvenusaur.png";
 	
 	public static final int MAX_WEIGHTS = 3;
 	

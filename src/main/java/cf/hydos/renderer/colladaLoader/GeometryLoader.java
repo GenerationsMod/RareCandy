@@ -75,7 +75,7 @@ public class GeometryLoader {
 	}
 
 	private void readNormals() {
-		String normalsId = meshData.getChild("polylist").getChildWithAttribute("input", "semantic", "NORMAL")
+		String normalsId = meshData.getChild("triangles").getChildWithAttribute("input", "semantic", "NORMAL")
 				.getAttribute("source").substring(1);
 		XmlNode normalsData = meshData.getChildWithAttribute("source", "id", normalsId).getChild("float_array");
 		int count = Integer.parseInt(normalsData.getAttribute("count"));
@@ -91,7 +91,7 @@ public class GeometryLoader {
 	}
 
 	private void readTextureCoords() {
-		String texCoordsId = meshData.getChild("polylist").getChildWithAttribute("input", "semantic", "TEXCOORD")
+		String texCoordsId = meshData.getChild("triangles").getChildWithAttribute("input", "semantic", "TEXCOORD")
 				.getAttribute("source").substring(1);
 		XmlNode texCoordsData = meshData.getChildWithAttribute("source", "id", texCoordsId).getChild("float_array");
 		int count = Integer.parseInt(texCoordsData.getAttribute("count"));
@@ -104,7 +104,7 @@ public class GeometryLoader {
 	}
 	
 	private void assembleVertices(){
-		XmlNode poly = meshData.getChild("polylist");
+		XmlNode poly = meshData.getChild("triangles");
 		int typeCount = poly.getChildren("input").size();
 		String[] indexData = poly.getChild("p").getData().split(" ");
 		for(int i=0;i<indexData.length/typeCount;i++){

@@ -6,6 +6,7 @@ import cf.hydos.renderer.utils.SmoothFloat;
 import cf.hydos.renderer.window.Window;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * Represents the in-game camera. This class is in charge of keeping the
@@ -15,7 +16,7 @@ import org.joml.Vector3f;
 public class Camera implements ICamera {
 
     private static final float PITCH_SENSITIVITY = 0.3f;
-    private static final float YAW_SENSITIVITY = 0.3f;
+    private static final float YAW_SENSITIVITY = 0.1f;
     private static final float MAX_PITCH = 90;
 
     private static final float FOV = 90;
@@ -74,7 +75,7 @@ public class Camera implements ICamera {
         Vector3f negativeCameraPos = new Vector3f(-position.x, -position.y, -position.z);
         viewMatrix.translate(negativeCameraPos, viewMatrix);
 
-        viewMatrix.translate(0, 7, -250);
+        viewMatrix.translate(0, -6, -250);
     }
 
     public static Matrix4f createProjectionMatrix() {
@@ -119,11 +120,11 @@ public class Camera implements ICamera {
      * up or down with the LMB pressed.
      */
     private void calculatePitch() {
-		/*if (Mouse.isButtonDown(0)) {
-			float pitchChange = Mouse.getDY() * PITCH_SENSITIVITY;
+		if (Window.getInstance().isKeyPressed(GLFW.GLFW_MOUSE_BUTTON_LEFT)) {
+			float pitchChange = (float) (Window.getInstance().getDy() * PITCH_SENSITIVITY);
 			pitch.increaseTarget(-pitchChange);
 			clampPitch();
-		}*/
+		}
         pitch.update(DisplayManager.getFrameTime());
     }
 
@@ -133,10 +134,10 @@ public class Camera implements ICamera {
      * moves the mouse horizontally with the LMB down.
      */
     private void calculateAngleAroundPlayer() {
-		/*if (Mouse.isButtonDown(0)) {
-			float angleChange = Mouse.getDX() * YAW_SENSITIVITY;
+		if (Window.getInstance().isKeyPressed(GLFW.GLFW_MOUSE_BUTTON_RIGHT)) {
+			float angleChange = (float) -(Window.getInstance().getDx() * YAW_SENSITIVITY);
 			angleAroundPlayer.increaseTarget(-angleChange);
-		}*/
+		}
         angleAroundPlayer.update(DisplayManager.getFrameTime());
     }
 

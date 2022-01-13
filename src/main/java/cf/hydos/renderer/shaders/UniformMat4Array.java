@@ -4,7 +4,7 @@ import org.joml.Matrix4f;
 
 public class UniformMat4Array extends Uniform {
 
-    private UniformMatrix[] matrixUniforms;
+    private final UniformMatrix[] matrixUniforms;
 
     public UniformMat4Array(String name, int size) {
         super(name);

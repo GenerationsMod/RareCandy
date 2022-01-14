@@ -8,7 +8,7 @@ plugins {
 
 group = "cf.hydos"
 version = "1.0-SNAPSHOT"
-val rootPkg = "cf.hydos.renderer"
+val rootPkg = "com.base.game"
 
 val lwjglNatives = when (OperatingSystem.current()) {
     OperatingSystem.LINUX -> System.getProperty("os.arch").let {
@@ -51,7 +51,7 @@ tasks {
     named<ShadowJar>("shadowJar") {
 
         manifest {
-            attributes(mapOf("Main-Class" to "$rootPkg.main.AnimationApp"))
+            attributes(mapOf("Main-Class" to "$rootPkg.Main"))
         }
     }
 

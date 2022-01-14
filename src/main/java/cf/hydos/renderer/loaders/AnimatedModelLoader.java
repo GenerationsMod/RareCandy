@@ -8,7 +8,7 @@ import cf.hydos.renderer.dataStructures.JointData;
 import cf.hydos.renderer.dataStructures.MeshData;
 import cf.hydos.renderer.dataStructures.SkeletonData;
 import cf.hydos.renderer.main.GeneralSettings;
-import cf.hydos.renderer.openglObjects.Vao;
+import cf.hydos.renderer.openglObjects.VertexAttributesObject;
 import cf.hydos.renderer.textures.Texture;
 import cf.hydos.renderer.utils.MyFile;
 
@@ -19,12 +19,12 @@ public class AnimatedModelLoader {
      * the collada model data, stores the extracted data in a VAO, sets up the
      * joint heirarchy, and loads up the entity's texture.
      *
-     * @param entityFile - the file containing the data for the entity.
+     * @param modelFile - the file containing the data for the entity.
      * @return The animated entity (no animationrenderer.animation applied though)
      */
     public static AnimatedModel loadEntity(MyFile modelFile, MyFile textureFile) {
         AnimatedModelData entityData = ColladaLoader.loadColladaModel(modelFile, GeneralSettings.MAX_WEIGHTS);
-        Vao model = createVao(entityData.getMeshData());
+        VertexAttributesObject model = createVertexAttributes(entityData.getMeshData());
         Texture texture = loadTexture(textureFile);
         SkeletonData skeletonData = entityData.getJointsData();
         Joint headJoint = createJoints(skeletonData.headJoint);
@@ -63,8 +63,8 @@ public class AnimatedModelLoader {
      *             VAO.
      * @return The VAO containing all the mesh data for the model.
      */
-    private static Vao createVao(MeshData data) {
-        Vao vao = Vao.create();
+    private static VertexAttributesObject createVertexAttributes(MeshData data) {
+        VertexAttributesObject vao = new VertexAttributesObject();
         vao.bind();
         vao.createIndexBuffer(data.getIndices());
         vao.createAttribute(0, data.getVertices(), 3);

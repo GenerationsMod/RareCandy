@@ -6,53 +6,48 @@ import org.lwjgl.opengl.GL15;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-public class Vbo {
+public class GlBuffer {
 
-    private final int vboId;
+    private final int bufferId;
     private final int type;
 
-    private Vbo(int vboId, int type) {
-        this.vboId = vboId;
+    public GlBuffer(int type) {
+        this.bufferId = GL15.glGenBuffers();
         this.type = type;
     }
 
-    public static Vbo create(int type) {
-        int id = GL15.glGenBuffers();
-        return new Vbo(id, type);
-    }
-
     public void bind() {
-        GL15.glBindBuffer(type, vboId);
+        GL15.glBindBuffer(type, bufferId);
     }
 
     public void unbind() {
         GL15.glBindBuffer(type, 0);
     }
 
-    public void storeData(float[] data) {
+    public void upload(float[] data) {
         FloatBuffer buffer = BufferUtils.createFloatBuffer(data.length);
         buffer.put(data);
         buffer.flip();
-        storeData(buffer);
+        upload(buffer);
     }
 
-    public void storeData(int[] data) {
+    public void upload(int[] data) {
         IntBuffer buffer = BufferUtils.createIntBuffer(data.length);
         buffer.put(data);
         buffer.flip();
-        storeData(buffer);
+        upload(buffer);
     }
 
-    public void storeData(IntBuffer data) {
+    public void upload(IntBuffer data) {
         GL15.glBufferData(type, data, GL15.GL_STATIC_DRAW);
     }
 
-    public void storeData(FloatBuffer data) {
+    public void upload(FloatBuffer data) {
         GL15.glBufferData(type, data, GL15.GL_STATIC_DRAW);
     }
 
     public void delete() {
-        GL15.glDeleteBuffers(vboId);
+        GL15.glDeleteBuffers(bufferId);
     }
 
 }

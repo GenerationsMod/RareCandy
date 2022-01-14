@@ -1,8 +1,7 @@
 package cf.hydos.renderer.skybox;
 
 import cf.hydos.renderer.main.Camera;
-import cf.hydos.renderer.openglObjects.Vao;
-import cf.hydos.renderer.scene.ICamera;
+import cf.hydos.renderer.openglObjects.VertexAttributesObject;
 import cf.hydos.renderer.utils.OpenGlUtils;
 import org.lwjgl.opengl.GL11;
 
@@ -11,7 +10,7 @@ public class SkyboxRenderer {
     private static final float SIZE = 200;
 
     private final SkyboxShader shader;
-    private final Vao box;
+    private final VertexAttributesObject box;
 
     public SkyboxRenderer() {
         this.shader = new SkyboxShader();
@@ -20,10 +19,8 @@ public class SkyboxRenderer {
 
     /**
      * Renders the animationrenderer.skybox.
-     *
-     * @param camera - the animationrenderer.scene's camera.
      */
-    public void render(ICamera camera) {
+    public void render() {
         prepare();
         box.bind(0);
         GL11.glDrawElements(GL11.GL_TRIANGLES, box.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
@@ -42,7 +39,6 @@ public class SkyboxRenderer {
      * Starts the shader, loads the projection-view matrix to the uniform
      * variable, and sets some OpenGL state which should be mostly
      * self-explanatory.
-     *
      */
     private void prepare() {
         shader.start();

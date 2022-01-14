@@ -2,7 +2,7 @@ package cf.hydos.renderer.animatedModel;
 
 import cf.hydos.renderer.animation.Animation;
 import cf.hydos.renderer.animation.Animator;
-import cf.hydos.renderer.openglObjects.Vao;
+import cf.hydos.renderer.openglObjects.VertexAttributesObject;
 import cf.hydos.renderer.textures.Texture;
 import org.joml.Matrix4f;
 
@@ -17,7 +17,7 @@ import org.joml.Matrix4f;
 public class AnimatedModel {
 
     // skin
-    private final Vao model;
+    private final VertexAttributesObject model;
     private final Texture texture;
 
     // skeleton
@@ -43,7 +43,7 @@ public class AnimatedModel {
      * @param jointCount - the number of joints in the joint hierarchy (skeleton) for
      *                   this entity.
      */
-    public AnimatedModel(Vao model, Texture texture, Joint rootJoint, int jointCount) {
+    public AnimatedModel(VertexAttributesObject model, Texture texture, Joint rootJoint, int jointCount) {
         this.model = model;
         this.texture = texture;
         this.rootJoint = rootJoint;
@@ -55,7 +55,7 @@ public class AnimatedModel {
     /**
      * @return The VAO containing all the mesh data for this entity.
      */
-    public Vao getModel() {
+    public VertexAttributesObject getModel() {
         return model;
     }
 

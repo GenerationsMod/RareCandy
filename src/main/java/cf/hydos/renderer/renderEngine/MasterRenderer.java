@@ -32,7 +32,7 @@ public class MasterRenderer {
             entityRenderer.render(model, projMatrix, scene.getLightDirection());
             projMatrix.translate(60, 0, 0);
         }
-        skyRenderer.render(scene.getCamera());
+        skyRenderer.render();
     }
 
     /**

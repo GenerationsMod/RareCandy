@@ -23,7 +23,6 @@ public class GeometryLoader {
 
     private final List<VertexSkinData> vertexWeights;
 
-    private float[] verticesArray;
     private float[] normalsArray;
     private float[] texturesArray;
     private int[] indicesArray;
@@ -47,7 +46,7 @@ public class GeometryLoader {
         initArrays();
         convertDataToArrays();
         convertIndicesListToArray();
-        return new MeshData(verticesArray, texturesArray, normalsArray, indicesArray, jointIdsArray, weightsArray);
+        return new MeshData(vertices, texturesArray, normalsArray, indicesArray, jointIdsArray, weightsArray);
     }
 
     private void readRawData() {
@@ -141,9 +140,9 @@ public class GeometryLoader {
             Vector3f position = currentVertex.getPosition();
             Vector2f textureCoord = textures.get(currentVertex.getTextureIndex());
             Vector3f normalVector = normals.get(currentVertex.getNormalIndex());
-            verticesArray[i * 3] = position.x;
-            verticesArray[i * 3 + 1] = position.y;
-            verticesArray[i * 3 + 2] = position.z;
+//            verticesArray[i * 3] = position.x;
+//            verticesArray[i * 3 + 1] = position.y;
+//            verticesArray[i * 3 + 2] = position.z;
             texturesArray[i * 2] = textureCoord.x;
             texturesArray[i * 2 + 1] = 1 - textureCoord.y;
             normalsArray[i * 3] = normalVector.x;
@@ -182,7 +181,7 @@ public class GeometryLoader {
     }
 
     private void initArrays() {
-        this.verticesArray = new float[vertices.size() * 3];
+        // this.verticesArray = new float[vertices.size() * 3];
         this.texturesArray = new float[vertices.size() * 2];
         this.normalsArray = new float[vertices.size() * 3];
         this.jointIdsArray = new int[vertices.size() * 3];

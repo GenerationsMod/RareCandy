@@ -1,21 +1,20 @@
 package cf.hydos.renderer.dataStructures;
 
+import java.util.List;
+
 /**
  * This object contains all the mesh data for an animated model that is to be loaded into the VAO.
  */
 public class MeshData {
 
-    private static final int DIMENSIONS = 3;
-
-    private final float[] vertices;
+    private final List<Vertex> vertices;
     private final float[] textureCoords;
     private final float[] normals;
     private final int[] indices;
     private final int[] jointIds;
     private final float[] vertexWeights;
 
-    public MeshData(float[] vertices, float[] textureCoords, float[] normals, int[] indices,
-                    int[] jointIds, float[] vertexWeights) {
+    public MeshData(List<Vertex> vertices, float[] textureCoords, float[] normals, int[] indices, int[] jointIds, float[] vertexWeights) {
         this.vertices = vertices;
         this.textureCoords = textureCoords;
         this.normals = normals;
@@ -32,8 +31,16 @@ public class MeshData {
         return vertexWeights;
     }
 
+    @Deprecated
     public float[] getVertices() {
-        return vertices;
+        float[] rawVertices = new float[vertices.size() * 3];
+        for (int i = 0; i < vertices.size(); i++) {
+            Vertex vertex = this.vertices.get(i);
+            rawVertices[i* 3] = vertex.getPosition().x;
+            rawVertices[i * 3 + 1] = vertex.getPosition().y;
+            rawVertices[i * 3 + 2] = vertex.getPosition().z;
+        }
+        return rawVertices;
     }
 
     public float[] getTextureCoords() {
@@ -49,7 +56,6 @@ public class MeshData {
     }
 
     public int getVertexCount() {
-        return vertices.length / DIMENSIONS;
+        return vertices.size() / 3;
     }
-
 }

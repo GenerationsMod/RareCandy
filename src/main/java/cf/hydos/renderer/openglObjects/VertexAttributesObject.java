@@ -10,8 +10,6 @@ import java.util.List;
 
 public class VertexAttributesObject {
 
-    private static final int BYTES_PER_FLOAT = 4;
-    private static final int BYTES_PER_INT = 4;
     public final int id;
     private final List<GlBuffer> dataGlBuffers = new ArrayList<>();
     private GlBuffer indexBufferObject;
@@ -50,7 +48,7 @@ public class VertexAttributesObject {
         GlBuffer glBuffer = new GlBuffer(GL15.GL_ARRAY_BUFFER);
         glBuffer.bind();
         glBuffer.upload(data);
-        GL20.glVertexAttribPointer(attribute, attrSize, GL11.GL_FLOAT, false, attrSize * BYTES_PER_FLOAT, 0);
+        GL20.glVertexAttribPointer(attribute, attrSize, GL11.GL_FLOAT, false, attrSize * Float.BYTES, 0);
         glBuffer.unbind();
         dataGlBuffers.add(glBuffer);
     }
@@ -59,7 +57,7 @@ public class VertexAttributesObject {
         GlBuffer glBuffer = new GlBuffer(GL15.GL_ARRAY_BUFFER);
         glBuffer.bind();
         glBuffer.upload(data);
-        GL30.glVertexAttribIPointer(attribute, attrSize, GL11.GL_INT, attrSize * BYTES_PER_INT, 0);
+        GL30.glVertexAttribIPointer(attribute, attrSize, GL11.GL_INT, attrSize * Integer.BYTES, 0);
         glBuffer.unbind();
         dataGlBuffers.add(glBuffer);
     }

@@ -61,7 +61,7 @@ vec4 CalcLight(BaseLight base, vec3 direction, vec3 normal, vec3 worldPos)
         }
     }
     
-    return diffuseColor + specularColor;
+    return vec4(1.0, 1.0, 1.0, 1.0);
 }
 
 vec4 CalcPointLight(PointLight pointLight, vec3 normal, vec3 worldPos)
@@ -97,7 +97,7 @@ vec4 CalcSpotLight(SpotLight spotLight, vec3 normal, vec3 worldPos)
                 (1.0 - (1.0 - spotFactor)/(1.0 - spotLight.cutoff));
     }
     
-    return color;
+    return vec4(1.0, 1.0, 1.0, 1.0);
 }
 
 vec4 CalcDirectionalLight(DirectionalLight directionalLight, vec3 normal, vec3 worldPos)

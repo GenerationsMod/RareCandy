@@ -1,8 +1,10 @@
 package cf.hydos.renderer.renderEngine;
 
+import cf.hydos.renderer.animatedModel.AnimatedModel;
 import cf.hydos.renderer.renderer.AnimatedModelRenderer;
 import cf.hydos.renderer.scene.Scene;
 import cf.hydos.renderer.skybox.SkyboxRenderer;
+import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -25,7 +27,11 @@ public class MasterRenderer {
      */
     protected void renderScene(Scene scene) {
         prepare();
-        entityRenderer.render(scene.getAnimatedModel(), scene.getCamera(), scene.getLightDirection());
+        Matrix4f projMatrix = scene.getCamera().getProjectionViewMatrix();
+        for (AnimatedModel model : scene.models) {
+            entityRenderer.render(model, projMatrix, scene.getLightDirection());
+            projMatrix.translate(60, 0, 0);
+        }
         skyRenderer.render(scene.getCamera());
     }
 

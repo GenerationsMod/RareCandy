@@ -9,14 +9,12 @@ import org.joml.Vector3f;
  */
 public class Scene {
 
+    public final AnimatedModel[] models;
     private final ICamera camera;
-
-    private final AnimatedModel animatedModel;
-
     private final Vector3f lightDirection = new Vector3f(0, -1, 0);
 
-    public Scene(AnimatedModel model, ICamera cam) {
-        this.animatedModel = model;
+    public Scene(AnimatedModel[] models, ICamera cam) {
+        this.models = models;
         this.camera = cam;
     }
 
@@ -25,10 +23,6 @@ public class Scene {
      */
     public ICamera getCamera() {
         return camera;
-    }
-
-    public AnimatedModel getAnimatedModel() {
-        return animatedModel;
     }
 
     /**
@@ -42,4 +36,9 @@ public class Scene {
         this.lightDirection.set(lightDir);
     }
 
+    public void update() {
+        for (AnimatedModel model : models) {
+            model.update();
+        }
+    }
 }

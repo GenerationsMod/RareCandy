@@ -19,7 +19,7 @@ public class AnimationApp {
 
         Window.getInstance().run(() -> {
             scene.getCamera().move();
-            scene.getAnimatedModel().update();
+            scene.update();
             engine.renderScene(scene);
             engine.update();
         });

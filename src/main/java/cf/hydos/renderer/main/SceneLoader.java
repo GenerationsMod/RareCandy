@@ -18,13 +18,19 @@ public class SceneLoader {
      */
     public static Scene loadScene() {
         ICamera camera = new Camera();
-        AnimatedModel entity = AnimatedModelLoader.loadEntity(new MyFile(GeneralSettings.MODEL_FILE),
-                new MyFile(GeneralSettings.DIFFUSE_FILE));
         Animation animation = AnimationLoader.loadAnimation(new MyFile(GeneralSettings.ANIM_FILE));
-        entity.doAnimation(animation);
-        Scene scene = new Scene(entity, camera);
+
+        AnimatedModel entity = AnimatedModelLoader.loadEntity(new MyFile(GeneralSettings.MODEL_FILE), new MyFile(GeneralSettings.DIFFUSE_FILE));
+        AnimatedModel entity2 = AnimatedModelLoader.loadEntity(new MyFile(GeneralSettings.MODEL_FILE), new MyFile(GeneralSettings.DIFFUSE_FILE));
+        AnimatedModel entity3 = AnimatedModelLoader.loadEntity(new MyFile(GeneralSettings.MODEL_FILE), new MyFile(GeneralSettings.DIFFUSE_FILE));
+        AnimatedModel entity4 = AnimatedModelLoader.loadEntity(new MyFile(GeneralSettings.MODEL_FILE), new MyFile(GeneralSettings.DIFFUSE_FILE));
+        AnimatedModel[] entities = new AnimatedModel[]{entity, entity2, entity3, entity4};
+
+        for (AnimatedModel animatedModel : entities) {
+            animatedModel.doAnimation(animation);
+        }
+        Scene scene = new Scene(entities, camera);
         scene.setLightDirection(GeneralSettings.LIGHT_DIR);
         return scene;
     }
-
 }

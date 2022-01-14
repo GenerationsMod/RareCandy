@@ -3,6 +3,7 @@ package cf.hydos.renderer.renderer;
 import cf.hydos.renderer.animatedModel.AnimatedModel;
 import cf.hydos.renderer.scene.ICamera;
 import cf.hydos.renderer.utils.OpenGlUtils;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
@@ -28,12 +29,11 @@ public class AnimatedModelRenderer {
      * joint transforms are loaded up to the shader to a uniform array. Also 5
      * attributes of the VAO are enabled before rendering, to include joint
      * indices and weights.
-     *
-     * @param entity   - the animated entity to be rendered.
+     *  @param entity   - the animated entity to be rendered.
      * @param camera   - the camera used to render the entity.
      * @param lightDir - the direction of the light in the com.thinmatrix.animationrenderer.scene.
      */
-    public void render(AnimatedModel entity, ICamera camera, Vector3f lightDir) {
+    public void render(AnimatedModel entity, Matrix4f camera, Vector3f lightDir) {
         prepare(camera, lightDir);
         OpenGlUtils.enableDepthTesting(true);
         entity.getTexture().bindToUnit(0);
@@ -59,9 +59,9 @@ public class AnimatedModelRenderer {
      * @param camera   - the camera being used.
      * @param lightDir - the direction of the light in the com.thinmatrix.animationrenderer.scene.
      */
-    private void prepare(ICamera camera, Vector3f lightDir) {
+    private void prepare(Matrix4f projMatrix, Vector3f lightDir) {
         shader.start();
-        shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
+        shader.projectionViewMatrix.loadMatrix(projMatrix);
         shader.lightDirection.loadVec3(lightDir);
         OpenGlUtils.antialias(true);
         OpenGlUtils.disableBlending();

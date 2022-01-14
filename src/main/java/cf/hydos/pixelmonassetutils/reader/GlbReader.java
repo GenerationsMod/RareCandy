@@ -173,7 +173,7 @@ public class GlbReader implements FileReader {
         }
 
         // Try to load the textures into rosella
-        List<Texture> textures = new ArrayList<>();
+        List<GlbTexture> textures = new ArrayList<>();
         for (AITexture rawTexture : rawTextures) {
             if (rawTexture.mHeight() > 0) {
                 throw new RuntimeException(".glb file had texture with height of 0");
@@ -191,7 +191,7 @@ public class GlbReader implements FileReader {
                 if (textureCount == 0) {
                     System.out.println("Skipped material with no textures");
                 } else {
-                    Texture[] textureMap = new Texture[textureCount];
+                    GlbTexture[] textureMap = new GlbTexture[textureCount];
                     for (int i = 0; i < textureCount; i++) {
                         AIString path = AIString.calloc(stack);
                         Assimp.aiGetMaterialTexture(rawMaterial.material, Assimp.aiTextureType_DIFFUSE, 0, path, (IntBuffer) null, null, null, null, null, null);
@@ -199,7 +199,7 @@ public class GlbReader implements FileReader {
                         textureMap[i] = textures.get(Integer.parseInt(texturePath.substring(1)));
                     }
 
-                    materials.add(new Material(textureMap));
+//                    materials.add(new Material(textureMap));
                 }
             }
         }

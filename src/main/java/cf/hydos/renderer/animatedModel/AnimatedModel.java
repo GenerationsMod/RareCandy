@@ -27,7 +27,7 @@ public class AnimatedModel {
     private final Animator animator;
 
     /**
-     * Creates a new entity capable of com.thinmatrix.animationrenderer.animation. The inverse bind transform for
+     * Creates a new entity capable of animationrenderer.animation. The inverse bind transform for
      * all joints is calculated in this constructor. The bind transform is
      * simply the original (no pose applied) transform of a joint in relation to
      * the model's origin (model-space). The inverse bind transform is simply
@@ -85,11 +85,11 @@ public class AnimatedModel {
     }
 
     /**
-     * Instructs this entity to carry out a given com.thinmatrix.animationrenderer.animation. To do this it
-     * basically sets the chosen com.thinmatrix.animationrenderer.animation as the current com.thinmatrix.animationrenderer.animation in the
+     * Instructs this entity to carry out a given animationrenderer.animation. To do this it
+     * basically sets the chosen animationrenderer.animation as the current animationrenderer.animation in the
      * {@link Animator} object.
      *
-     * @param animation - the com.thinmatrix.animationrenderer.animation to be carried out.
+     * @param animation - the animationrenderer.animation to be carried out.
      */
     public void doAnimation(Animation animation) {
         animator.doAnimation(animation);
@@ -105,12 +105,12 @@ public class AnimatedModel {
 
     /**
      * Gets an array of the all important model-space transforms of all the
-     * joints (with the current com.thinmatrix.animationrenderer.animation pose applied) in the entity. The
+     * joints (with the current animationrenderer.animation pose applied) in the entity. The
      * joints are ordered in the array based on their joint index. The position
      * of each joint's transform in the array is equal to the joint's index.
      *
      * @return The array of model-space transforms of the joints in the current
-     * com.thinmatrix.animationrenderer.animation pose.
+     * animationrenderer.animation pose.
      */
     public Matrix4f[] getJointTransforms() {
         Matrix4f[] jointMatrices = new Matrix4f[jointCount];

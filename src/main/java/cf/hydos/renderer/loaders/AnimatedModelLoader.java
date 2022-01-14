@@ -20,7 +20,7 @@ public class AnimatedModelLoader {
      * joint heirarchy, and loads up the entity's texture.
      *
      * @param entityFile - the file containing the data for the entity.
-     * @return The animated entity (no com.thinmatrix.animationrenderer.animation applied though)
+     * @return The animated entity (no animationrenderer.animation applied though)
      */
     public static AnimatedModel loadEntity(MyFile modelFile, MyFile textureFile) {
         AnimatedModelData entityData = ColladaLoader.loadColladaModel(modelFile, GeneralSettings.MAX_WEIGHTS);

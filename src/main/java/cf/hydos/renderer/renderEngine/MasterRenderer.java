@@ -8,7 +8,7 @@ import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 /**
- * This class is in charge of rendering everything in the com.thinmatrix.animationrenderer.scene to the screen.
+ * This class is in charge of rendering everything in the animationrenderer.scene to the screen.
  */
 public class MasterRenderer {
 
@@ -21,7 +21,7 @@ public class MasterRenderer {
     }
 
     /**
-     * Renders the com.thinmatrix.animationrenderer.scene to the screen.
+     * Renders the animationrenderer.scene to the screen.
      *
      * @param scene
      */

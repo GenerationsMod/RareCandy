@@ -8,7 +8,7 @@ public class CubeGenerator {
             3, 4, 4, 3, 7, 7, 3, 6, 6, 3, 2, 4, 5, 0, 0, 5, 1};
 
     /**
-     * Generates a VAO containing the vertex positions of a box, to be used as a com.thinmatrix.animationrenderer.skybox.
+     * Generates a VAO containing the vertex positions of a box, to be used as a animationrenderer.skybox.
      *
      * @param size - the size of the box.
      * @return The VAO containing the box.

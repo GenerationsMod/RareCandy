@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
- * Represents a "file" inside a Jar File. Used for accessing resources (models, com.thinmatrix.animationrenderer.textures), as they
+ * Represents a "file" inside a Jar File. Used for accessing resources (models, animationrenderer.textures), as they
  * are all inside a jar file when exported.
  */
 public class MyFile {

@@ -11,10 +11,10 @@ import cf.hydos.renderer.utils.MyFile;
 public class SceneLoader {
 
     /**
-     * Sets up the com.thinmatrix.animationrenderer.scene. Loads the entity, load the com.thinmatrix.animationrenderer.animation, tells the entity
-     * to do the com.thinmatrix.animationrenderer.animation, sets the light direction, creates the camera, etc...
+     * Sets up the animationrenderer.scene. Loads the entity, load the animationrenderer.animation, tells the entity
+     * to do the animationrenderer.animation, sets the light direction, creates the camera, etc...
      *
-     * @return The entire com.thinmatrix.animationrenderer.scene.
+     * @return The entire animationrenderer.scene.
      */
     public static Scene loadScene() {
         ICamera camera = new Camera();

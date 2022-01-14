@@ -25,13 +25,13 @@ public class AnimatedModelRenderer {
     }
 
     /**
-     * Renders an animated entity. The com.thinmatrix.animationrenderer.main thing to note here is that all the
+     * Renders an animated entity. The animationrenderer.main thing to note here is that all the
      * joint transforms are loaded up to the shader to a uniform array. Also 5
      * attributes of the VAO are enabled before rendering, to include joint
      * indices and weights.
      *  @param entity   - the animated entity to be rendered.
      * @param camera   - the camera used to render the entity.
-     * @param lightDir - the direction of the light in the com.thinmatrix.animationrenderer.scene.
+     * @param lightDir - the direction of the light in the animationrenderer.scene.
      */
     public void render(AnimatedModel entity, Matrix4f camera, Vector3f lightDir) {
         prepare(camera, lightDir);
@@ -57,7 +57,7 @@ public class AnimatedModelRenderer {
      * should be pretty self-explanatory.
      *
      * @param camera   - the camera being used.
-     * @param lightDir - the direction of the light in the com.thinmatrix.animationrenderer.scene.
+     * @param lightDir - the direction of the light in the animationrenderer.scene.
      */
     private void prepare(Matrix4f projMatrix, Vector3f lightDir) {
         shader.start();

@@ -14,7 +14,7 @@ import java.util.List;
  * The "animatedTransform" matrix is the joint transform that I keep referring
  * to in the tutorial. This is the transform that gets loaded up to the vertex
  * shader and is used to transform vertices. It is a model-space transform that
- * transforms the joint from it's bind (original position, no com.thinmatrix.animationrenderer.animation applied)
+ * transforms the joint from it's bind (original position, no animationrenderer.animation applied)
  * position to it's current position in the current pose. Changing this
  * transform changes the position/rotation of the joint in the animated entity.
  * <p>
@@ -42,7 +42,7 @@ public class Joint {
      * @param index              - the joint's index (ID).
      * @param name               - the name of the joint. This is how the joint is named in the
      *                           collada file, and so is used to identify which joint a joint
-     *                           transform in an com.thinmatrix.animationrenderer.animation keyframe refers to.
+     *                           transform in an animationrenderer.animation keyframe refers to.
      * @param bindLocalTransform - the bone-space transform of the joint in the bind position.
      */
     public Joint(int index, String name, Matrix4f bindLocalTransform) {
@@ -67,13 +67,13 @@ public class Joint {
      * The animated transform is the transform that gets loaded up to the shader
      * and is used to deform the vertices of the "skin". It represents the
      * transformation from the joint's bind position (original position in
-     * model-space) to the joint's desired com.thinmatrix.animationrenderer.animation pose (also in model-space).
+     * model-space) to the joint's desired animationrenderer.animation pose (also in model-space).
      * This matrix is calculated by taking the desired model-space transform of
      * the joint and multiplying it by the inverse of the starting model-space
      * transform of the joint.
      *
      * @return The transformation matrix of the joint which is used to deform
-     * associated vertices of the skin in the com.thinmatrix.animationrenderer.shaders.
+     * associated vertices of the skin in the animationrenderer.shaders.
      */
     public Matrix4f getAnimatedTransform() {
         return animatedTransform;
@@ -92,7 +92,7 @@ public class Joint {
 
     /**
      * This returns the inverted model-space bind transform. The bind transform
-     * is the original model-space transform of the joint (when no com.thinmatrix.animationrenderer.animation is
+     * is the original model-space transform of the joint (when no animationrenderer.animation is
      * applied). This returns the inverse of that, which is used to calculate
      * the animated transform matrix which gets used to transform vertices in
      * the shader.
@@ -114,7 +114,7 @@ public class Joint {
      * "parentBindTransform" is the model-space bind transform of the parent
      * joint, and "localBindTransform" is the bone-space bind transform of this
      * joint. It then calculates and stores the inverse of this model-space bind
-     * transform, for use when calculating the final com.thinmatrix.animationrenderer.animation transform each
+     * transform, for use when calculating the final animationrenderer.animation transform each
      * frame. It then recursively calls the method for all of the children
      * joints, so that they too calculate and store their inverse bind-pose
      * transform.

@@ -1,8 +1,8 @@
 package cf.hydos.renderer.dataStructures;
 
 /**
- * Contains the extracted data for an com.thinmatrix.animationrenderer.animation, which includes the length of
- * the entire com.thinmatrix.animationrenderer.animation and the data for all the keyframes of the com.thinmatrix.animationrenderer.animation.
+ * Contains the extracted data for an animationrenderer.animation, which includes the length of
+ * the entire animationrenderer.animation and the data for all the keyframes of the animationrenderer.animation.
  */
 public class AnimationData {
 

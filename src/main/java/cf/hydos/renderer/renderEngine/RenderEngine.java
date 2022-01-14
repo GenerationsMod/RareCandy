@@ -24,9 +24,9 @@ public class RenderEngine {
     }
 
     /**
-     * Renders the com.thinmatrix.animationrenderer.scene to the screen.
+     * Renders the animationrenderer.scene to the screen.
      *
-     * @param scene - the game com.thinmatrix.animationrenderer.scene.
+     * @param scene - the game animationrenderer.scene.
      */
     public void renderScene(Scene scene) {
         renderer.renderScene(scene);

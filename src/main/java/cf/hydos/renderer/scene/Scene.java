@@ -4,7 +4,7 @@ import cf.hydos.renderer.animatedModel.AnimatedModel;
 import org.joml.Vector3f;
 
 /**
- * Represents all the stuff in the com.thinmatrix.animationrenderer.scene (just the camera, light, and model
+ * Represents all the stuff in the animationrenderer.scene (just the camera, light, and model
  * really).
  */
 public class Scene {
@@ -19,7 +19,7 @@ public class Scene {
     }
 
     /**
-     * @return The com.thinmatrix.animationrenderer.scene's camera.
+     * @return The animationrenderer.scene's camera.
      */
     public ICamera getCamera() {
         return camera;

@@ -5,7 +5,7 @@ import org.joml.Vector3f;
 
 /**
  * Represents the local bone-space transform of a joint at a certain keyframe
- * during an com.thinmatrix.animationrenderer.animation. This includes the position and rotation of the joint,
+ * during an animationrenderer.animation. This includes the position and rotation of the joint,
  * relative to the parent joint (for the root joint it's relative to the model's
  * origin, seeing as the root joint has no parent). The transform is stored as a
  * position vector and a quaternion (rotation) so that these values can be

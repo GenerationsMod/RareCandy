@@ -19,9 +19,9 @@ public class SkyboxRenderer {
     }
 
     /**
-     * Renders the com.thinmatrix.animationrenderer.skybox.
+     * Renders the animationrenderer.skybox.
      *
-     * @param camera - the com.thinmatrix.animationrenderer.scene's camera.
+     * @param camera - the animationrenderer.scene's camera.
      */
     public void render(ICamera camera) {
         prepare(camera);
@@ -43,7 +43,7 @@ public class SkyboxRenderer {
      * variable, and sets some OpenGL state which should be mostly
      * self-explanatory.
      *
-     * @param camera - the com.thinmatrix.animationrenderer.scene's camera.
+     * @param camera - the animationrenderer.scene's camera.
      */
     private void prepare(ICamera camera) {
         shader.start();

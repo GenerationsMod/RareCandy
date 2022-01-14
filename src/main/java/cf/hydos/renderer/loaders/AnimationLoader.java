@@ -16,18 +16,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class loads up an com.thinmatrix.animationrenderer.animation collada file, gets the information from it,
+ * This class loads up an animationrenderer.animation collada file, gets the information from it,
  * and then creates and returns an {@link Animation} from the extracted data.
  */
 public class AnimationLoader {
 
     /**
-     * Loads up a collada com.thinmatrix.animationrenderer.animation file, and returns and com.thinmatrix.animationrenderer.animation created from
-     * the extracted com.thinmatrix.animationrenderer.animation data from the file.
+     * Loads up a collada animationrenderer.animation file, and returns and animationrenderer.animation created from
+     * the extracted animationrenderer.animation data from the file.
      *
      * @param colladaFile - the collada file containing data about the desired
-     *                    com.thinmatrix.animationrenderer.animation.
-     * @return The com.thinmatrix.animationrenderer.animation made from the data in the file.
+     *                    animationrenderer.animation.
+     * @return The animationrenderer.animation made from the data in the file.
      */
     public static Animation loadAnimation(MyFile colladaFile) {
         AnimationData animationData = ColladaLoader.loadColladaAnimation(colladaFile);

@@ -64,6 +64,7 @@ public class GlbReader implements FileReader {
         processTexCoords(mesh, meshData.texCoords);
         processIndices(mesh, meshData.indices);
         processNormals(mesh, meshData.normals);
+        processBones(mesh, null);
         models.add(meshData);
     }
 
@@ -86,6 +87,14 @@ public class GlbReader implements FileReader {
         dest.m23(assimpMat4.d3());
         dest.m33(assimpMat4.d4());
         return dest;
+    }
+
+    private static void processBones(AIMesh mesh, Object o) {
+        PointerBuffer pBones = requireNonNull(mesh.mBones());
+
+        for (int i = 0; i < pBones.capacity(); i++) {
+            long bone = pBones.get(i);
+        }
     }
 
     private static void processPositions(AIMesh mesh, List<Vector3fc> positions) {

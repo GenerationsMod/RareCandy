@@ -11,9 +11,9 @@ public class AnimatedModelShader extends ShaderProgram {
     private static final MyFile VERTEX_SHADER = new MyFile("shaders/animatedEntity", "animatedEntityVertex.glsl");
     private static final MyFile FRAGMENT_SHADER = new MyFile("shaders/animatedEntity", "animatedEntityFragment.glsl");
 
-    protected UniformMatrix projectionViewMatrix = new UniformMatrix("projectionViewMatrix");
-    protected UniformVec3 lightDirection = new UniformVec3("lightDirection");
-    protected UniformMat4Array jointTransforms = new UniformMat4Array("jointTransforms", MAX_JOINTS);
+    protected final UniformMatrix projectionViewMatrix = new UniformMatrix("projectionViewMatrix");
+    protected final UniformVec3 lightDirection = new UniformVec3("lightDirection");
+    protected final UniformMat4Array jointTransforms = new UniformMat4Array("jointTransforms", MAX_JOINTS);
     private final UniformSampler diffuseMap = new UniformSampler("diffuseMap");
 
     /**

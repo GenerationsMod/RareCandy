@@ -1,7 +1,6 @@
 package cf.hydos.renderer.renderer;
 
 import cf.hydos.renderer.animatedModel.AnimatedModel;
-import cf.hydos.renderer.scene.ICamera;
 import cf.hydos.renderer.utils.OpenGlUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;

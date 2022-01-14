@@ -13,7 +13,7 @@ public class Vao {
     private static final int BYTES_PER_FLOAT = 4;
     private static final int BYTES_PER_INT = 4;
     public final int id;
-    private final List<Vbo> dataVbos = new ArrayList<Vbo>();
+    private final List<Vbo> dataVbos = new ArrayList<>();
     private Vbo indexVbo;
     private int indexCount;
 

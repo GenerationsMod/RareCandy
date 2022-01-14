@@ -31,7 +31,7 @@ public class Joint {
 
     public final int index;// ID
     public final String name;
-    public final List<Joint> children = new ArrayList<Joint>();
+    public final List<Joint> children = new ArrayList<>();
 
     private Matrix4f animatedTransform = new Matrix4f();
 

@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
- * Represents a "file" inside a Jar File. Used for accessing resources (models, animationrenderer.textures), as they
+ * Represents a "file" inside a Jar File. Used for accessing resources (models, textures), as they
  * are all inside a jar file when exported.
  */
 public class MyFile {
@@ -60,8 +60,7 @@ public class MyFile {
     public BufferedReader getReader() {
         try {
             InputStreamReader isr = new InputStreamReader(getInputStream());
-            BufferedReader reader = new BufferedReader(isr);
-            return reader;
+            return new BufferedReader(isr);
         } catch (Exception e) {
             System.err.println("Couldn't get reader for " + path);
             throw e;
@@ -71,5 +70,4 @@ public class MyFile {
     public String getName() {
         return name;
     }
-
 }

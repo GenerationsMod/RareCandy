@@ -49,9 +49,9 @@ public class VertexSkinData {
 
     private void refillWeightList(float[] topWeights, float total) {
         weights.clear();
-        for (int i = 0; i < topWeights.length; i++) {
-            weights.add(Math.min(topWeights[i] / total, 1));
-        }
+		for (float topWeight : topWeights) {
+			weights.add(Math.min(topWeight / total, 1));
+		}
     }
 
     private void removeExcessJointIds(int max) {

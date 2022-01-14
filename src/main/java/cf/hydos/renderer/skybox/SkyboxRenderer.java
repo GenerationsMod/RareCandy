@@ -24,7 +24,7 @@ public class SkyboxRenderer {
      * @param camera - the animationrenderer.scene's camera.
      */
     public void render(ICamera camera) {
-        prepare(camera);
+        prepare();
         box.bind(0);
         GL11.glDrawElements(GL11.GL_TRIANGLES, box.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
         box.unbind(0);
@@ -43,9 +43,8 @@ public class SkyboxRenderer {
      * variable, and sets some OpenGL state which should be mostly
      * self-explanatory.
      *
-     * @param camera - the animationrenderer.scene's camera.
      */
-    private void prepare(ICamera camera) {
+    private void prepare() {
         shader.start();
         shader.projectionViewMatrix.loadMatrix(Camera.createProjectionMatrix());
         OpenGlUtils.enableDepthTesting(true);

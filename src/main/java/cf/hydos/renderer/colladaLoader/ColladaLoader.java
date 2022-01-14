@@ -27,8 +27,7 @@ public class ColladaLoader {
         XmlNode animNode = node.getChild("library_animations");
         XmlNode jointsNode = node.getChild("library_visual_scenes");
         AnimationLoader loader = new AnimationLoader(animNode, jointsNode);
-        AnimationData animData = loader.extractAnimation();
-        return animData;
+        return loader.extractAnimation();
     }
 
 }

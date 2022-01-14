@@ -30,10 +30,10 @@ public class GeometryLoader {
     private int[] jointIdsArray;
     private float[] weightsArray;
 
-    List<Vertex> vertices = new ArrayList<Vertex>();
-    List<Vector2f> textures = new ArrayList<Vector2f>();
-    List<Vector3f> normals = new ArrayList<Vector3f>();
-    List<Integer> indices = new ArrayList<Integer>();
+    final List<Vertex> vertices = new ArrayList<>();
+    final List<Vector2f> textures = new ArrayList<>();
+    final List<Vector3f> normals = new ArrayList<>();
+    final List<Integer> indices = new ArrayList<>();
 
     public GeometryLoader(XmlNode geometryNode, List<VertexSkinData> vertexWeights) {
         this.vertexWeights = vertexWeights;
@@ -113,27 +113,25 @@ public class GeometryLoader {
     }
 
 
-    private Vertex processVertex(int posIndex, int normIndex, int texIndex) {
+    private void processVertex(int posIndex, int normIndex, int texIndex) {
         Vertex currentVertex = vertices.get(posIndex);
-        if (!currentVertex.isSet()) {
+        if (currentVertex.isSet()) {
             currentVertex.setTextureIndex(texIndex);
             currentVertex.setNormalIndex(normIndex);
             indices.add(posIndex);
-            return currentVertex;
-        } else {
-            return dealWithAlreadyProcessedVertex(currentVertex, texIndex, normIndex);
-        }
+		} else {
+			dealWithAlreadyProcessedVertex(currentVertex, texIndex, normIndex);
+		}
     }
 
-    private int[] convertIndicesListToArray() {
+    private void convertIndicesListToArray() {
         this.indicesArray = new int[indices.size()];
         for (int i = 0; i < indicesArray.length; i++) {
             indicesArray[i] = indices.get(i);
         }
-        return indicesArray;
-    }
+	}
 
-    private float convertDataToArrays() {
+    private void convertDataToArrays() {
         float furthestPoint = 0;
         for (int i = 0; i < vertices.size(); i++) {
             Vertex currentVertex = vertices.get(i);
@@ -160,8 +158,7 @@ public class GeometryLoader {
             weightsArray[i * 3 + 2] = weights.weights.get(2);
 
         }
-        return furthestPoint;
-    }
+	}
 
     private Vertex dealWithAlreadyProcessedVertex(Vertex previousVertex, int newTextureIndex, int newNormalIndex) {
         if (previousVertex.hasSameTextureAndNormal(newTextureIndex, newNormalIndex)) {
@@ -195,7 +192,7 @@ public class GeometryLoader {
     private void removeUnusedVertices() {
         for (Vertex vertex : vertices) {
             vertex.averageTangents();
-            if (!vertex.isSet()) {
+            if (vertex.isSet()) {
                 vertex.setTextureIndex(0);
                 vertex.setNormalIndex(0);
             }

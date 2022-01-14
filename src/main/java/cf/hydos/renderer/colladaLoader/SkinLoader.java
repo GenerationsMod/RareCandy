@@ -5,6 +5,7 @@ import cf.hydos.renderer.dataStructures.VertexSkinData;
 import cf.hydos.renderer.xmlParser.XmlNode;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class SkinLoader {
@@ -32,10 +33,8 @@ public class SkinLoader {
                 .substring(1);
         XmlNode jointsNode = skinningData.getChildWithAttribute("source", "id", jointDataId).getChild("Name_array");
         String[] names = jointsNode.getData().split(" ");
-        List<String> jointsList = new ArrayList<String>();
-        for (String name : names) {
-            jointsList.add(name);
-        }
+        List<String> jointsList = new ArrayList<>();
+		jointsList.addAll(Arrays.asList(names));
         return jointsList;
     }
 
@@ -63,7 +62,7 @@ public class SkinLoader {
 
     private List<VertexSkinData> getSkinData(XmlNode weightsDataNode, int[] counts, float[] weights) {
         String[] rawData = weightsDataNode.getChild("v").getData().split(" ");
-        List<VertexSkinData> skinningData = new ArrayList<VertexSkinData>();
+        List<VertexSkinData> skinningData = new ArrayList<>();
         int pointer = 0;
         for (int count : counts) {
             VertexSkinData skinData = new VertexSkinData();

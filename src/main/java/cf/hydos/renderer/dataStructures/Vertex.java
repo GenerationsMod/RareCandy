@@ -15,7 +15,7 @@ public class Vertex {
     private Vertex duplicateVertex = null;
     private final int index;
     private final float length;
-    private final List<Vector3f> tangents = new ArrayList<Vector3f>();
+    private final List<Vector3f> tangents = new ArrayList<>();
     private final Vector3f averagedTangent = new Vector3f(0, 0, 0);
 
 
@@ -59,7 +59,7 @@ public class Vertex {
     }
 
     public boolean isSet() {
-        return textureIndex != NO_INDEX && normalIndex != NO_INDEX;
+        return textureIndex == NO_INDEX || normalIndex == NO_INDEX;
     }
 
     public boolean hasSameTextureAndNormal(int textureIndexOther, int normalIndexOther) {

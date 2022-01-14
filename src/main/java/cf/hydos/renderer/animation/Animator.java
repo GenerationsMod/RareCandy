@@ -198,7 +198,7 @@ public class Animator {
      * the joint to which they should be applied.
      */
     private Map<String, Matrix4f> interpolatePoses(KeyFrame previousFrame, KeyFrame nextFrame, float progression) {
-        Map<String, Matrix4f> currentPose = new HashMap<String, Matrix4f>();
+        Map<String, Matrix4f> currentPose = new HashMap<>();
         for (String jointName : previousFrame.getJointKeyFrames().keySet()) {
             JointTransform previousTransform = previousFrame.getJointKeyFrames().get(jointName);
             JointTransform nextTransform = nextFrame.getJointKeyFrames().get(jointName);

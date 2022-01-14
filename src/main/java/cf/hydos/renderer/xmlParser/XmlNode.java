@@ -107,7 +107,7 @@ public class XmlNode {
                 return children;
             }
         }
-        return new ArrayList<XmlNode>();
+        return new ArrayList<>();
     }
 
     /**
@@ -120,7 +120,7 @@ public class XmlNode {
      */
     protected void addAttribute(String attr, String value) {
         if (attributes == null) {
-            attributes = new HashMap<String, String>();
+            attributes = new HashMap<>();
         }
         attributes.put(attr, value);
     }
@@ -132,13 +132,9 @@ public class XmlNode {
      */
     protected void addChild(XmlNode child) {
         if (childNodes == null) {
-            childNodes = new HashMap<String, List<XmlNode>>();
+            childNodes = new HashMap<>();
         }
-        List<XmlNode> list = childNodes.get(child.name);
-        if (list == null) {
-            list = new ArrayList<XmlNode>();
-            childNodes.put(child.name, list);
-        }
+        List<XmlNode> list = childNodes.computeIfAbsent(child.name, k -> new ArrayList<>());
         list.add(child);
     }
 

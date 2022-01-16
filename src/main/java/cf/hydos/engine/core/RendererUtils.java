@@ -15,6 +15,22 @@ public class RendererUtils {
         return new Matrix4f().identity().rotate(forward, up, right);
     }
 
+    public static Matrix4f WeirdMul(Matrix4f left, Matrix4f right) {
+        Matrix4f res = new Matrix4f();
+
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                res.set(i, j,
+                        left.m[i][0] * right.get(0, j) +
+                                left.m[i][1] * right.get(1, j) +
+                                left.m[i][2] * right.get(2, j) +
+                                left.m[i][3] * right.get(3, j));
+            }
+        }
+
+        return res;
+    }
+
     public static FloatBuffer CreateFlippedBuffer(Matrix4f value) {
         FloatBuffer buffer = BufferUtils.createFloatBuffer(4 * 4);
 

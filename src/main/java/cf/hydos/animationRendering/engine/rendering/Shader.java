@@ -1,9 +1,6 @@
 package cf.hydos.animationRendering.engine.rendering;
 
 import cf.hydos.animationRendering.engine.components.BaseLight;
-import cf.hydos.animationRendering.engine.components.DirectionalLight;
-import cf.hydos.animationRendering.engine.components.PointLight;
-import cf.hydos.animationRendering.engine.components.SpotLight;
 import cf.hydos.animationRendering.engine.core.Matrix4f;
 import cf.hydos.animationRendering.engine.core.Transform;
 import cf.hydos.animationRendering.engine.core.Util;
@@ -121,12 +118,6 @@ public class Shader {
                     SetUniform(uniformName, renderingEngine.GetVector3f(unprefixedUniformName));
                 else if (uniformType.equals("float"))
                     SetUniformf(uniformName, renderingEngine.GetFloat(unprefixedUniformName));
-                else if (uniformType.equals("DirectionalLight"))
-                    SetUniformDirectionalLight(uniformName, (DirectionalLight) renderingEngine.GetActiveLight());
-                else if (uniformType.equals("PointLight"))
-                    SetUniformPointLight(uniformName, (PointLight) renderingEngine.GetActiveLight());
-                else if (uniformType.equals("SpotLight"))
-                    SetUniformSpotLight(uniformName, (SpotLight) renderingEngine.GetActiveLight());
                 else
                     renderingEngine.UpdateUniformStruct(transform, material, this, uniformName, uniformType);
             } else if (uniformName.startsWith("C_")) {
@@ -364,26 +355,6 @@ public class Shader {
     public void SetUniformBaseLight(String uniformName, BaseLight baseLight) {
         SetUniform(uniformName + ".color", baseLight.GetColor());
         SetUniformf(uniformName + ".intensity", baseLight.GetIntensity());
-    }
-
-    public void SetUniformDirectionalLight(String uniformName, DirectionalLight directionalLight) {
-        SetUniformBaseLight(uniformName + ".base", directionalLight);
-        SetUniform(uniformName + ".direction", directionalLight.GetDirection());
-    }
-
-    public void SetUniformPointLight(String uniformName, PointLight pointLight) {
-        SetUniformBaseLight(uniformName + ".base", pointLight);
-        SetUniformf(uniformName + ".atten.constant", pointLight.GetAttenuation().GetConstant());
-        SetUniformf(uniformName + ".atten.linear", pointLight.GetAttenuation().GetLinear());
-        SetUniformf(uniformName + ".atten.exponent", pointLight.GetAttenuation().GetExponent());
-        SetUniform(uniformName + ".position", pointLight.GetTransform().GetTransformedPos());
-        SetUniformf(uniformName + ".range", pointLight.GetRange());
-    }
-
-    public void SetUniformSpotLight(String uniformName, SpotLight spotLight) {
-        SetUniformPointLight(uniformName + ".pointLight", spotLight);
-        SetUniform(uniformName + ".direction", spotLight.GetDirection());
-        SetUniformf(uniformName + ".cutoff", spotLight.GetCutoff());
     }
 
     private class GLSLStruct {

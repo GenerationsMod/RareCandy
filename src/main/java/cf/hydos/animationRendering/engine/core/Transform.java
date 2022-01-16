@@ -1,5 +1,6 @@
 package cf.hydos.animationRendering.engine.core;
 
+@Deprecated
 public class Transform {
     private Transform m_parent;
     private Matrix4f m_parentMatrix;

@@ -8,7 +8,7 @@ plugins {
 
 group = "cf.hydos"
 version = "1.0-SNAPSHOT"
-val rootPkg = "com.base.game"
+val rootPkg = "cf.hydos"
 
 val lwjglNatives = when (OperatingSystem.current()) {
     OperatingSystem.LINUX -> System.getProperty("os.arch").let {

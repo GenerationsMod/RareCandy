@@ -1,10 +1,10 @@
 package cf.hydos.animationRendering.animation;
 
-import cf.hydos.pixelmonassetutils.reader.GlbReader;
-import cf.hydos.pixelmonassetutils.scene.material.GlbTexture;
 import cf.hydos.animationRendering.engine.core.Matrix4f;
 import cf.hydos.animationRendering.engine.core.Util;
 import cf.hydos.animationRendering.engine.rendering.Texture;
+import cf.hydos.pixelmonassetutils.reader.GlbReader;
+import cf.hydos.pixelmonassetutils.scene.material.GlbTexture;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.*;

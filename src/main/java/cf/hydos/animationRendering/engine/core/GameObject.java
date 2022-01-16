@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2014 Benny Bobaganoosh
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package cf.hydos.animationRendering.engine.core;
 
 import cf.hydos.animationRendering.engine.components.GameComponent;
@@ -22,109 +6,95 @@ import cf.hydos.animationRendering.engine.rendering.Shader;
 
 import java.util.ArrayList;
 
-public class GameObject
-{
-	private ArrayList<GameObject> m_children;
-	private ArrayList<GameComponent> m_components;
-	private Transform m_transform;
-	private CoreEngine m_engine;
+public class GameObject {
+    private final ArrayList<GameObject> m_children;
+    private final ArrayList<GameComponent> m_components;
+    private final Transform m_transform;
+    private CoreEngine m_engine;
 
-	public GameObject()
-	{
-		m_children = new ArrayList<GameObject>();
-		m_components = new ArrayList<GameComponent>();
-		m_transform = new Transform();
-		m_engine = null;
-	}
+    public GameObject() {
+        m_children = new ArrayList<GameObject>();
+        m_components = new ArrayList<GameComponent>();
+        m_transform = new Transform();
+        m_engine = null;
+    }
 
-	public GameObject AddChild(GameObject child)
-	{
-		m_children.add(child);
-		child.SetEngine(m_engine);
-		child.GetTransform().SetParent(m_transform);
-		
-		return this;
-	}
+    public GameObject AddChild(GameObject child) {
+        m_children.add(child);
+        child.SetEngine(m_engine);
+        child.GetTransform().SetParent(m_transform);
 
-	public GameObject AddComponent(GameComponent component)
-	{
-		m_components.add(component);
-		component.SetParent(this);
+        return this;
+    }
 
-		return this;
-	}
+    public GameObject AddComponent(GameComponent component) {
+        m_components.add(component);
+        component.SetParent(this);
 
-	public void InputAll(float delta)
-	{
-		Input(delta);
+        return this;
+    }
 
-		for(GameObject child : m_children)
-			child.InputAll(delta);
-	}
+    public void InputAll(float delta) {
+        Input(delta);
 
-	public void UpdateAll(float delta)
-	{
-		Update(delta);
+        for (GameObject child : m_children)
+            child.InputAll(delta);
+    }
 
-		for(GameObject child : m_children)
-			child.UpdateAll(delta);
-	}
+    public void UpdateAll(float delta) {
+        Update(delta);
 
-	public void RenderAll(Shader shader, RenderingEngine renderingEngine)
-	{
-		Render(shader, renderingEngine);
+        for (GameObject child : m_children)
+            child.UpdateAll(delta);
+    }
 
-		for(GameObject child : m_children)
-			child.RenderAll(shader, renderingEngine);
-	}
+    public void RenderAll(Shader shader, RenderingEngine renderingEngine) {
+        Render(shader, renderingEngine);
 
-	public void Input(float delta)
-	{
-		m_transform.Update();
+        for (GameObject child : m_children)
+            child.RenderAll(shader, renderingEngine);
+    }
 
-		for(GameComponent component : m_components)
-			component.Input(delta);
-	}
+    public void Input(float delta) {
+        m_transform.Update();
 
-	public void Update(float delta)
-	{
-		for(GameComponent component : m_components)
-			component.Update(delta);
-	}
+        for (GameComponent component : m_components)
+            component.Input(delta);
+    }
 
-	public void Render(Shader shader, RenderingEngine renderingEngine)
-	{
-		for(GameComponent component : m_components)
-			component.Render(shader, renderingEngine);
-	}
+    public void Update(float delta) {
+        for (GameComponent component : m_components)
+            component.Update(delta);
+    }
 
-	public ArrayList<GameObject> GetAllAttached()
-	{
-		ArrayList<GameObject> result = new ArrayList<GameObject>();
+    public void Render(Shader shader, RenderingEngine renderingEngine) {
+        for (GameComponent component : m_components)
+            component.Render(shader, renderingEngine);
+    }
 
-		for(GameObject child : m_children)
-			result.addAll(child.GetAllAttached());
+    public ArrayList<GameObject> GetAllAttached() {
+        ArrayList<GameObject> result = new ArrayList<GameObject>();
 
-		result.add(this);
-		return result;
-	}
+        for (GameObject child : m_children)
+            result.addAll(child.GetAllAttached());
 
-	public Transform GetTransform()
-	{
-		return m_transform;
-	}
+        result.add(this);
+        return result;
+    }
 
-	public void SetEngine(CoreEngine engine)
-	{
-		if(this.m_engine != engine)
-		{
-			this.m_engine = engine;
+    public Transform GetTransform() {
+        return m_transform;
+    }
 
-			for(GameComponent component : m_components)
-				component.AddToEngine(engine);
+    public void SetEngine(CoreEngine engine) {
+        if (this.m_engine != engine) {
+            this.m_engine = engine;
 
-			for(GameObject child : m_children)
-				child.SetEngine(engine);
-		}
-	}
+            for (GameComponent component : m_components)
+                component.AddToEngine(engine);
+
+            for (GameObject child : m_children)
+                child.SetEngine(engine);
+        }
+    }
 }

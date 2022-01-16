@@ -156,7 +156,7 @@ public class AnimatedComponent extends GameComponent {
         return 0;
     }
 
-    protected void ReadNodeHeirarchy(float AnimationTime, AINode pNode, Matrix4f ParentTransform) {
+    protected void ReadNodeHierarchy(float AnimationTime, AINode pNode, Matrix4f ParentTransform) {
         String NodeName = pNode.mName().dataString();
 
 //        engine.animation pAnimation = null;//m_pScene.mAnimations[0];
@@ -194,7 +194,7 @@ public class AnimatedComponent extends GameComponent {
         }
 
         for (int i = 0; i < pNode.mNumChildren(); i++) {
-            ReadNodeHeirarchy(AnimationTime, AINode.create(pNode.mChildren().get(i)), GlobalTransformation);
+            ReadNodeHierarchy(AnimationTime, AINode.create(pNode.mChildren().get(i)), GlobalTransformation);
         }
     }
 
@@ -211,7 +211,7 @@ public class AnimatedComponent extends GameComponent {
         float TimeInTicks = timeInSeconds * TicksPerSecond;
         float AnimationTime = (TimeInTicks % (float) animation.mDuration());
 
-        ReadNodeHeirarchy(AnimationTime, root, Identity);
+        ReadNodeHierarchy(AnimationTime, root, Identity);
 
 //        boneTransforms.resize(m_NumBones);
 

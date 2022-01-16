@@ -43,6 +43,14 @@ public class PixelAsset {
         }
     }
 
+    /**
+     * We change 1 bit to make file readers fail to load the file or find its format. I would rather not have reforged digging through the assets, honestly.
+     */
+    public static byte[] lockArchive(byte[] originalBytes) {
+        originalBytes[0] = (byte) 6;
+        return originalBytes;
+    }
+
     private InternalFileType findFormat(TarFile file) {
         InternalFileType type = null;
         for (TarArchiveEntry entry : file.getEntries()) {
@@ -76,14 +84,6 @@ public class PixelAsset {
         } catch (IOException e) {
             throw new RuntimeException("Failed to read file.", e);
         }
-    }
-
-    /**
-     * We change 1 bit to make file readers fail to load the file or find its format. I would rather not have reforged digging through the assets, honestly.
-     */
-    public static byte[] lockArchive(byte[] originalBytes) {
-        originalBytes[0] = (byte) 6;
-        return originalBytes;
     }
 
     /**

@@ -22,9 +22,10 @@ void main() {
 
     vec3 n = normalize((T_model * vec4(normal, 2.0)).xyz);
     vec3 t = normalize((T_model * vec4(tangent, 2.0)).xyz);
+    vec3 moddedT = normalize(t - dot(t, n) * n);
 
     vec3 biTangent = cross(t, n);
 
     texCoord0 = texCoord;
-    gl_Position = T_model * BoneTransform * vec4(position + normalize(t - dot(t, n) * n) * biTangent * n, 1.0);
+    gl_Position = T_model * BoneTransform * vec4(position + t * moddedT * biTangent * n, 1.0);
 }

@@ -1,4 +1,4 @@
-package cf.hydos.animationRendering.engine.rendering.resourceManagement;
+package cf.hydos.animationRendering.engine.rendering.resources;
 
 import cf.hydos.animationRendering.engine.core.Vector3f;
 

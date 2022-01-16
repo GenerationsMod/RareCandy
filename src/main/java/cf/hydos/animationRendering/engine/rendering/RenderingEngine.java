@@ -3,7 +3,7 @@ package cf.hydos.animationRendering.engine.rendering;
 import cf.hydos.animationRendering.engine.components.Camera;
 import cf.hydos.animationRendering.engine.core.GameObject;
 import cf.hydos.animationRendering.engine.core.Vector3f;
-import cf.hydos.animationRendering.engine.rendering.resourceManagement.MappedValues;
+import cf.hydos.animationRendering.engine.rendering.resources.MappedValues;
 
 import java.util.HashMap;
 

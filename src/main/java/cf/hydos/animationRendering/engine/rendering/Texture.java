@@ -1,7 +1,7 @@
 package cf.hydos.animationRendering.engine.rendering;
 
 import cf.hydos.animationRendering.engine.core.Util;
-import cf.hydos.animationRendering.engine.rendering.resourceManagement.TextureResource;
+import cf.hydos.animationRendering.engine.rendering.resources.TextureResource;
 import cf.hydos.pixelmonassetutils.scene.material.GlbTexture;
 
 import javax.imageio.ImageIO;

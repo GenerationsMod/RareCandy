@@ -8,7 +8,7 @@ import cf.hydos.animationRendering.engine.rendering.Material;
 import cf.hydos.animationRendering.engine.rendering.RenderingEngine;
 import cf.hydos.animationRendering.engine.rendering.Shader;
 import cf.hydos.animationRendering.engine.rendering.Texture;
-import cf.hydos.animationRendering.engine.rendering.resourceManagement.MeshResource;
+import cf.hydos.animationRendering.engine.rendering.resources.MeshResource;
 import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AINodeAnim;

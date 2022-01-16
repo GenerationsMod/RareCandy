@@ -3,7 +3,7 @@ package cf.hydos.animationRendering.engine.rendering;
 import cf.hydos.animationRendering.engine.core.Matrix4f;
 import cf.hydos.animationRendering.engine.core.Util;
 import cf.hydos.animationRendering.engine.core.Vector3f;
-import cf.hydos.animationRendering.engine.rendering.resourceManagement.ShaderResource;
+import cf.hydos.animationRendering.engine.rendering.resources.ShaderResource;
 import org.lwjgl.BufferUtils;
 
 import java.io.BufferedReader;

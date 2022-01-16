@@ -1,6 +1,5 @@
 package cf.hydos.animationRendering.engine.rendering;
 
-import cf.hydos.animationRendering.engine.components.Camera;
 import cf.hydos.animationRendering.engine.core.GameObject;
 import cf.hydos.animationRendering.engine.core.Vector3f;
 import cf.hydos.animationRendering.engine.rendering.resources.MappedValues;
@@ -13,7 +12,6 @@ public class RenderingEngine extends MappedValues {
     private final HashMap<String, Integer> m_samplerMap;
 
     private final Shader m_forwardAmbient;
-    private Camera m_mainCamera;
 
     public RenderingEngine() {
         super();
@@ -41,8 +39,6 @@ public class RenderingEngine extends MappedValues {
     }
 
     public void Render(GameObject object) {
-        if (GetMainCamera() == null)
-            System.err.println("Error! Main camera not found. This is very very big bug, and game will crash.");
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         object.RenderAll(m_forwardAmbient, this);
@@ -57,16 +53,7 @@ public class RenderingEngine extends MappedValues {
         glDisable(GL_BLEND);
     }
 
-
-    public void AddCamera(Camera camera) {
-        m_mainCamera = camera;
-    }
-
     public int GetSamplerSlot(String samplerName) {
         return m_samplerMap.get(samplerName);
-    }
-
-    public Camera GetMainCamera() {
-        return m_mainCamera;
     }
 }

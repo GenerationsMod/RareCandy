@@ -2,7 +2,6 @@ package cf.hydos.engine.components;
 
 import cf.hydos.engine.animation.Bone;
 import cf.hydos.engine.core.Matrix4f;
-import cf.hydos.engine.core.Quaternion;
 import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.Material;
 import cf.hydos.engine.rendering.RenderingEngine;
@@ -10,6 +9,7 @@ import cf.hydos.engine.rendering.Shader;
 import cf.hydos.engine.rendering.Texture;
 import cf.hydos.engine.rendering.resources.MeshResource;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.AINode;
@@ -84,9 +84,9 @@ public class AnimatedComponent extends GameComponent {
     }
 
 
-    void CalcInterpolatedRotation(Quaternion Out, float AnimationTime, AINodeAnim pNodeAnim) {
+    void CalcInterpolatedRotation(Quaternionf Out, float AnimationTime, AINodeAnim pNodeAnim) {
         if (pNodeAnim.mNumRotationKeys() == 1) {
-            Out.set(AssimpUtils.fromOld(pNodeAnim.mRotationKeys().get(0).mValue()));
+            Out.set(AssimpUtils.from(pNodeAnim.mRotationKeys().get(0).mValue()));
             return;
         }
 
@@ -96,9 +96,9 @@ public class AnimatedComponent extends GameComponent {
         float DeltaTime = (float) (pNodeAnim.mRotationKeys().get(NextRotationIndex).mTime() - pNodeAnim.mRotationKeys().get(RotationIndex).mTime());
         float Factor = (AnimationTime - (float) pNodeAnim.mRotationKeys().get(RotationIndex).mTime()) / DeltaTime;
         assert (Factor >= 0.0f && Factor <= 1.0f);
-        Quaternion StartRotationQ = AssimpUtils.fromOld(pNodeAnim.mRotationKeys().get(RotationIndex).mValue());
-        Quaternion EndRotationQ = AssimpUtils.fromOld(pNodeAnim.mRotationKeys().get(NextRotationIndex).mValue());
-        Out.set(StartRotationQ.slerp(EndRotationQ, Factor, false));
+        Quaternionf StartRotationQ = AssimpUtils.from(pNodeAnim.mRotationKeys().get(RotationIndex).mValue());
+        Quaternionf EndRotationQ = AssimpUtils.from(pNodeAnim.mRotationKeys().get(NextRotationIndex).mValue());
+        Out.set(StartRotationQ.slerp(EndRotationQ, Factor));
     }
 
 
@@ -169,7 +169,7 @@ public class AnimatedComponent extends GameComponent {
             Matrix4f ScalingM = new Matrix4f().identity().scale(Scaling.x(), Scaling.y(), Scaling.z());
 
             // Interpolate rotation and generate rotation transformation matrix
-            Quaternion RotationQ = new Quaternion(0, 0, 0, 0);
+            Quaternionf RotationQ = new Quaternionf(0, 0, 0, 0);
             CalcInterpolatedRotation(RotationQ, AnimationTime, pNodeAnim);
             Matrix4f RotationM = RendererUtils.toRotationMatrix(RotationQ);
 

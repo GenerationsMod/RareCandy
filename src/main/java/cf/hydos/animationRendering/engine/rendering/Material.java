@@ -7,19 +7,10 @@ import java.util.HashMap;
 public class Material extends MappedValues {
     private final HashMap<String, Texture> m_textureHashMap;
 
-    public Material(Texture diffuse, float specularIntensity, float specularPower, Texture normal,
-                    Texture dispMap, float dispMapScale, float dispMapOffset) {
+    public Material(Texture diffuse) {
         super();
-        m_textureHashMap = new HashMap<String, Texture>();
+        m_textureHashMap = new HashMap<>();
         AddTexture("diffuse", diffuse);
-        AddFloat("specularIntensity", specularIntensity);
-        AddFloat("specularPower", specularPower);
-        AddTexture("normalMap", normal);
-        AddTexture("dispMap", dispMap);
-
-        float baseBias = dispMapScale / 2.0f;
-        AddFloat("dispMapScale", dispMapScale);
-        AddFloat("dispMapBias", -baseBias + baseBias * dispMapOffset);
     }
 
     public void AddTexture(String name, Texture texture) {

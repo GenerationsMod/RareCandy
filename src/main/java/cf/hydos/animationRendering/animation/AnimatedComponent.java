@@ -33,9 +33,8 @@ public class AnimatedComponent extends GameComponent {
     long timer = System.currentTimeMillis();
 
     public void AddVertices(FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
-        shader = new Shader("forward-ambient2");
-        material = new Material(diffuseTexture, 1, 8,
-                new Texture("bricks_normal.jpg"), new Texture("bricks_disp.png"), 0.03f, -0.5f);
+        shader = new Shader("animated");
+        material = new Material(diffuseTexture);
 
         resource = new MeshResource(indices.capacity());
 

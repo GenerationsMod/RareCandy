@@ -30,7 +30,7 @@ public class RenderingEngine extends MappedValues {
 
         AddVector3f("ambient", new Vector3f(0.1f, 0.1f, 0.1f));
 
-        m_forwardAmbient = new Shader("forward-ambient2");
+        m_forwardAmbient = new Shader("animated");
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 

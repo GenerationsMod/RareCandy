@@ -7,14 +7,9 @@ varying mat3 tbnMatrix;
 
 uniform vec3 C_eyePos;
 uniform sampler2D diffuse;
-uniform sampler2D dispMap;
 
-uniform float dispMapScale;
-uniform float dispMapBias;
-
-void main()
-{
+void main() {
 	vec3 directionToEye = normalize(C_eyePos - worldPos0);
-	vec2 texCoords = CalcParallaxTexCoords(dispMap, tbnMatrix, directionToEye, texCoord0, dispMapScale, dispMapBias);
+	vec2 texCoords = CalcParallaxTexCoords(diffuse, tbnMatrix, directionToEye, texCoord0, 1, 0);
 	gl_FragColor = texture2D(diffuse, texCoords);
 }

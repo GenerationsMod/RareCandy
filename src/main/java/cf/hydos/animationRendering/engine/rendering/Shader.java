@@ -74,6 +74,7 @@ public class Shader {
 
             shaderReader.close();
         } catch (Exception e) {
+            System.out.println("Failed to load resource /shaders/" + fileName);
             e.printStackTrace();
             System.exit(1);
         }

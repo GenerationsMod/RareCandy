@@ -16,8 +16,7 @@ uniform mat4 T_MVP;
 
 uniform mat4 gBones[200];
 
-void main()
-{
+void main() {
 	mat4 BoneTransform = gBones[uint(boneDataA.x)] * boneDataA.z +
 						 gBones[uint(boneDataA.y)] * boneDataA.w +
 						 gBones[uint(boneDataB.x)] * boneDataB.z +

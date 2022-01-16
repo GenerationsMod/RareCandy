@@ -12,7 +12,7 @@ public class RendererUtils {
         Vector3f up = new Vector3f(2.0f * (q.x() * q.y() + q.w() * q.z()), 1.0f - 2.0f * (q.x() * q.x() + q.z() * q.z()), 2.0f * (q.y() * q.z() - q.w() * q.x()));
         Vector3f right = new Vector3f(1.0f - 2.0f * (q.y() * q.y() + q.z() * q.z()), 2.0f * (q.x() * q.y() - q.w() * q.z()), 2.0f * (q.x() * q.z() + q.w() * q.y()));
 
-        return new Matrix4f().InitRotation(forward, up, right);
+        return new Matrix4f().identityRotate(forward, up, right);
     }
     
     public static FloatBuffer CreateFlippedBuffer(Matrix4f value) {
@@ -20,7 +20,7 @@ public class RendererUtils {
 
         for (int i = 0; i < 4; i++)
             for (int j = 0; j < 4; j++)
-                buffer.put(value.Get(i, j));
+                buffer.put(value.get(i, j));
 
         buffer.flip();
 

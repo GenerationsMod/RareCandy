@@ -158,15 +158,15 @@ public class AnimatedComponent extends GameComponent {
     protected void ReadNodeHierarchy(float AnimationTime, AINode pNode, Matrix4f ParentTransform) {
         String name = pNode.mName().dataString();
 
-        Matrix4f NodeTransformation = new Matrix4f().fromAssimp(pNode.mTransformation());//(pNode.mTransformation);
+        Matrix4f NodeTransformation = AssimpUtils.fromOld(pNode.mTransformation());
 
         AINodeAnim pNodeAnim = FindNodeAnim(animation, name);
 
         if (pNodeAnim != null) {
             // Interpolate scaling and generate scaling transformation matrix
-            Vector3f Scaling = new Vector3f(0, 0, 0);
+            Vector3f Scaling = new Vector3f(1, 1, 1);
             Scaling = CalcInterpolatedScaling(Scaling, AnimationTime, pNodeAnim);
-            Matrix4f ScalingM = new Matrix4f().InitScale(Scaling.x(), Scaling.y(), Scaling.z());
+            Matrix4f ScalingM = new Matrix4f().identityScaler(Scaling.x(), Scaling.y(), Scaling.z());
 
             // Interpolate rotation and generate rotation transformation matrix
             Quaternion RotationQ = new Quaternion(0, 0, 0, 0);
@@ -176,18 +176,18 @@ public class AnimatedComponent extends GameComponent {
             // Interpolate translation and generate translation transformation matrix
             Vector3f Translation = new Vector3f(0, 0, 0);
             CalcInterpolatedPosition(Translation, AnimationTime, pNodeAnim);
-            Matrix4f TranslationM = new Matrix4f().InitTranslation(Translation.x(), Translation.y(), Translation.z());
+            Matrix4f TranslationM = new Matrix4f().identityTranslate(Translation.x(), Translation.y(), Translation.z());
 
             // Combine the above transformations
-            NodeTransformation = TranslationM.Mul(RotationM);//.Mul(ScalingM);
+            NodeTransformation = TranslationM.mul(RotationM).mul(ScalingM);
         }
 
-        Matrix4f GlobalTransformation = ParentTransform.Mul(NodeTransformation);
+        Matrix4f GlobalTransformation = ParentTransform.mul(NodeTransformation);
 
         Bone bone;
 
         if ((bone = findBone(name)) != null) {
-            bone.finalTransformation = globalInverseTransform.Mul(GlobalTransformation).Mul(bone.offsetMatrix);
+            bone.finalTransformation = globalInverseTransform.mul(GlobalTransformation).mul(bone.offsetMatrix);
         }
 
         for (int i = 0; i < pNode.mNumChildren(); i++) {

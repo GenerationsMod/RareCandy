@@ -4,6 +4,7 @@ import cf.hydos.engine.components.AnimatedComponent;
 import cf.hydos.engine.core.Matrix4f;
 import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.Texture;
+import cf.hydos.pixelmonassetutils.AssimpUtils;
 import cf.hydos.pixelmonassetutils.reader.GlbReader;
 import cf.hydos.pixelmonassetutils.scene.material.GlbTexture;
 import org.lwjgl.BufferUtils;
@@ -135,7 +136,7 @@ public class AnimationUtil {
         }
 
         AIMatrix4x4 inverseRootTransform = scene.mRootNode().mTransformation();
-        Matrix4f inverseRootTransformation = new Matrix4f().fromAssimp(inverseRootTransform);
+        Matrix4f inverseRootTransformation = AssimpUtils.fromOld(inverseRootTransform);
 
         Bone[] bones = new Bone[boneMap.size()];
 
@@ -144,7 +145,7 @@ public class AnimationUtil {
             bones[b] = new Bone();
 
             bones[b].name = bone.mName().dataString();
-            bones[b].offsetMatrix = new Matrix4f().fromAssimp(bone.mOffsetMatrix());
+            bones[b].offsetMatrix = AssimpUtils.fromOld(bone.mOffsetMatrix());
         }
 
         AnimatedComponent component = new AnimatedComponent();

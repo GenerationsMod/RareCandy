@@ -166,7 +166,7 @@ public class AnimatedComponent extends GameComponent {
             // Interpolate scaling and generate scaling transformation matrix
             Vector3f Scaling = new Vector3f(1, 1, 1);
             Scaling = CalcInterpolatedScaling(Scaling, AnimationTime, pNodeAnim);
-            Matrix4f ScalingM = new Matrix4f().identityScaler(Scaling.x(), Scaling.y(), Scaling.z());
+            Matrix4f ScalingM = new Matrix4f().identity().scale(Scaling.x(), Scaling.y(), Scaling.z());
 
             // Interpolate rotation and generate rotation transformation matrix
             Quaternion RotationQ = new Quaternion(0, 0, 0, 0);
@@ -176,7 +176,7 @@ public class AnimatedComponent extends GameComponent {
             // Interpolate translation and generate translation transformation matrix
             Vector3f Translation = new Vector3f(0, 0, 0);
             CalcInterpolatedPosition(Translation, AnimationTime, pNodeAnim);
-            Matrix4f TranslationM = new Matrix4f().identityTranslate(Translation.x(), Translation.y(), Translation.z());
+            Matrix4f TranslationM = new Matrix4f().identity().translate(Translation.x(), Translation.y(), Translation.z());
 
             // Combine the above transformations
             NodeTransformation = TranslationM.mul(RotationM).mul(ScalingM);
@@ -202,7 +202,7 @@ public class AnimatedComponent extends GameComponent {
     }
 
     public void boneTransforms(float timeInSeconds) {
-        Matrix4f Identity = new Matrix4f().InitIdentity();
+        Matrix4f Identity = new Matrix4f().identity();
 
         float TicksPerSecond = (float) (animation.mTicksPerSecond() != 0 ? animation.mTicksPerSecond() : 25.0f);
         float TimeInTicks = timeInSeconds * TicksPerSecond;

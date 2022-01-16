@@ -17,7 +17,7 @@ public class Test extends Game {
         GameObject animatedObject = new GameObject().AddComponent(AnimationUtil.loadAnimatedFile(new File("/venusaur.glb")));
         animatedObject.GetTransform()
                 .scale(new Vector3f(4f, 4f, 4f))
-                .translate(new Vector3f(-20, -2, -40))
+                .translate(new Vector3f(-20, -8, -40))
                 .rotate((float) Math.toRadians(90), new Vector3f(-1, 0, 0));
         AddObject(animatedObject);
     }

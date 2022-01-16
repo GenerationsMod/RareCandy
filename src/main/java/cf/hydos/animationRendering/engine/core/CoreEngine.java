@@ -70,7 +70,6 @@ public class CoreEngine {
 
                 Window.Update();
                 m_game.Input((float) m_frameTime);
-                Input.Update();
 
                 m_game.Update((float) m_frameTime);
 
@@ -86,7 +85,7 @@ public class CoreEngine {
                 frames++;
             } else {
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(0, 10);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

@@ -55,7 +55,6 @@ public class IndexedModel {
             float deltaV2 = m_texCoords.get(i2).GetY() - m_texCoords.get(i0).GetY();
 
             float dividend = (deltaU1 * deltaV2 - deltaU2 * deltaV1);
-            //TODO: The first 0.0f may need to be changed to 1.0f here.
             float f = dividend == 0 ? 0.0f : 1.0f / dividend;
 
             Vector3f tangent = new Vector3f(0, 0, 0);

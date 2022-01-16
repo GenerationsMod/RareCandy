@@ -1,6 +1,5 @@
 package cf.hydos.animationRendering.engine.rendering;
 
-import cf.hydos.animationRendering.engine.components.BaseLight;
 import cf.hydos.animationRendering.engine.core.Matrix4f;
 import cf.hydos.animationRendering.engine.core.Util;
 import cf.hydos.animationRendering.engine.core.Vector3f;
@@ -19,8 +18,8 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 
 public class Shader {
-    protected static Shader instance;
     private static final HashMap<String, ShaderResource> s_loadedShaders = new HashMap<String, ShaderResource>();
+    protected static Shader instance;
     private final ShaderResource m_resource;
     private final String m_fileName;
 
@@ -121,7 +120,7 @@ public class Shader {
                 else if (uniformType.equals("float"))
                     SetUniformf(uniformName, renderingEngine.GetFloat(unprefixedUniformName));
                 else
-                    renderingEngine.UpdateUniformStruct(transform, material, this, uniformName, uniformType);
+                    renderingEngine.UpdateUniformStruct(uniformType);
             } else if (uniformName.startsWith("C_")) {
                 if (uniformName.equals("C_eyePos"))
                     SetUniform(uniformName, new Vector3f(0, 0, 0));
@@ -358,11 +357,6 @@ public class Shader {
         FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
         value.get(buffer);
         glUniformMatrix4fv(m_resource.GetUniforms().get(uniformName), false, buffer);
-    }
-
-    public void SetUniformBaseLight(String uniformName, BaseLight baseLight) {
-        SetUniform(uniformName + ".color", baseLight.GetColor());
-        SetUniformf(uniformName + ".intensity", baseLight.GetIntensity());
     }
 
     private class GLSLStruct {

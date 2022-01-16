@@ -1,4 +1,4 @@
-package cf.hydos.animationRendering.engine.rendering.resources;
+package cf.hydos.engine.rendering.resources;
 
 import java.util.ArrayList;
 import java.util.HashMap;

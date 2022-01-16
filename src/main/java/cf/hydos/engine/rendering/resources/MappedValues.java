@@ -1,6 +1,6 @@
-package cf.hydos.animationRendering.engine.rendering.resources;
+package cf.hydos.engine.rendering.resources;
 
-import cf.hydos.animationRendering.engine.core.Vector3f;
+import cf.hydos.engine.core.Vector3f;
 
 import java.util.HashMap;
 

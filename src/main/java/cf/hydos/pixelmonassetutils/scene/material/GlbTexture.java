@@ -1,6 +1,6 @@
 package cf.hydos.pixelmonassetutils.scene.material;
 
-import cf.hydos.animationRendering.engine.rendering.resources.TextureResource;
+import cf.hydos.engine.rendering.resources.TextureResource;
 import org.lwjgl.BufferUtils;
 
 import java.nio.ByteBuffer;

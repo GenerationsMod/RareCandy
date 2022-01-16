@@ -1,13 +1,28 @@
 package cf.hydos;
 
-import cf.hydos.animationRendering.engine.core.CoreEngine;
+import cf.hydos.engine.animation.AnimationUtil;
+import cf.hydos.engine.core.Renderer;
+import cf.hydos.engine.core.RenderingApplication;
+import cf.hydos.engine.core.RenderObject;
+import org.joml.Vector3f;
 
-public class Main {
+import java.io.File;
+
+public class Main extends RenderingApplication {
+
     public static void main(String[] args) {
-        System.loadLibrary("renderdoc");
+        Renderer renderer = new Renderer(1920, 1080, 1200, new Main());
+        renderer.title("Pixelmon: Generations Test renderer");
+        renderer.start();
+    }
 
-        CoreEngine engine = new CoreEngine(1280, 720, 1200, new Test());
-        engine.CreateWindow("Pixelmon: Generations Test renderer");
-        engine.Start();
+    @Override
+    public void init() {
+        RenderObject venusaur = new RenderObject().addComponent(AnimationUtil.loadAnimatedFile(new File("/venusaur.glb")));
+        venusaur.getTransformation()
+                .scale(new Vector3f(4f, 4f, 4f))
+                .translate(new Vector3f(-20, -8, -40))
+                .rotate((float) Math.toRadians(90), new Vector3f(-1, 0, 0));
+        add(venusaur);
     }
 }

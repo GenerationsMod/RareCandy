@@ -1,14 +1,14 @@
-package cf.hydos.animationRendering.animation;
+package cf.hydos.engine.components;
 
-import cf.hydos.animationRendering.engine.components.GameComponent;
-import cf.hydos.animationRendering.engine.core.Matrix4f;
-import cf.hydos.animationRendering.engine.core.Quaternion;
-import cf.hydos.animationRendering.engine.core.Vector3f;
-import cf.hydos.animationRendering.engine.rendering.Material;
-import cf.hydos.animationRendering.engine.rendering.RenderingEngine;
-import cf.hydos.animationRendering.engine.rendering.Shader;
-import cf.hydos.animationRendering.engine.rendering.Texture;
-import cf.hydos.animationRendering.engine.rendering.resources.MeshResource;
+import cf.hydos.engine.animation.Bone;
+import cf.hydos.engine.core.Matrix4f;
+import cf.hydos.engine.core.Quaternion;
+import cf.hydos.engine.core.Vector3f;
+import cf.hydos.engine.rendering.Material;
+import cf.hydos.engine.rendering.RenderingEngine;
+import cf.hydos.engine.rendering.Shader;
+import cf.hydos.engine.rendering.Texture;
+import cf.hydos.engine.rendering.resources.MeshResource;
 import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AINodeAnim;

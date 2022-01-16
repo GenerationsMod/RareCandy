@@ -1,4 +1,4 @@
-package cf.hydos.animationRendering.engine.rendering.resources;
+package cf.hydos.engine.rendering.resources;
 
 import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL15.glDeleteBuffers;

@@ -1,4 +1,4 @@
-package cf.hydos.animationRendering.engine.core;
+package cf.hydos.engine.core;
 
 import org.lwjgl.assimp.AIQuaternion;
 

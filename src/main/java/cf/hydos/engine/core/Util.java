@@ -1,6 +1,6 @@
-package cf.hydos.animationRendering.engine.core;
+package cf.hydos.engine.core;
 
-import cf.hydos.animationRendering.engine.rendering.Vertex;
+import cf.hydos.engine.rendering.Vertex;
 import org.lwjgl.BufferUtils;
 
 import java.nio.ByteBuffer;

@@ -1,4 +1,4 @@
-package cf.hydos.animationRendering.engine.rendering;
+package cf.hydos.engine.rendering;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.*;

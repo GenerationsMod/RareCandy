@@ -1,6 +1,6 @@
-package cf.hydos.animationRendering.animation;
+package cf.hydos.engine.animation;
 
-import cf.hydos.animationRendering.engine.core.Matrix4f;
+import cf.hydos.engine.core.Matrix4f;
 
 public class Bone {
     public String name;

@@ -1,9 +1,9 @@
-package cf.hydos.animationRendering.engine.rendering;
+package cf.hydos.engine.rendering;
 
-import cf.hydos.animationRendering.engine.core.Matrix4f;
-import cf.hydos.animationRendering.engine.core.Util;
-import cf.hydos.animationRendering.engine.core.Vector3f;
-import cf.hydos.animationRendering.engine.rendering.resources.ShaderResource;
+import cf.hydos.engine.core.Matrix4f;
+import cf.hydos.engine.core.Util;
+import cf.hydos.engine.core.Vector3f;
+import cf.hydos.engine.rendering.resources.ShaderResource;
 import org.lwjgl.BufferUtils;
 
 import java.io.BufferedReader;

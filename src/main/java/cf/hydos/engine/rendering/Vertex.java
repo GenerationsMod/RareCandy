@@ -1,7 +1,7 @@
-package cf.hydos.animationRendering.engine.rendering;
+package cf.hydos.engine.rendering;
 
-import cf.hydos.animationRendering.engine.core.Vector2f;
-import cf.hydos.animationRendering.engine.core.Vector3f;
+import cf.hydos.engine.core.Vector2f;
+import cf.hydos.engine.core.Vector3f;
 
 public class Vertex {
     public static final int SIZE = 11;

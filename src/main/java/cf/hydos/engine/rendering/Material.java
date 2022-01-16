@@ -1,6 +1,6 @@
-package cf.hydos.animationRendering.engine.rendering;
+package cf.hydos.engine.rendering;
 
-import cf.hydos.animationRendering.engine.rendering.resources.MappedValues;
+import cf.hydos.engine.rendering.resources.MappedValues;
 
 import java.util.HashMap;
 

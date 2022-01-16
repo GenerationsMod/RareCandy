@@ -1,4 +1,4 @@
-package cf.hydos.animationRendering.engine.core;
+package cf.hydos.engine.core;
 
 public class Vector2f {
     private float m_x;

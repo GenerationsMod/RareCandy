@@ -1,4 +1,4 @@
-package cf.hydos.animationRendering.engine.core;
+package cf.hydos.engine.core;
 
 public class Time {
     private static final long SECOND = 1000000000L;

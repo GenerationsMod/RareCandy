@@ -1,8 +1,9 @@
-package cf.hydos.animationRendering.animation;
+package cf.hydos.engine.animation;
 
-import cf.hydos.animationRendering.engine.core.Matrix4f;
-import cf.hydos.animationRendering.engine.core.Util;
-import cf.hydos.animationRendering.engine.rendering.Texture;
+import cf.hydos.engine.components.AnimatedComponent;
+import cf.hydos.engine.core.Matrix4f;
+import cf.hydos.engine.core.Util;
+import cf.hydos.engine.rendering.Texture;
 import cf.hydos.pixelmonassetutils.reader.GlbReader;
 import cf.hydos.pixelmonassetutils.scene.material.GlbTexture;
 import org.lwjgl.BufferUtils;
@@ -35,14 +36,6 @@ public class AnimationUtil {
 
         AIScene scene = Assimp.aiImportFileFromMemory(buffer, Assimp.aiProcess_Triangulate | Assimp.aiProcess_FlipUVs | Assimp.aiProcess_CalcTangentSpace | Assimp.aiProcess_LimitBoneWeights, extension);
 
-/*        AIScene scene = Assimp.aiImportFile(file.toString(),
-                Assimp.aiProcess_Triangulate |
-                        Assimp.aiProcess_GenSmoothNormals |
-                        Assimp.aiProcess_FlipUVs |
-                        Assimp.aiProcess_CalcTangentSpace |
-                        Assimp.aiProcess_LimitBoneWeights
-        );*/
-
         if (scene == null || scene.mNumAnimations() == 0) {
             System.err.println("the imported file does not contain any animations.");
             System.out.println(Assimp.aiGetErrorString());
@@ -51,8 +44,8 @@ public class AnimationUtil {
 
         AIMesh mesh = AIMesh.create(scene.mMeshes().get(0));
 
-        int sizeOfVertex = 19;
         int sizeOfVertexUnrigged = 11;
+        int sizeOfVertex = sizeOfVertexUnrigged + Float.BYTES * 2;
         /**
          * position data 3f
          * normal   data 3f
@@ -70,9 +63,6 @@ public class AnimationUtil {
             AIVector3D normal = mesh.mNormals().get(v);
             AIVector3D tangent = mesh.mTangents().get(v);
             AIVector3D texCoord = mesh.mTextureCoords(0).get(v);
-            /**
-             * The above assumes that the program has texture coordinates, if it doesn't the program will throw a null pointer exception.
-             */
 
             array[index++] = position.x();
             array[index++] = position.y();

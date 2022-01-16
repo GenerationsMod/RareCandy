@@ -1,8 +1,8 @@
-package cf.hydos.animationRendering.engine.rendering;
+package cf.hydos.engine.rendering;
 
-import cf.hydos.animationRendering.engine.core.GameObject;
-import cf.hydos.animationRendering.engine.core.Vector3f;
-import cf.hydos.animationRendering.engine.rendering.resources.MappedValues;
+import cf.hydos.engine.core.RenderObject;
+import cf.hydos.engine.core.Vector3f;
+import cf.hydos.engine.rendering.resources.MappedValues;
 
 import java.util.HashMap;
 
@@ -38,7 +38,7 @@ public class RenderingEngine extends MappedValues {
         throw new IllegalArgumentException(uniformType + " is not a supported type in RenderingEngine");
     }
 
-    public void Render(GameObject object) {
+    public void Render(RenderObject object) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         object.RenderAll(m_forwardAmbient, this);

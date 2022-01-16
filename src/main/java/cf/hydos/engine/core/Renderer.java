@@ -1,17 +1,17 @@
-package cf.hydos.animationRendering.engine.core;
+package cf.hydos.engine.core;
 
-import cf.hydos.animationRendering.engine.rendering.RenderingEngine;
-import cf.hydos.animationRendering.engine.rendering.Window;
+import cf.hydos.engine.rendering.RenderingEngine;
+import cf.hydos.engine.rendering.Window;
 
-public class CoreEngine {
+public class Renderer {
     private boolean m_isRunning;
-    private final Game m_game;
+    private final RenderingApplication m_game;
     private RenderingEngine m_renderingEngine;
     private final int m_width;
     private final int m_height;
     private final double m_frameTime;
 
-    public CoreEngine(int width, int height, double framerate, Game game) {
+    public Renderer(int width, int height, double framerate, RenderingApplication game) {
         this.m_isRunning = false;
         this.m_game = game;
         this.m_width = width;
@@ -20,12 +20,12 @@ public class CoreEngine {
         game.SetEngine(this);
     }
 
-    public void CreateWindow(String title) {
+    public void title(String title) {
         Window.CreateWindow(m_width, m_height, title);
         this.m_renderingEngine = new RenderingEngine();
     }
 
-    public void Start() {
+    public void start() {
         if (m_isRunning)
             return;
 
@@ -45,7 +45,7 @@ public class CoreEngine {
         int frames = 0;
         double frameCounter = 0;
 
-        m_game.Init();
+        m_game.init();
 
         double lastTime = Time.GetTime();
         double unprocessedTime = 0;

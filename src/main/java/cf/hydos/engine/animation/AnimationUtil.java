@@ -2,7 +2,7 @@ package cf.hydos.engine.animation;
 
 import cf.hydos.engine.components.AnimatedComponent;
 import cf.hydos.engine.core.Matrix4f;
-import cf.hydos.engine.core.Util;
+import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.Texture;
 import cf.hydos.pixelmonassetutils.reader.GlbReader;
 import cf.hydos.pixelmonassetutils.scene.material.GlbTexture;
@@ -90,7 +90,7 @@ public class AnimationUtil {
             array[index++] = 0;
         }
 
-        IntBuffer indices = Util.CreateIntBuffer(mesh.mNumFaces() * mesh.mFaces().get(0).mNumIndices());
+        IntBuffer indices = BufferUtils.createIntBuffer(mesh.mNumFaces() * mesh.mFaces().get(0).mNumIndices());
 
         for (int f = 0; f < mesh.mNumFaces(); f++) {
             AIFace face = mesh.mFaces().get(f);
@@ -148,7 +148,7 @@ public class AnimationUtil {
         }
 
         AnimatedComponent component = new AnimatedComponent();
-        FloatBuffer vertices = Util.CreateFloatBuffer(array.length);
+        FloatBuffer vertices = BufferUtils.createFloatBuffer(array.length);
 
         for (float v : array) vertices.put(v);
         vertices.flip();

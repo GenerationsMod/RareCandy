@@ -3,6 +3,7 @@ package cf.hydos.engine.components;
 import cf.hydos.engine.animation.Bone;
 import cf.hydos.engine.core.Matrix4f;
 import cf.hydos.engine.core.Quaternion;
+import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.Material;
 import cf.hydos.engine.rendering.RenderingEngine;
 import cf.hydos.engine.rendering.Shader;
@@ -21,6 +22,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 
+@SuppressWarnings("ConstantConditions")
 public class AnimatedComponent extends GameComponent {
     public Matrix4f globalInverseTransform;
     public Bone[] bones;
@@ -78,14 +80,13 @@ public class AnimatedComponent extends GameComponent {
         Vector3f Start = AssimpUtils.from(pNodeAnim.mPositionKeys().get(PositionIndex).mValue());
         Vector3f End = AssimpUtils.from(pNodeAnim.mPositionKeys().get(NextPositionIndex).mValue());
         Vector3f Delta = End.sub(Start);
-        Out.set(Start.add(Delta.mul(Factor)));// + Factor * Delta;
+        Out.set(Start.add(Delta.mul(Factor)));
     }
 
 
     void CalcInterpolatedRotation(Quaternion Out, float AnimationTime, AINodeAnim pNodeAnim) {
-        // we need at least two values to interpolate...
         if (pNodeAnim.mNumRotationKeys() == 1) {
-            Out.Set(Quaternion.fromAssimp(pNodeAnim.mRotationKeys().get(0).mValue()));
+            Out.set(AssimpUtils.fromOld(pNodeAnim.mRotationKeys().get(0).mValue()));
             return;
         }
 
@@ -95,17 +96,15 @@ public class AnimatedComponent extends GameComponent {
         float DeltaTime = (float) (pNodeAnim.mRotationKeys().get(NextRotationIndex).mTime() - pNodeAnim.mRotationKeys().get(RotationIndex).mTime());
         float Factor = (AnimationTime - (float) pNodeAnim.mRotationKeys().get(RotationIndex).mTime()) / DeltaTime;
         assert (Factor >= 0.0f && Factor <= 1.0f);
-        Quaternion StartRotationQ = Quaternion.fromAssimp(pNodeAnim.mRotationKeys().get(RotationIndex).mValue());
-        Quaternion EndRotationQ = Quaternion.fromAssimp(pNodeAnim.mRotationKeys().get(NextRotationIndex).mValue());
-        Out.Set(StartRotationQ.SLerp(EndRotationQ, Factor, false));// = AIQuaternion.Interpolate(Out, StartRotationQ, EndRotationQ, Factor);
-//        Out = Out.Normalize();
+        Quaternion StartRotationQ = AssimpUtils.fromOld(pNodeAnim.mRotationKeys().get(RotationIndex).mValue());
+        Quaternion EndRotationQ = AssimpUtils.fromOld(pNodeAnim.mRotationKeys().get(NextRotationIndex).mValue());
+        Out.set(StartRotationQ.slerp(EndRotationQ, Factor, false));
     }
 
 
-    void CalcInterpolatedScaling(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
+    Vector3f CalcInterpolatedScaling(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
         if (pNodeAnim.mNumScalingKeys() == 1) {
-            Out = AssimpUtils.from(pNodeAnim.mScalingKeys().get(0).mValue());
-            return;
+            return AssimpUtils.from(pNodeAnim.mScalingKeys().get(0).mValue());
         }
 
         int ScalingIndex = FindScaling(AnimationTime, pNodeAnim);
@@ -117,7 +116,7 @@ public class AnimatedComponent extends GameComponent {
         Vector3f Start = AssimpUtils.from(pNodeAnim.mScalingKeys().get(ScalingIndex).mValue());
         Vector3f End = AssimpUtils.from(pNodeAnim.mScalingKeys().get(NextScalingIndex).mValue());
         Vector3f Delta = End.sub(Start);
-        Out.set(Start.add(Delta.mul(Factor)));
+        return Out.set(Start.add(Delta.mul(Factor)));
     }
 
     int FindPosition(float AnimationTime, AINodeAnim pNodeAnim) {
@@ -157,24 +156,22 @@ public class AnimatedComponent extends GameComponent {
     }
 
     protected void ReadNodeHierarchy(float AnimationTime, AINode pNode, Matrix4f ParentTransform) {
-        String NodeName = pNode.mName().dataString();
-
-//        engine.animation pAnimation = null;//m_pScene.mAnimations[0];
+        String name = pNode.mName().dataString();
 
         Matrix4f NodeTransformation = new Matrix4f().fromAssimp(pNode.mTransformation());//(pNode.mTransformation);
 
-        AINodeAnim pNodeAnim = FindNodeAnim(animation, NodeName);
+        AINodeAnim pNodeAnim = FindNodeAnim(animation, name);
 
         if (pNodeAnim != null) {
             // Interpolate scaling and generate scaling transformation matrix
             Vector3f Scaling = new Vector3f(0, 0, 0);
-            CalcInterpolatedScaling(Scaling, AnimationTime, pNodeAnim);
+            Scaling = CalcInterpolatedScaling(Scaling, AnimationTime, pNodeAnim);
             Matrix4f ScalingM = new Matrix4f().InitScale(Scaling.x(), Scaling.y(), Scaling.z());
 
             // Interpolate rotation and generate rotation transformation matrix
             Quaternion RotationQ = new Quaternion(0, 0, 0, 0);
             CalcInterpolatedRotation(RotationQ, AnimationTime, pNodeAnim);
-            Matrix4f RotationM = RotationQ.ToRotationMatrix();
+            Matrix4f RotationM = RendererUtils.toRotationMatrix(RotationQ);
 
             // Interpolate translation and generate translation transformation matrix
             Vector3f Translation = new Vector3f(0, 0, 0);
@@ -189,7 +186,7 @@ public class AnimatedComponent extends GameComponent {
 
         Bone bone;
 
-        if ((bone = findBone(NodeName)) != null) {
+        if ((bone = findBone(name)) != null) {
             bone.finalTransformation = globalInverseTransform.Mul(GlobalTransformation).Mul(bone.offsetMatrix);
         }
 
@@ -198,7 +195,7 @@ public class AnimatedComponent extends GameComponent {
         }
     }
 
-    private final Bone findBone(String name) {
+    private Bone findBone(String name) {
         for (Bone bone : bones) if (bone.name.equals(name)) return bone;
 
         return null;
@@ -212,8 +209,6 @@ public class AnimatedComponent extends GameComponent {
         float AnimationTime = (TimeInTicks % (float) animation.mDuration());
 
         ReadNodeHierarchy(AnimationTime, root, Identity);
-
-//        boneTransforms.resize(m_NumBones);
 
         for (short i = 0; i < bones.length; i++) {
             boneTransforms[i] = bones[i].finalTransformation;

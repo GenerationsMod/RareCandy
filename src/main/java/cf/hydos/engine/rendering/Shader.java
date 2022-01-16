@@ -1,7 +1,7 @@
 package cf.hydos.engine.rendering;
 
 import cf.hydos.engine.core.Matrix4f;
-import cf.hydos.engine.core.Util;
+import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.resources.ShaderResource;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -330,7 +330,7 @@ public class Shader {
     }
 
     public void SetUniform(String uniformName, Matrix4f value) {
-        glUniformMatrix4fv(m_resource.GetUniforms().get(uniformName), true, Util.CreateFlippedBuffer(value));
+        glUniformMatrix4fv(m_resource.GetUniforms().get(uniformName), true, RendererUtils.CreateFlippedBuffer(value));
     }
 
     public void SetUniform(String uniformName, org.joml.Matrix4f value) {

@@ -1,5 +1,6 @@
 package cf.hydos.pixelmonassetutils;
 
+import cf.hydos.engine.core.Quaternion;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -35,6 +36,11 @@ public class AssimpUtils {
         dest.m23(aiMat4.d3());
         dest.m33(aiMat4.d4());
         return dest;
+    }
+
+    @Deprecated
+    public static Quaternion fromOld(AIQuaternion aiQuaternion) {
+        return new Quaternion(aiQuaternion.x(), aiQuaternion.y(), aiQuaternion.z(), aiQuaternion.w());
     }
 
     public static Quaternionf from(AIQuaternion aiQuat) {

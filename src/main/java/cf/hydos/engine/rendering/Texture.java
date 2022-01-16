@@ -1,8 +1,9 @@
 package cf.hydos.engine.rendering;
 
-import cf.hydos.engine.core.Util;
+import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.resources.TextureResource;
 import cf.hydos.pixelmonassetutils.scene.material.GlbTexture;
+import org.lwjgl.BufferUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -41,7 +42,7 @@ public class Texture {
             BufferedImage image = ImageIO.read(Shader.class.getResourceAsStream(("/textures/" + fileName)));
             int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
 
-            ByteBuffer buffer = Util.CreateByteBuffer(image.getHeight() * image.getWidth() * 4);
+            ByteBuffer buffer = BufferUtils.createByteBuffer(image.getHeight() * image.getWidth() * 4);
             boolean hasAlpha = image.getColorModel().hasAlpha();
 
             for (int y = 0; y < image.getHeight(); y++) {

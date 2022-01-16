@@ -2,9 +2,9 @@ package cf.hydos.animationRendering.engine.components;
 
 import cf.hydos.animationRendering.engine.core.CoreEngine;
 import cf.hydos.animationRendering.engine.core.GameObject;
-import cf.hydos.animationRendering.engine.core.Transform;
 import cf.hydos.animationRendering.engine.rendering.RenderingEngine;
 import cf.hydos.animationRendering.engine.rendering.Shader;
+import org.joml.Matrix4f;
 
 public abstract class GameComponent {
     private GameObject m_parent;
@@ -22,7 +22,7 @@ public abstract class GameComponent {
         this.m_parent = parent;
     }
 
-    public Transform GetTransform() {
+    public Matrix4f GetTransform() {
         return m_parent.GetTransform();
     }
 

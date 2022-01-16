@@ -3,9 +3,9 @@ package cf.hydos.animationRendering.engine.rendering;
 import cf.hydos.animationRendering.engine.components.BaseLight;
 import cf.hydos.animationRendering.engine.components.Camera;
 import cf.hydos.animationRendering.engine.core.GameObject;
-import cf.hydos.animationRendering.engine.core.Transform;
 import cf.hydos.animationRendering.engine.core.Vector3f;
 import cf.hydos.animationRendering.engine.rendering.resourceManagement.MappedValues;
+import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +35,7 @@ public class RenderingEngine extends MappedValues {
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         glFrontFace(GL_CW);
-        glCullFace(GL_BACK);
+        glCullFace(GL_FRONT);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
 
@@ -49,7 +49,7 @@ public class RenderingEngine extends MappedValues {
         return glGetString(GL_VERSION);
     }
 
-    public void UpdateUniformStruct(Transform transform, Material material, Shader shader, String uniformName, String uniformType) {
+    public void UpdateUniformStruct(Matrix4f transform, Material material, Shader shader, String uniformName, String uniformType) {
         throw new IllegalArgumentException(uniformType + " is not a supported type in RenderingEngine");
     }
 

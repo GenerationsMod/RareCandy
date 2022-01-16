@@ -2,13 +2,14 @@ package cf.hydos.animationRendering.engine.rendering;
 
 import cf.hydos.animationRendering.engine.components.BaseLight;
 import cf.hydos.animationRendering.engine.core.Matrix4f;
-import cf.hydos.animationRendering.engine.core.Transform;
 import cf.hydos.animationRendering.engine.core.Util;
 import cf.hydos.animationRendering.engine.core.Vector3f;
 import cf.hydos.animationRendering.engine.rendering.resourceManagement.ShaderResource;
+import org.lwjgl.BufferUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -93,9 +94,9 @@ public class Shader {
         instance = this;
     }
 
-    public void UpdateUniforms(Transform transform, Material material, RenderingEngine renderingEngine) {
-        Matrix4f worldMatrix = transform.GetTransformation();
-        Matrix4f MVPMatrix = renderingEngine.GetMainCamera().GetViewProjection().Mul(worldMatrix);
+    public void UpdateUniforms(org.joml.Matrix4f transform, Material material, RenderingEngine renderingEngine) {
+        org.joml.Matrix4f worldMatrix = renderingEngine.GetMainCamera().getProjectionView();
+        org.joml.Matrix4f modelViewProjMatrix = worldMatrix.mul(transform);
 
         for (int i = 0; i < m_resource.GetUniformNames().size(); i++) {
             String uniformName = m_resource.GetUniformNames().get(i);
@@ -107,7 +108,7 @@ public class Shader {
                 SetUniformi(uniformName, samplerSlot);
             } else if (uniformName.startsWith("T_")) {
                 if (uniformName.equals("T_MVP"))
-                    SetUniform(uniformName, MVPMatrix);
+                    SetUniform(uniformName, modelViewProjMatrix);
                 else if (uniformName.equals("T_model"))
                     SetUniform(uniformName, worldMatrix);
                 else
@@ -122,7 +123,7 @@ public class Shader {
                     renderingEngine.UpdateUniformStruct(transform, material, this, uniformName, uniformType);
             } else if (uniformName.startsWith("C_")) {
                 if (uniformName.equals("C_eyePos"))
-                    SetUniform(uniformName, renderingEngine.GetMainCamera().GetTransform().GetTransformedPos());
+                    SetUniform(uniformName, new Vector3f(0, 0, 0));
                 else
                     throw new IllegalArgumentException(uniformName + " is not a valid component of Camera");
             } else {
@@ -350,6 +351,12 @@ public class Shader {
 
     public void SetUniform(String uniformName, Matrix4f value) {
         glUniformMatrix4fv(m_resource.GetUniforms().get(uniformName), true, Util.CreateFlippedBuffer(value));
+    }
+
+    public void SetUniform(String uniformName, org.joml.Matrix4f value) {
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
+        value.get(buffer);
+        glUniformMatrix4fv(m_resource.GetUniforms().get(uniformName), false, buffer);
     }
 
     public void SetUniformBaseLight(String uniformName, BaseLight baseLight) {

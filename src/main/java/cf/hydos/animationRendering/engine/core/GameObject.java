@@ -3,26 +3,27 @@ package cf.hydos.animationRendering.engine.core;
 import cf.hydos.animationRendering.engine.components.GameComponent;
 import cf.hydos.animationRendering.engine.rendering.RenderingEngine;
 import cf.hydos.animationRendering.engine.rendering.Shader;
+import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 
 public class GameObject {
     private final ArrayList<GameObject> m_children;
     private final ArrayList<GameComponent> m_components;
-    private final Transform m_transform;
+    private final Matrix4f m_transform;
     private CoreEngine m_engine;
 
     public GameObject() {
         m_children = new ArrayList<GameObject>();
         m_components = new ArrayList<GameComponent>();
-        m_transform = new Transform();
+        m_transform = new Matrix4f();
         m_engine = null;
     }
 
     public GameObject AddChild(GameObject child) {
         m_children.add(child);
         child.SetEngine(m_engine);
-        child.GetTransform().SetParent(m_transform);
+        child.GetTransform().mul(m_transform);
 
         return this;
     }
@@ -56,8 +57,6 @@ public class GameObject {
     }
 
     public void Input(float delta) {
-        m_transform.Update();
-
         for (GameComponent component : m_components)
             component.Input(delta);
     }
@@ -82,7 +81,7 @@ public class GameObject {
         return result;
     }
 
-    public Transform GetTransform() {
+    public Matrix4f GetTransform() {
         return m_transform;
     }
 

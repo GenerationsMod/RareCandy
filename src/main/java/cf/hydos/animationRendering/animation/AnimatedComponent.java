@@ -223,7 +223,6 @@ public class AnimatedComponent extends GameComponent {
     @Override
     public void Render(Shader notshader, RenderingEngine renderingEngine) {
         shader.Bind();
-        GetTransform().SetRot(new Quaternion(new Matrix4f().InitRotation(-90, 0, 0)));
 
         for (int i = 0; i < boneTransforms.length; i++) shader.SetUniform("gBones[" + i + "]", boneTransforms[i]);
         shader.UpdateUniforms(GetTransform(), material, renderingEngine);

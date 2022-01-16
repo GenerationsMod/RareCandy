@@ -1,7 +1,5 @@
 package cf.hydos.engine.core;
 
-import org.joml.Vector3f;
-
 public class Matrix4f {
     public final float[][] m;
 
@@ -44,20 +42,7 @@ public class Matrix4f {
         return this;
     }
 
-    public Matrix4f rotate(Vector3f forward, Vector3f up, Vector3f right) {
-        m[0][0] = right.x();
-        m[0][1] = right.y();
-        m[0][2] = right.z();
-        m[1][0] = up.x();
-        m[1][1] = up.y();
-        m[1][2] = up.z();
-        m[2][0] = forward.x();
-        m[2][1] = forward.y();
-        m[2][2] = forward.z();
-        return this;
-    }
-
-    public Matrix4f WeirdMul(Matrix4f r) {
+    public Matrix4f mul(Matrix4f r) {
         return RendererUtils.WeirdMul(this, r);
     }
 

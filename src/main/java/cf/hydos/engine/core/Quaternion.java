@@ -1,5 +1,7 @@
 package cf.hydos.engine.core;
 
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.lwjgl.assimp.AIQuaternion;
 
 public class Quaternion {
@@ -19,9 +21,9 @@ public class Quaternion {
         float sinHalfAngle = (float) Math.sin(angle / 2);
         float cosHalfAngle = (float) Math.cos(angle / 2);
 
-        this.m_x = axis.GetX() * sinHalfAngle;
-        this.m_y = axis.GetY() * sinHalfAngle;
-        this.m_z = axis.GetZ() * sinHalfAngle;
+        this.m_x = axis.x() * sinHalfAngle;
+        this.m_y = axis.y() * sinHalfAngle;
+        this.m_z = axis.z() * sinHalfAngle;
         this.m_w = cosHalfAngle;
     }
 
@@ -96,10 +98,10 @@ public class Quaternion {
     }
 
     public Quaternion Mul(Vector3f r) {
-        float w_ = -m_x * r.GetX() - m_y * r.GetY() - m_z * r.GetZ();
-        float x_ = m_w * r.GetX() + m_y * r.GetZ() - m_z * r.GetY();
-        float y_ = m_w * r.GetY() + m_z * r.GetX() - m_x * r.GetZ();
-        float z_ = m_w * r.GetZ() + m_x * r.GetY() - m_y * r.GetX();
+        float w_ = -m_x * r.x() - m_y * r.y() - m_z * r.z();
+        float x_ = m_w * r.x() + m_y * r.z() - m_z * r.y();
+        float y_ = m_w * r.y() + m_z * r.x() - m_x * r.z();
+        float z_ = m_w * r.z() + m_x * r.y() - m_y * r.x();
 
         return new Quaternion(x_, y_, z_, w_);
     }
@@ -158,27 +160,27 @@ public class Quaternion {
     }
 
     public Vector3f GetForward() {
-        return new Vector3f(0, 0, 1).Rotate(this);
+        return new Vector3f(0, 0, 1).rotate(new Quaternionf(this.m_x, this.m_y, this.m_z, this.m_w));
     }
 
     public Vector3f GetBack() {
-        return new Vector3f(0, 0, -1).Rotate(this);
+        return new Vector3f(0, 0, -1).rotate(new Quaternionf(this.m_x, this.m_y, this.m_z, this.m_w));
     }
 
     public Vector3f GetUp() {
-        return new Vector3f(0, 1, 0).Rotate(this);
+        return new Vector3f(0, 1, 0).rotate(new Quaternionf(this.m_x, this.m_y, this.m_z, this.m_w));
     }
 
     public Vector3f GetDown() {
-        return new Vector3f(0, -1, 0).Rotate(this);
+        return new Vector3f(0, -1, 0).rotate(new Quaternionf(this.m_x, this.m_y, this.m_z, this.m_w));
     }
 
     public Vector3f GetRight() {
-        return new Vector3f(1, 0, 0).Rotate(this);
+        return new Vector3f(1, 0, 0).rotate(new Quaternionf(this.m_x, this.m_y, this.m_z, this.m_w));
     }
 
     public Vector3f GetLeft() {
-        return new Vector3f(-1, 0, 0).Rotate(this);
+        return new Vector3f(-1, 0, 0).rotate(new Quaternionf(this.m_x, this.m_y, this.m_z, this.m_w));
     }
 
     public Quaternion Set(float x, float y, float z, float w) {

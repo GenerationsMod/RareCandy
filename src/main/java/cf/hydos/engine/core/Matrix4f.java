@@ -1,5 +1,6 @@
 package cf.hydos.engine.core;
 
+import org.joml.Vector3f;
 import org.lwjgl.assimp.AIMatrix4x4;
 
 public class Matrix4f {
@@ -188,12 +189,12 @@ public class Matrix4f {
     }
 
     public Matrix4f InitRotation(Vector3f forward, Vector3f up) {
-        Vector3f f = forward.Normalized();
+        Vector3f f = forward.normalize();
 
-        Vector3f r = up.Normalized();
-        r = r.Cross(f);
+        Vector3f r = up.normalize();
+        r = r.cross(f);
 
-        Vector3f u = f.Cross(r);
+        Vector3f u = f.cross(r);
 
         return InitRotation(f, u, r);
     }
@@ -203,17 +204,17 @@ public class Matrix4f {
         Vector3f r = right;
         Vector3f u = up;
 
-        m[0][0] = r.GetX();
-        m[0][1] = r.GetY();
-        m[0][2] = r.GetZ();
+        m[0][0] = r.x();
+        m[0][1] = r.y();
+        m[0][2] = r.z();
         m[0][3] = 0;
-        m[1][0] = u.GetX();
-        m[1][1] = u.GetY();
-        m[1][2] = u.GetZ();
+        m[1][0] = u.x();
+        m[1][1] = u.y();
+        m[1][2] = u.z();
         m[1][3] = 0;
-        m[2][0] = f.GetX();
-        m[2][1] = f.GetY();
-        m[2][2] = f.GetZ();
+        m[2][0] = f.x();
+        m[2][1] = f.y();
+        m[2][2] = f.z();
         m[2][3] = 0;
         m[3][0] = 0;
         m[3][1] = 0;
@@ -224,9 +225,9 @@ public class Matrix4f {
     }
 
     public Vector3f Transform(Vector3f r) {
-        return new Vector3f(m[0][0] * r.GetX() + m[0][1] * r.GetY() + m[0][2] * r.GetZ() + m[0][3],
-                m[1][0] * r.GetX() + m[1][1] * r.GetY() + m[1][2] * r.GetZ() + m[1][3],
-                m[2][0] * r.GetX() + m[2][1] * r.GetY() + m[2][2] * r.GetZ() + m[2][3]);
+        return new Vector3f(m[0][0] * r.x() + m[0][1] * r.y() + m[0][2] * r.z() + m[0][3],
+                m[1][0] * r.x() + m[1][1] * r.y() + m[1][2] * r.z() + m[1][3],
+                m[2][0] * r.x() + m[2][1] * r.y() + m[2][2] * r.z() + m[2][3]);
     }
 
     public Matrix4f Mul(Matrix4f r) {

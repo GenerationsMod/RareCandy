@@ -1,7 +1,7 @@
 package cf.hydos.engine.rendering;
 
-import cf.hydos.engine.core.Vector2f;
-import cf.hydos.engine.core.Vector3f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 
 public class Vertex {
     public static final int SIZE = 11;

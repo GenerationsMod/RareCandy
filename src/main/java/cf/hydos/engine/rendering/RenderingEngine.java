@@ -1,8 +1,8 @@
 package cf.hydos.engine.rendering;
 
 import cf.hydos.engine.core.RenderObject;
-import cf.hydos.engine.core.Vector3f;
 import cf.hydos.engine.rendering.resources.MappedValues;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 

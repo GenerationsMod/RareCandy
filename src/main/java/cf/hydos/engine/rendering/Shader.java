@@ -2,8 +2,8 @@ package cf.hydos.engine.rendering;
 
 import cf.hydos.engine.core.Matrix4f;
 import cf.hydos.engine.core.Util;
-import cf.hydos.engine.core.Vector3f;
 import cf.hydos.engine.rendering.resources.ShaderResource;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
 import java.io.BufferedReader;
@@ -326,7 +326,7 @@ public class Shader {
     }
 
     public void SetUniform(String uniformName, Vector3f value) {
-        glUniform3f(m_resource.GetUniforms().get(uniformName), value.GetX(), value.GetY(), value.GetZ());
+        glUniform3f(m_resource.GetUniforms().get(uniformName), value.x(), value.y(), value.z());
     }
 
     public void SetUniform(String uniformName, Matrix4f value) {

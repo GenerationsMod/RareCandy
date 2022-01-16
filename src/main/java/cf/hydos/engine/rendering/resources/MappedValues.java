@@ -1,6 +1,6 @@
 package cf.hydos.engine.rendering.resources;
 
-import cf.hydos.engine.core.Vector3f;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 

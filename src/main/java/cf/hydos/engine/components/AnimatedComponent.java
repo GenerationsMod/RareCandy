@@ -3,12 +3,13 @@ package cf.hydos.engine.components;
 import cf.hydos.engine.animation.Bone;
 import cf.hydos.engine.core.Matrix4f;
 import cf.hydos.engine.core.Quaternion;
-import cf.hydos.engine.core.Vector3f;
 import cf.hydos.engine.rendering.Material;
 import cf.hydos.engine.rendering.RenderingEngine;
 import cf.hydos.engine.rendering.Shader;
 import cf.hydos.engine.rendering.Texture;
 import cf.hydos.engine.rendering.resources.MeshResource;
+import cf.hydos.pixelmonassetutils.AssimpUtils;
+import org.joml.Vector3f;
 import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AINodeAnim;
@@ -64,7 +65,7 @@ public class AnimatedComponent extends GameComponent {
 
     void CalcInterpolatedPosition(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
         if (pNodeAnim.mNumPositionKeys() == 1) {
-            Out.Set(Vector3f.fromAssimp(pNodeAnim.mPositionKeys().get(0).mValue()));
+            Out.set(AssimpUtils.from(pNodeAnim.mPositionKeys().get(0).mValue()));
             return;
         }
 
@@ -74,10 +75,10 @@ public class AnimatedComponent extends GameComponent {
         float DeltaTime = (float) (pNodeAnim.mPositionKeys().get(NextPositionIndex).mTime() - pNodeAnim.mPositionKeys().get(PositionIndex).mTime());
         float Factor = (AnimationTime - (float) pNodeAnim.mPositionKeys().get(PositionIndex).mTime()) / DeltaTime;
         assert (Factor >= 0.0f && Factor <= 1.0f);
-        Vector3f Start = Vector3f.fromAssimp(pNodeAnim.mPositionKeys().get(PositionIndex).mValue());
-        Vector3f End = Vector3f.fromAssimp(pNodeAnim.mPositionKeys().get(NextPositionIndex).mValue());
-        Vector3f Delta = End.Sub(Start);
-        Out.Set(Start.Add(Delta.Mul(Factor)));// + Factor * Delta;
+        Vector3f Start = AssimpUtils.from(pNodeAnim.mPositionKeys().get(PositionIndex).mValue());
+        Vector3f End = AssimpUtils.from(pNodeAnim.mPositionKeys().get(NextPositionIndex).mValue());
+        Vector3f Delta = End.sub(Start);
+        Out.set(Start.add(Delta.mul(Factor)));// + Factor * Delta;
     }
 
 
@@ -103,7 +104,7 @@ public class AnimatedComponent extends GameComponent {
 
     void CalcInterpolatedScaling(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
         if (pNodeAnim.mNumScalingKeys() == 1) {
-            Out = Vector3f.fromAssimp(pNodeAnim.mScalingKeys().get(0).mValue());
+            Out = AssimpUtils.from(pNodeAnim.mScalingKeys().get(0).mValue());
             return;
         }
 
@@ -113,10 +114,10 @@ public class AnimatedComponent extends GameComponent {
         float DeltaTime = (float) (pNodeAnim.mScalingKeys().get(NextScalingIndex).mTime() - pNodeAnim.mScalingKeys().get(ScalingIndex).mTime());
         float Factor = (AnimationTime - (float) pNodeAnim.mScalingKeys().get(ScalingIndex).mTime()) / DeltaTime;
         assert (Factor >= 0.0f && Factor <= 1.0f);
-        Vector3f Start = Vector3f.fromAssimp(pNodeAnim.mScalingKeys().get(ScalingIndex).mValue());
-        Vector3f End = Vector3f.fromAssimp(pNodeAnim.mScalingKeys().get(NextScalingIndex).mValue());
-        Vector3f Delta = End.Sub(Start);
-        Out.Set(Start.Add(Delta.Mul(Factor)));
+        Vector3f Start = AssimpUtils.from(pNodeAnim.mScalingKeys().get(ScalingIndex).mValue());
+        Vector3f End = AssimpUtils.from(pNodeAnim.mScalingKeys().get(NextScalingIndex).mValue());
+        Vector3f Delta = End.sub(Start);
+        Out.set(Start.add(Delta.mul(Factor)));
     }
 
     int FindPosition(float AnimationTime, AINodeAnim pNodeAnim) {

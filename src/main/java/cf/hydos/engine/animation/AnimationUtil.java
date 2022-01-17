@@ -55,7 +55,7 @@ public class AnimationUtil {
          * bone		info 4f
          * bone		info 4f
          */
-        float[] array = new float[mesh.mNumVertices() * sizeOfVertex];
+        float[] rawMeshData = new float[mesh.mNumVertices() * sizeOfVertex];
         int index = 0;
 
         for (int v = 0; v < mesh.mNumVertices(); v++) {
@@ -64,30 +64,30 @@ public class AnimationUtil {
             AIVector3D tangent = mesh.mTangents().get(v);
             AIVector3D texCoord = mesh.mTextureCoords(0).get(v);
 
-            array[index++] = position.x();
-            array[index++] = position.y();
-            array[index++] = position.z();
+            rawMeshData[index++] = position.x();
+            rawMeshData[index++] = position.y();
+            rawMeshData[index++] = position.z();
 
-            array[index++] = texCoord.x();
-            array[index++] = texCoord.y();
+            rawMeshData[index++] = texCoord.x();
+            rawMeshData[index++] = texCoord.y();
 
-            array[index++] = normal.x();
-            array[index++] = normal.y();
-            array[index++] = normal.z();
+            rawMeshData[index++] = normal.x();
+            rawMeshData[index++] = normal.y();
+            rawMeshData[index++] = normal.z();
 
-            array[index++] = tangent.x();
-            array[index++] = tangent.y();
-            array[index++] = tangent.z();
+            rawMeshData[index++] = tangent.x();
+            rawMeshData[index++] = tangent.y();
+            rawMeshData[index++] = tangent.z();
 
-            array[index++] = 0;
-            array[index++] = 0;
-            array[index++] = 0;
-            array[index++] = 0;
+            rawMeshData[index++] = 0;
+            rawMeshData[index++] = 0;
+            rawMeshData[index++] = 0;
+            rawMeshData[index++] = 0;
 
-            array[index++] = 0;
-            array[index++] = 0;
-            array[index++] = 0;
-            array[index++] = 0;
+            rawMeshData[index++] = 0;
+            rawMeshData[index++] = 0;
+            rawMeshData[index++] = 0;
+            rawMeshData[index++] = 0;
         }
 
         IntBuffer indices = BufferUtils.createIntBuffer(mesh.mNumFaces() * mesh.mFaces().get(0).mNumIndices());
@@ -102,31 +102,31 @@ public class AnimationUtil {
         HashMap<Integer, Integer> bone_index_map0 = new HashMap<>();
         HashMap<Integer, Integer> bone_index_map1 = new HashMap<>();
 
-        for (int b = 0; b < mesh.mNumBones(); b++) {
-            AIBone bone = AIBone.create(mesh.mBones().get(b));
-            boneMap.put(bone.mName().dataString(), b);
+        for (int boneId = 0; boneId < mesh.mNumBones(); boneId++) {
+            AIBone bone = AIBone.create(mesh.mBones().get(boneId));
+            boneMap.put(bone.mName().dataString(), boneId);
 
-            for (int w = 0; w < bone.mNumWeights(); w++) {
-                AIVertexWeight weight = bone.mWeights().get(w);
-                int vertexIndex = weight.mVertexId();
-                int findex = vertexIndex * sizeOfVertex;
+            for (int weightId = 0; weightId < bone.mNumWeights(); weightId++) {
+                AIVertexWeight weight = bone.mWeights().get(weightId);
+                int vertId = weight.mVertexId();
+                int vertOffset = vertId * sizeOfVertex;
 
-                if (!bone_index_map0.containsKey(vertexIndex)) {
-                    array[(findex + sizeOfVertexUnrigged)] = b;
-                    array[(findex + sizeOfVertexUnrigged) + 2] = weight.mWeight();
-                    bone_index_map0.put(vertexIndex, 0);
-                } else if (bone_index_map0.get(vertexIndex) == 0) {
-                    array[(findex + sizeOfVertexUnrigged) + 1] = b;
-                    array[(findex + sizeOfVertexUnrigged) + 3] = weight.mWeight();
-                    bone_index_map0.put(vertexIndex, 1);
-                } else if (!bone_index_map1.containsKey(vertexIndex)) {
-                    array[(findex + sizeOfVertexUnrigged) + 4] = b;
-                    array[(findex + sizeOfVertexUnrigged) + 6] = weight.mWeight();
-                    bone_index_map1.put(vertexIndex, 0);
-                } else if (bone_index_map1.get(vertexIndex) == 0) {
-                    array[(findex + sizeOfVertexUnrigged) + 5] = b;
-                    array[(findex + sizeOfVertexUnrigged) + 7] = weight.mWeight();
-                    bone_index_map1.put(vertexIndex, 1);
+                if (!bone_index_map0.containsKey(vertId)) {
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged)] = boneId;
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 2] = weight.mWeight();
+                    bone_index_map0.put(vertId, 0);
+                } else if (bone_index_map0.get(vertId) == 0) {
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 1] = boneId;
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 3] = weight.mWeight();
+                    bone_index_map0.put(vertId, 1);
+                } else if (!bone_index_map1.containsKey(vertId)) {
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 4] = boneId;
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 6] = weight.mWeight();
+                    bone_index_map1.put(vertId, 0);
+                } else if (bone_index_map1.get(vertId) == 0) {
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 5] = boneId;
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 7] = weight.mWeight();
+                    bone_index_map1.put(vertId, 1);
                 } else {
                     System.err.println("max 4 bones per vertex.");
                     System.exit(0);
@@ -148,10 +148,10 @@ public class AnimationUtil {
         }
 
         AnimatedComponent component = new AnimatedComponent();
-        FloatBuffer vertices = BufferUtils.createFloatBuffer(array.length);
+        FloatBuffer vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
 
-        for (float v : array) vertices.put(v);
-        vertices.flip();
+        for (float v : rawMeshData) vertBuffer.put(v);
+        vertBuffer.flip();
         indices.flip();
 
         List<GlbReader.AssimpMaterial> rawMaterials = new ArrayList<>();
@@ -188,7 +188,7 @@ public class AnimationUtil {
         }
 
 
-        component.AddVertices(vertices, indices, new Texture(textures.get(0)));
+        component.AddVertices(vertBuffer, indices, new Texture(textures.get(0)));
 
         component.animation = AIAnimation.create(scene.mAnimations().get(0));
         component.bones = bones;

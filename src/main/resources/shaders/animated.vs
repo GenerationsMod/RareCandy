@@ -4,6 +4,7 @@ in vec3 position;
 in vec2 texCoord;
 in vec3 normal;
 in vec3 tangent;
+
 in vec4 boneDataA;
 in vec4 boneDataB;
 

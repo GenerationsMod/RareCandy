@@ -179,15 +179,15 @@ public class AnimatedComponent extends GameComponent {
             Matrix4f TranslationM = new Matrix4f().identity().translate(Translation.x(), Translation.y(), Translation.z());
 
             // Combine the above transformations
-            NodeTransformation = TranslationM.mul(RotationM).mul(ScalingM);
+            NodeTransformation = new Matrix4f(TranslationM).mul(new Matrix4f(RotationM)).mul(new Matrix4f(ScalingM));
         }
 
-        Matrix4f GlobalTransformation = ParentTransform.mul(NodeTransformation);
+        Matrix4f GlobalTransformation = new Matrix4f(ParentTransform).mul(NodeTransformation);
 
         Bone bone;
 
         if ((bone = findBone(name)) != null) {
-            bone.finalTransformation = globalInverseTransform.mul(GlobalTransformation).mul(bone.offsetMatrix);
+            bone.finalTransformation = new Matrix4f(globalInverseTransform).mul(new Matrix4f(GlobalTransformation)).mul(bone.offsetMatrix);
         }
 
         for (int i = 0; i < pNode.mNumChildren(); i++) {

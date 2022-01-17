@@ -8,28 +8,28 @@ import org.joml.Matrix4f;
 import java.util.ArrayList;
 
 public class RenderObject {
-    private final ArrayList<RenderObject> m_children;
-    private final ArrayList<GameComponent> m_components;
-    private final Matrix4f m_transform;
-    private Renderer m_engine;
+    private final ArrayList<RenderObject> children;
+    private final ArrayList<GameComponent> components;
+    private final Matrix4f transform;
+    private Renderer engine;
 
     public RenderObject() {
-        m_children = new ArrayList<RenderObject>();
-        m_components = new ArrayList<GameComponent>();
-        m_transform = new Matrix4f();
-        m_engine = null;
+        children = new ArrayList<RenderObject>();
+        components = new ArrayList<GameComponent>();
+        transform = new Matrix4f();
+        engine = null;
     }
 
     public RenderObject AddChild(RenderObject child) {
-        m_children.add(child);
-        child.SetEngine(m_engine);
-        child.getTransformation().mul(m_transform);
+        children.add(child);
+        child.SetEngine(engine);
+        child.getTransformation().mul(transform);
 
         return this;
     }
 
     public RenderObject addComponent(GameComponent component) {
-        m_components.add(component);
+        components.add(component);
         component.SetParent(this);
 
         return this;
@@ -38,43 +38,43 @@ public class RenderObject {
     public void InputAll(float delta) {
         Input(delta);
 
-        for (RenderObject child : m_children)
+        for (RenderObject child : children)
             child.InputAll(delta);
     }
 
     public void UpdateAll(float delta) {
         Update(delta);
 
-        for (RenderObject child : m_children)
+        for (RenderObject child : children)
             child.UpdateAll(delta);
     }
 
     public void RenderAll(Shader shader, RenderingEngine renderingEngine) {
         Render(shader, renderingEngine);
 
-        for (RenderObject child : m_children)
+        for (RenderObject child : children)
             child.RenderAll(shader, renderingEngine);
     }
 
     public void Input(float delta) {
-        for (GameComponent component : m_components)
+        for (GameComponent component : components)
             component.Input(delta);
     }
 
     public void Update(float delta) {
-        for (GameComponent component : m_components)
+        for (GameComponent component : components)
             component.Update(delta);
     }
 
     public void Render(Shader shader, RenderingEngine renderingEngine) {
-        for (GameComponent component : m_components)
+        for (GameComponent component : components)
             component.Render(shader, renderingEngine);
     }
 
     public ArrayList<RenderObject> GetAllAttached() {
         ArrayList<RenderObject> result = new ArrayList<RenderObject>();
 
-        for (RenderObject child : m_children)
+        for (RenderObject child : children)
             result.addAll(child.GetAllAttached());
 
         result.add(this);
@@ -82,17 +82,17 @@ public class RenderObject {
     }
 
     public Matrix4f getTransformation() {
-        return m_transform;
+        return transform;
     }
 
     public void SetEngine(Renderer engine) {
-        if (this.m_engine != engine) {
-            this.m_engine = engine;
+        if (this.engine != engine) {
+            this.engine = engine;
 
-            for (GameComponent component : m_components)
+            for (GameComponent component : components)
                 component.AddToEngine(engine);
 
-            for (RenderObject child : m_children)
+            for (RenderObject child : children)
                 child.SetEngine(engine);
         }
     }

@@ -9,20 +9,20 @@ import java.util.HashMap;
 import static org.lwjgl.opengl.GL11.*;
 
 public class RenderingEngine extends MappedValues {
-    private final HashMap<String, Integer> m_samplerMap;
+    private final HashMap<String, Integer> samplerMap;
 
-    private final Shader m_forwardAmbient;
+    private final Shader forwardAmbient;
 
     public RenderingEngine() {
         super();
-        m_samplerMap = new HashMap<>();
-        m_samplerMap.put("diffuse", 0);
-        m_samplerMap.put("normalMap", 1);
-        m_samplerMap.put("dispMap", 2);
+        samplerMap = new HashMap<>();
+        samplerMap.put("diffuse", 0);
+        samplerMap.put("normalMap", 1);
+        samplerMap.put("dispMap", 2);
 
         AddVector3f("ambient", new Vector3f(0.1f, 0.1f, 0.1f));
 
-        m_forwardAmbient = new Shader("animated");
+        forwardAmbient = new Shader("animated");
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -41,7 +41,7 @@ public class RenderingEngine extends MappedValues {
     public void Render(RenderObject object) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        object.RenderAll(m_forwardAmbient, this);
+        object.RenderAll(forwardAmbient, this);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE);
@@ -54,6 +54,6 @@ public class RenderingEngine extends MappedValues {
     }
 
     public int GetSamplerSlot(String samplerName) {
-        return m_samplerMap.get(samplerName);
+        return samplerMap.get(samplerName);
     }
 }

@@ -19,14 +19,14 @@ public class Window {
     public static int WIDTH = 0;
     public static int HEIGHT = 0;
     public static Mouse Mouse;
-    protected static long m_window;
-    protected static GLFWErrorCallback m_errorCallback;
-    protected static GLFWWindowSizeCallback m_resizeCallBack;
+    protected static long window;
+    protected static GLFWErrorCallback errorCallback;
+    protected static GLFWWindowSizeCallback resizeCallBack;
 
     public static void CreateWindow(int width, int height, String title) {
         try {
             if (!glfwInit()) throw new Exception("GLFW Initialization failed.");
-            glfwSetErrorCallback(m_errorCallback = GLFWErrorCallback.createPrint(System.err));
+            glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
             glfwDefaultWindowHints();
             glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
             glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
@@ -35,25 +35,25 @@ public class Window {
 
             Window.WIDTH = width;
             Window.HEIGHT = height;
-            m_window = glfwCreateWindow(width, height, title, NULL, NULL);
-            if (m_window == 0) throw new Exception("GLFW Window creation failed.");
+            window = glfwCreateWindow(width, height, title, NULL, NULL);
+            if (window == 0) throw new Exception("GLFW Window creation failed.");
             GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
             // Center our window
-            glfwSetWindowPos(m_window, (videoMode.width() - WIDTH) / 2, (videoMode.height() - HEIGHT) / 2);
+            glfwSetWindowPos(window, (videoMode.width() - WIDTH) / 2, (videoMode.height() - HEIGHT) / 2);
 
             Mouse = new Mouse();
-            Mouse.Create(m_window);
+            Mouse.Create(window);
 
-            glfwSetWindowSizeCallback(m_window, m_resizeCallBack = new GLFWWindowSizeCallback() {
+            glfwSetWindowSizeCallback(window, resizeCallBack = new GLFWWindowSizeCallback() {
                 @Override
                 public void invoke(long arg0, int arg1, int arg2) {
                     Window.WIDTH = arg1;
                     Window.HEIGHT = arg2;
                 }
             });
-            glfwMakeContextCurrent(m_window);
+            glfwMakeContextCurrent(window);
             glfwSwapInterval(0);
-            glfwShowWindow(m_window);
+            glfwShowWindow(window);
             GL.createCapabilities();
             int vao = GL30.glGenVertexArrays();
             GL30.glBindVertexArray(vao);
@@ -68,26 +68,26 @@ public class Window {
     }
 
     public static void Render() {
-        glfwSwapBuffers(m_window);
+        glfwSwapBuffers(window);
     }
 
     public static void Dispose() {
-        glfwDestroyWindow(m_window);
+        glfwDestroyWindow(window);
     }
 
     public static boolean IsCloseRequested() {
-        return glfwWindowShouldClose(m_window);//Display.isCloseRequested();
+        return glfwWindowShouldClose(window);//Display.isCloseRequested();
     }
 
     public static int GetWidth() {
-        glfwGetWindowSize(m_window, w, h);
+        glfwGetWindowSize(window, w, h);
         WIDTH = w.get(0);
         HEIGHT = h.get(0);
         return w.get(0);
     }
 
     public static int GetHeight() {
-        glfwGetWindowSize(m_window, w, h);
+        glfwGetWindowSize(window, w, h);
         WIDTH = w.get(0);
         HEIGHT = h.get(0);
         return h.get(0);
@@ -116,7 +116,7 @@ public class Window {
                     y = (int) ypos;
                 }
             });
-            glfwSetScrollCallback(m_window, scallback = new GLFWScrollCallback() {
+            glfwSetScrollCallback(window, scallback = new GLFWScrollCallback() {
 
                 @Override
                 public void invoke(long arg0, double arg1, double arg2) {

@@ -6,10 +6,10 @@ import org.joml.Vector3f;
 public class Vertex {
     public static final int SIZE = 11;
 
-    private Vector3f m_pos;
-    private Vector2f m_texCoord;
-    private Vector3f m_normal;
-    private Vector3f m_tangent;
+    private Vector3f pos;
+    private Vector2f texCoord;
+    private Vector3f normal;
+    private Vector3f tangent;
 
     public Vertex(Vector3f pos) {
         this(pos, new Vector2f(0, 0));
@@ -24,41 +24,41 @@ public class Vertex {
     }
 
     public Vertex(Vector3f pos, Vector2f texCoord, Vector3f normal, Vector3f tangent) {
-        this.m_pos = pos;
-        this.m_texCoord = texCoord;
-        this.m_normal = normal;
-        this.m_tangent = tangent;
+        this.pos = pos;
+        this.texCoord = texCoord;
+        this.normal = normal;
+        this.tangent = tangent;
     }
 
     public Vector3f GetTangent() {
-        return m_tangent;
+        return tangent;
     }
 
     public void SetTangent(Vector3f tangent) {
-        this.m_tangent = tangent;
+        this.tangent = tangent;
     }
 
     public Vector3f GetPos() {
-        return m_pos;
+        return pos;
     }
 
     public void SetPos(Vector3f pos) {
-        this.m_pos = pos;
+        this.pos = pos;
     }
 
     public Vector2f GetTexCoord() {
-        return m_texCoord;
+        return texCoord;
     }
 
     public void SetTexCoord(Vector2f texCoord) {
-        this.m_texCoord = texCoord;
+        this.texCoord = texCoord;
     }
 
     public Vector3f GetNormal() {
-        return m_normal;
+        return normal;
     }
 
     public void SetNormal(Vector3f normal) {
-        this.m_normal = normal;
+        this.normal = normal;
     }
 }

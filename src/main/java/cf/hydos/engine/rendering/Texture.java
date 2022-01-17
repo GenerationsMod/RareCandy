@@ -16,25 +16,25 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
 
 public class Texture {
     private static final HashMap<String, TextureResource> s_loadedTextures = new HashMap<String, TextureResource>();
-    private final TextureResource m_resource;
-    private final String m_fileName;
+    private final TextureResource resource;
+    private final String fileName;
 
     public Texture(String fileName) {
-        this.m_fileName = fileName;
+        this.fileName = fileName;
         TextureResource oldResource = s_loadedTextures.get(fileName);
 
         if (oldResource != null) {
-            m_resource = oldResource;
-            m_resource.AddReference();
+            resource = oldResource;
+            resource.AddReference();
         } else {
-            m_resource = LoadTexture(fileName);
-            s_loadedTextures.put(fileName, m_resource);
+            resource = LoadTexture(fileName);
+            s_loadedTextures.put(fileName, resource);
         }
     }
 
     public Texture(GlbTexture texture) {
-        this.m_fileName = texture.name;
-        this.m_resource = texture;
+        this.fileName = texture.name;
+        this.resource = texture;
     }
 
     private static TextureResource LoadTexture(String fileName) {
@@ -81,8 +81,8 @@ public class Texture {
 
     @Override
     protected void finalize() {
-        if (m_resource.RemoveReference() && !m_fileName.isEmpty()) {
-            s_loadedTextures.remove(m_fileName);
+        if (resource.RemoveReference() && !fileName.isEmpty()) {
+            s_loadedTextures.remove(fileName);
         }
     }
 
@@ -93,10 +93,10 @@ public class Texture {
     public void Bind(int samplerSlot) {
         assert (samplerSlot >= 0 && samplerSlot <= 31);
         glActiveTexture(GL_TEXTURE0 + samplerSlot);
-        glBindTexture(GL_TEXTURE_2D, m_resource.GetId());
+        glBindTexture(GL_TEXTURE_2D, resource.GetId());
     }
 
     public int GetID() {
-        return m_resource.GetId();
+        return resource.GetId();
     }
 }

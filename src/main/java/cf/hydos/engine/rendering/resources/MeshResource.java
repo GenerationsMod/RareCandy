@@ -3,42 +3,42 @@ package cf.hydos.engine.rendering.resources;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
 
 public class MeshResource {
-    private final int m_vbo;
-    private final int m_ibo;
-    private final int m_size;
-    private int m_refCount;
+    private final int vbo;
+    private final int ibo;
+    private final int size;
+    private int refCount;
 
     public MeshResource(int size) {
-        m_vbo = glGenBuffers();
-        m_ibo = glGenBuffers();
-        this.m_size = size;
-        this.m_refCount = 1;
+        vbo = glGenBuffers();
+        ibo = glGenBuffers();
+        this.size = size;
+        this.refCount = 1;
     }
 
     @Override
     protected void finalize() {
-//		glDeleteBuffers(m_vbo);
-//		glDeleteBuffers(m_ibo);
+//		glDeleteBuffers(vbo);
+//		glDeleteBuffers(ibo);
     }
 
     public void AddReference() {
-        m_refCount++;
+        refCount++;
     }
 
     public boolean RemoveReference() {
-        m_refCount--;
-        return m_refCount == 0;
+        refCount--;
+        return refCount == 0;
     }
 
     public int GetVbo() {
-        return m_vbo;
+        return vbo;
     }
 
     public int GetIbo() {
-        return m_ibo;
+        return ibo;
     }
 
     public int GetSize() {
-        return m_size;
+        return size;
     }
 }

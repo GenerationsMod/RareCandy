@@ -4,53 +4,53 @@ import cf.hydos.engine.rendering.RenderingEngine;
 import cf.hydos.engine.rendering.Window;
 
 public class Renderer {
-    private boolean m_isRunning;
-    private final RenderingApplication m_game;
-    private RenderingEngine m_renderingEngine;
-    private final int m_width;
-    private final int m_height;
-    private final double m_frameTime;
+    private boolean isRunning;
+    private final RenderingApplication game;
+    private RenderingEngine renderingEngine;
+    private final int width;
+    private final int height;
+    private final double frameTime;
 
     public Renderer(int width, int height, double framerate, RenderingApplication game) {
-        this.m_isRunning = false;
-        this.m_game = game;
-        this.m_width = width;
-        this.m_height = height;
-        this.m_frameTime = 1.0 / framerate;
+        this.isRunning = false;
+        this.game = game;
+        this.width = width;
+        this.height = height;
+        this.frameTime = 1.0 / framerate;
         game.SetEngine(this);
     }
 
     public void title(String title) {
-        Window.CreateWindow(m_width, m_height, title);
-        this.m_renderingEngine = new RenderingEngine();
+        Window.CreateWindow(width, height, title);
+        this.renderingEngine = new RenderingEngine();
     }
 
     public void start() {
-        if (m_isRunning)
+        if (isRunning)
             return;
 
         Run();
     }
 
     public void Stop() {
-        if (!m_isRunning)
+        if (!isRunning)
             return;
 
-        m_isRunning = false;
+        isRunning = false;
     }
 
     private void Run() {
-        m_isRunning = true;
+        isRunning = true;
 
         int frames = 0;
         double frameCounter = 0;
 
-        m_game.init();
+        game.init();
 
         double lastTime = Time.GetTime();
         double unprocessedTime = 0;
 
-        while (m_isRunning) {
+        while (isRunning) {
             boolean render = false;
 
             double startTime = Time.GetTime();
@@ -60,18 +60,18 @@ public class Renderer {
             unprocessedTime += passedTime;
             frameCounter += passedTime;
 
-            while (unprocessedTime > m_frameTime) {
+            while (unprocessedTime > frameTime) {
                 render = true;
 
-                unprocessedTime -= m_frameTime;
+                unprocessedTime -= frameTime;
 
                 if (Window.IsCloseRequested())
                     Stop();
 
                 Window.Update();
-                m_game.Input((float) m_frameTime);
+                game.Input((float) frameTime);
 
-                m_game.Update((float) m_frameTime);
+                game.Update((float) frameTime);
 
                 if (frameCounter >= 1.0) {
                     System.out.println(frames);
@@ -80,7 +80,7 @@ public class Renderer {
                 }
             }
             if (render) {
-                m_game.Render(m_renderingEngine);
+                game.Render(renderingEngine);
                 Window.Render();
                 frames++;
             } else {
@@ -100,6 +100,6 @@ public class Renderer {
     }
 
     public RenderingEngine GetRenderingEngine() {
-        return m_renderingEngine;
+        return renderingEngine;
     }
 }

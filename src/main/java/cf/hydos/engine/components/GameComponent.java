@@ -7,7 +7,7 @@ import cf.hydos.engine.rendering.Shader;
 import org.joml.Matrix4f;
 
 public abstract class GameComponent {
-    private RenderObject m_parent;
+    private RenderObject parent;
 
     public void Input(float delta) {
     }
@@ -19,11 +19,11 @@ public abstract class GameComponent {
     }
 
     public void SetParent(RenderObject parent) {
-        this.m_parent = parent;
+        this.parent = parent;
     }
 
     public Matrix4f GetTransform() {
-        return m_parent.getTransformation();
+        return parent.getTransformation();
     }
 
     public void AddToEngine(Renderer engine) {

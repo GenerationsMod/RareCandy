@@ -39,28 +39,7 @@ public class AssimpUtils {
 
     @Deprecated
     public static cf.hydos.engine.core.Matrix4f fromOld(AIMatrix4x4 m) {
-        cf.hydos.engine.core.Matrix4f matrix4f = new cf.hydos.engine.core.Matrix4f();
-        matrix4f.m[0][0] = m.a1();
-        matrix4f.m[0][1] = m.a2();
-        matrix4f.m[0][2] = m.a3();
-        matrix4f.m[0][3] = m.a4();
-
-        matrix4f.m[1][0] = m.b1();
-        matrix4f.m[1][1] = m.b2();
-        matrix4f.m[1][2] = m.b3();
-        matrix4f.m[1][3] = m.b4();
-
-        matrix4f.m[2][0] = m.c1();
-        matrix4f.m[2][1] = m.c2();
-        matrix4f.m[2][2] = m.c3();
-        matrix4f.m[2][3] = m.c4();
-
-        matrix4f.m[3][0] = m.d1();
-        matrix4f.m[3][1] = m.d2();
-        matrix4f.m[3][2] = m.d3();
-        matrix4f.m[3][3] = m.d4();
-
-        return matrix4f;
+        return new cf.hydos.engine.core.Matrix4f(from(m));
     }
 
     public static Quaternionf from(AIQuaternion aiQuat) {

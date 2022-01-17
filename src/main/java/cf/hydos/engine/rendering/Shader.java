@@ -330,7 +330,7 @@ public class Shader {
     }
 
     public void SetUniform(String uniformName, Matrix4f value) {
-        glUniformMatrix4fv(m_resource.GetUniforms().get(uniformName), true, RendererUtils.CreateFlippedBuffer(value));
+        SetUniform(uniformName, value.wrapped);
     }
 
     public void SetUniform(String uniformName, org.joml.Matrix4f value) {

@@ -24,9 +24,9 @@ import static org.lwjgl.opengl.GL20.*;
 
 @SuppressWarnings("ConstantConditions")
 public class AnimatedComponent extends GameComponent {
-    public org.joml.Matrix4f globalInverseTransform;
+    public Matrix4f globalInverseTransform;
     public Bone[] bones;
-    public org.joml.Matrix4f[] boneTransforms;
+    public Matrix4f[] boneTransforms;
     public AINode root;
     public AIAnimation animation;
     public MeshResource resource;
@@ -155,10 +155,10 @@ public class AnimatedComponent extends GameComponent {
         return 0;
     }
 
-    protected void ReadNodeHierarchy(float AnimationTime, AINode pNode, org.joml.Matrix4f ParentTransform) {
+    protected void ReadNodeHierarchy(float AnimationTime, AINode pNode, Matrix4f ParentTransform) {
         String name = pNode.mName().dataString();
 
-        org.joml.Matrix4f NodeTransformation = AssimpUtils.from(pNode.mTransformation());
+        Matrix4f NodeTransformation = AssimpUtils.fromOld(pNode.mTransformation());
 
         AINodeAnim pNodeAnim = FindNodeAnim(animation, name);
 
@@ -166,23 +166,23 @@ public class AnimatedComponent extends GameComponent {
             // Interpolate scaling and generate scaling transformation matrix
             Vector3f Scaling = new Vector3f(1, 1, 1);
             Scaling = CalcInterpolatedScaling(Scaling, AnimationTime, pNodeAnim);
-            org.joml.Matrix4f ScalingM = new org.joml.Matrix4f().identity().scale(Scaling.x(), Scaling.y(), Scaling.z());
+            Matrix4f ScalingM = new Matrix4f().identity().scale(Scaling.x(), Scaling.y(), Scaling.z());
 
             // Interpolate rotation and generate rotation transformation matrix
             Quaternionf RotationQ = new Quaternionf(0, 0, 0, 0);
             CalcInterpolatedRotation(RotationQ, AnimationTime, pNodeAnim);
-            org.joml.Matrix4f RotationM = RendererUtils.toRotationMatrix(RotationQ);
+            Matrix4f RotationM = RendererUtils.toRotationMatrix(RotationQ);
 
             // Interpolate translation and generate translation transformation matrix
             Vector3f Translation = new Vector3f(0, 0, 0);
             CalcInterpolatedPosition(Translation, AnimationTime, pNodeAnim);
-            org.joml.Matrix4f TranslationM = new org.joml.Matrix4f().identity().translate(Translation.x(), Translation.y(), Translation.z());
+            Matrix4f TranslationM = new Matrix4f().identity().translate(Translation.x(), Translation.y(), Translation.z());
 
             // Combine the above transformations
             NodeTransformation = TranslationM.mul(RotationM).mul(ScalingM);
         }
 
-        org.joml.Matrix4f GlobalTransformation = ParentTransform.mul(NodeTransformation);
+        Matrix4f GlobalTransformation = ParentTransform.mul(NodeTransformation);
 
         Bone bone;
 
@@ -202,11 +202,13 @@ public class AnimatedComponent extends GameComponent {
     }
 
     public void boneTransforms(float timeInSeconds) {
+        Matrix4f Identity = new Matrix4f().identity();
+
         float TicksPerSecond = (float) (animation.mTicksPerSecond() != 0 ? animation.mTicksPerSecond() : 25.0f);
         float TimeInTicks = timeInSeconds * TicksPerSecond;
         float AnimationTime = (TimeInTicks % (float) animation.mDuration());
 
-        ReadNodeHierarchy(AnimationTime, root, new org.joml.Matrix4f().identity());
+        ReadNodeHierarchy(AnimationTime, root, Identity);
 
         for (short i = 0; i < bones.length; i++) {
             boneTransforms[i] = bones[i].finalTransformation;

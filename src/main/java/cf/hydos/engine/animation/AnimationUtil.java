@@ -136,7 +136,7 @@ public class AnimationUtil {
         }
 
         AIMatrix4x4 inverseRootTransform = scene.mRootNode().mTransformation();
-        org.joml.Matrix4f inverseRootTransformation = AssimpUtils.from(inverseRootTransform);
+        Matrix4f inverseRootTransformation = AssimpUtils.fromOld(inverseRootTransform);
 
         Bone[] bones = new Bone[boneMap.size()];
 
@@ -145,7 +145,7 @@ public class AnimationUtil {
             bones[b] = new Bone();
 
             bones[b].name = bone.mName().dataString();
-            bones[b].offsetMatrix = AssimpUtils.from(bone.mOffsetMatrix());
+            bones[b].offsetMatrix = AssimpUtils.fromOld(bone.mOffsetMatrix());
         }
 
         AnimatedComponent component = new AnimatedComponent();
@@ -193,7 +193,7 @@ public class AnimationUtil {
 
         component.animation = AIAnimation.create(scene.mAnimations().get(0));
         component.bones = bones;
-        component.boneTransforms = new org.joml.Matrix4f[bones.length];
+        component.boneTransforms = new Matrix4f[bones.length];
         component.root = scene.mRootNode();
         component.globalInverseTransform = inverseRootTransformation;
 

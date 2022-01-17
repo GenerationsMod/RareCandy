@@ -1,5 +1,6 @@
 package cf.hydos.engine.core;
 
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -14,15 +15,15 @@ public class RendererUtils {
     }
 
     public static Matrix4f rotate(Matrix4f original, Vector3f forward, Vector3f up, Vector3f right) {
-        original.wrapped.m00(right.x());
-        original.wrapped.m10(right.y());
-        original.wrapped.m20(right.z());
-        original.wrapped.m01(up.x());
-        original.wrapped.m11(up.y());
-        original.wrapped.m21(up.z());
-        original.wrapped.m02(forward.x());
-        original.wrapped.m12(forward.y());
-        original.wrapped.m22(forward.z());
+        original.m00(right.x());
+        original.m10(right.y());
+        original.m20(right.z());
+        original.m01(up.x());
+        original.m11(up.y());
+        original.m21(up.z());
+        original.m02(forward.x());
+        original.m12(forward.y());
+        original.m22(forward.z());
         return original;
     }
 }

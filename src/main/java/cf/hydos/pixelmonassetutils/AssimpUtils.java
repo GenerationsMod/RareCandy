@@ -37,11 +37,6 @@ public class AssimpUtils {
         return dest;
     }
 
-    @Deprecated
-    public static cf.hydos.engine.core.Matrix4f fromOld(AIMatrix4x4 m) {
-        return new cf.hydos.engine.core.Matrix4f(from(m));
-    }
-
     public static Quaternionf from(AIQuaternion aiQuat) {
         return new Quaternionf(aiQuat.x(), aiQuat.y(), aiQuat.z(), aiQuat.w());
     }

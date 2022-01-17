@@ -1,7 +1,6 @@
 package cf.hydos.engine.components;
 
 import cf.hydos.engine.animation.Bone;
-import cf.hydos.engine.core.Matrix4f;
 import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.Material;
 import cf.hydos.engine.rendering.RenderingEngine;
@@ -9,6 +8,7 @@ import cf.hydos.engine.rendering.Shader;
 import cf.hydos.engine.rendering.Texture;
 import cf.hydos.engine.rendering.resources.MeshResource;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.assimp.AIAnimation;
@@ -158,7 +158,7 @@ public class AnimatedComponent extends GameComponent {
     protected void ReadNodeHierarchy(float AnimationTime, AINode pNode, Matrix4f ParentTransform) {
         String name = pNode.mName().dataString();
 
-        Matrix4f NodeTransformation = AssimpUtils.fromOld(pNode.mTransformation());
+        Matrix4f NodeTransformation = AssimpUtils.from(pNode.mTransformation());
 
         AINodeAnim pNodeAnim = FindNodeAnim(animation, name);
 

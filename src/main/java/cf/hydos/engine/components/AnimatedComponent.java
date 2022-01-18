@@ -1,6 +1,6 @@
 package cf.hydos.engine.components;
 
-import cf.hydos.engine.animation.Bone;
+import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.Material;
 import cf.hydos.engine.rendering.RenderingEngine;
@@ -217,10 +217,10 @@ public class AnimatedComponent extends GameComponent {
 
     @Override
     public void Render(Shader notshader, RenderingEngine renderingEngine) {
-        shader.Bind();
+        shader.bind();
 
-        for (int i = 0; i < boneTransforms.length; i++) shader.SetUniform("gBones[" + i + "]", boneTransforms[i]);
-        shader.UpdateUniforms(GetTransform(), material, renderingEngine);
+        for (int i = 0; i < boneTransforms.length; i++) shader.setUniform("gBones[" + i + "]", boneTransforms[i]);
+        shader.updateUniforms(GetTransform(), material, renderingEngine);
 
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);

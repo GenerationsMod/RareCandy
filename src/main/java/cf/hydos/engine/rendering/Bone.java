@@ -1,4 +1,4 @@
-package cf.hydos.engine.animation;
+package cf.hydos.engine.rendering;
 
 import org.joml.Matrix4f;
 

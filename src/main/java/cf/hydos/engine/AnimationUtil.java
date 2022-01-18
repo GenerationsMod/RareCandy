@@ -1,6 +1,7 @@
-package cf.hydos.engine.animation;
+package cf.hydos.engine;
 
 import cf.hydos.engine.components.AnimatedComponent;
+import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.rendering.Texture;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
 import cf.hydos.pixelmonassetutils.reader.GlbReader;

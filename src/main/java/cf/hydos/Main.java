@@ -1,6 +1,6 @@
 package cf.hydos;
 
-import cf.hydos.engine.animation.AnimationUtil;
+import cf.hydos.engine.AnimationUtil;
 import cf.hydos.engine.core.Renderer;
 import cf.hydos.engine.core.RenderingApplication;
 import cf.hydos.engine.core.RenderObject;

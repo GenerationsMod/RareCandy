@@ -1,6 +1,7 @@
 package cf.hydos.engine.rendering;
 
 import cf.hydos.engine.rendering.resources.ShaderResource;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
@@ -9,11 +10,11 @@ import java.io.InputStreamReader;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 
 public class Shader {
     private static final HashMap<String, ShaderResource> s_loadedShaders = new HashMap<>();
@@ -32,15 +33,15 @@ public class Shader {
         } else {
             resource = new ShaderResource();
 
-            String vertexShaderText = LoadShader(fileName + ".vs.glsl");
-            String fragmentShaderText = LoadShader(fileName + ".fs.glsl");
+            String vertexShaderText = loadShader(fileName + ".vs.glsl");
+            String fragmentShaderText = loadShader(fileName + ".fs.glsl");
 
-            AddVertexShader(vertexShaderText);
-            AddFragmentShader(fragmentShaderText);
+            addVertShader(vertexShaderText);
+            addFragShader(fragmentShaderText);
 
             AddAllAttributes(vertexShaderText);
 
-            CompileShader();
+            compileShader();
 
             AddAllUniforms(vertexShaderText);
             AddAllUniforms(fragmentShaderText);
@@ -49,22 +50,18 @@ public class Shader {
         }
     }
 
-    public static Shader AccessShader() {
-        return instance;
-    }
-
-    private static String LoadShader(String fileName) {
+    private static String loadShader(String fileName) {
         StringBuilder shaderSource = new StringBuilder();
         BufferedReader shaderReader;
         final String INCLUDE_DIRECTIVE = "#include";
 
         try {
-            shaderReader = new BufferedReader(new InputStreamReader(Shader.class.getResourceAsStream("/shaders/" + fileName)));
+            shaderReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(Shader.class.getResourceAsStream("/shaders/" + fileName))));
             String line;
 
             while ((line = shaderReader.readLine()) != null) {
                 if (line.startsWith(INCLUDE_DIRECTIVE)) {
-                    shaderSource.append(LoadShader(line.substring(INCLUDE_DIRECTIVE.length() + 2, line.length() - 1)));
+                    shaderSource.append(loadShader(line.substring(INCLUDE_DIRECTIVE.length() + 2, line.length() - 1)));
                 } else shaderSource.append(line).append("\n");
             }
 
@@ -86,14 +83,14 @@ public class Shader {
         }
     }
 
-    public void Bind() {
+    public void bind() {
         glUseProgram(resource.GetProgram());
         instance = this;
     }
 
-    public void UpdateUniforms(org.joml.Matrix4f transform, Material material, RenderingEngine renderingEngine) {
-        org.joml.Matrix4f worldMatrix = new org.joml.Matrix4f().perspective((float) Math.toRadians(45), (float) Window.GetWidth() / Window.GetHeight(), 0.1f, 1000.0f).lookAt(2.0f, 0.1f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-        org.joml.Matrix4f modelViewProjMatrix = worldMatrix.mul(transform);
+    public void updateUniforms(Matrix4f transform, Material material, RenderingEngine renderingEngine) {
+        Matrix4f worldMatrix = new Matrix4f().perspective((float) Math.toRadians(45), (float) Window.GetWidth() / Window.GetHeight(), 0.1f, 1000.0f).lookAt(2.0f, 0.1f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+        Matrix4f modelViewProjMatrix = worldMatrix.mul(transform);
 
         for (int i = 0; i < resource.GetUniformNames().size(); i++) {
             String uniformName = resource.GetUniformNames().get(i);
@@ -102,26 +99,24 @@ public class Shader {
             if (uniformType.equals("sampler2D")) {
                 int samplerSlot = renderingEngine.GetSamplerSlot(uniformName);
                 material.GetTexture(uniformName).Bind(samplerSlot);
-                SetUniformi(uniformName, samplerSlot);
+                setUniformI(uniformName, samplerSlot);
             } else if (uniformName.startsWith("T_")) {
-                if (uniformName.equals("T_MVP")) SetUniform(uniformName, modelViewProjMatrix);
-                else if (uniformName.equals("T_model")) SetUniform(uniformName, worldMatrix);
+                if (uniformName.equals("T_MVP")) setUniform(uniformName, modelViewProjMatrix);
+                else if (uniformName.equals("T_model")) setUniform(uniformName, worldMatrix);
                 else throw new IllegalArgumentException(uniformName + " is not a valid component of Transform");
             } else if (uniformName.startsWith("R_")) {
                 String unprefixedUniformName = uniformName.substring(2);
                 if (uniformType.equals("vec3"))
-                    SetUniform(uniformName, renderingEngine.GetVector3f(unprefixedUniformName));
+                    setUniform(uniformName, renderingEngine.GetVector3f(unprefixedUniformName));
                 else if (uniformType.equals("float"))
-                    SetUniformf(uniformName, renderingEngine.GetFloat(unprefixedUniformName));
+                    setUniformF(uniformName, renderingEngine.GetFloat(unprefixedUniformName));
                 else renderingEngine.UpdateUniformStruct(uniformType);
             } else if (uniformName.startsWith("C_")) {
-                if (uniformName.equals("C_eyePos")) SetUniform(uniformName, new Vector3f(0, 0, 0));
+                if (uniformName.equals("C_eyePos")) setUniform(uniformName, new Vector3f(0, 0, 0));
                 else throw new IllegalArgumentException(uniformName + " is not a valid component of Camera");
             } else {
-                if (uniformType.equals("vec3")) SetUniform(uniformName, material.GetVector3f(uniformName));
-                else if (uniformType.equals("float")) SetUniformf(uniformName, material.GetFloat(uniformName));
-//				else
-//					throw new IllegalArgumentException(uniformType + " is not a supported type in Material");
+                if (uniformType.equals("vec3")) setUniform(uniformName, material.GetVector3f(uniformName));
+                else if (uniformType.equals("float")) setUniformF(uniformName, material.GetFloat(uniformName));
             }
         }
     }
@@ -143,7 +138,7 @@ public class Shader {
             String attributeLine = shaderText.substring(begin, end).trim();
             String attributeName = attributeLine.substring(attributeLine.indexOf(' ') + 1).trim();
 
-            SetAttribLocation(attributeName, attribNumber);
+            setAttribLocation(attributeName, attribNumber);
             attribNumber++;
 
             attributeStartLocation = shaderText.indexOf(ATTRIBUTE_KEYWORD, attributeStartLocation + ATTRIBUTE_KEYWORD.length());
@@ -151,7 +146,7 @@ public class Shader {
     }
 
     private HashMap<String, ArrayList<GLSLStruct>> FindUniformStructs(String shaderText) {
-        HashMap<String, ArrayList<GLSLStruct>> result = new HashMap<String, ArrayList<GLSLStruct>>();
+        HashMap<String, ArrayList<GLSLStruct>> result = new HashMap<>();
 
         final String STRUCT_KEYWORD = "struct";
         int structStartLocation = shaderText.indexOf(STRUCT_KEYWORD);
@@ -166,7 +161,7 @@ public class Shader {
             int braceEnd = shaderText.indexOf("}", braceBegin);
 
             String structName = shaderText.substring(nameBegin, braceBegin).trim();
-            ArrayList<GLSLStruct> glslStructs = new ArrayList<GLSLStruct>();
+            ArrayList<GLSLStruct> glslStructs = new ArrayList<>();
 
             int componentSemicolonPos = shaderText.indexOf(";", braceBegin);
             while (componentSemicolonPos != -1 && componentSemicolonPos < braceEnd) {
@@ -229,25 +224,26 @@ public class Shader {
 
             resource.GetUniformNames().add(uniformName);
             resource.GetUniformTypes().add(uniformType);
-            Matcher arrayMatcher = Pattern.compile("\\[\\d+\\]").matcher(uniformName);
+            Pattern arrayPattern = Pattern.compile("\\[\\d+]");
+            Matcher arrayMatcher = arrayPattern.matcher(uniformName);
             if (arrayMatcher.find()) {
-                int size = Integer.valueOf(arrayMatcher.group().substring(1, arrayMatcher.group().length() - 1));
+                int size = Integer.parseInt(arrayMatcher.group().substring(1, arrayMatcher.group().length() - 1));
                 for (int i = 0; i < size; i++)
-                    AddUniform(uniformName.replaceAll("\\[\\d+\\]", "[" + i + "]"), uniformType, structs);
-            } else AddUniform(uniformName.replaceAll("\\[\\d+\\]", ""), uniformType, structs);
+                    addUniform(uniformName.replaceAll(arrayPattern.pattern(), "[" + i + "]"), uniformType, structs);
+            } else addUniform(uniformName.replaceAll(arrayPattern.pattern(), ""), uniformType, structs);
 
             uniformStartLocation = shaderText.indexOf(UNIFORKEYWORD, uniformStartLocation + UNIFORKEYWORD.length());
         }
     }
 
-    private void AddUniform(String uniformName, String uniformType, HashMap<String, ArrayList<GLSLStruct>> structs) {
+    private void addUniform(String uniformName, String uniformType, HashMap<String, ArrayList<GLSLStruct>> structs) {
         boolean addThis = true;
         ArrayList<GLSLStruct> structComponents = structs.get(uniformType);
 
         if (structComponents != null) {
             addThis = false;
             for (GLSLStruct struct : structComponents) {
-                AddUniform(uniformName + "." + struct.name, struct.type, structs);
+                addUniform(uniformName + "." + struct.name, struct.type, structs);
             }
         }
 
@@ -264,23 +260,19 @@ public class Shader {
         resource.GetUniforms().put(uniformName, uniformLocation);
     }
 
-    private void AddVertexShader(String text) {
-        AddProgram(text, GL_VERTEX_SHADER);
+    private void addVertShader(String text) {
+        addProgram(text, GL_VERTEX_SHADER);
     }
 
-    private void AddGeometryShader(String text) {
-        AddProgram(text, GL_GEOMETRY_SHADER);
+    private void addFragShader(String text) {
+        addProgram(text, GL_FRAGMENT_SHADER);
     }
 
-    private void AddFragmentShader(String text) {
-        AddProgram(text, GL_FRAGMENT_SHADER);
-    }
-
-    private void SetAttribLocation(String attributeName, int location) {
+    private void setAttribLocation(String attributeName, int location) {
         glBindAttribLocation(resource.GetProgram(), location, attributeName);
     }
 
-    private void CompileShader() {
+    private void compileShader() {
         glLinkProgram(resource.GetProgram());
 
         if (glGetProgrami(resource.GetProgram(), GL_LINK_STATUS) == 0) {
@@ -296,7 +288,7 @@ public class Shader {
         }
     }
 
-    private void AddProgram(String text, int type) {
+    private void addProgram(String text, int type) {
         int shader = glCreateShader(type);
 
         if (shader == 0) {
@@ -315,25 +307,25 @@ public class Shader {
         glAttachShader(resource.GetProgram(), shader);
     }
 
-    public void SetUniformi(String uniformName, int value) {
+    public void setUniformI(String uniformName, int value) {
         glUniform1i(resource.GetUniforms().get(uniformName), value);
     }
 
-    public void SetUniformf(String uniformName, float value) {
+    public void setUniformF(String uniformName, float value) {
         glUniform1f(resource.GetUniforms().get(uniformName), value);
     }
 
-    public void SetUniform(String uniformName, Vector3f value) {
+    public void setUniform(String uniformName, Vector3f value) {
         glUniform3f(resource.GetUniforms().get(uniformName), value.x(), value.y(), value.z());
     }
 
-    public void SetUniform(String uniformName, org.joml.Matrix4f value) {
+    public void setUniform(String uniformName, Matrix4f value) {
         FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
         value.get(buffer);
         glUniformMatrix4fv(resource.GetUniforms().get(uniformName), false, buffer);
     }
 
-    private class GLSLStruct {
+    private static class GLSLStruct {
         public String name;
         public String type;
     }

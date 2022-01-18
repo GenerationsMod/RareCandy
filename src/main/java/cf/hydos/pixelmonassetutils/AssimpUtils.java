@@ -1,8 +1,10 @@
 package cf.hydos.pixelmonassetutils;
 
+import cf.hydos.engine.rendering.Bone;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.lwjgl.assimp.AIBone;
 import org.lwjgl.assimp.AIMatrix4x4;
 import org.lwjgl.assimp.AIQuaternion;
 import org.lwjgl.assimp.AIVector3D;
@@ -39,5 +41,12 @@ public class AssimpUtils {
 
     public static Quaternionf from(AIQuaternion aiQuat) {
         return new Quaternionf(aiQuat.x(), aiQuat.y(), aiQuat.z(), aiQuat.w());
+    }
+
+    public static Bone from(AIBone bone) {
+        Bone b = new Bone();
+        b.offsetMatrix = from(bone.mOffsetMatrix());
+        b.name = bone.mName().dataString();
+        return b;
     }
 }

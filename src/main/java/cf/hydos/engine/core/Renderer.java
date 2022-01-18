@@ -4,6 +4,8 @@ import cf.hydos.engine.rendering.RenderingEngine;
 import cf.hydos.engine.rendering.Window;
 
 public class Renderer {
+    private static final long SECOND_IN_NANOSECONDS = 1_000_000_000L;
+
     private boolean isRunning;
     private final RenderingApplication game;
     private RenderingEngine renderingEngine;
@@ -20,26 +22,28 @@ public class Renderer {
         game.SetEngine(this);
     }
 
-    public void title(String title) {
+    public Renderer createWindow(String title) {
         Window.CreateWindow(width, height, title);
         this.renderingEngine = new RenderingEngine();
+        return this;
     }
 
-    public void start() {
+    public Renderer start() {
         if (isRunning)
-            return;
+            return this;
 
-        Run();
+        run();
+        return this;
     }
 
-    public void Stop() {
+    public void stop() {
         if (!isRunning)
             return;
 
         isRunning = false;
     }
 
-    private void Run() {
+    private void run() {
         isRunning = true;
 
         int frames = 0;
@@ -47,13 +51,13 @@ public class Renderer {
 
         game.init();
 
-        double lastTime = Time.GetTime();
+        double lastTime = getTime();
         double unprocessedTime = 0;
 
         while (isRunning) {
             boolean render = false;
 
-            double startTime = Time.GetTime();
+            double startTime = getTime();
             double passedTime = startTime - lastTime;
             lastTime = startTime;
 
@@ -66,7 +70,7 @@ public class Renderer {
                 unprocessedTime -= frameTime;
 
                 if (Window.IsCloseRequested())
-                    Stop();
+                    stop();
 
                 Window.Update();
                 game.Input((float) frameTime);
@@ -92,14 +96,14 @@ public class Renderer {
             }
         }
 
-        CleanUp();
+        clean();
     }
 
-    private void CleanUp() {
+    private void clean() {
         Window.Dispose();
     }
 
-    public RenderingEngine GetRenderingEngine() {
-        return renderingEngine;
+    public static double getTime() {
+        return (double) System.nanoTime() / (double) SECOND_IN_NANOSECONDS;
     }
 }

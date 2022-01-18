@@ -1,5 +1,7 @@
 package cf.hydos.pixelmonassetutils.reader;
 
+import cf.hydos.engine.rendering.Bone;
+import cf.hydos.pixelmonassetutils.AssimpUtils;
 import cf.hydos.pixelmonassetutils.scene.Scene;
 import cf.hydos.pixelmonassetutils.scene.SceneObject;
 import cf.hydos.pixelmonassetutils.scene.material.GlbTexture;
@@ -19,6 +21,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
@@ -57,42 +60,22 @@ public class GlbReader implements FileReader {
     private static void processMesh(AIMesh mesh, AINode node, List<MeshData> models) {
         MeshData meshData = new MeshData();
         meshData.name = node.mName().dataString();
-        meshData.modelMatrix = convertMatrix(node.mTransformation());
+        meshData.modelMatrix = AssimpUtils.from(node.mTransformation());
         meshData.materialIndex = mesh.mMaterialIndex();
         processPositions(mesh, meshData.positions);
         processTexCoords(mesh, meshData.texCoords);
         processIndices(mesh, meshData.indices);
         processNormals(mesh, meshData.normals);
-        processBones(mesh, null);
+        processBones(mesh, meshData.bones);
         models.add(meshData);
     }
 
-    private static Matrix4f convertMatrix(AIMatrix4x4 assimpMat4) {
-        Matrix4f dest = new Matrix4f();
-        dest.m00(assimpMat4.a1());
-        dest.m10(assimpMat4.a2());
-        dest.m20(assimpMat4.a3());
-        dest.m30(assimpMat4.a4());
-        dest.m01(assimpMat4.b1());
-        dest.m11(assimpMat4.b2());
-        dest.m21(assimpMat4.b3());
-        dest.m31(assimpMat4.b4());
-        dest.m02(assimpMat4.c1());
-        dest.m12(assimpMat4.c2());
-        dest.m22(assimpMat4.c3());
-        dest.m32(assimpMat4.c4());
-        dest.m03(assimpMat4.d1());
-        dest.m13(assimpMat4.d2());
-        dest.m23(assimpMat4.d3());
-        dest.m33(assimpMat4.d4());
-        return dest;
-    }
-
-    private static void processBones(AIMesh mesh, Object o) {
+    private static void processBones(AIMesh mesh, List<Bone> bones) {
         PointerBuffer pBones = requireNonNull(mesh.mBones());
 
-        for (int i = 0; i < pBones.capacity(); i++) {
-            long bone = pBones.get(i);
+        for (int i = 0; i < mesh.mNumBones(); i++) {
+            AIBone bone = AIBone.create(pBones.get(i));
+            bones.add(AssimpUtils.from(bone));
         }
     }
 
@@ -221,6 +204,7 @@ public class GlbReader implements FileReader {
         public List<Vector2fc> texCoords = new ArrayList<>();
         public List<Vector3fc> normals = new ArrayList<>();
         public List<Integer> indices = new ArrayList<>();
+        public List<Bone> bones = new ArrayList<>();
         public Matrix4f modelMatrix;
     }
 

@@ -16,16 +16,17 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class AnimationUtil {
-    public static AnimatedComponent loadAnimatedFile(File file) {
+    public static AnimatedComponent loadAnimatedFile(Path file) {
         byte[] bytes = new byte[0];
         String extension = null;
         try {
-            String path = file.toString().replace("\\", "/").replace("./res", "");
+            String path = "/" + file.toString();
             extension = path.split("\\.")[1];
             bytes = AnimationUtil.class.getResourceAsStream(path).readAllBytes();
         } catch (IOException e) {

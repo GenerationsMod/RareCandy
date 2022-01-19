@@ -1,6 +1,5 @@
 package cf.hydos.engine.rendering;
 
-import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.resources.TextureResource;
 import cf.hydos.pixelmonassetutils.scene.material.GlbTexture;
 import org.lwjgl.BufferUtils;
@@ -9,13 +8,14 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 
 public class Texture {
-    private static final HashMap<String, TextureResource> s_loadedTextures = new HashMap<String, TextureResource>();
+    private static final HashMap<String, TextureResource> s_loadedTextures = new HashMap<>();
     private final TextureResource resource;
     private final String fileName;
 
@@ -39,7 +39,7 @@ public class Texture {
 
     private static TextureResource LoadTexture(String fileName) {
         try {
-            BufferedImage image = ImageIO.read(Shader.class.getResourceAsStream(("/textures/" + fileName)));
+            BufferedImage image = ImageIO.read(Objects.requireNonNull(Shader.class.getResourceAsStream(("/textures/" + fileName))));
             int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
 
             ByteBuffer buffer = BufferUtils.createByteBuffer(image.getHeight() * image.getWidth() * 4);

@@ -11,7 +11,6 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -20,6 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class AnimationUtil {
     public static AnimatedComponent loadAnimatedFile(Path file) {
@@ -28,7 +28,7 @@ public class AnimationUtil {
         try {
             String path = "/" + file.toString();
             extension = path.split("\\.")[1];
-            bytes = AnimationUtil.class.getResourceAsStream(path).readAllBytes();
+            bytes = Objects.requireNonNull(AnimationUtil.class.getResourceAsStream(path)).readAllBytes();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -44,7 +44,7 @@ public class AnimationUtil {
             System.exit(0);
         }
 
-        AIMesh mesh = AIMesh.create(scene.mMeshes().get(0));
+        AIMesh mesh = AIMesh.create(Objects.requireNonNull(scene.mMeshes()).get(0));
 
         int sizeOfVertexUnrigged = 11;
         int sizeOfVertex = sizeOfVertexUnrigged + Float.BYTES * 2;
@@ -62,9 +62,9 @@ public class AnimationUtil {
 
         for (int v = 0; v < mesh.mNumVertices(); v++) {
             AIVector3D position = mesh.mVertices().get(v);
-            AIVector3D normal = mesh.mNormals().get(v);
-            AIVector3D tangent = mesh.mTangents().get(v);
-            AIVector3D texCoord = mesh.mTextureCoords(0).get(v);
+            AIVector3D normal = Objects.requireNonNull(mesh.mNormals()).get(v);
+            AIVector3D tangent = Objects.requireNonNull(mesh.mTangents()).get(v);
+            AIVector3D texCoord = Objects.requireNonNull(mesh.mTextureCoords(0)).get(v);
 
             rawMeshData[index++] = position.x();
             rawMeshData[index++] = position.y();
@@ -105,7 +105,7 @@ public class AnimationUtil {
         HashMap<Integer, Integer> bone_index_map1 = new HashMap<>();
 
         for (int boneId = 0; boneId < mesh.mNumBones(); boneId++) {
-            AIBone bone = AIBone.create(mesh.mBones().get(boneId));
+            AIBone bone = AIBone.create(Objects.requireNonNull(mesh.mBones()).get(boneId));
             boneMap.put(bone.mName().dataString(), boneId);
 
             for (int weightId = 0; weightId < bone.mNumWeights(); weightId++) {
@@ -136,13 +136,13 @@ public class AnimationUtil {
             }
         }
 
-        AIMatrix4x4 inverseRootTransform = scene.mRootNode().mTransformation();
+        AIMatrix4x4 inverseRootTransform = Objects.requireNonNull(scene.mRootNode()).mTransformation();
         Matrix4f inverseRootTransformation = AssimpUtils.from(inverseRootTransform);
 
         Bone[] bones = new Bone[boneMap.size()];
 
         for (int b = 0; b < mesh.mNumBones(); b++) {
-            AIBone bone = AIBone.create(mesh.mBones().get(b));
+            AIBone bone = AIBone.create(Objects.requireNonNull(mesh.mBones()).get(b));
             bones[b] = new Bone();
 
             bones[b].name = bone.mName().dataString();
@@ -192,7 +192,7 @@ public class AnimationUtil {
 
         component.AddVertices(vertBuffer, indices, new Texture(textures.get(0)));
 
-        component.animation = AIAnimation.create(scene.mAnimations().get(0));
+        component.animation = AIAnimation.create(Objects.requireNonNull(scene.mAnimations()).get(0));
         component.bones = bones;
         component.boneTransforms = new Matrix4f[bones.length];
         component.root = scene.mRootNode();

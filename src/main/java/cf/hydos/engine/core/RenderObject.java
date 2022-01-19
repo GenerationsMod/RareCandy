@@ -14,8 +14,8 @@ public class RenderObject {
     private Renderer engine;
 
     public RenderObject() {
-        children = new ArrayList<RenderObject>();
-        components = new ArrayList<GameComponent>();
+        children = new ArrayList<>();
+        components = new ArrayList<>();
         transform = new Matrix4f();
         engine = null;
     }
@@ -72,7 +72,7 @@ public class RenderObject {
     }
 
     public ArrayList<RenderObject> GetAllAttached() {
-        ArrayList<RenderObject> result = new ArrayList<RenderObject>();
+        ArrayList<RenderObject> result = new ArrayList<>();
 
         for (RenderObject child : children)
             result.addAll(child.GetAllAttached());

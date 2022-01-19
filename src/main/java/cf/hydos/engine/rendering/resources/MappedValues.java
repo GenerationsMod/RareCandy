@@ -9,8 +9,8 @@ public abstract class MappedValues {
     private final HashMap<String, Float> floatHashMap;
 
     public MappedValues() {
-        vector3fHashMap = new HashMap<String, Vector3f>();
-        floatHashMap = new HashMap<String, Float>();
+        vector3fHashMap = new HashMap<>();
+        floatHashMap = new HashMap<>();
     }
 
     public void AddVector3f(String name, Vector3f vector3f) {

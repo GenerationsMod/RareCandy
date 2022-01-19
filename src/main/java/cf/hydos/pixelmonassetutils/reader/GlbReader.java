@@ -21,7 +21,6 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
@@ -44,7 +43,7 @@ public class GlbReader implements FileReader {
         if (node.mChildren() != null) {
             PointerBuffer children = node.mChildren();
             for (int i = 0; i < node.mNumChildren(); i++) {
-                processNode(AINode.create(children.get(i)), scene, model);
+                processNode(AINode.create(requireNonNull(children).get(i)), scene, model);
             }
         }
     }
@@ -52,8 +51,8 @@ public class GlbReader implements FileReader {
     private static void processNodeMeshes(AIScene scene, AINode node, List<MeshData> models) {
         PointerBuffer pMeshes = scene.mMeshes();
         IntBuffer meshIndices = node.mMeshes();
-        for (int i = 0; i < meshIndices.capacity(); i++) {
-            processMesh(AIMesh.create(pMeshes.get(meshIndices.get(i))), node, models);
+        for (int i = 0; i < requireNonNull(meshIndices).capacity(); i++) {
+            processMesh(AIMesh.create(requireNonNull(pMeshes).get(meshIndices.get(i))), node, models);
         }
     }
 

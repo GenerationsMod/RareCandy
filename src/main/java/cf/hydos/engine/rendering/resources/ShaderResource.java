@@ -22,9 +22,9 @@ public class ShaderResource {
             System.exit(1);
         }
 
-        uniforms = new HashMap<String, Integer>();
-        uniformNames = new ArrayList<String>();
-        uniformTypes = new ArrayList<String>();
+        uniforms = new HashMap<>();
+        uniformNames = new ArrayList<>();
+        uniformTypes = new ArrayList<>();
     }
 
     @Override

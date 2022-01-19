@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL30;
 
 import java.nio.IntBuffer;
+import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.GL_FALSE;
@@ -39,7 +40,7 @@ public class Window {
             if (window == 0) throw new Exception("GLFW Window creation failed.");
             GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
             // Center our window
-            glfwSetWindowPos(window, (videoMode.width() - WIDTH) / 2, (videoMode.height() - HEIGHT) / 2);
+            glfwSetWindowPos(window, (Objects.requireNonNull(videoMode).width() - WIDTH) / 2, (videoMode.height() - HEIGHT) / 2);
 
             Mouse = new Mouse();
             Mouse.Create(window);

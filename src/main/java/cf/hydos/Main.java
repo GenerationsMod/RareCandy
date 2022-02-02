@@ -20,7 +20,7 @@ public class Main extends RenderingApplication {
     public void init() {
         addPokemon("arceus", new Vector3f(-2f, -1.6f, -1.5f), 0.05f, false);
         addPokemon("megaAlakazam", new Vector3f(-0.3f, -1.6f, -1.5f), 0.02f, false);
-        addPokemonWithRotation("megaRayquaza", new Vector3f(1.9f, -0.2f, -1.5f), 0.03f, 90);
+        addPokemonWithRotation("megaRayquaza", new Vector3f(1.9f, -0.2f, -1.5f), 0.03f);
         addPokemon("mimikyu", new Vector3f(1.2f, -1.6f, -1.5f), 0.008f, false);
         addPokemon("mudkip", new Vector3f(2.2f, -1.6f, -1.5f), 0.01f, false);
     }
@@ -37,10 +37,10 @@ public class Main extends RenderingApplication {
         add(pokemon);
     }
 
-    private void addPokemonWithRotation(String name, Vector3f pos, float scale, int angle) {
+    private void addPokemonWithRotation(String name, Vector3f pos, float scale) {
         PixelAsset model = new PixelAsset(Objects.requireNonNull(Main.class.getResourceAsStream("/" + name + ".pk"), "Failed to read /" + name + ".pk"));
         RenderObject pokemon = new RenderObject().addComponent(AnimationUtil.loadAnimatedFile(((GlbReader) model.reader).rawScene));
-        pokemon.getTransformation().rotate((float) Math.toRadians(angle), new Vector3f(0, 1, 0)).translate(pos).scale(new Vector3f(scale, scale, scale));
+        pokemon.getTransformation().rotate((float) Math.toRadians(90), new Vector3f(0, 1, 0)).translate(pos).scale(new Vector3f(scale, scale, scale));
 
         add(pokemon);
     }

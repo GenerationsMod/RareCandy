@@ -64,11 +64,11 @@ public class Window {
         }
     }
 
-    public static void Update() {
+    public static void update() {
         glfwPollEvents();
     }
 
-    public static void Render() {
+    public static void render() {
         glfwSwapBuffers(window);
     }
 

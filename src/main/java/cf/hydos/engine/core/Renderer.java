@@ -45,20 +45,19 @@ public class Renderer {
 
     private void run() {
         isRunning = true;
-
         game.init();
 
         while (isRunning) {
+            if (Window.IsCloseRequested()) {
+                stop();
+            }
 
-            if (Window.IsCloseRequested())
-                    stop();
-
-                Window.Update();
-                game.Input((float) frameTime);
-                game.Update((float) frameTime);
+            Window.update();
+            game.Input((float) frameTime);
+            game.Update((float) frameTime);
 
             game.Render(renderingEngine);
-            Window.Render();
+            Window.render();
         }
         clean();
     }

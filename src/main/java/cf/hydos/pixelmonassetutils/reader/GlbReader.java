@@ -26,6 +26,93 @@ import static java.util.Objects.requireNonNull;
 
 public class GlbReader implements FileReader {
 
+    @Deprecated //FIXME: this is just here so this doesnt error out when trying to merge with the renderer's reader.
+    public AIScene rawScene;
+
+    @Override
+    public Scene read(TarFile file) throws IOException {
+        AIScene aiScene = null;
+        for (TarArchiveEntry entry : file.getEntries()) {
+            if (entry.getName().endsWith(".glb")) {
+                byte[] bytes = file.getInputStream(entry).readAllBytes();
+                ByteBuffer buffer = BufferUtils.createByteBuffer(bytes.length);
+                buffer.put(bytes).flip();
+
+                aiScene = Assimp.aiImportFileFromMemory(buffer, Assimp.aiProcess_Triangulate | Assimp.aiProcess_FlipUVs | Assimp.aiProcess_CalcTangentSpace | Assimp.aiProcess_LimitBoneWeights, "glb");
+            }
+        }
+
+        if (aiScene == null) {
+            throw new RuntimeException("Unable to locate .glb file to load! Reason: " + Assimp.aiGetErrorString());
+        }
+        this.rawScene = aiScene;
+
+        List<AssimpMaterial> rawMaterials = new ArrayList<>();
+        List<AITexture> rawTextures = new ArrayList<>();
+
+        // Get materials
+        PointerBuffer pMaterials = aiScene.mMaterials();
+        if (pMaterials != null) {
+            for (int i = 0; i < pMaterials.capacity(); i++) {
+                rawMaterials.add(new AssimpMaterial(AIMaterial.create(pMaterials.get(i))));
+            }
+        } else {
+            throw new RuntimeException("Can't handle models with no materials. We can't guess how you want us to render the object?");
+        }
+
+        // Retrieve Textures
+        PointerBuffer pTextures = aiScene.mTextures();
+        if (pTextures != null) {
+            for (int i = 0; i < aiScene.mNumTextures(); i++) {
+                rawTextures.add(AITexture.create(pTextures.get(i)));
+            }
+        } else {
+            throw new RuntimeException("How do you expect us to render without textures? Use colours? we don't support that yet!");
+        }
+
+        // Try to load the textures into rosella
+//        List<GlbTexture> textures = new ArrayList<>();
+        for (AITexture rawTexture : rawTextures) {
+            if (rawTexture.mHeight() > 0) {
+                throw new RuntimeException(".glb file had texture with height of 0");
+            } else {
+//                textures.add(new GlbTexture(rawTexture.pcDataCompressed(), rawTexture.mFilename().dataString()));
+            }
+        }
+
+        // Now let's create some materials from those textures
+        List<Material> materials = new ArrayList<>();
+        for (AssimpMaterial rawMaterial : rawMaterials) {
+            int textureCount = Assimp.aiGetMaterialTextureCount(rawMaterial.material, Assimp.aiTextureType_DIFFUSE);
+
+            try (MemoryStack stack = MemoryStack.stackPush()) {
+                if (textureCount == 0) {
+                    System.out.println("Skipped material with no textures");
+                } else {
+//                    GlbTexture[] textureMap = new GlbTexture[textureCount];
+                    for (int i = 0; i < textureCount; i++) {
+                        AIString path = AIString.calloc(stack);
+                        Assimp.aiGetMaterialTexture(rawMaterial.material, Assimp.aiTextureType_DIFFUSE, 0, path, (IntBuffer) null, null, null, null, null, null);
+                        String texturePath = path.dataString();
+//                        textureMap[i] = textures.get(Integer.parseInt(texturePath.substring(1)));
+                    }
+
+//                    materials.add(new Material(textureMap));
+                }
+            }
+        }
+
+        List<MeshData> meshes = loadMeshes(aiScene);
+
+        List<SceneObject> sceneObjects = new ArrayList<>(meshes.size());
+//        for (MeshData meshData : meshes) {
+//            Material material = materials.get(meshData.materialIndex);
+//            sceneObjects.add(new SceneObject(meshData.name, meshData, material));
+//        }
+
+        return new Scene(sceneObjects);
+    }
+
     public static List<MeshData> loadMeshes(AIScene scene) {
         if (scene.mRootNode() == null) {
             throw new RuntimeException("Could not load model " + Assimp.aiGetErrorString());
@@ -111,89 +198,6 @@ public class GlbReader implements FileReader {
                 indices.add(pIndices.get(i1));
             }
         }
-    }
-
-    @Override
-    public Scene read(TarFile file) throws IOException {
-        AIScene aiScene = null;
-        for (TarArchiveEntry entry : file.getEntries()) {
-            if (entry.getName().endsWith(".glb")) {
-                byte[] bytes = file.getInputStream(entry).readAllBytes();
-                ByteBuffer buffer = BufferUtils.createByteBuffer(bytes.length);
-                buffer.put(bytes).flip();
-
-                aiScene = Assimp.aiImportFileFromMemory(buffer, Assimp.aiProcess_Triangulate, "glb");
-            }
-        }
-
-        if (aiScene == null) {
-            throw new RuntimeException("Unable to locate .glb file to load! Reason: " + Assimp.aiGetErrorString());
-        }
-
-        List<AssimpMaterial> rawMaterials = new ArrayList<>();
-        List<AITexture> rawTextures = new ArrayList<>();
-
-        // Get materials
-        PointerBuffer pMaterials = aiScene.mMaterials();
-        if (pMaterials != null) {
-            for (int i = 0; i < pMaterials.capacity(); i++) {
-                rawMaterials.add(new AssimpMaterial(AIMaterial.create(pMaterials.get(i))));
-            }
-        } else {
-            throw new RuntimeException("Can't handle models with no materials. We can't guess how you want us to render the object?");
-        }
-
-        // Retrieve Textures
-        PointerBuffer pTextures = aiScene.mTextures();
-        if (pTextures != null) {
-            for (int i = 0; i < aiScene.mNumTextures(); i++) {
-                rawTextures.add(AITexture.create(pTextures.get(i)));
-            }
-        } else {
-            throw new RuntimeException("How do you expect us to render without textures? Use colours? we don't support that yet!");
-        }
-
-        // Try to load the textures into rosella
-        List<GlbTexture> textures = new ArrayList<>();
-        for (AITexture rawTexture : rawTextures) {
-            if (rawTexture.mHeight() > 0) {
-                throw new RuntimeException(".glb file had texture with height of 0");
-            } else {
-                textures.add(new GlbTexture(rawTexture.pcDataCompressed(), rawTexture.mFilename().dataString()));
-            }
-        }
-
-        // Now let's create some materials from those textures
-        List<Material> materials = new ArrayList<>();
-        for (AssimpMaterial rawMaterial : rawMaterials) {
-            int textureCount = Assimp.aiGetMaterialTextureCount(rawMaterial.material, Assimp.aiTextureType_DIFFUSE);
-
-            try (MemoryStack stack = MemoryStack.stackPush()) {
-                if (textureCount == 0) {
-                    System.out.println("Skipped material with no textures");
-                } else {
-                    GlbTexture[] textureMap = new GlbTexture[textureCount];
-                    for (int i = 0; i < textureCount; i++) {
-                        AIString path = AIString.calloc(stack);
-                        Assimp.aiGetMaterialTexture(rawMaterial.material, Assimp.aiTextureType_DIFFUSE, 0, path, (IntBuffer) null, null, null, null, null, null);
-                        String texturePath = path.dataString();
-                        textureMap[i] = textures.get(Integer.parseInt(texturePath.substring(1)));
-                    }
-
-//                    materials.add(new Material(textureMap));
-                }
-            }
-        }
-
-        List<MeshData> meshes = loadMeshes(aiScene);
-
-        List<SceneObject> sceneObjects = new ArrayList<>(meshes.size());
-        for (MeshData meshData : meshes) {
-            Material material = materials.get(meshData.materialIndex);
-            sceneObjects.add(new SceneObject(meshData.name, meshData, material));
-        }
-
-        return new Scene(sceneObjects);
     }
 
     public static class MeshData {

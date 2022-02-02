@@ -11,32 +11,15 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.*;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
 public class AnimationUtil {
-    public static AnimatedComponent loadAnimatedFile(Path file) {
-        byte[] bytes = new byte[0];
-        String extension = null;
-        try {
-            String path = "/" + file.toString();
-            extension = path.split("\\.")[1];
-            bytes = Objects.requireNonNull(AnimationUtil.class.getResourceAsStream(path)).readAllBytes();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        ByteBuffer buffer = BufferUtils.createByteBuffer(bytes.length);
-        buffer.put(bytes).flip();
-
-
-        AIScene scene = Assimp.aiImportFileFromMemory(buffer, Assimp.aiProcess_Triangulate | Assimp.aiProcess_FlipUVs | Assimp.aiProcess_CalcTangentSpace | Assimp.aiProcess_LimitBoneWeights, extension);
+    public static AnimatedComponent loadAnimatedFile(AIScene scene) {
 
         if (scene == null || scene.mNumAnimations() == 0) {
             System.err.println("the imported file does not contain any animations.");

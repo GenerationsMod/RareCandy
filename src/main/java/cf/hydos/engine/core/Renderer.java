@@ -45,57 +45,20 @@ public class Renderer {
 
     private void run() {
         isRunning = true;
-
-        int frames = 0;
-        double frameCounter = 0;
-
         game.init();
 
-        double lastTime = getTime();
-        double unprocessedTime = 0;
-
         while (isRunning) {
-            boolean render = false;
-
-            double startTime = getTime();
-            double passedTime = startTime - lastTime;
-            lastTime = startTime;
-
-            unprocessedTime += passedTime;
-            frameCounter += passedTime;
-
-            while (unprocessedTime > frameTime) {
-                render = true;
-
-                unprocessedTime -= frameTime;
-
-                if (Window.IsCloseRequested())
-                    stop();
-
-                Window.Update();
-                game.Input((float) frameTime);
-
-                game.Update((float) frameTime);
-
-                if (frameCounter >= 1.0) {
-                    System.out.println(frames);
-                    frames = 0;
-                    frameCounter = 0;
-                }
+            if (Window.IsCloseRequested()) {
+                stop();
             }
-            if (render) {
-                game.Render(renderingEngine);
-                Window.Render();
-                frames++;
-            } else {
-                try {
-                    Thread.sleep(0, 10);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+
+            Window.update();
+            game.Input((float) frameTime);
+            game.Update((float) frameTime);
+
+            game.Render(renderingEngine);
+            Window.render();
         }
-
         clean();
     }
 

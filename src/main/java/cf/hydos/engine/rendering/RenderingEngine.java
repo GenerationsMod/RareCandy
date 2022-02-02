@@ -24,7 +24,7 @@ public class RenderingEngine extends MappedValues {
 
         forwardAmbient = new Shader("animated");
 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(63 / 255f, 191 / 255f, 217 / 255f, 1.0f);
 
         glFrontFace(GL_CW);
         glCullFace(GL_FRONT);

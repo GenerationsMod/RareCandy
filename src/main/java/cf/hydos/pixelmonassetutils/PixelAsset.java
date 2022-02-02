@@ -1,5 +1,6 @@
 package cf.hydos.pixelmonassetutils;
 
+import cf.hydos.pixelmonassetutils.reader.FileReader;
 import cf.hydos.pixelmonassetutils.reader.InternalFileType;
 import cf.hydos.pixelmonassetutils.scene.Scene;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -18,12 +19,13 @@ import java.util.Random;
  * Pixelmon Asset (.pa) file.
  */
 public class PixelAsset {
-    private static final Random RANDOM = new Random();
+
     public final Scene scene;
+    public FileReader reader;
 
     public PixelAsset(Path path) {
-        if (!path.getFileName().toString().endsWith(".pa")) {
-            System.err.println("It is recommended you name all Pixelmon Asset files with .pa");
+        if (!path.getFileName().toString().endsWith(".pk")) {
+            System.err.println("It is recommended you name all Pixelmon Asset files with .pk");
         }
 
         try {
@@ -37,7 +39,8 @@ public class PixelAsset {
     public PixelAsset(InputStream stream) {
         try {
             TarFile tarFile = getTarFile(stream);
-            this.scene = findFormat(tarFile).reader.read(tarFile);
+            this.reader = findFormat(tarFile).reader;
+            this.scene = this.reader.read(tarFile);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load scene", e);
         }

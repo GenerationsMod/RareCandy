@@ -11,7 +11,7 @@ public class RenderObject {
     private final ArrayList<RenderObject> children;
     private final ArrayList<GameComponent> components;
     private final Matrix4f transform;
-    private Renderer engine;
+    private LoopManager engine;
 
     public RenderObject() {
         children = new ArrayList<>();
@@ -20,12 +20,11 @@ public class RenderObject {
         engine = null;
     }
 
-    public RenderObject AddChild(RenderObject child) {
+    public void addChild(RenderObject child) {
         children.add(child);
         child.SetEngine(engine);
         child.getTransformation().mul(transform);
 
-        return this;
     }
 
     public RenderObject addComponent(GameComponent component) {
@@ -35,25 +34,25 @@ public class RenderObject {
         return this;
     }
 
-    public void InputAll(float delta) {
+    public void onInput(float delta) {
         Input(delta);
 
         for (RenderObject child : children)
-            child.InputAll(delta);
+            child.onInput(delta);
     }
 
-    public void UpdateAll(float delta) {
+    public void onUpdate(float delta) {
         Update(delta);
 
         for (RenderObject child : children)
-            child.UpdateAll(delta);
+            child.onUpdate(delta);
     }
 
-    public void RenderAll(Shader shader, RenderingEngine renderingEngine) {
+    public void onRender(Shader shader, RenderingEngine renderingEngine) {
         Render(shader, renderingEngine);
 
         for (RenderObject child : children)
-            child.RenderAll(shader, renderingEngine);
+            child.onRender(shader, renderingEngine);
     }
 
     public void Input(float delta) {
@@ -68,24 +67,14 @@ public class RenderObject {
 
     public void Render(Shader shader, RenderingEngine renderingEngine) {
         for (GameComponent component : components)
-            component.Render(shader, renderingEngine);
-    }
-
-    public ArrayList<RenderObject> GetAllAttached() {
-        ArrayList<RenderObject> result = new ArrayList<>();
-
-        for (RenderObject child : children)
-            result.addAll(child.GetAllAttached());
-
-        result.add(this);
-        return result;
+            component.Render(shader, new Matrix4f(renderingEngine.projViewMatrix));
     }
 
     public Matrix4f getTransformation() {
         return transform;
     }
 
-    public void SetEngine(Renderer engine) {
+    public void SetEngine(LoopManager engine) {
         if (this.engine != engine) {
             this.engine = engine;
 

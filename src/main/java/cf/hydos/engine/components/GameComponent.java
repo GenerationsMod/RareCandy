@@ -1,8 +1,7 @@
 package cf.hydos.engine.components;
 
-import cf.hydos.engine.core.Renderer;
+import cf.hydos.engine.core.LoopManager;
 import cf.hydos.engine.core.RenderObject;
-import cf.hydos.engine.rendering.RenderingEngine;
 import cf.hydos.engine.rendering.Shader;
 import org.joml.Matrix4f;
 
@@ -15,7 +14,7 @@ public abstract class GameComponent {
     public void Update(float delta) {
     }
 
-    public void Render(Shader shader, RenderingEngine renderingEngine) {
+    public void Render(Shader shader, Matrix4f projViewMatrix) {
     }
 
     public void SetParent(RenderObject parent) {
@@ -26,7 +25,7 @@ public abstract class GameComponent {
         return parent.getTransformation();
     }
 
-    public void AddToEngine(Renderer engine) {
+    public void AddToEngine(LoopManager engine) {
     }
 }
 

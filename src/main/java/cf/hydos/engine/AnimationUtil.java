@@ -3,7 +3,6 @@ package cf.hydos.engine;
 import cf.hydos.engine.components.AnimatedComponent;
 import cf.hydos.engine.rendering.Bone;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
-import cf.hydos.pixelmonassetutils.reader.GlbReader;
 import cf.hydos.pixelmonassetutils.scene.material.Texture;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
@@ -138,18 +137,7 @@ public class AnimationUtil {
         vertBuffer.flip();
         indices.flip();
 
-        List<GlbReader.AssimpMaterial> rawMaterials = new ArrayList<>();
         List<AITexture> rawTextures = new ArrayList<>();
-
-        // Get materials
-        PointerBuffer pMaterials = scene.mMaterials();
-        if (pMaterials != null) {
-            for (int i = 0; i < pMaterials.capacity(); i++) {
-                rawMaterials.add(new GlbReader.AssimpMaterial(AIMaterial.create(pMaterials.get(i))));
-            }
-        } else {
-            throw new RuntimeException("Can't handle models with no materials. We can't guess how you want us to render the object?");
-        }
 
         // Retrieve Textures
         PointerBuffer pTextures = scene.mTextures();

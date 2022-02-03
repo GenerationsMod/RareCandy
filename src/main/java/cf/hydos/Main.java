@@ -2,7 +2,7 @@ package cf.hydos;
 
 import cf.hydos.engine.AnimationUtil;
 import cf.hydos.engine.core.RenderObject;
-import cf.hydos.engine.core.Renderer;
+import cf.hydos.engine.core.LoopManager;
 import cf.hydos.engine.core.RenderingApplication;
 import cf.hydos.pixelmonassetutils.PixelAsset;
 import cf.hydos.pixelmonassetutils.reader.GlbReader;
@@ -13,7 +13,7 @@ import java.util.Objects;
 public class Main extends RenderingApplication {
 
     public static void main(String[] args) {
-        new Renderer(960, 540, 1200, new Main()).createWindow("Pixelmon: Generations .pk Renderer").start();
+        new LoopManager(960, 540, "Pixelmon: Generations .pk Renderer", new Main()).start();
     }
 
     @Override

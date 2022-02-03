@@ -8,19 +8,19 @@ public abstract class RenderingApplication {
     public abstract void init();
 
     public void Input(float delta) {
-        GetRootObject().InputAll(delta);
+        GetRootObject().onInput(delta);
     }
 
     public void Update(float delta) {
-        GetRootObject().UpdateAll(delta);
+        GetRootObject().onUpdate(delta);
     }
 
-    public void Render(RenderingEngine renderingEngine) {
+    public void render(RenderingEngine renderingEngine) {
         renderingEngine.Render(GetRootObject());
     }
 
     public void add(RenderObject object) {
-        GetRootObject().AddChild(object);
+        GetRootObject().addChild(object);
     }
 
     private RenderObject GetRootObject() {
@@ -30,7 +30,7 @@ public abstract class RenderingApplication {
         return root;
     }
 
-    public void SetEngine(Renderer engine) {
+    public void setRenderer(LoopManager engine) {
         GetRootObject().SetEngine(engine);
     }
 }

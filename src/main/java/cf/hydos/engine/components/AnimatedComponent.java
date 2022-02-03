@@ -4,7 +4,7 @@ import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.RenderingEngine;
 import cf.hydos.engine.rendering.Shader;
-import cf.hydos.engine.rendering.resources.MeshResource;
+import cf.hydos.engine.rendering.resources.ObjectBuffers;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
 import cf.hydos.pixelmonassetutils.scene.material.Material;
 import cf.hydos.pixelmonassetutils.scene.material.Texture;
@@ -27,7 +27,7 @@ public class AnimatedComponent extends GameComponent {
     public Matrix4f[] boneTransforms;
     public AINode root;
     public AIAnimation animation;
-    public MeshResource resource;
+    public ObjectBuffers resource;
     public Shader shader;
     public Material material;
 
@@ -37,12 +37,12 @@ public class AnimatedComponent extends GameComponent {
         shader = new Shader("animated");
         material = new Material(diffuseTexture);
 
-        resource = new MeshResource(indices.capacity());
+        resource = new ObjectBuffers(indices.capacity());
 
-        glBindBuffer(GL_ARRAY_BUFFER, resource.GetVbo());
+        glBindBuffer(GL_ARRAY_BUFFER, resource.vertexBuffer);
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource.GetIbo());
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource.indexBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
     }
 
@@ -214,11 +214,11 @@ public class AnimatedComponent extends GameComponent {
     }
 
     @Override
-    public void Render(Shader notshader, RenderingEngine renderingEngine) {
+    public void Render(Shader notshader, Matrix4f projViewMatrix) {
         shader.bind();
 
         for (int i = 0; i < boneTransforms.length; i++) shader.setUniform("gBones[" + i + "]", boneTransforms[i]);
-        shader.updateUniforms(GetTransform(), material, renderingEngine);
+        shader.updateUniforms(GetTransform(), material, projViewMatrix);
 
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
@@ -227,7 +227,7 @@ public class AnimatedComponent extends GameComponent {
         glEnableVertexAttribArray(4);
         glEnableVertexAttribArray(5);
 
-        glBindBuffer(GL_ARRAY_BUFFER, resource.GetVbo());
+        glBindBuffer(GL_ARRAY_BUFFER, resource.vertexBuffer);
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 19 * 4, 0);
         glVertexAttribPointer(1, 2, GL_FLOAT, false, 19 * 4, 12);
         glVertexAttribPointer(2, 3, GL_FLOAT, false, 19 * 4, 20);
@@ -235,8 +235,8 @@ public class AnimatedComponent extends GameComponent {
         glVertexAttribPointer(4, 4, GL_FLOAT, false, 19 * 4, 44);
         glVertexAttribPointer(5, 4, GL_FLOAT, false, 19 * 4, 60);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource.GetIbo());
-        glDrawElements(GL_TRIANGLES, resource.GetSize(), GL_UNSIGNED_INT, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource.indexBuffer);
+        glDrawElements(GL_TRIANGLES, resource.size, GL_UNSIGNED_INT, 0);
 
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);

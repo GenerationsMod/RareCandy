@@ -73,7 +73,6 @@ public class Shader {
             System.exit(1);
         }
 
-
         return shaderSource.toString();
     }
 
@@ -89,32 +88,26 @@ public class Shader {
         instance = this;
     }
 
-    public void updateUniforms(Matrix4f transform, Material material, RenderingEngine renderingEngine) {
-        Matrix4f worldMatrix = new Matrix4f().perspective((float) Math.toRadians(45), (float) Window.GetWidth() / Window.GetHeight(), 0.1f, 1000.0f).lookAt(2.0f, 0.1f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-        Matrix4f modelViewProjMatrix = worldMatrix.mul(transform);
+    public void updateUniforms(Matrix4f transform, Material material, Matrix4f perspectiveViewMatrix) {
+        Matrix4f modelViewProjMatrix = perspectiveViewMatrix.mul(transform);
 
         for (int i = 0; i < resource.GetUniformNames().size(); i++) {
             String uniformName = resource.GetUniformNames().get(i);
             String uniformType = resource.GetUniformTypes().get(i);
 
             if (uniformType.equals("sampler2D")) {
-                int samplerSlot = renderingEngine.GetSamplerSlot(uniformName);
+                int samplerSlot = switch (uniformName) {
+                    case "diffuse" -> 0;
+                    case "normal" -> 1;
+                    default -> throw new RuntimeException("Unknown texture " + uniformName);
+                };
+
                 material.diffuseTexture.bind(samplerSlot);
                 setUniformI(uniformName, samplerSlot);
             } else if (uniformName.startsWith("T_")) {
                 if (uniformName.equals("T_MVP")) setUniform(uniformName, modelViewProjMatrix);
-                else if (uniformName.equals("T_model")) setUniform(uniformName, worldMatrix);
+                else if (uniformName.equals("T_model")) setUniform(uniformName, perspectiveViewMatrix);
                 else throw new IllegalArgumentException(uniformName + " is not a valid component of Transform");
-            } else if (uniformName.startsWith("R_")) {
-                String unprefixedUniformName = uniformName.substring(2);
-                if (uniformType.equals("vec3"))
-                    setUniform(uniformName, renderingEngine.GetVector3f(unprefixedUniformName));
-                else if (uniformType.equals("float"))
-                    setUniformF(uniformName, renderingEngine.GetFloat(unprefixedUniformName));
-                else renderingEngine.UpdateUniformStruct(uniformType);
-            } else if (uniformName.startsWith("C_")) {
-                if (uniformName.equals("C_eyePos")) setUniform(uniformName, new Vector3f(0, 0, 0));
-                else throw new IllegalArgumentException(uniformName + " is not a valid component of Camera");
             }
         }
     }

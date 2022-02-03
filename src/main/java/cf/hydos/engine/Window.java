@@ -3,6 +3,7 @@ package cf.hydos.engine;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL43C;
 import org.lwjgl.opengl.GL45C;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.system.MemoryUtil;
@@ -87,7 +88,7 @@ public class Window {
 
         // Setup OpenGL debugging if enabled
         collectGlDiagnostics(GL.createCapabilities(true));
-        if(DEBUGGING) {
+        if (DEBUGGING) {
             GL45C.glDebugMessageCallback(this::onGlError, MemoryUtil.NULL);
             GL45C.glEnable(GL45C.GL_DEBUG_OUTPUT);
         }
@@ -115,7 +116,31 @@ public class Window {
         throw new RuntimeException("Resizing the window is not supported!");
     }
 
-    private void onGlError(int source, int type, int id, int severity, int length, long message, long userParam) {
+    private void onGlError(int glSource, int glType, int id, int severity, int length, long pMessage, long userParam) {
+        String source = switch (glSource) {
+            case GL43C.GL_DEBUG_SOURCE_API -> "api";
+            case GL43C.GL_DEBUG_SOURCE_WINDOW_SYSTEM -> "window system";
+            case GL43C.GL_SHADER_COMPILER -> "shader compiler";
+            case GL43C.GL_DEBUG_SOURCE_THIRD_PARTY -> "3rd party";
+            case GL43C.GL_DEBUG_SOURCE_APPLICATION -> "application";
+            case GL43C.GL_DEBUG_SOURCE_OTHER -> "'other'";
+            default -> throw new IllegalStateException("Unexpected value: " + glSource);
+        };
+
+        String type = switch (glType) {
+            case GL43C.GL_DEBUG_TYPE_ERROR -> "error";
+            case GL43C.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR -> "deprecated behaviour";
+            case GL43C.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR -> "undefined behaviour";
+            case GL43C.GL_DEBUG_TYPE_PORTABILITY -> "portability";
+            case GL43C.GL_DEBUG_TYPE_PERFORMANCE -> "performance";
+            case GL43C.GL_DEBUG_TYPE_MARKER -> "marker";
+            case GL43C.GL_DEBUG_TYPE_OTHER -> "'other'";
+            default -> throw new IllegalStateException("Unexpected value: " + glType);
+        };
+
+        if (!type.equals("'other'")) {
+            System.out.println("[OpenGL " + source + " " + type + "] Message: " + MemoryUtil.memUTF8(pMessage));
+        }
     }
 
     private void onGlfwError(int error, long pDescription) {

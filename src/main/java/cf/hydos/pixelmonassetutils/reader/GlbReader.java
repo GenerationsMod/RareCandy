@@ -85,10 +85,8 @@ public class GlbReader implements FileReader {
             int textureCount = Assimp.aiGetMaterialTextureCount(rawMaterial.material, Assimp.aiTextureType_DIFFUSE);
 
             try (MemoryStack stack = MemoryStack.stackPush()) {
-                if (textureCount == 0) {
-                    System.out.println("Skipped material with no textures");
-                } else {
-//                    GlbTexture[] textureMap = new GlbTexture[textureCount];
+                if (textureCount != 0) {
+                    //                    GlbTexture[] textureMap = new GlbTexture[textureCount];
                     for (int i = 0; i < textureCount; i++) {
                         AIString path = AIString.calloc(stack);
                         Assimp.aiGetMaterialTexture(rawMaterial.material, Assimp.aiTextureType_DIFFUSE, 0, path, (IntBuffer) null, null, null, null, null, null);

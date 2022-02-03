@@ -2,6 +2,7 @@ package cf.hydos.engine;
 
 import cf.hydos.engine.components.AnimatedRenderObject;
 import cf.hydos.engine.rendering.Bone;
+import cf.hydos.engine.rendering.shader.ShaderProgram;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
 import cf.hydos.pixelmonassetutils.scene.material.Texture;
 import org.joml.Matrix4f;
@@ -17,6 +18,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class AnimationUtil {
+    private static final ShaderProgram ANIMATED_SHADER = new ShaderProgram("animated");
+
     public static AnimatedRenderObject loadAnimatedFile(AIScene scene) {
 
         if (scene == null || scene.mNumAnimations() == 0) {
@@ -159,15 +162,12 @@ public class AnimationUtil {
             }
         }
 
-
-        component.addVertices(vertBuffer, indices, textures.get(0));
-
+        component.addVertices(ANIMATED_SHADER, vertBuffer, indices, textures.get(0));
         component.animation = AIAnimation.create(Objects.requireNonNull(scene.mAnimations()).get(0));
         component.bones = bones;
         component.boneTransforms = new Matrix4f[bones.length];
         component.root = scene.mRootNode();
         component.globalInverseTransform = inverseRootTransformation;
-
         return component;
     }
 }

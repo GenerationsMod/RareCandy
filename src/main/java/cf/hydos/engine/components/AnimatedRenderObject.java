@@ -2,7 +2,7 @@ package cf.hydos.engine.components;
 
 import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.Bone;
-import cf.hydos.engine.rendering.ShaderProgram;
+import cf.hydos.engine.rendering.shader.ShaderProgram;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
 import cf.hydos.pixelmonassetutils.scene.material.Material;
 import cf.hydos.pixelmonassetutils.scene.material.Texture;
@@ -34,8 +34,8 @@ public class AnimatedRenderObject extends GameComponent {
     private int vao;
     private int indexCount;
 
-    public void addVertices(FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
-        shaderProgram = new ShaderProgram("animated");
+    public void addVertices(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
+        this.shaderProgram = program;
         material = new Material(diffuseTexture);
 
         vao = GL45C.glCreateVertexArrays(); // VertexArrayObject (Vertex Layout)
@@ -79,7 +79,7 @@ public class AnimatedRenderObject extends GameComponent {
     public void Render(Matrix4f projViewMatrix) {
         shaderProgram.bind();
 
-        for (int i = 0; i < boneTransforms.length; i++) shaderProgram.setUniform("gBones[" + i + "]", boneTransforms[i]);
+        shaderProgram.uniforms.get("gBones").uploadMat4fs(boneTransforms);
         shaderProgram.updateUniforms(GetTransform(), material, projViewMatrix);
 
         GL30C.glBindVertexArray(this.vao);

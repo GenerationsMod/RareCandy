@@ -138,9 +138,7 @@ public class Window {
             default -> throw new IllegalStateException("Unexpected value: " + glType);
         };
 
-        if (!type.equals("'other'")) {
-            System.out.println("[OpenGL " + source + " " + type + "] Message: " + MemoryUtil.memUTF8(pMessage));
-        }
+        System.out.println("[OpenGL " + source + " " + type + "] Message: " + MemoryUtil.memUTF8(pMessage));
     }
 
     private void onGlfwError(int error, long pDescription) {

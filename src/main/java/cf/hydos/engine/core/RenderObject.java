@@ -23,7 +23,6 @@ public class RenderObject {
         children.add(child);
         child.SetEngine(engine);
         child.getTransformation().mul(transform);
-
     }
 
     public RenderObject addComponent(GameComponent component) {
@@ -33,31 +32,26 @@ public class RenderObject {
         return this;
     }
 
-    public void onInput() {
-        for (RenderObject child : children)
-            child.onInput();
-    }
-
-    public void onUpdate(float delta) {
-        Update(delta);
+    public void update(float delta) {
+        updateComponents(delta);
 
         for (RenderObject child : children)
-            child.onUpdate(delta);
+            child.update(delta);
     }
 
-    public void onRender(RenderingEngine renderingEngine) {
-        Render(renderingEngine);
+    public void render(RenderingEngine renderingEngine) {
+        renderComponents(renderingEngine);
 
         for (RenderObject child : children)
-            child.onRender(renderingEngine);
+            child.render(renderingEngine);
     }
 
-    public void Update(float delta) {
+    public void updateComponents(float delta) {
         for (GameComponent component : components)
             component.Update(delta);
     }
 
-    public void Render(RenderingEngine renderingEngine) {
+    public void renderComponents(RenderingEngine renderingEngine) {
         for (GameComponent component : components)
             component.Render(new Matrix4f(renderingEngine.projViewMatrix));
     }

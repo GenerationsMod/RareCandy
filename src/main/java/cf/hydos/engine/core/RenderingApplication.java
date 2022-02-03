@@ -7,23 +7,19 @@ public abstract class RenderingApplication {
 
     public abstract void init();
 
-    public void Input(float delta) {
-        GetRootObject().onInput();
-    }
-
-    public void Update(float delta) {
-        GetRootObject().onUpdate(delta);
+    public void update(float delta) {
+        getRootObject().update(delta);
     }
 
     public void render(RenderingEngine renderingEngine) {
-        renderingEngine.Render(GetRootObject());
+        renderingEngine.render(getRootObject());
     }
 
     public void add(RenderObject object) {
-        GetRootObject().addChild(object);
+        getRootObject().addChild(object);
     }
 
-    private RenderObject GetRootObject() {
+    private RenderObject getRootObject() {
         if (root == null)
             root = new RenderObject();
 
@@ -31,6 +27,6 @@ public abstract class RenderingApplication {
     }
 
     public void setRenderer(LoopManager engine) {
-        GetRootObject().SetEngine(engine);
+        getRootObject().SetEngine(engine);
     }
 }

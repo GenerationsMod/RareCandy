@@ -2,7 +2,7 @@ package cf.hydos.engine.components;
 
 import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.Bone;
-import cf.hydos.engine.rendering.Shader;
+import cf.hydos.engine.rendering.ShaderProgram;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
 import cf.hydos.pixelmonassetutils.scene.material.Material;
 import cf.hydos.pixelmonassetutils.scene.material.Texture;
@@ -26,23 +26,21 @@ public class AnimatedRenderObject extends GameComponent {
     public Matrix4f[] boneTransforms;
     public AINode root;
     public AIAnimation animation;
-    public Shader shader;
+    public ShaderProgram shaderProgram;
     public Material material;
 
     final long timer = System.currentTimeMillis();
 
     private int vao;
-    private int vbo;
-    private int ebo;
     private int indexCount;
 
     public void addVertices(FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
-        shader = new Shader("animated");
+        shaderProgram = new ShaderProgram("animated");
         material = new Material(diffuseTexture);
 
         vao = GL45C.glCreateVertexArrays(); // VertexArrayObject (Vertex Layout)
-        vbo = GL45C.glCreateBuffers(); // VertexBufferObject (Vertices)
-        ebo = GL45C.glCreateBuffers(); // ElementBufferObject (Indices)
+        int vbo = GL45C.glCreateBuffers(); // VertexBufferObject (Vertices)
+        int ebo = GL45C.glCreateBuffers(); // ElementBufferObject (Indices)
         indexCount = indices.capacity();
 
         GL45C.glNamedBufferData(vbo, vertices, GL45C.GL_STATIC_DRAW);
@@ -79,10 +77,10 @@ public class AnimatedRenderObject extends GameComponent {
 
     @Override
     public void Render(Matrix4f projViewMatrix) {
-        shader.bind();
+        shaderProgram.bind();
 
-        for (int i = 0; i < boneTransforms.length; i++) shader.setUniform("gBones[" + i + "]", boneTransforms[i]);
-        shader.updateUniforms(GetTransform(), material, projViewMatrix);
+        for (int i = 0; i < boneTransforms.length; i++) shaderProgram.setUniform("gBones[" + i + "]", boneTransforms[i]);
+        shaderProgram.updateUniforms(GetTransform(), material, projViewMatrix);
 
         GL30C.glBindVertexArray(this.vao);
         GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);

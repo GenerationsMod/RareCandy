@@ -1,6 +1,6 @@
 package cf.hydos.engine;
 
-import cf.hydos.engine.components.AnimatedComponent;
+import cf.hydos.engine.components.AnimatedRenderObject;
 import cf.hydos.engine.rendering.Bone;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
 import cf.hydos.pixelmonassetutils.scene.material.Texture;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class AnimationUtil {
-    public static AnimatedComponent loadAnimatedFile(AIScene scene) {
+    public static AnimatedRenderObject loadAnimatedFile(AIScene scene) {
 
         if (scene == null || scene.mNumAnimations() == 0) {
             System.err.println("the imported file does not contain any animations.");
@@ -130,7 +130,7 @@ public class AnimationUtil {
             bones[b].offsetMatrix = AssimpUtils.from(bone.mOffsetMatrix());
         }
 
-        AnimatedComponent component = new AnimatedComponent();
+        AnimatedRenderObject component = new AnimatedRenderObject();
         FloatBuffer vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
 
         for (float v : rawMeshData) vertBuffer.put(v);
@@ -160,7 +160,7 @@ public class AnimationUtil {
         }
 
 
-        component.AddVertices(vertBuffer, indices, textures.get(0));
+        component.addVertices(vertBuffer, indices, textures.get(0));
 
         component.animation = AIAnimation.create(Objects.requireNonNull(scene.mAnimations()).get(0));
         component.bones = bones;

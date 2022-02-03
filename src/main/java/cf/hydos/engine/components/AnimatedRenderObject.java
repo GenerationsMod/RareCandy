@@ -1,9 +1,8 @@
 package cf.hydos.engine.components;
 
-import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.core.RendererUtils;
+import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.rendering.Shader;
-import cf.hydos.engine.rendering.resources.ObjectBuffers;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
 import cf.hydos.pixelmonassetutils.scene.material.Material;
 import cf.hydos.pixelmonassetutils.scene.material.Texture;
@@ -13,36 +12,80 @@ import org.joml.Vector3f;
 import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AINodeAnim;
+import org.lwjgl.opengl.GL11C;
+import org.lwjgl.opengl.GL30C;
+import org.lwjgl.opengl.GL45C;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.GL20.*;
-
 @SuppressWarnings("ConstantConditions")
-public class AnimatedComponent extends GameComponent {
+public class AnimatedRenderObject extends GameComponent {
     public Matrix4f globalInverseTransform;
     public Bone[] bones;
     public Matrix4f[] boneTransforms;
     public AINode root;
     public AIAnimation animation;
-    public ObjectBuffers resource;
     public Shader shader;
     public Material material;
 
     final long timer = System.currentTimeMillis();
 
-    public void AddVertices(FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
+    private int vao;
+    private int vbo;
+    private int ebo;
+    private int indexCount;
+
+    public void addVertices(FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
         shader = new Shader("animated");
         material = new Material(diffuseTexture);
 
-        resource = new ObjectBuffers(indices.capacity());
+        vao = GL45C.glCreateVertexArrays(); // VertexArrayObject (Vertex Layout)
+        vbo = GL45C.glCreateBuffers(); // VertexBufferObject (Vertices)
+        ebo = GL45C.glCreateBuffers(); // ElementBufferObject (Indices)
+        indexCount = indices.capacity();
 
-        glBindBuffer(GL_ARRAY_BUFFER, resource.vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+        GL45C.glNamedBufferData(vbo, vertices, GL45C.GL_STATIC_DRAW);
+        GL45C.glNamedBufferData(ebo, indices, GL45C.GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource.indexBuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+        GL45C.glEnableVertexArrayAttrib(vao, 0);
+        GL45C.glEnableVertexArrayAttrib(vao, 1);
+        GL45C.glEnableVertexArrayAttrib(vao, 2);
+        GL45C.glEnableVertexArrayAttrib(vao, 3);
+        GL45C.glEnableVertexArrayAttrib(vao, 4);
+        GL45C.glEnableVertexArrayAttrib(vao, 5);
+
+        GL45C.glVertexArrayAttribBinding(vao, 0, 0);
+        GL45C.glVertexArrayAttribFormat(vao, 0, 3, GL11C.GL_FLOAT, false, 0);
+
+        GL45C.glVertexArrayAttribBinding(vao, 1, 0);
+        GL45C.glVertexArrayAttribFormat(vao, 1, 2, GL11C.GL_FLOAT, false, 12);
+
+        GL45C.glVertexArrayAttribBinding(vao, 2, 0);
+        GL45C.glVertexArrayAttribFormat(vao, 2, 3, GL11C.GL_FLOAT, false, 20);
+
+        GL45C.glVertexArrayAttribBinding(vao, 3, 0);
+        GL45C.glVertexArrayAttribFormat(vao, 3, 3, GL11C.GL_FLOAT, false, 32);
+
+        GL45C.glVertexArrayAttribBinding(vao, 4, 0);
+        GL45C.glVertexArrayAttribFormat(vao, 4, 4, GL11C.GL_FLOAT, false, 44);
+
+        GL45C.glVertexArrayAttribBinding(vao, 5, 0);
+        GL45C.glVertexArrayAttribFormat(vao, 5, 4, GL11C.GL_FLOAT, false, 60);
+
+        GL45C.glVertexArrayVertexBuffer(vao, 0, vbo, 0, 19 * 4);
+        GL45C.glVertexArrayElementBuffer(vao, ebo);
+    }
+
+    @Override
+    public void Render(Matrix4f projViewMatrix) {
+        shader.bind();
+
+        for (int i = 0; i < boneTransforms.length; i++) shader.setUniform("gBones[" + i + "]", boneTransforms[i]);
+        shader.updateUniforms(GetTransform(), material, projViewMatrix);
+
+        GL30C.glBindVertexArray(this.vao);
+        GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
     }
 
     @Override
@@ -210,38 +253,5 @@ public class AnimatedComponent extends GameComponent {
         for (short i = 0; i < bones.length; i++) {
             boneTransforms[i] = bones[i].finalTransformation;
         }
-    }
-
-    @Override
-    public void Render(Matrix4f projViewMatrix) {
-        shader.bind();
-
-        for (int i = 0; i < boneTransforms.length; i++) shader.setUniform("gBones[" + i + "]", boneTransforms[i]);
-        shader.updateUniforms(GetTransform(), material, projViewMatrix);
-
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
-        glEnableVertexAttribArray(3);
-        glEnableVertexAttribArray(4);
-        glEnableVertexAttribArray(5);
-
-        glBindBuffer(GL_ARRAY_BUFFER, resource.vertexBuffer);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 19 * 4, 0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, false, 19 * 4, 12);
-        glVertexAttribPointer(2, 3, GL_FLOAT, false, 19 * 4, 20);
-        glVertexAttribPointer(3, 3, GL_FLOAT, false, 19 * 4, 32);
-        glVertexAttribPointer(4, 4, GL_FLOAT, false, 19 * 4, 44);
-        glVertexAttribPointer(5, 4, GL_FLOAT, false, 19 * 4, 60);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource.indexBuffer);
-        glDrawElements(GL_TRIANGLES, resource.size, GL_UNSIGNED_INT, 0);
-
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
-        glDisableVertexAttribArray(2);
-        glDisableVertexAttribArray(3);
-        glDisableVertexAttribArray(4);
-        glDisableVertexAttribArray(5);
     }
 }

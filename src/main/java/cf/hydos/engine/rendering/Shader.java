@@ -101,7 +101,6 @@ public class Shader {
                     case "normal" -> 1;
                     default -> throw new RuntimeException("Unknown texture " + uniformName);
                 };
-
                 material.diffuseTexture.bind(samplerSlot);
                 setUniformI(uniformName, samplerSlot);
             } else if (uniformName.startsWith("T_")) {

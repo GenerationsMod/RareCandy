@@ -2,7 +2,6 @@ package cf.hydos.engine.core;
 
 import cf.hydos.engine.components.GameComponent;
 import cf.hydos.engine.rendering.RenderingEngine;
-import cf.hydos.engine.rendering.Shader;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
@@ -46,11 +45,11 @@ public class RenderObject {
             child.onUpdate(delta);
     }
 
-    public void onRender(Shader shader, RenderingEngine renderingEngine) {
+    public void onRender(RenderingEngine renderingEngine) {
         Render(renderingEngine);
 
         for (RenderObject child : children)
-            child.onRender(shader, renderingEngine);
+            child.onRender(renderingEngine);
     }
 
     public void Update(float delta) {

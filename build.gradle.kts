@@ -40,11 +40,21 @@ dependencies {
     implementation("org.lwjgl", "lwjgl-opengl")
     implementation("org.lwjgl", "lwjgl-assimp")
 
-    runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = lwjglNatives)
+    addEveryOsNative(this, "org.lwjgl", "lwjgl")
+    addEveryOsNative(this, "org.lwjgl", "lwjgl-stb")
+    addEveryOsNative(this, "org.lwjgl", "lwjgl-glfw")
+    addEveryOsNative(this, "org.lwjgl", "lwjgl-opengl")
+    addEveryOsNative(this, "org.lwjgl", "lwjgl-assimp")
+}
+
+// We Exclude 32-bit systems because they are old.
+fun addEveryOsNative(handler: DependencyHandlerScope, group: String, name: String) {
+    handler.implementation(group, name, classifier = "natives-windows")
+    handler.implementation(group, name, classifier = "natives-windows-arm64")
+    handler.implementation(group, name, classifier = "natives-linux")
+    handler.implementation(group, name, classifier = "natives-linux-arm64")
+    handler.implementation(group, name, classifier = "natives-macos")
+    handler.implementation(group, name, classifier = "natives-macos-arm64")
 }
 
 tasks {

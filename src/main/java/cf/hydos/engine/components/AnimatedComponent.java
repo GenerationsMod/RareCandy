@@ -2,7 +2,6 @@ package cf.hydos.engine.components;
 
 import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.core.RendererUtils;
-import cf.hydos.engine.rendering.RenderingEngine;
 import cf.hydos.engine.rendering.Shader;
 import cf.hydos.engine.rendering.resources.ObjectBuffers;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
@@ -31,7 +30,7 @@ public class AnimatedComponent extends GameComponent {
     public Shader shader;
     public Material material;
 
-    long timer = System.currentTimeMillis();
+    final long timer = System.currentTimeMillis();
 
     public void AddVertices(FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
         shader = new Shader("animated");
@@ -214,7 +213,7 @@ public class AnimatedComponent extends GameComponent {
     }
 
     @Override
-    public void Render(Shader notshader, Matrix4f projViewMatrix) {
+    public void Render(Matrix4f projViewMatrix) {
         shader.bind();
 
         for (int i = 0; i < boneTransforms.length; i++) shader.setUniform("gBones[" + i + "]", boneTransforms[i]);

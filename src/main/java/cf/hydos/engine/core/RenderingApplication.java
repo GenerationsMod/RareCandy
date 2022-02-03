@@ -8,7 +8,7 @@ public abstract class RenderingApplication {
     public abstract void init();
 
     public void Input(float delta) {
-        GetRootObject().onInput(delta);
+        GetRootObject().onInput();
     }
 
     public void Update(float delta) {

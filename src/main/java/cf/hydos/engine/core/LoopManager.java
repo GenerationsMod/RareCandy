@@ -9,7 +9,6 @@ public class LoopManager {
     private final Window window;
     private final RenderingEngine renderer;
     private final RenderingApplication application;
-    private final double frameTime = 1.0 / 60; // TODO: this is very wrong and will change often.
     private boolean isRunning;
 
     public LoopManager(int width, int height, String title, RenderingApplication application) {
@@ -37,6 +36,8 @@ public class LoopManager {
             }
 
             this.window.pollEvents();
+            // TODO: this is very wrong and will change often.
+            double frameTime = 1.0 / 60;
             this.application.Input((float) frameTime);
             this.application.Update((float) frameTime);
             this.application.render(this.renderer);
@@ -47,6 +48,6 @@ public class LoopManager {
     }
 
     private void clean() {
-        // TODO:
+        this.window.destroy();
     }
 }

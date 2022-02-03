@@ -77,7 +77,7 @@ public class Window {
 
         // Setup callbacks
         GLFW.glfwSetErrorCallback(this::onError);
-        GLFW.glfwSetWindowSizeCallback(this.handle, this::onResize);
+        GLFW.glfwSetWindowSizeCallback(this.handle, (pWindow, width1, height1) -> onResize());
 
         // Set the OpenGL context
         GLFW.glfwMakeContextCurrent(this.handle);
@@ -104,7 +104,7 @@ public class Window {
         GLFW.glfwDestroyWindow(this.handle);
     }
 
-    private void onResize(long pWindow, int width, int height) {
+    private void onResize() {
         throw new RuntimeException("Resizing the window is not supported!");
     }
 

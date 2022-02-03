@@ -34,11 +34,9 @@ public class RenderObject {
         return this;
     }
 
-    public void onInput(float delta) {
-        Input(delta);
-
+    public void onInput() {
         for (RenderObject child : children)
-            child.onInput(delta);
+            child.onInput();
     }
 
     public void onUpdate(float delta) {
@@ -49,15 +47,10 @@ public class RenderObject {
     }
 
     public void onRender(Shader shader, RenderingEngine renderingEngine) {
-        Render(shader, renderingEngine);
+        Render(renderingEngine);
 
         for (RenderObject child : children)
             child.onRender(shader, renderingEngine);
-    }
-
-    public void Input(float delta) {
-        for (GameComponent component : components)
-            component.Input(delta);
     }
 
     public void Update(float delta) {
@@ -65,9 +58,9 @@ public class RenderObject {
             component.Update(delta);
     }
 
-    public void Render(Shader shader, RenderingEngine renderingEngine) {
+    public void Render(RenderingEngine renderingEngine) {
         for (GameComponent component : components)
-            component.Render(shader, new Matrix4f(renderingEngine.projViewMatrix));
+            component.Render(new Matrix4f(renderingEngine.projViewMatrix));
     }
 
     public Matrix4f getTransformation() {
@@ -77,9 +70,6 @@ public class RenderObject {
     public void SetEngine(LoopManager engine) {
         if (this.engine != engine) {
             this.engine = engine;
-
-            for (GameComponent component : components)
-                component.AddToEngine(engine);
 
             for (RenderObject child : children)
                 child.SetEngine(engine);

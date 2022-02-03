@@ -202,18 +202,18 @@ public class GlbReader implements FileReader {
     public static class MeshData {
         public String name;
         public int materialIndex;
-        public List<Vector3fc> positions = new ArrayList<>();
-        public List<Vector2fc> texCoords = new ArrayList<>();
-        public List<Vector3fc> normals = new ArrayList<>();
-        public List<Integer> indices = new ArrayList<>();
-        public List<Bone> bones = new ArrayList<>();
+        public final List<Vector3fc> positions = new ArrayList<>();
+        public final List<Vector2fc> texCoords = new ArrayList<>();
+        public final List<Vector3fc> normals = new ArrayList<>();
+        public final List<Integer> indices = new ArrayList<>();
+        public final List<Bone> bones = new ArrayList<>();
         public Matrix4f modelMatrix;
     }
 
     public static class AssimpMaterial {
 
         private final AIMaterial material;
-        public HashMap<String, AssimpMaterialProperty<?>> properties = new HashMap<>();
+        public final HashMap<String, AssimpMaterialProperty<?>> properties = new HashMap<>();
 
         public AssimpMaterial(AIMaterial material) {
             this.material = material;

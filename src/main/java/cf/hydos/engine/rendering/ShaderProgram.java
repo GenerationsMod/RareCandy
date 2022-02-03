@@ -14,8 +14,6 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.lwjgl.opengl.GL20.*;
-
 public class ShaderProgram {
     private final int id;
     private final HashMap<String, Integer> uniforms;
@@ -68,7 +66,7 @@ public class ShaderProgram {
     }
 
     public void bind() {
-        glUseProgram(this.id);
+        GL20C.glUseProgram(this.id);
     }
 
     public void updateUniforms(Matrix4f transform, Material material, Matrix4f perspectiveViewMatrix) {
@@ -222,7 +220,7 @@ public class ShaderProgram {
 
         if (!addThis) return;
 
-        int uniformLocation = glGetUniformLocation(this.id, uniformName);
+        int uniformLocation = GL20C.glGetUniformLocation(this.id, uniformName);
 
         if (uniformLocation == 0xFFFFFFFF) {
             System.err.println("Error: Could not find uniform: " + uniformName);
@@ -234,60 +232,60 @@ public class ShaderProgram {
     }
 
     private void addVertShader(String text) {
-        addProgram(text, GL_VERTEX_SHADER);
+        addProgram(text, GL20C.GL_VERTEX_SHADER);
     }
 
     private void addFragShader(String text) {
-        addProgram(text, GL_FRAGMENT_SHADER);
+        addProgram(text, GL20C.GL_FRAGMENT_SHADER);
     }
 
     private void setAttribLocation(String attributeName, int location) {
-        glBindAttribLocation(this.id, location, attributeName);
+        GL20C.glBindAttribLocation(this.id, location, attributeName);
     }
 
     private void compileShader() {
-        glLinkProgram(this.id);
+        GL20C.glLinkProgram(this.id);
 
-        if (glGetProgrami(this.id, GL_LINK_STATUS) == 0) {
-            System.err.println(glGetProgramInfoLog(this.id, 1024));
+        if (GL20C.glGetProgrami(this.id, GL20C.GL_LINK_STATUS) == 0) {
+            System.err.println(GL20C.glGetProgramInfoLog(this.id, 1024));
             System.exit(1);
         }
 
-        glValidateProgram(this.id);
+        GL20C.glValidateProgram(this.id);
 
-        if (glGetProgrami(this.id, GL_VALIDATE_STATUS) == 0) {
-            System.err.println(glGetProgramInfoLog(this.id, 1024));
+        if (GL20C.glGetProgrami(this.id, GL20C.GL_VALIDATE_STATUS) == 0) {
+            System.err.println(GL20C.glGetProgramInfoLog(this.id, 1024));
             System.exit(1);
         }
     }
 
     private void addProgram(String text, int type) {
-        int shader = glCreateShader(type);
+        int shader = GL20C.glCreateShader(type);
 
         if (shader == 0) {
             System.err.println("Shader creation failed: Could not find valid memory location when adding shader");
             System.exit(1);
         }
 
-        glShaderSource(shader, text);
-        glCompileShader(shader);
+        GL20C.glShaderSource(shader, text);
+        GL20C.glCompileShader(shader);
 
-        if (glGetShaderi(shader, GL_COMPILE_STATUS) == 0) {
-            System.err.println(glGetShaderInfoLog(shader, 1024));
+        if (GL20C.glGetShaderi(shader, GL20C.GL_COMPILE_STATUS) == 0) {
+            System.err.println(GL20C.glGetShaderInfoLog(shader, 1024));
             System.exit(1);
         }
 
-        glAttachShader(this.id, shader);
+        GL20C.glAttachShader(this.id, shader);
     }
 
     public void setUniformI(String uniformName, int value) {
-        glUniform1i(this.uniforms.get(uniformName), value);
+        GL20C.glUniform1i(this.uniforms.get(uniformName), value);
     }
 
     public void setUniform(String uniformName, Matrix4f value) {
         FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
         value.get(buffer);
-        glUniformMatrix4fv(this.uniforms.get(uniformName), false, buffer);
+        GL20C.glUniformMatrix4fv(this.uniforms.get(uniformName), false, buffer);
     }
 
     private static class GLSLStruct {

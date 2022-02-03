@@ -1,9 +1,10 @@
 package cf.hydos.pixelmonassetutils.scene.material;
 
-import cf.hydos.engine.rendering.resources.TextureResource;
-
 public class Material {
 
-    public Material(TextureResource[] textureMap) {
+    public final Texture diffuseTexture;
+
+    public Material(Texture diffuseTexture) {
+        this.diffuseTexture = diffuseTexture;
     }
 }

@@ -1,6 +1,7 @@
 package cf.hydos.engine.rendering;
 
 import cf.hydos.engine.rendering.resources.ShaderResource;
+import cf.hydos.pixelmonassetutils.scene.material.Material;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -98,7 +99,7 @@ public class Shader {
 
             if (uniformType.equals("sampler2D")) {
                 int samplerSlot = renderingEngine.GetSamplerSlot(uniformName);
-                material.GetTexture(uniformName).Bind(samplerSlot);
+                material.diffuseTexture.bind(samplerSlot);
                 setUniformI(uniformName, samplerSlot);
             } else if (uniformName.startsWith("T_")) {
                 if (uniformName.equals("T_MVP")) setUniform(uniformName, modelViewProjMatrix);
@@ -114,9 +115,6 @@ public class Shader {
             } else if (uniformName.startsWith("C_")) {
                 if (uniformName.equals("C_eyePos")) setUniform(uniformName, new Vector3f(0, 0, 0));
                 else throw new IllegalArgumentException(uniformName + " is not a valid component of Camera");
-            } else {
-                if (uniformType.equals("vec3")) setUniform(uniformName, material.GetVector3f(uniformName));
-                else if (uniformType.equals("float")) setUniformF(uniformName, material.GetFloat(uniformName));
             }
         }
     }

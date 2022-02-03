@@ -2,12 +2,12 @@ package cf.hydos.engine.components;
 
 import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.core.RendererUtils;
-import cf.hydos.engine.rendering.Material;
 import cf.hydos.engine.rendering.RenderingEngine;
 import cf.hydos.engine.rendering.Shader;
-import cf.hydos.engine.rendering.Texture;
 import cf.hydos.engine.rendering.resources.MeshResource;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
+import cf.hydos.pixelmonassetutils.scene.material.Material;
+import cf.hydos.pixelmonassetutils.scene.material.Texture;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;

@@ -4,7 +4,6 @@ import cf.hydos.engine.rendering.Bone;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
 import cf.hydos.pixelmonassetutils.scene.Scene;
 import cf.hydos.pixelmonassetutils.scene.SceneObject;
-import cf.hydos.pixelmonassetutils.scene.material.GlbTexture;
 import cf.hydos.pixelmonassetutils.scene.material.Material;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarFile;

@@ -2,10 +2,9 @@ package cf.hydos.engine;
 
 import cf.hydos.engine.components.AnimatedComponent;
 import cf.hydos.engine.rendering.Bone;
-import cf.hydos.engine.rendering.Texture;
 import cf.hydos.pixelmonassetutils.AssimpUtils;
 import cf.hydos.pixelmonassetutils.reader.GlbReader;
-import cf.hydos.pixelmonassetutils.scene.material.GlbTexture;
+import cf.hydos.pixelmonassetutils.scene.material.Texture;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
@@ -163,17 +162,17 @@ public class AnimationUtil {
         }
 
         // Try to load the textures into rosella
-        List<GlbTexture> textures = new ArrayList<>();
+        List<Texture> textures = new ArrayList<>();
         for (AITexture rawTexture : rawTextures) {
             if (rawTexture.mHeight() > 0) {
                 throw new RuntimeException(".glb file had texture with height of 0");
             } else {
-                textures.add(new GlbTexture(rawTexture.pcDataCompressed(), rawTexture.mFilename().dataString()));
+                textures.add(new Texture(rawTexture.pcDataCompressed(), rawTexture.mFilename().dataString()));
             }
         }
 
 
-        component.AddVertices(vertBuffer, indices, new Texture(textures.get(0)));
+        component.AddVertices(vertBuffer, indices, textures.get(0));
 
         component.animation = AIAnimation.create(Objects.requireNonNull(scene.mAnimations()).get(0));
         component.bones = bones;

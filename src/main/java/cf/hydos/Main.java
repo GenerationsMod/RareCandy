@@ -13,7 +13,7 @@ import java.util.Objects;
 public class Main extends RenderingApplication {
 
     public static void main(String[] args) {
-        new Renderer(480 * 2, 270 * 2, 1200, new Main()).createWindow("Pixelmon: Generations .pk Renderer").start();
+        new Renderer(960, 540, 1200, new Main()).createWindow("Pixelmon: Generations .pk Renderer").start();
     }
 
     @Override
@@ -21,6 +21,7 @@ public class Main extends RenderingApplication {
         addPokemon("arceus", new Vector3f(-2f, -1.6f, -1.5f), 0.05f, false);
         addPokemon("megaAlakazam", new Vector3f(-0.3f, -1.6f, -1.5f), 0.02f, false);
         addPokemonWithRotation("megaRayquaza", new Vector3f(1.9f, -0.2f, -1.5f), 0.03f);
+        addPokemon("rockstarPikachu", new Vector3f(2.4f, -0.2f, -1.5f), 0.03f, false);
         addPokemon("mimikyu", new Vector3f(1.2f, -1.6f, -1.5f), 0.008f, false);
         addPokemon("mudkip", new Vector3f(2.2f, -1.6f, -1.5f), 0.01f, false);
     }

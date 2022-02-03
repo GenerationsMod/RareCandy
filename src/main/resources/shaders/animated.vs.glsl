@@ -1,4 +1,4 @@
-#version 440
+#version 450
 #define MAX_BONES 200
 in vec3 position;
 in vec2 texCoord;

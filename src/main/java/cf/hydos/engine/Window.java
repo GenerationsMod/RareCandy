@@ -113,7 +113,7 @@ public class Window {
     }
 
     private void onResize() {
-        throw new RuntimeException("Resizing the window is not supported!");
+        //throw new RuntimeException("Resizing the window is not supported!");
     }
 
     private void onGlError(int glSource, int glType, int id, int severity, int length, long pMessage, long userParam) {

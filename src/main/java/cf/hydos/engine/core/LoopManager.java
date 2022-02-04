@@ -36,9 +36,7 @@ public class LoopManager {
             }
 
             this.window.pollEvents();
-            // TODO: this is very wrong and will change often.
-            double frameTime = 1.0 / 60;
-            this.application.update((float) frameTime);
+            this.application.update();
             this.application.render(this.renderer);
             this.window.swapBuffers();
         }

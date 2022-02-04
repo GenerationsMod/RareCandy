@@ -6,9 +6,6 @@ import org.joml.Matrix4f;
 public abstract class GameComponent {
     private RenderObject parent;
 
-    public void Update(float delta) {
-    }
-
     public void Render(Matrix4f projViewMatrix) {
     }
 

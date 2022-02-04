@@ -7,8 +7,8 @@ public abstract class RenderingApplication {
 
     public abstract void init();
 
-    public void update(float delta) {
-        getRootObject().update(delta);
+    public void update() {
+        getRootObject().update();
     }
 
     public void render(RenderingEngine renderingEngine) {

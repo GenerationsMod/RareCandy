@@ -32,11 +32,9 @@ public class RenderObject {
         return this;
     }
 
-    public void update(float delta) {
-        updateComponents(delta);
-
+    public void update() {
         for (RenderObject child : children)
-            child.update(delta);
+            child.update();
     }
 
     public void render(RenderingEngine renderingEngine) {
@@ -44,11 +42,6 @@ public class RenderObject {
 
         for (RenderObject child : children)
             child.render(renderingEngine);
-    }
-
-    public void updateComponents(float delta) {
-        for (GameComponent component : components)
-            component.Update(delta);
     }
 
     public void renderComponents(RenderingEngine renderingEngine) {

@@ -6,7 +6,7 @@ import org.joml.Matrix4f;
 public abstract class GameComponent {
     private RenderObject parent;
 
-    public void Render(Matrix4f projViewMatrix) {
+    public void render(Matrix4f projViewMatrix) {
     }
 
     public void SetParent(RenderObject parent) {

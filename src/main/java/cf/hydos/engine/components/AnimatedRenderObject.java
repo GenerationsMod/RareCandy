@@ -21,6 +21,8 @@ import java.nio.IntBuffer;
 
 @SuppressWarnings("ConstantConditions")
 public class AnimatedRenderObject extends GameComponent {
+    public static final long TIMER = System.currentTimeMillis();
+
     public Matrix4f globalInverseTransform;
     public Bone[] bones;
     public Matrix4f[] boneTransforms;
@@ -28,9 +30,6 @@ public class AnimatedRenderObject extends GameComponent {
     public AIAnimation animation;
     public ShaderProgram shaderProgram;
     public Material material;
-
-    final long timer = System.currentTimeMillis();
-
     private int vao;
     private int indexCount;
 
@@ -76,7 +75,7 @@ public class AnimatedRenderObject extends GameComponent {
     }
 
     @Override
-    public void Render(Matrix4f projViewMatrix) {
+    public void render(Matrix4f projViewMatrix) {
         shaderProgram.bind();
 
         shaderProgram.uniforms.get("gBones").uploadMat4fs(boneTransforms);
@@ -88,7 +87,7 @@ public class AnimatedRenderObject extends GameComponent {
 
     @Override
     public void update() {
-        boneTransforms((float) (((double) System.currentTimeMillis() - (double) timer) / 1000.0));
+        boneTransforms((float) (((double) System.currentTimeMillis() - (double) TIMER) / 1000.0));
     }
 
     AINodeAnim FindNodeAnim(AIAnimation pAnimation, String NodeName) {

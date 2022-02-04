@@ -50,7 +50,7 @@ public class RenderObject {
 
     public void renderComponents(RenderingEngine renderingEngine) {
         for (GameComponent component : components)
-            component.Render(new Matrix4f(renderingEngine.projViewMatrix));
+            component.render(new Matrix4f(renderingEngine.projViewMatrix));
     }
 
     public Matrix4f getTransformation() {

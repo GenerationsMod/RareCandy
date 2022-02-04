@@ -25,18 +25,18 @@ public class Texture {
             throw new RuntimeException("Failed to read image information: " + STBImage.stbi_failure_reason());
         }
 
-        ByteBuffer buffer = STBImage.stbi_load_from_memory(imageFileBytes, w, h, numComponents, 3);
+        ByteBuffer buffer = STBImage.stbi_load_from_memory(imageFileBytes, w, h, numComponents, 4);
         if (buffer == null) {
             throw new RuntimeException("Failed to load image: " + STBImage.stbi_failure_reason());
         }
 
         GL45C.glTextureParameteri(this.id, GL11C.GL_TEXTURE_WRAP_S, GL11C.GL_REPEAT);
         GL45C.glTextureParameteri(this.id, GL11C.GL_TEXTURE_WRAP_T, GL11C.GL_REPEAT);
-        GL45C.glTextureParameteri(this.id, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
-        GL45C.glTextureParameteri(this.id, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
+        GL45C.glTextureParameteri(this.id, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_NEAREST);
+        GL45C.glTextureParameteri(this.id, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_NEAREST);
 
-        GL45C.glTextureStorage2D(this.id, 1, GL11C.GL_RGB8, w.get(0), h.get(0));
-        GL45C.glTextureSubImage2D(this.id, 0, 0, 0, w.get(0), h.get(0), GL11C.GL_RGB, GL11C.GL_UNSIGNED_BYTE, buffer);
+        GL45C.glTextureStorage2D(this.id, 1, GL11C.GL_RGBA8, w.get(0), h.get(0));
+        GL45C.glTextureSubImage2D(this.id, 0, 0, 0, w.get(0), h.get(0), GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, buffer);
         GL45C.glGenerateTextureMipmap(this.id);
     }
 

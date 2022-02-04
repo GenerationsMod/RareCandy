@@ -35,6 +35,10 @@ public class RenderObject {
     public void update() {
         for (RenderObject child : children)
             child.update();
+
+        for (GameComponent component : components) {
+            component.update();
+        }
     }
 
     public void render(RenderingEngine renderingEngine) {

@@ -1,13 +1,13 @@
-package cf.hydos.pixelmonassetutils;
+package cf.hydos.pixelmonassetutils.assimp;
 
 import cf.hydos.engine.rendering.Bone;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
-import org.lwjgl.assimp.AIBone;
-import org.lwjgl.assimp.AIMatrix4x4;
-import org.lwjgl.assimp.AIQuaternion;
-import org.lwjgl.assimp.AIVector3D;
+import org.lwjgl.assimp.*;
+
+import java.util.Objects;
 
 /**
  * Utilities for converting from Assimp objects.
@@ -16,6 +16,10 @@ public class AssimpUtils {
 
     public static Vector3f from(AIVector3D aiVec3) {
         return new Vector3f(aiVec3.x(), aiVec3.y(), aiVec3.z());
+    }
+
+    public static Vector2f from3to2(AIVector3D aiVec3) {
+        return new Vector2f(aiVec3.x(), aiVec3.y());
     }
 
     public static Matrix4f from(AIMatrix4x4 aiMat4) {
@@ -47,6 +51,15 @@ public class AssimpUtils {
         Bone b = new Bone();
         b.offsetMatrix = from(bone.mOffsetMatrix());
         b.name = bone.mName().dataString();
+
+        AIVertexWeight.Buffer aiWeights = Objects.requireNonNull(bone.mWeights());
+        Bone.VertexWeight[] vertexWeights = new Bone.VertexWeight[aiWeights.capacity()];
+        for (int i = 0; i < aiWeights.capacity(); i++) {
+            AIVertexWeight aiWeight = aiWeights.get(i);
+            vertexWeights[i] = new Bone.VertexWeight(aiWeight.mVertexId(), aiWeight.mWeight());
+        }
+
+        b.weights = vertexWeights;
         return b;
     }
 }

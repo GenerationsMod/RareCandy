@@ -17,5 +17,6 @@ public abstract class GameComponent {
         return parent.getTransformation();
     }
 
+    public abstract void update();
 }
 

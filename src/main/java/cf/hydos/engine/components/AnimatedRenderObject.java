@@ -3,7 +3,7 @@ package cf.hydos.engine.components;
 import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.rendering.shader.ShaderProgram;
-import cf.hydos.pixelmonassetutils.AssimpUtils;
+import cf.hydos.pixelmonassetutils.assimp.AssimpUtils;
 import cf.hydos.pixelmonassetutils.scene.material.Material;
 import cf.hydos.pixelmonassetutils.scene.material.Texture;
 import org.joml.Matrix4f;
@@ -87,9 +87,7 @@ public class AnimatedRenderObject extends GameComponent {
     }
 
     @Override
-    public void Update(float delta) {
-        super.Update(delta);
-
+    public void update() {
         boneTransforms((float) (((double) System.currentTimeMillis() - (double) timer) / 1000.0));
     }
 

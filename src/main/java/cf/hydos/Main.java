@@ -28,7 +28,7 @@ public class Main extends RenderingApplication {
 
     private void addPokemon(String name, Vector3f pos, float scale, boolean brokenAxis) {
         PixelAsset model = new PixelAsset(Objects.requireNonNull(Main.class.getResourceAsStream("/" + name + ".pk"), "Failed to read /" + name + ".pk"));
-        RenderObject pokemon = new RenderObject().addComponent(AnimationUtil.loadAnimatedFile(((GlbReader) model.reader).rawScene));
+        RenderObject pokemon = new RenderObject().addComponent(AnimationUtil.loadAnimatedFile(model.scene, ((GlbReader) model.reader).rawScene));
         pokemon.getTransformation().rotate((float) Math.toRadians(45), new Vector3f(0, 1, 0)).translate(pos).scale(new Vector3f(scale, scale, scale));
 
         if (brokenAxis) {
@@ -40,7 +40,7 @@ public class Main extends RenderingApplication {
 
     private void addPokemonWithRotation(String name, Vector3f pos, float scale) {
         PixelAsset model = new PixelAsset(Objects.requireNonNull(Main.class.getResourceAsStream("/" + name + ".pk"), "Failed to read /" + name + ".pk"));
-        RenderObject pokemon = new RenderObject().addComponent(AnimationUtil.loadAnimatedFile(((GlbReader) model.reader).rawScene));
+        RenderObject pokemon = new RenderObject().addComponent(AnimationUtil.loadAnimatedFile(model.scene, ((GlbReader) model.reader).rawScene));
         pokemon.getTransformation().rotate((float) Math.toRadians(90), new Vector3f(0, 1, 0)).translate(pos).scale(new Vector3f(scale, scale, scale));
 
         add(pokemon);

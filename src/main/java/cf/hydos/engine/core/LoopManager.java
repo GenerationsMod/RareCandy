@@ -4,7 +4,6 @@ import cf.hydos.engine.Window;
 import cf.hydos.engine.rendering.RenderingEngine;
 
 public class LoopManager {
-    private static final long SECOND_IN_NANOSECONDS = 1_000_000_000L;
 
     private final Window window;
     private final RenderingEngine renderer;

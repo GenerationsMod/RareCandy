@@ -3,12 +3,18 @@ package cf.hydos.engine;
 import cf.hydos.engine.components.AnimatedRenderObject;
 import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.rendering.shader.ShaderProgram;
-import cf.hydos.pixelmonassetutils.AssimpUtils;
+import cf.hydos.pixelmonassetutils.scene.Scene;
 import cf.hydos.pixelmonassetutils.scene.material.Texture;
+import cf.hydos.pixelmonassetutils.scene.objects.Mesh;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.assimp.*;
+import org.lwjgl.assimp.AIAnimation;
+import org.lwjgl.assimp.AIScene;
+import org.lwjgl.assimp.AITexture;
+import org.lwjgl.assimp.Assimp;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -20,15 +26,14 @@ import java.util.Objects;
 public class AnimationUtil {
     private static final ShaderProgram ANIMATED_SHADER = new ShaderProgram("animated");
 
-    public static AnimatedRenderObject loadAnimatedFile(AIScene scene) {
-
-        if (scene == null || scene.mNumAnimations() == 0) {
+    public static AnimatedRenderObject loadAnimatedFile(Scene scene, AIScene aiScene) {
+        if (aiScene.mNumAnimations() == 0) {
             System.err.println("the imported file does not contain any animations.");
             System.out.println(Assimp.aiGetErrorString());
             System.exit(0);
         }
 
-        AIMesh mesh = AIMesh.create(Objects.requireNonNull(scene.mMeshes()).get(0));
+        Mesh mesh = scene.meshes.get(0);
 
         int sizeOfVertexUnrigged = 11;
         int sizeOfVertex = sizeOfVertexUnrigged + Float.BYTES * 2;
@@ -41,14 +46,14 @@ public class AnimationUtil {
          * bone		info 4f
          * bone		info 4f
          */
-        float[] rawMeshData = new float[mesh.mNumVertices() * sizeOfVertex];
+        float[] rawMeshData = new float[mesh.getVertices().length * sizeOfVertex];
         int index = 0;
 
-        for (int v = 0; v < mesh.mNumVertices(); v++) {
-            AIVector3D position = mesh.mVertices().get(v);
-            AIVector3D normal = Objects.requireNonNull(mesh.mNormals()).get(v);
-            AIVector3D tangent = Objects.requireNonNull(mesh.mTangents()).get(v);
-            AIVector3D texCoord = Objects.requireNonNull(mesh.mTextureCoords(0)).get(v);
+        for (int v = 0; v < mesh.getVertices().length; v++) {
+            Vector3f position = mesh.getVertices()[v];
+            Vector3f normal = mesh.getNormals()[v];
+            Vector3f tangent = mesh.getTangents()[v];
+            Vector2f texCoord = mesh.getTexCoords()[v];
 
             rawMeshData[index++] = position.x();
             rawMeshData[index++] = position.y();
@@ -76,42 +81,34 @@ public class AnimationUtil {
             rawMeshData[index++] = 0;
         }
 
-        IntBuffer indices = BufferUtils.createIntBuffer(mesh.mNumFaces() * mesh.mFaces().get(0).mNumIndices());
-
-        for (int f = 0; f < mesh.mNumFaces(); f++) {
-            AIFace face = mesh.mFaces().get(f);
-            for (int ind = 0; ind < face.mNumIndices(); ind++)
-                indices.put(face.mIndices().get(ind));
-        }
-
         HashMap<String, Integer> boneMap = new HashMap<>();
         HashMap<Integer, Integer> bone_index_map0 = new HashMap<>();
         HashMap<Integer, Integer> bone_index_map1 = new HashMap<>();
 
-        for (int boneId = 0; boneId < mesh.mNumBones(); boneId++) {
-            AIBone bone = AIBone.create(Objects.requireNonNull(mesh.mBones()).get(boneId));
-            boneMap.put(bone.mName().dataString(), boneId);
+        for (int boneId = 0; boneId < mesh.getBones().length; boneId++) {
+            Bone bone = Objects.requireNonNull(mesh.getBones()[boneId]);
+            boneMap.put(bone.name, boneId);
 
-            for (int weightId = 0; weightId < bone.mNumWeights(); weightId++) {
-                AIVertexWeight weight = bone.mWeights().get(weightId);
-                int vertId = weight.mVertexId();
+            for (int weightId = 0; weightId < bone.weights.length; weightId++) {
+                Bone.VertexWeight weight = bone.weights[weightId];
+                int vertId = weight.vertexId;
                 int vertOffset = vertId * sizeOfVertex;
 
                 if (!bone_index_map0.containsKey(vertId)) {
                     rawMeshData[(vertOffset + sizeOfVertexUnrigged)] = boneId;
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 2] = weight.mWeight();
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 2] = weight.weight;
                     bone_index_map0.put(vertId, 0);
                 } else if (bone_index_map0.get(vertId) == 0) {
                     rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 1] = boneId;
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 3] = weight.mWeight();
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 3] = weight.weight;
                     bone_index_map0.put(vertId, 1);
                 } else if (!bone_index_map1.containsKey(vertId)) {
                     rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 4] = boneId;
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 6] = weight.mWeight();
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 6] = weight.weight;
                     bone_index_map1.put(vertId, 0);
                 } else if (bone_index_map1.get(vertId) == 0) {
                     rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 5] = boneId;
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 7] = weight.mWeight();
+                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 7] = weight.weight;
                     bone_index_map1.put(vertId, 1);
                 } else {
                     System.err.println("max 4 bones per vertex.");
@@ -120,32 +117,31 @@ public class AnimationUtil {
             }
         }
 
-        AIMatrix4x4 inverseRootTransform = Objects.requireNonNull(scene.mRootNode()).mTransformation();
-        Matrix4f inverseRootTransformation = AssimpUtils.from(inverseRootTransform);
+        Matrix4f inverseRootTransformation = scene.rootTransform;
 
         Bone[] bones = new Bone[boneMap.size()];
-
-        for (int b = 0; b < mesh.mNumBones(); b++) {
-            AIBone bone = AIBone.create(Objects.requireNonNull(mesh.mBones()).get(b));
-            bones[b] = new Bone();
-
-            bones[b].name = bone.mName().dataString();
-            bones[b].offsetMatrix = AssimpUtils.from(bone.mOffsetMatrix());
+        for (int b = 0; b < mesh.getBones().length; b++) {
+            bones[b] = mesh.getBones()[b];
         }
 
         AnimatedRenderObject component = new AnimatedRenderObject();
         FloatBuffer vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
 
+        IntBuffer indices = BufferUtils.createIntBuffer(mesh.getIndices().length);
+        for (int i : mesh.getIndices()) {
+            indices.put(i);
+        }
+        indices.flip();
+
         for (float v : rawMeshData) vertBuffer.put(v);
         vertBuffer.flip();
-        indices.flip();
 
         List<AITexture> rawTextures = new ArrayList<>();
 
         // Retrieve Textures
-        PointerBuffer pTextures = scene.mTextures();
+        PointerBuffer pTextures = aiScene.mTextures();
         if (pTextures != null) {
-            for (int i = 0; i < scene.mNumTextures(); i++) {
+            for (int i = 0; i < aiScene.mNumTextures(); i++) {
                 rawTextures.add(AITexture.create(pTextures.get(i)));
             }
         } else {
@@ -163,10 +159,10 @@ public class AnimationUtil {
         }
 
         component.addVertices(ANIMATED_SHADER, vertBuffer, indices, textures.get(0));
-        component.animation = AIAnimation.create(Objects.requireNonNull(scene.mAnimations()).get(0));
+        component.animation = AIAnimation.create(Objects.requireNonNull(aiScene.mAnimations()).get(0));
         component.bones = bones;
         component.boneTransforms = new Matrix4f[bones.length];
-        component.root = scene.mRootNode();
+        component.root = aiScene.mRootNode();
         component.globalInverseTransform = inverseRootTransformation;
         return component;
     }

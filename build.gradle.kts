@@ -28,6 +28,8 @@ repositories {
 }
 
 dependencies {
+    compileOnly("org.jetbrains", "annotations", "23.0.0")
+
     implementation("org.tukaani", "xz", "1.9")
     implementation("org.apache.commons", "commons-compress", "1.21")
     implementation("org.joml", "joml", "1.10.3")

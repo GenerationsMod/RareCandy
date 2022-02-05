@@ -1,6 +1,7 @@
 package cf.hydos.engine.components;
 
 import cf.hydos.engine.core.StorageBuffer;
+import cf.hydos.engine.core.VertexLayout;
 import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.rendering.shader.ShaderProgram;
 import cf.hydos.pixelmonassetutils.assimp.AssimpUtils;
@@ -31,9 +32,9 @@ public class AnimatedRenderObject extends GameComponent {
     public AIAnimation animation;
     public ShaderProgram shaderProgram;
     public Material material;
-    private int vao;
     private int indexCount;
     private StorageBuffer ssbo;
+    private VertexLayout layout;
 
     public void addVertices(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
         this.shaderProgram = program;
@@ -45,7 +46,6 @@ public class AnimatedRenderObject extends GameComponent {
 
         material = new Material(diffuseTexture);
 
-        vao = GL45C.glCreateVertexArrays(); // VertexArrayObject (Vertex Layout)
         int vbo = GL45C.glCreateBuffers(); // VertexBufferObject (Vertices)
         int ebo = GL45C.glCreateBuffers(); // ElementBufferObject (Indices)
         indexCount = indices.capacity();
@@ -53,33 +53,16 @@ public class AnimatedRenderObject extends GameComponent {
         GL45C.glNamedBufferData(vbo, vertices, GL45C.GL_STATIC_DRAW);
         GL45C.glNamedBufferData(ebo, indices, GL45C.GL_STATIC_DRAW);
 
-        GL45C.glEnableVertexArrayAttrib(vao, 0);
-        GL45C.glEnableVertexArrayAttrib(vao, 1);
-        GL45C.glEnableVertexArrayAttrib(vao, 2);
-        GL45C.glEnableVertexArrayAttrib(vao, 3);
-        GL45C.glEnableVertexArrayAttrib(vao, 4);
-        GL45C.glEnableVertexArrayAttrib(vao, 5);
+        this.layout = new VertexLayout(
+                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Position
+                new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT), // TexCoords
+                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Normal
+                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // ???
+                new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT), // BoneData
+                new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT) // BoneData
+        );
 
-        GL45C.glVertexArrayAttribBinding(vao, 0, 0);
-        GL45C.glVertexArrayAttribFormat(vao, 0, 3, GL11C.GL_FLOAT, false, 0);
-
-        GL45C.glVertexArrayAttribBinding(vao, 1, 0);
-        GL45C.glVertexArrayAttribFormat(vao, 1, 2, GL11C.GL_FLOAT, false, 12);
-
-        GL45C.glVertexArrayAttribBinding(vao, 2, 0);
-        GL45C.glVertexArrayAttribFormat(vao, 2, 3, GL11C.GL_FLOAT, false, 20);
-
-        GL45C.glVertexArrayAttribBinding(vao, 3, 0);
-        GL45C.glVertexArrayAttribFormat(vao, 3, 3, GL11C.GL_FLOAT, false, 32);
-
-        GL45C.glVertexArrayAttribBinding(vao, 4, 0);
-        GL45C.glVertexArrayAttribFormat(vao, 4, 4, GL11C.GL_FLOAT, false, 44);
-
-        GL45C.glVertexArrayAttribBinding(vao, 5, 0);
-        GL45C.glVertexArrayAttribFormat(vao, 5, 4, GL11C.GL_FLOAT, false, 60);
-
-        GL45C.glVertexArrayVertexBuffer(vao, 0, vbo, 0, 19 * 4);
-        GL45C.glVertexArrayElementBuffer(vao, ebo);
+        layout.applyTo(ebo, vbo);
     }
 
     @Override
@@ -89,7 +72,7 @@ public class AnimatedRenderObject extends GameComponent {
         shaderProgram.uniforms.get("gBones").uploadMat4fs(boneTransforms);
         shaderProgram.updateUniforms(GetTransform(), material, projectionMatrix, viewMatrix);
 
-        GL30C.glBindVertexArray(this.vao);
+        this.layout.bind();
         this.ssbo.bind(1);
         GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
     }

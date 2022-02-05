@@ -1,6 +1,5 @@
 package cf.hydos.engine.components;
 
-import cf.hydos.engine.core.RendererUtils;
 import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.rendering.shader.ShaderProgram;
 import cf.hydos.pixelmonassetutils.assimp.AssimpUtils;
@@ -190,11 +189,9 @@ public class AnimatedRenderObject extends GameComponent {
         return 0;
     }
 
-    protected void ReadNodeHierarchy(float AnimationTime, AINode pNode, Matrix4f ParentTransform) {
+    protected void readNodeHierarchy(float AnimationTime, AINode pNode, Matrix4f ParentTransform) {
         String name = pNode.mName().dataString();
-
         Matrix4f NodeTransformation = AssimpUtils.from(pNode.mTransformation());
-
         AINodeAnim pNodeAnim = FindNodeAnim(animation, name);
 
         if (pNodeAnim != null) {
@@ -206,7 +203,7 @@ public class AnimatedRenderObject extends GameComponent {
             // Interpolate rotation and generate rotation transformation matrix
             Quaternionf RotationQ = new Quaternionf(0, 0, 0, 0);
             CalcInterpolatedRotation(RotationQ, AnimationTime, pNodeAnim);
-            Matrix4f RotationM = RendererUtils.toRotationMatrix(RotationQ);
+            Matrix4f RotationM = RotationQ.get(new Matrix4f());
 
             // Interpolate translation and generate translation transformation matrix
             Vector3f Translation = new Vector3f(0, 0, 0);
@@ -226,7 +223,7 @@ public class AnimatedRenderObject extends GameComponent {
         }
 
         for (int i = 0; i < pNode.mNumChildren(); i++) {
-            ReadNodeHierarchy(AnimationTime, AINode.create(pNode.mChildren().get(i)), GlobalTransformation);
+            readNodeHierarchy(AnimationTime, AINode.create(pNode.mChildren().get(i)), GlobalTransformation);
         }
     }
 
@@ -243,7 +240,7 @@ public class AnimatedRenderObject extends GameComponent {
         float TimeInTicks = timeInSeconds * TicksPerSecond;
         float AnimationTime = (TimeInTicks % (float) animation.mDuration());
 
-        ReadNodeHierarchy(AnimationTime, root, Identity);
+        readNodeHierarchy(AnimationTime, root, Identity);
 
         for (short i = 0; i < bones.length; i++) {
             boneTransforms[i] = bones[i].finalTransformation;

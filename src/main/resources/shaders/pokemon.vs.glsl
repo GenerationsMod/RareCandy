@@ -20,6 +20,10 @@ uniform vec3 LIGHT_pos;
 
 uniform mat4 gBones[200];
 
+layout(std430, binding = 1) readonly restrict buffer TestStorageBuffer {
+    float testFloat;
+} testStorageBuffer;
+
 // Got no clue how this works, honestly.
 mat4 getBoneTransform() {
     mat4 boneTransform =
@@ -42,7 +46,7 @@ vec3 getAnimatedPosition(mat4 worldSpace) {
 }
 
 void main() {
-    texCoord0 = inTexCoord;
+    texCoord0 = vec2(inTexCoord.x, inTexCoord.y);
     mat4 worldSpace = MC_projection * MC_view;
     mat4 modelTransform = MC_model * getBoneTransform();
     vec4 worldPosition = modelTransform * vec4(inPosition + getAnimatedPosition(worldSpace), 1.0);

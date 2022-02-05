@@ -1,5 +1,6 @@
 package cf.hydos.engine.components;
 
+import cf.hydos.engine.core.StorageBuffer;
 import cf.hydos.engine.rendering.Bone;
 import cf.hydos.engine.rendering.shader.ShaderProgram;
 import cf.hydos.pixelmonassetutils.assimp.AssimpUtils;
@@ -14,6 +15,7 @@ import org.lwjgl.assimp.AINodeAnim;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL30C;
 import org.lwjgl.opengl.GL45C;
+import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -31,9 +33,16 @@ public class AnimatedRenderObject extends GameComponent {
     public Material material;
     private int vao;
     private int indexCount;
+    private StorageBuffer ssbo;
 
     public void addVertices(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
         this.shaderProgram = program;
+        this.ssbo = new StorageBuffer(Float.BYTES * 1);
+
+        // Write 1f to the buffer
+        long pSsbo = this.ssbo.map();
+        MemoryUtil.memPutFloat(pSsbo, 1f);
+
         material = new Material(diffuseTexture);
 
         vao = GL45C.glCreateVertexArrays(); // VertexArrayObject (Vertex Layout)
@@ -81,6 +90,7 @@ public class AnimatedRenderObject extends GameComponent {
         shaderProgram.updateUniforms(GetTransform(), material, projectionMatrix, viewMatrix);
 
         GL30C.glBindVertexArray(this.vao);
+        this.ssbo.bind(1);
         GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
     }
 

@@ -33,17 +33,18 @@ public class AnimationUtil {
 
         Mesh mesh = scene.meshes.get(0);
 
-        int sizeOfVertexUnrigged = 11;
-        int sizeOfVertex = sizeOfVertexUnrigged + Float.BYTES * 2;
-        /**
-         * position data 3f
-         * normal   data 3f
-         * tangent  data 3f
-         * texcoord data 2f
-         *
-         * bone		info 4f
-         * bone		info 4f
-         */
+        int boneInfoOffset = 11; // 3 (Pos) + 2 (TexCoord) + 3 (Normal) + 3 (Tangent)
+        int sizeOfVertex = boneInfoOffset + 4 + 4; // boneInfoOffset + 4 (BoneInfo1) + 4 (BoneInfo2)
+
+        //=Vertex Data Format=
+        // position data 3f
+        // texcoord data 2f
+        // normal   data 3f
+        // tangent  data 3f
+        //
+        // bone		info 4f
+        // bone		info 4f
+        //====================
         float[] rawMeshData = new float[mesh.getVertices().length * sizeOfVertex];
         int index = 0;
 
@@ -68,45 +69,43 @@ public class AnimationUtil {
             rawMeshData[index++] = tangent.y();
             rawMeshData[index++] = tangent.z();
 
-            rawMeshData[index++] = 0;
-            rawMeshData[index++] = 0;
-            rawMeshData[index++] = 0;
-            rawMeshData[index++] = 0;
+            rawMeshData[index++] = 0; // Bone ID Bone 1
+            rawMeshData[index++] = 0; // Bone ID Bone 2
+            rawMeshData[index++] = 0; // Weight  Bone 1
+            rawMeshData[index++] = 0; // Weight  Bone 2
 
-            rawMeshData[index++] = 0;
-            rawMeshData[index++] = 0;
-            rawMeshData[index++] = 0;
-            rawMeshData[index++] = 0;
+            rawMeshData[index++] = 0; // Bone ID Bone 3
+            rawMeshData[index++] = 0; // Bone ID Bone 4
+            rawMeshData[index++] = 0; // Weight  Bone 3
+            rawMeshData[index++] = 0; // Weight  Bone 4
         }
 
-        HashMap<String, Integer> boneMap = new HashMap<>();
         HashMap<Integer, Integer> bone_index_map0 = new HashMap<>();
         HashMap<Integer, Integer> bone_index_map1 = new HashMap<>();
 
         for (int boneId = 0; boneId < mesh.getBones().length; boneId++) {
             Bone bone = Objects.requireNonNull(mesh.getBones()[boneId]);
-            boneMap.put(bone.name, boneId);
 
             for (int weightId = 0; weightId < bone.weights.length; weightId++) {
                 Bone.VertexWeight weight = bone.weights[weightId];
                 int vertId = weight.vertexId;
-                int vertOffset = vertId * sizeOfVertex;
+                int pVertex = vertId * sizeOfVertex; // pointer to where a vertex starts in the array.
 
                 if (!bone_index_map0.containsKey(vertId)) {
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged)] = boneId;
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 2] = weight.weight;
+                    rawMeshData[(pVertex + boneInfoOffset)] = boneId;
+                    rawMeshData[(pVertex + boneInfoOffset) + 2] = weight.weight;
                     bone_index_map0.put(vertId, 0);
                 } else if (bone_index_map0.get(vertId) == 0) {
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 1] = boneId;
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 3] = weight.weight;
+                    rawMeshData[(pVertex + boneInfoOffset) + 1] = boneId;
+                    rawMeshData[(pVertex + boneInfoOffset) + 3] = weight.weight;
                     bone_index_map0.put(vertId, 1);
                 } else if (!bone_index_map1.containsKey(vertId)) {
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 4] = boneId;
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 6] = weight.weight;
+                    rawMeshData[(pVertex + boneInfoOffset) + 4] = boneId;
+                    rawMeshData[(pVertex + boneInfoOffset) + 6] = weight.weight;
                     bone_index_map1.put(vertId, 0);
                 } else if (bone_index_map1.get(vertId) == 0) {
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 5] = boneId;
-                    rawMeshData[(vertOffset + sizeOfVertexUnrigged) + 7] = weight.weight;
+                    rawMeshData[(pVertex + boneInfoOffset) + 5] = boneId;
+                    rawMeshData[(pVertex + boneInfoOffset) + 7] = weight.weight;
                     bone_index_map1.put(vertId, 1);
                 } else {
                     System.err.println("max 4 bones per vertex.");
@@ -117,7 +116,7 @@ public class AnimationUtil {
 
         Matrix4f inverseRootTransformation = scene.rootTransform;
 
-        Bone[] bones = new Bone[boneMap.size()];
+        Bone[] bones = new Bone[mesh.getBones().length];
         for (int b = 0; b < mesh.getBones().length; b++) {
             bones[b] = mesh.getBones()[b];
         }

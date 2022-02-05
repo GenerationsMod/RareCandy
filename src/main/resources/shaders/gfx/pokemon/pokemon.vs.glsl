@@ -27,10 +27,10 @@ layout(std430, binding = 1) readonly restrict buffer TestStorageBuffer {
 // Got no clue how this works, honestly.
 mat4 getBoneTransform() {
     mat4 boneTransform =
-    gBones[uint(boneDataA.x)] * boneDataA.z +
-    gBones[uint(boneDataA.y)] * boneDataA.w +
-    gBones[uint(boneDataB.x)] * boneDataB.z +
-    gBones[uint(boneDataB.y)] * boneDataB.w ;
+    gBones[uint(boneDataA.x)] * boneDataA.z + // Bone 1 Transform (Bone Transform * Weight)
+    gBones[uint(boneDataA.y)] * boneDataA.w + // Bone 2 Transform (Bone Transform * Weight)
+    gBones[uint(boneDataB.x)] * boneDataB.z + // Bone 3 Transform (Bone Transform * Weight)
+    gBones[uint(boneDataB.y)] * boneDataB.w ; // Bone 4 Transform (Bone Transform * Weight)
     return boneTransform;
 }
 

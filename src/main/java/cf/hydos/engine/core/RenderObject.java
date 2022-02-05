@@ -9,20 +9,17 @@ import java.util.ArrayList;
 public class RenderObject {
     private final ArrayList<RenderObject> children;
     private final ArrayList<GameComponent> components;
-    private final Matrix4f transform;
-    private LoopManager engine;
+    private final Matrix4f transformMatrix;
 
     public RenderObject() {
         children = new ArrayList<>();
         components = new ArrayList<>();
-        transform = new Matrix4f();
-        engine = null;
+        transformMatrix = new Matrix4f();
     }
 
     public void addChild(RenderObject child) {
         children.add(child);
-        child.SetEngine(engine);
-        child.getTransformation().mul(transform);
+        child.getTransformation().mul(transformMatrix);
     }
 
     public RenderObject addComponent(GameComponent component) {
@@ -54,15 +51,6 @@ public class RenderObject {
     }
 
     public Matrix4f getTransformation() {
-        return transform;
-    }
-
-    public void SetEngine(LoopManager engine) {
-        if (this.engine != engine) {
-            this.engine = engine;
-
-            for (RenderObject child : children)
-                child.SetEngine(engine);
-        }
+        return transformMatrix;
     }
 }

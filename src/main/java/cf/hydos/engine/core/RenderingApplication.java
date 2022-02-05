@@ -3,6 +3,7 @@ package cf.hydos.engine.core;
 import cf.hydos.engine.rendering.RenderingEngine;
 
 public abstract class RenderingApplication {
+
     private RenderObject root;
 
     public abstract void init();
@@ -24,9 +25,5 @@ public abstract class RenderingApplication {
             root = new RenderObject();
 
         return root;
-    }
-
-    public void setRenderer(LoopManager engine) {
-        getRootObject().SetEngine(engine);
     }
 }

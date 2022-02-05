@@ -15,7 +15,6 @@ public class LoopManager {
         this.application = application;
         this.window = new Window(title, width, height);
         this.renderer = new RenderingEngine(this.window);
-        application.setRenderer(this);
     }
 
     public void stop() {

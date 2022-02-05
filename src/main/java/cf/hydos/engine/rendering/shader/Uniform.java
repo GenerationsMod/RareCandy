@@ -1,6 +1,7 @@
 package cf.hydos.engine.rendering.shader;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20C;
 
@@ -32,17 +33,27 @@ public class Uniform {
         GL20C.glUniformMatrix4fv(getLocation(), false, buffer);
     }
 
-    public void uploadMat4fs(Matrix4f[] matrix4fs) {
-        for (int i = 0; i < matrix4fs.length; i++) {
+    public void uploadMat4fs(Matrix4f[] values) {
+        for (int i = 0; i < values.length; i++) {
             FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
-            matrix4fs[i].get(buffer);
+            values[i].get(buffer);
 
             GL20C.glUniformMatrix4fv(getArrayLocation(i), false, buffer);
         }
     }
 
+    public void uploadVec3f(Vector3f value) {
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(3);
+        value.get(buffer);
+        GL20C.glUniform3fv(getLocation(), buffer);
+    }
+
     public void uploadInt(int value) {
         GL20C.glUniform1i(getLocation(), value);
+    }
+
+    public void uploadFloat(float value) {
+        GL20C.glUniform1f(getLocation(), value);
     }
 
     private int getArrayLocation(int offset) {

@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class AnimationUtil {
-    private static final ShaderProgram ANIMATED_SHADER = new ShaderProgram("animated");
-
     public static AnimatedRenderObject loadAnimatedFile(Scene scene, AIScene aiScene) {
         if (aiScene.mNumAnimations() == 0) {
             System.err.println("the imported file does not contain any animations.");
@@ -158,7 +156,7 @@ public class AnimationUtil {
             }
         }
 
-        component.addVertices(ANIMATED_SHADER, vertBuffer, indices, textures.get(0));
+        component.addVertices(ShaderProgram.POKEMON_SHADER, vertBuffer, indices, textures.get(0));
         component.animation = AIAnimation.create(Objects.requireNonNull(aiScene.mAnimations()).get(0));
         component.bones = bones;
         component.boneTransforms = new Matrix4f[bones.length];

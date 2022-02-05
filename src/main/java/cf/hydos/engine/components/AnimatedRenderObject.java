@@ -75,11 +75,11 @@ public class AnimatedRenderObject extends GameComponent {
     }
 
     @Override
-    public void render(Matrix4f projViewMatrix) {
+    public void render(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         shaderProgram.bind();
 
         shaderProgram.uniforms.get("gBones").uploadMat4fs(boneTransforms);
-        shaderProgram.updateUniforms(GetTransform(), material, projViewMatrix);
+        shaderProgram.updateUniforms(GetTransform(), material, projectionMatrix, viewMatrix);
 
         GL30C.glBindVertexArray(this.vao);
         GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);

@@ -7,10 +7,12 @@ import org.lwjgl.opengl.GL11C;
 
 public class RenderingEngine {
 
-    public final Matrix4f projViewMatrix;
+    public final Matrix4f projectionMatrix;
+    public final Matrix4f viewMatrix;
 
     public RenderingEngine(Window window) {
-        this.projViewMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) window.width / window.height, 0.1f, 1000.0f).lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+        this.projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) window.width / window.height, 0.1f, 1000.0f);
+        this.viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
         GL11C.glClearColor(63 / 255f, 191 / 255f, 217 / 255f, 1.0f);
 

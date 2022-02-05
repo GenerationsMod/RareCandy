@@ -6,9 +6,11 @@ in vec3 normal;
 
 out vec2 texCoord0;
 
-uniform mat4 T_MVP;
+uniform mat4 MC_projection;
+uniform mat4 MC_view;
+uniform mat4 MC_model;
 
 void main() {
     texCoord0 = texCoord;
-    gl_Position = T_MVP * vec4(position, 1.0);
+    gl_Position = MC_projection * MC_view * MC_model * vec4(position, 1.0);
 }

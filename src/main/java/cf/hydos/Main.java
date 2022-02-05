@@ -35,8 +35,16 @@ public class Main extends RenderingApplication {
 
     @Override
     public void init() {
-        addStaticObject("world", new Vector3f(-25, -14, 2), 1);
+        addStaticObject("world", new Vector3f(-25, -14, 2), 1, 1);
         pokemon = addPokemon("mudkip", new Vector3f(0f, -2f, 1f), 0.03f);
+
+        RenderObject goodChair = addStaticObject("goodNormalTest", new Vector3f(-1f, -1.4f, 1f), 1f, 0);
+        goodChair.getTransformation().rotate((float) Math.toRadians(-90), 1, 0, 0);
+        goodChair.getTransformation().rotate((float) Math.toRadians(-90), 0, 1, 0);
+
+        RenderObject brokenChair = addStaticObject("normalTest", new Vector3f(1f, -1.4f, 1f), 1f, 0);
+        brokenChair.getTransformation().rotate((float) Math.toRadians(-90), 1, 0, 0);
+        brokenChair.getTransformation().rotate((float) Math.toRadians(-90), 0, 1, 0);
     }
 
     @Override
@@ -45,10 +53,10 @@ public class Main extends RenderingApplication {
         this.pokemon.getTransformation().rotate(0.0005f, 0, 1, 0);
     }
 
-    private RenderObject addStaticObject(String name, Vector3f pos, float scale) {
+    private RenderObject addStaticObject(String name, Vector3f pos, float scale, int textureIndex) {
         PixelAsset model = new PixelAsset(Objects.requireNonNull(Main.class.getResourceAsStream("/" + name + ".pk"), "Failed to read /" + name + ".pk"));
         RenderObject object = new RenderObject();
-        loadStaticFile(model.scene, ((GlbReader) model.reader).rawScene, object);
+        loadStaticFile(model.scene, ((GlbReader) model.reader).rawScene, object, textureIndex);
         object.getTransformation().translate(pos).rotate((float) Math.toRadians(90), new Vector3f(1, 0, 0)).scale(new Vector3f(scale, scale, scale));
 
         add(object);
@@ -64,7 +72,7 @@ public class Main extends RenderingApplication {
         return pokemon;
     }
 
-    public static void loadStaticFile(Scene scene, AIScene aiScene, RenderObject object) {
+    public static void loadStaticFile(Scene scene, AIScene aiScene, RenderObject object, int textureIndex) {
         int sizeOfVertex = Float.BYTES * 3 + Float.BYTES * 2 + Float.BYTES * 3;
 
         for (Mesh mesh : scene.meshes) {
@@ -87,7 +95,6 @@ public class Main extends RenderingApplication {
                 rawMeshData[index++] = normal.y();
                 rawMeshData[index++] = normal.z();
             }
-
 
             StaticRenderObject component = new StaticRenderObject();
             FloatBuffer vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
@@ -123,7 +130,7 @@ public class Main extends RenderingApplication {
                 }
             }
 
-            component.addVertices(new ShaderProgram("static"), vertBuffer, indices, textures.get(1));
+            component.addVertices(ShaderProgram.STATIC_LIGHTING_SHADER, vertBuffer, indices, textures.get(textureIndex));
             object.addComponent(component);
         }
     }

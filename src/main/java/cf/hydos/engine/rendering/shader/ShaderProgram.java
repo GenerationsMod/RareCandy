@@ -2,6 +2,7 @@ package cf.hydos.engine.rendering.shader;
 
 import cf.hydos.pixelmonassetutils.scene.material.Material;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryStack;
@@ -14,16 +15,19 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ShaderProgram {
+    public static final ShaderProgram POKEMON_SHADER = new ShaderProgram("pokemon.vs.glsl", "lighting.fs.glsl");
+    public static final ShaderProgram STATIC_LIGHTING_SHADER = new ShaderProgram("staticLighting.vs.glsl", "lighting.fs.glsl");
+    public static final ShaderProgram STATIC_SHADER = new ShaderProgram("static.vs.glsl", "static.fs.glsl");
 
     private final int id;
     public final Map<String, Uniform> uniforms;
 
-    public ShaderProgram(String fileName) {
+    public ShaderProgram(String vertexShaderLoc, String fragmentShaderLoc) {
         this.id = GL20C.glCreateProgram();
         this.uniforms = new HashMap<>();
 
-        String vertexShaderText = loadShader(fileName + ".vs.glsl");
-        String fragmentShaderText = loadShader(fileName + ".fs.glsl");
+        String vertexShaderText = loadShader(vertexShaderLoc);
+        String fragmentShaderText = loadShader(fragmentShaderLoc);
 
         addVertShader(vertexShaderText);
         addFragShader(fragmentShaderText);
@@ -81,9 +85,7 @@ public class ShaderProgram {
         GL20C.glUseProgram(this.id);
     }
 
-    public void updateUniforms(Matrix4f transform, Material material, Matrix4f perspectiveViewMatrix) {
-        Matrix4f modelViewProjMatrix = perspectiveViewMatrix.mul(transform);
-
+    public void updateUniforms(Matrix4f transform, Material material, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         for (String uniformName : this.uniforms.keySet()) {
             Uniform uniform = this.uniforms.get(uniformName);
 
@@ -100,11 +102,32 @@ public class ShaderProgram {
                 }
 
                 case GL20.GL_FLOAT_MAT4 -> {
-                    if (uniformName.startsWith("T_")) {
-                        switch (uniformName) {
-                            case "T_MVP" -> uniform.uploadMat4f(modelViewProjMatrix);
-                            case "T_model" -> uniform.uploadMat4f(perspectiveViewMatrix);
-                            default -> throw new IllegalArgumentException(uniformName + " is not a valid component of Transform");
+                    if (uniformName.startsWith("MC_")) { // Minecraft Shader params.
+                        switch (uniformName.substring("MC_".length())) {
+                            case "projection" -> uniform.uploadMat4f(projectionMatrix);
+                            case "view" -> uniform.uploadMat4f(viewMatrix);
+                            case "model" -> uniform.uploadMat4f(transform);
+                            default -> throw new IllegalArgumentException(uniformName.substring("MC_".length()) + " is not a valid component of Minecraft");
+                        }
+                    }
+                }
+
+                case GL20.GL_FLOAT_VEC3 -> {
+                    if (uniformName.startsWith("LIGHT_")) { // Lighting Magic
+                        switch (uniformName.substring("LIGHT_".length())) {
+                            case "pos" -> uniform.uploadVec3f(new Vector3f(0, 0.5f, -2f));
+                            case "color" -> uniform.uploadVec3f(new Vector3f(1, 1, 1));
+                            default -> throw new IllegalArgumentException(uniformName.substring("LIGHT_".length()) + " is not a valid vec3 component of Lights");
+                        }
+                    }
+                }
+
+                case GL20.GL_FLOAT ->  {
+                    if (uniformName.startsWith("LIGHT_")) { // Lighting Magic
+                        switch (uniformName.substring("LIGHT_".length())) {
+                            case "shineDamper" -> uniform.uploadFloat(60f);
+                            case "reflectivity" -> uniform.uploadFloat(0f);
+                            default -> throw new IllegalArgumentException(uniformName.substring("LIGHT_".length()) + " is not a valid float component of Lights");
                         }
                     }
                 }

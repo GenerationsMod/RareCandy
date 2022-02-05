@@ -48,9 +48,9 @@ public class StaticRenderObject extends GameComponent {
     }
 
     @Override
-    public void render(Matrix4f projViewMatrix) {
+    public void render(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         shaderProgram.bind();
-        shaderProgram.updateUniforms(GetTransform(), material, projViewMatrix);
+        shaderProgram.updateUniforms(GetTransform(), material, projectionMatrix, viewMatrix);
         GL30C.glBindVertexArray(this.vao);
         GL11C.glDisable(GL11C.GL_CULL_FACE);
         GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);

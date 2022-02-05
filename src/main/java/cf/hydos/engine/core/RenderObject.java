@@ -47,7 +47,7 @@ public class RenderObject {
 
     public void renderComponents(RenderingEngine renderingEngine) {
         for (GameComponent component : components)
-            component.render(new Matrix4f(renderingEngine.projViewMatrix));
+            component.render(renderingEngine.projectionMatrix, renderingEngine.viewMatrix);
     }
 
     public Matrix4f getTransformation() {

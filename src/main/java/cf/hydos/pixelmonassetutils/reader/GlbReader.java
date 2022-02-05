@@ -77,7 +77,6 @@ public class GlbReader implements FileReader {
         PointerBuffer aiMeshes = requireNonNull(aiScene.mMeshes());
         for (int i = 0; i < aiMeshes.capacity(); i++) {
             AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
-            System.out.println(aiMesh.mName().dataString());
             meshes.add(convert(aiMesh, materials));
         }
 

@@ -1,5 +1,6 @@
 package cf.hydos.engine.components;
 
+import cf.hydos.engine.core.ComputeShader;
 import cf.hydos.engine.core.StorageBuffer;
 import cf.hydos.engine.core.VertexLayout;
 import cf.hydos.engine.rendering.Bone;
@@ -14,7 +15,6 @@ import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AINodeAnim;
 import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.GL30C;
 import org.lwjgl.opengl.GL45C;
 import org.lwjgl.system.MemoryUtil;
 
@@ -63,6 +63,8 @@ public class AnimatedRenderObject extends GameComponent {
         );
 
         layout.applyTo(ebo, vbo);
+
+        new ComputeShader();
     }
 
     @Override

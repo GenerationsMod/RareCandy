@@ -130,7 +130,7 @@ public class Main extends RenderingApplication {
                 }
             }
 
-            component.addVertices(ShaderProgram.STATIC_LIGHTING_SHADER, vertBuffer, indices, textures.get(textureIndex));
+            component.addVertices(ShaderProgram.STATIC_SHADER, vertBuffer, indices, textures.get(textureIndex));
             object.addComponent(component);
         }
     }

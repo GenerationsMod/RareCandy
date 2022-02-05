@@ -15,19 +15,18 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ShaderProgram {
-    public static final ShaderProgram POKEMON_SHADER = new ShaderProgram("pokemon.vs.glsl", "lighting.fs.glsl");
-    public static final ShaderProgram STATIC_LIGHTING_SHADER = new ShaderProgram("staticLighting.vs.glsl", "lighting.fs.glsl");
-    public static final ShaderProgram STATIC_SHADER = new ShaderProgram("static.vs.glsl", "static.fs.glsl");
+    public static final ShaderProgram POKEMON_SHADER = new ShaderProgram("pokemon");
+    public static final ShaderProgram STATIC_SHADER = new ShaderProgram("static");
 
     private final int id;
     public final Map<String, Uniform> uniforms;
 
-    public ShaderProgram(String vertexShaderLoc, String fragmentShaderLoc) {
+    public ShaderProgram(String shaderName) {
         this.id = GL20C.glCreateProgram();
         this.uniforms = new HashMap<>();
 
-        String vertexShaderText = loadShader(vertexShaderLoc);
-        String fragmentShaderText = loadShader(fragmentShaderLoc);
+        String vertexShaderText = loadShader(shaderName + "/" + shaderName + ".vs.glsl");
+        String fragmentShaderText = loadShader(shaderName + "/" + shaderName + ".fs.glsl");
 
         addVertShader(vertexShaderText);
         addFragShader(fragmentShaderText);
@@ -62,7 +61,7 @@ public class ShaderProgram {
         final String INCLUDE_DIRECTIVE = "#include";
 
         try {
-            shaderReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(ShaderProgram.class.getResourceAsStream("/shaders/" + fileName))));
+            shaderReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(ShaderProgram.class.getResourceAsStream("/shaders/gfx/" + fileName))));
             String line;
 
             while ((line = shaderReader.readLine()) != null) {

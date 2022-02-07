@@ -1,8 +1,6 @@
-package com.pixelmongenerations.inception.core;
+package com.pixelmongenerations.legacy.inception.core;
 
-import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.GL30C;
-import org.lwjgl.opengl.GL45C;
+import org.lwjgl.opengl.*;
 
 public class VertexLayout {
 
@@ -13,25 +11,31 @@ public class VertexLayout {
     private final int attribCount;
     private final int stride;
 
-    public VertexLayout(AttribLayout... attribLayouts) {
-        this.vao = GL45C.glCreateVertexArrays();
+    public VertexLayout(int vao, AttribLayout... attribLayouts) {
         this.attribCount = attribLayouts.length;
+        this.vao = vao;
+
+        int stride = 0;
+        for (AttribLayout attrib : attribLayouts) {
+            stride += switch (attrib.glType) {
+                case GL11C.GL_FLOAT, GL11C.GL_INT -> Float.BYTES * attrib.size;
+                default -> throw new IllegalStateException("Unexpected value: " + attrib.glType);
+            };
+        }
+        this.stride = stride;
 
         enable();
         int offset = 0;
         for (int i = 0; i < attribLayouts.length; i++) {
             AttribLayout attrib = attribLayouts[i];
 
-            GL45C.glVertexArrayAttribBinding(vao, i, 0);
-            GL45C.glVertexArrayAttribFormat(vao, i, attrib.size, attrib.glType, false, offset);
+            GL20C.glVertexAttribPointer(i, attrib.size, attrib.glType, false, this.stride, offset);
 
             offset = offset + switch (attrib.glType) {
                 case GL11C.GL_FLOAT, GL11C.GL_INT -> Float.BYTES * attrib.size;
                 default -> throw new IllegalStateException("Unexpected value: " + attrib.glType);
             };
         }
-
-        this.stride = offset;
     }
 
     public void bind() {
@@ -39,13 +43,14 @@ public class VertexLayout {
     }
 
     public void applyTo(int ebo, int vbo) {
-        GL45C.glVertexArrayVertexBuffer(vao, 0, vbo, 0, this.stride);
-        GL45C.glVertexArrayElementBuffer(vao, ebo);
+        // No-Op on legacy. Binding is done at the top
+        //GL45C.glVertexArrayVertexBuffer(vao, 0, vbo, 0, this.stride);
+        //GL45C.glVertexArrayElementBuffer(vao, ebo);
     }
 
     private void enable() {
         for (int i = 0; i < attribCount; i++) {
-            GL45C.glEnableVertexArrayAttrib(vao, i);
+            GL20C.glEnableVertexAttribArray(i);
         }
     }
 

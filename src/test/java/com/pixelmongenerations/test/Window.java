@@ -3,8 +3,6 @@ package com.pixelmongenerations.test;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL43C;
-import org.lwjgl.opengl.GL45C;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.system.MemoryUtil;
 
@@ -62,8 +60,8 @@ public class Window {
 
         // Setup Window Hints
         GLFW.glfwDefaultWindowHints();
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 4);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 5);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_FALSE);
 
@@ -87,10 +85,10 @@ public class Window {
         GLFW.glfwSwapInterval(0); // Dont limit the fps pls k tnx.
 
         // Setup OpenGL debugging if enabled
-        collectGlDiagnostics(GL.createCapabilities(true));
+        collectGlDiagnostics(GL.createCapabilities(false));
         if (DEBUGGING) {
-            GL45C.glDebugMessageCallback(this::onGlError, MemoryUtil.NULL);
-            GL45C.glEnable(GL45C.GL_DEBUG_OUTPUT);
+            //GL45C.glDebugMessageCallback(this::onGlError, MemoryUtil.NULL);
+            //GL45C.glEnable(GL45C.GL_DEBUG_OUTPUT);
         }
 
         GLFW.glfwShowWindow(this.handle);
@@ -116,7 +114,7 @@ public class Window {
         //throw new RuntimeException("Resizing the window is not supported!");
     }
 
-    private void onGlError(int glSource, int glType, int id, int severity, int length, long pMessage, long userParam) {
+/*    private void onGlError(int glSource, int glType, int id, int severity, int length, long pMessage, long userParam) {
         String source = switch (glSource) {
             case GL43C.GL_DEBUG_SOURCE_API -> "api";
             case GL43C.GL_DEBUG_SOURCE_WINDOW_SYSTEM -> "window system";
@@ -141,7 +139,7 @@ public class Window {
         if(!type.equals("'other'")) {
             System.out.println("[OpenGL " + source + " " + type + "] Message: " + MemoryUtil.memUTF8(pMessage));
         }
-    }
+    }*/
 
     private void onGlfwError(int error, long pDescription) {
         String description = MemoryUtil.memUTF8(pDescription);

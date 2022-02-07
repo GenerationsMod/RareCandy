@@ -1,6 +1,6 @@
-package com.pixelmongenerations.inception.rendering;
+package com.pixelmongenerations.legacy.inception.rendering;
 
-import com.pixelmongenerations.inception.core.RenderObject;
+import com.pixelmongenerations.legacy.inception.core.RenderObject;
 import org.lwjgl.opengl.GL11C;
 
 public class RenderingEngine {

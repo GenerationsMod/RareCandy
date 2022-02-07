@@ -1,10 +1,8 @@
-package com.pixelmongenerations.inception.components;
+package com.pixelmongenerations.legacy.inception.components;
 
-import com.pixelmongenerations.inception.core.ComputeShader;
-import com.pixelmongenerations.inception.core.StorageBuffer;
-import com.pixelmongenerations.inception.core.VertexLayout;
-import com.pixelmongenerations.inception.rendering.Bone;
-import com.pixelmongenerations.inception.rendering.shader.ShaderProgram;
+import com.pixelmongenerations.legacy.inception.core.VertexLayout;
+import com.pixelmongenerations.legacy.inception.rendering.Bone;
+import com.pixelmongenerations.legacy.inception.rendering.shader.ShaderProgram;
 import com.pixelmongenerations.pixelmonassetutils.assimp.AssimpUtils;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
@@ -15,11 +13,14 @@ import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AINodeAnim;
 import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.GL45C;
-import org.lwjgl.system.MemoryUtil;
+import org.lwjgl.opengl.GL15C;
+import org.lwjgl.opengl.GL30C;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 
 @SuppressWarnings("ConstantConditions")
 public class AnimatedRenderObject extends GameComponent {
@@ -33,27 +34,34 @@ public class AnimatedRenderObject extends GameComponent {
     public ShaderProgram shaderProgram;
     public Material material;
     private int indexCount;
-    private StorageBuffer ssbo;
     private VertexLayout layout;
+    private int vbo;
+    private int ebo;
 
     public void addVertices(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
         this.shaderProgram = program;
-        this.ssbo = new StorageBuffer(Float.BYTES * 1);
+        //this.ssbo = new StorageBuffer(Float.BYTES * 1);
 
         // Write 1f to the buffer
-        long pSsbo = this.ssbo.map();
-        MemoryUtil.memPutFloat(pSsbo, 1f);
+        //long pSsbo = this.ssbo.map();
+        //MemoryUtil.memPutFloat(pSsbo, 1f);
 
         material = new Material(diffuseTexture);
 
-        int vbo = GL45C.glCreateBuffers(); // VertexBufferObject (Vertices)
-        int ebo = GL45C.glCreateBuffers(); // ElementBufferObject (Indices)
+        this.vbo = GL15C.glGenBuffers(); // VertexBufferObject (Vertices)
+        this.ebo = GL15C.glGenBuffers(); // ElementBufferObject (Indices)
         indexCount = indices.capacity();
 
-        GL45C.glNamedBufferData(vbo, vertices, GL45C.GL_STATIC_DRAW);
-        GL45C.glNamedBufferData(ebo, indices, GL45C.GL_STATIC_DRAW);
+        int vao = GL30C.glGenVertexArrays();
+        GL30C.glBindVertexArray(vao);
 
-        this.layout = new VertexLayout(
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+
+        this.layout = new VertexLayout(vao,
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Position
                 new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT), // TexCoords
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Normal
@@ -63,8 +71,6 @@ public class AnimatedRenderObject extends GameComponent {
         );
 
         layout.applyTo(ebo, vbo);
-
-        new ComputeShader();
     }
 
     @Override
@@ -75,7 +81,9 @@ public class AnimatedRenderObject extends GameComponent {
         shaderProgram.updateUniforms(GetTransform(), material, projectionMatrix, viewMatrix);
 
         this.layout.bind();
-        this.ssbo.bind(1);
+        GL15C.glBindBuffer(GL15C.GL_STATIC_DRAW, this.vbo);
+        GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
+        //this.ssbo.bind(1);
         GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
     }
 

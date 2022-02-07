@@ -1,6 +1,6 @@
 package com.pixelmongenerations.pixelmonassetutils.assimp;
 
-import com.pixelmongenerations.inception.rendering.Bone;
+import com.pixelmongenerations.legacy.inception.rendering.Bone;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector2f;

@@ -1,6 +1,6 @@
 package com.pixelmongenerations.pixelmonassetutils.scene.objects;
 
-import com.pixelmongenerations.inception.rendering.Bone;
+import com.pixelmongenerations.legacy.inception.rendering.Bone;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;

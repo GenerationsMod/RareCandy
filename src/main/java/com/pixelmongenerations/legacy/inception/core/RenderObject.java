@@ -1,7 +1,7 @@
-package com.pixelmongenerations.inception.core;
+package com.pixelmongenerations.legacy.inception.core;
 
-import com.pixelmongenerations.inception.components.GameComponent;
-import com.pixelmongenerations.inception.rendering.RenderingEngine;
+import com.pixelmongenerations.legacy.inception.components.GameComponent;
+import com.pixelmongenerations.legacy.inception.rendering.RenderingEngine;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;

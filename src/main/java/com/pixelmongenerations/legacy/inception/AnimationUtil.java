@@ -1,8 +1,8 @@
-package com.pixelmongenerations.inception;
+package com.pixelmongenerations.legacy.inception;
 
-import com.pixelmongenerations.inception.components.AnimatedRenderObject;
-import com.pixelmongenerations.inception.rendering.Bone;
-import com.pixelmongenerations.inception.rendering.shader.ShaderProgram;
+import com.pixelmongenerations.legacy.inception.components.AnimatedRenderObject;
+import com.pixelmongenerations.legacy.inception.rendering.Bone;
+import com.pixelmongenerations.legacy.inception.rendering.shader.ShaderProgram;
 import com.pixelmongenerations.pixelmonassetutils.scene.Scene;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
 import com.pixelmongenerations.pixelmonassetutils.scene.objects.Mesh;

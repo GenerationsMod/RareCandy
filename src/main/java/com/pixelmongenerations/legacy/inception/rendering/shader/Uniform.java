@@ -1,4 +1,4 @@
-package com.pixelmongenerations.inception.rendering.shader;
+package com.pixelmongenerations.legacy.inception.rendering.shader;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;

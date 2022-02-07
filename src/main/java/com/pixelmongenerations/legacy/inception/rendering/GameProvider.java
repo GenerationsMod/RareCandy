@@ -1,4 +1,4 @@
-package com.pixelmongenerations.inception.rendering;
+package com.pixelmongenerations.legacy.inception.rendering;
 
 import org.joml.Matrix4f;
 

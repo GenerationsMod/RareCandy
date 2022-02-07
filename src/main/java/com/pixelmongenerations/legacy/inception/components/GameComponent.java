@@ -1,6 +1,6 @@
-package com.pixelmongenerations.inception.components;
+package com.pixelmongenerations.legacy.inception.components;
 
-import com.pixelmongenerations.inception.core.RenderObject;
+import com.pixelmongenerations.legacy.inception.core.RenderObject;
 import org.joml.Matrix4f;
 
 /**

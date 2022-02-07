@@ -1,27 +1,11 @@
-import org.gradle.internal.os.OperatingSystem
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     java
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-group = "cf.hydos"
+group = "com.pixelmongenerations"
 version = "1.0-SNAPSHOT"
-val rootPkg = "cf.hydos"
-
-val lwjglNatives = when (OperatingSystem.current()) {
-    OperatingSystem.LINUX -> System.getProperty("os.arch").let {
-        if (it.startsWith("arm") || it.startsWith("aarch64")) "natives-linux-${if (it.contains("64") || it.startsWith("armv8")) "arm64" else "arm32"}"
-        else "natives-linux"
-    }
-    OperatingSystem.MAC_OS -> "natives-macos"
-    OperatingSystem.WINDOWS -> System.getProperty("os.arch").let {
-        if (it.contains("64")) "natives-windows${if (it.startsWith("aarch64")) "-arm64" else ""}"
-        else "natives-windows-x86"
-    }
-    else -> throw Error("Unrecognized or unsupported Operating system. Please set \"lwjglNatives\" manually")
-}
+val rootPkg = "com.pixelmongenerations"
 
 repositories {
     mavenCentral()
@@ -42,32 +26,19 @@ dependencies {
     implementation("org.lwjgl", "lwjgl-opengl")
     implementation("org.lwjgl", "lwjgl-assimp")
 
-    addEveryOsNative(this, "org.lwjgl", "lwjgl")
-    addEveryOsNative(this, "org.lwjgl", "lwjgl-stb")
-    addEveryOsNative(this, "org.lwjgl", "lwjgl-glfw")
-    addEveryOsNative(this, "org.lwjgl", "lwjgl-opengl")
-    addEveryOsNative(this, "org.lwjgl", "lwjgl-assimp")
+    addNative(this, "org.lwjgl", "lwjgl")
+    addNative(this, "org.lwjgl", "lwjgl-stb")
+    addNative(this, "org.lwjgl", "lwjgl-glfw")
+    addNative(this, "org.lwjgl", "lwjgl-opengl")
+    addNative(this, "org.lwjgl", "lwjgl-assimp")
 }
 
 // We Exclude 32-bit systems because they are old.
-fun addEveryOsNative(handler: DependencyHandlerScope, group: String, name: String) {
+fun addNative(handler: DependencyHandlerScope, group: String, name: String) {
     handler.implementation(group, name, classifier = "natives-windows")
     handler.implementation(group, name, classifier = "natives-windows-arm64")
     handler.implementation(group, name, classifier = "natives-linux")
     handler.implementation(group, name, classifier = "natives-linux-arm64")
     handler.implementation(group, name, classifier = "natives-macos")
     handler.implementation(group, name, classifier = "natives-macos-arm64")
-}
-
-tasks {
-    named<ShadowJar>("shadowJar") {
-
-        manifest {
-            attributes(mapOf("Main-Class" to "$rootPkg.Main"))
-        }
-    }
-
-    build {
-        dependsOn(shadowJar)
-    }
 }

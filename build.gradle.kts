@@ -1,11 +1,10 @@
 plugins {
-    java
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("java-library")
+    id("maven-publish")
 }
 
 group = "com.pixelmongenerations"
-version = "1.0-SNAPSHOT"
-val rootPkg = "com.pixelmongenerations"
+version = "0.1"
 
 repositories {
     mavenCentral()
@@ -21,16 +20,32 @@ dependencies {
 
     implementation(platform("org.lwjgl:lwjgl-bom:3.3.0"))
     implementation("org.lwjgl", "lwjgl")
-    implementation("org.lwjgl", "lwjgl-stb")
-    implementation("org.lwjgl", "lwjgl-glfw")
-    implementation("org.lwjgl", "lwjgl-opengl")
     implementation("org.lwjgl", "lwjgl-assimp")
+    mcDependency(this, "org.lwjgl", "lwjgl-stb")
+    mcDependency(this, "org.lwjgl", "lwjgl-glfw")
+    mcDependency(this, "org.lwjgl", "lwjgl-opengl")
 
     addNative(this, "org.lwjgl", "lwjgl")
-    addNative(this, "org.lwjgl", "lwjgl-stb")
-    addNative(this, "org.lwjgl", "lwjgl-glfw")
-    addNative(this, "org.lwjgl", "lwjgl-opengl")
     addNative(this, "org.lwjgl", "lwjgl-assimp")
+    addMcNative(this, "org.lwjgl", "lwjgl-stb")
+    addMcNative(this, "org.lwjgl", "lwjgl-glfw")
+    addMcNative(this, "org.lwjgl", "lwjgl-opengl")
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
+
+fun mcDependency(handler: DependencyHandlerScope, group: String, name: String) {
+    handler.compileOnly(group, name)
+    handler.testImplementation(group, name)
 }
 
 // We Exclude 32-bit systems because they are old.
@@ -41,4 +56,13 @@ fun addNative(handler: DependencyHandlerScope, group: String, name: String) {
     handler.implementation(group, name, classifier = "natives-linux-arm64")
     handler.implementation(group, name, classifier = "natives-macos")
     handler.implementation(group, name, classifier = "natives-macos-arm64")
+}
+
+fun addMcNative(handler: DependencyHandlerScope, group: String, name: String) {
+    handler.testImplementation(group, name, classifier = "natives-windows")
+    handler.testImplementation(group, name, classifier = "natives-windows-arm64")
+    handler.testImplementation(group, name, classifier = "natives-linux")
+    handler.testImplementation(group, name, classifier = "natives-linux-arm64")
+    handler.testImplementation(group, name, classifier = "natives-macos")
+    handler.testImplementation(group, name, classifier = "natives-macos-arm64")
 }

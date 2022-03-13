@@ -40,11 +40,6 @@ public class AnimatedRenderObject extends GameComponent {
 
     public void addVertices(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
         this.shaderProgram = program;
-        //this.ssbo = new StorageBuffer(Float.BYTES * 1);
-
-        // Write 1f to the buffer
-        //long pSsbo = this.ssbo.map();
-        //MemoryUtil.memPutFloat(pSsbo, 1f);
 
         material = new Material(diffuseTexture);
 
@@ -69,8 +64,7 @@ public class AnimatedRenderObject extends GameComponent {
                 new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT), // BoneData
                 new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT) // BoneData
         );
-
-        layout.applyTo(ebo, vbo);
+        layout.applyTo(ebo, vbo); // Combine Vertex Buffer and Index Buffer into VAO
     }
 
     @Override
@@ -83,7 +77,6 @@ public class AnimatedRenderObject extends GameComponent {
         this.layout.bind();
         GL15C.glBindBuffer(GL15C.GL_STATIC_DRAW, this.vbo);
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
-        //this.ssbo.bind(1);
         GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
     }
 

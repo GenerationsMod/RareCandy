@@ -1,7 +1,7 @@
-package com.pixelmongenerations.legacy.inception.components;
+package com.pixelmongenerations.rarecandy.components;
 
-import com.pixelmongenerations.legacy.inception.core.VertexLayout;
-import com.pixelmongenerations.legacy.inception.rendering.shader.ShaderProgram;
+import com.pixelmongenerations.rarecandy.core.VertexLayout;
+import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
 import org.joml.Matrix4f;

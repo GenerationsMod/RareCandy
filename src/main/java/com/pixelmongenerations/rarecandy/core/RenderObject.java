@@ -1,7 +1,7 @@
-package com.pixelmongenerations.legacy.inception.core;
+package com.pixelmongenerations.rarecandy.core;
 
-import com.pixelmongenerations.legacy.inception.components.GameComponent;
-import com.pixelmongenerations.legacy.inception.rendering.RenderingEngine;
+import com.pixelmongenerations.rarecandy.components.GameComponent;
+import com.pixelmongenerations.rarecandy.rendering.RenderingEngine;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;

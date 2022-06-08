@@ -1,1 +1,1 @@
-rootProject.name = "legacy-inception"
+rootProject.name = "RareCandy"

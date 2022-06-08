@@ -1,8 +1,8 @@
-package com.pixelmongenerations.legacy.inception;
+package com.pixelmongenerations.rarecandy;
 
-import com.pixelmongenerations.legacy.inception.components.AnimatedRenderObject;
-import com.pixelmongenerations.legacy.inception.rendering.Bone;
-import com.pixelmongenerations.legacy.inception.rendering.shader.ShaderProgram;
+import com.pixelmongenerations.rarecandy.components.AnimatedRenderObject;
+import com.pixelmongenerations.rarecandy.rendering.Bone;
+import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import com.pixelmongenerations.pixelmonassetutils.scene.Scene;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
 import com.pixelmongenerations.pixelmonassetutils.scene.objects.Mesh;

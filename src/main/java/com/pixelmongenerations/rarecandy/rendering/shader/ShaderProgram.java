@@ -1,4 +1,4 @@
-package com.pixelmongenerations.legacy.inception.rendering.shader;
+package com.pixelmongenerations.rarecandy.rendering.shader;
 
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
 import org.joml.Matrix4f;

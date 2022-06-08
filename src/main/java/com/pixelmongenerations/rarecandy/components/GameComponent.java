@@ -1,6 +1,6 @@
-package com.pixelmongenerations.legacy.inception.components;
+package com.pixelmongenerations.rarecandy.components;
 
-import com.pixelmongenerations.legacy.inception.core.RenderObject;
+import com.pixelmongenerations.rarecandy.core.RenderObject;
 import org.joml.Matrix4f;
 
 /**

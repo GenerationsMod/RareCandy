@@ -1,4 +1,4 @@
-package com.pixelmongenerations.legacy.inception.rendering;
+package com.pixelmongenerations.rarecandy.rendering;
 
 import org.joml.Matrix4f;
 

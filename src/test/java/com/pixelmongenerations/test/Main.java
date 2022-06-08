@@ -1,11 +1,11 @@
 package com.pixelmongenerations.test;
 
-import com.pixelmongenerations.legacy.inception.AnimationUtil;
-import com.pixelmongenerations.legacy.inception.components.StaticRenderObject;
-import com.pixelmongenerations.legacy.inception.core.RenderObject;
-import com.pixelmongenerations.legacy.inception.rendering.GameProvider;
-import com.pixelmongenerations.legacy.inception.rendering.RenderingEngine;
-import com.pixelmongenerations.legacy.inception.rendering.shader.ShaderProgram;
+import com.pixelmongenerations.rarecandy.AnimationUtil;
+import com.pixelmongenerations.rarecandy.components.StaticRenderObject;
+import com.pixelmongenerations.rarecandy.core.RenderObject;
+import com.pixelmongenerations.rarecandy.rendering.GameProvider;
+import com.pixelmongenerations.rarecandy.rendering.RenderingEngine;
+import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import com.pixelmongenerations.pixelmonassetutils.PixelAsset;
 import com.pixelmongenerations.pixelmonassetutils.reader.GlbReader;
 import com.pixelmongenerations.pixelmonassetutils.scene.Scene;
@@ -40,16 +40,16 @@ public class Main implements GameProvider {
     }
 
     public Main() {
-        System.loadLibrary("renderdoc");
+        //System.loadLibrary("renderdoc");
 
-        this.window = new Window("Inception Pixelmon Renderer Test", 960, 540);
+        this.window = new Window("Pixelmon Renderer Test", 960, 540);
         this.projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) window.width / window.height, 0.1f, 1000.0f);
         this.viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
         this.renderer = new RenderingEngine(this);
         this.root = new RenderObject();
         setupGl();
 
-//        addStaticObject("world", new Vector3f(-25, -14, 2), 1, 1);
+        //addStaticObject("world", new Vector3f(-25, -14, 2), 1, 1); my computer cant handle this :(
         this.displayPokemon = addPokemon("mudkip", new Vector3f(0f, -2f, 1f), 0.03f);
 
         while (!this.window.shouldClose()) {

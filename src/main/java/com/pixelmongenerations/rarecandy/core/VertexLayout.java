@@ -1,4 +1,4 @@
-package com.pixelmongenerations.legacy.inception.core;
+package com.pixelmongenerations.rarecandy.core;
 
 import org.lwjgl.opengl.*;
 

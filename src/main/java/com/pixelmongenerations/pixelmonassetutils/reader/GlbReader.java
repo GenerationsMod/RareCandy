@@ -1,6 +1,6 @@
 package com.pixelmongenerations.pixelmonassetutils.reader;
 
-import com.pixelmongenerations.legacy.inception.rendering.Bone;
+import com.pixelmongenerations.rarecandy.rendering.Bone;
 import com.pixelmongenerations.pixelmonassetutils.assimp.AssimpMaterial;
 import com.pixelmongenerations.pixelmonassetutils.assimp.AssimpUtils;
 import com.pixelmongenerations.pixelmonassetutils.scene.Scene;

@@ -4,7 +4,12 @@ plugins {
 }
 
 group = "com.pixelmongenerations"
-version = "0.2"
+version = "0.3-INDEV1"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
 repositories {
     mavenCentral()
@@ -45,6 +50,7 @@ publishing {
             //val snapshotsRepoUrl = "https://maven.pixelmongenerations.com/repository/maven-snapshots/"
             //url = uri(if (version.toString().endsWith("SNAPSHOT") || version.toString().startsWith("0")) snapshotsRepoUrl else releasesRepoUrl)
             url = uri("https://maven.pixelmongenerations.com/repository/maven-private/")
+            println(project.properties["repoLogin"])
             credentials{
                 username = project.properties["repoLogin"]?.toString() ?: findProperty("REPO_LOGIN").toString()
                 password = project.properties["repoPassword"]?.toString() ?: findProperty("REPO_PASSWORD").toString()

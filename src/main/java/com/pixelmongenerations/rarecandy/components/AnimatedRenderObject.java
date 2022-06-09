@@ -35,7 +35,6 @@ public class AnimatedRenderObject extends GameComponent {
     public Material material;
     private int indexCount;
     private VertexLayout layout;
-    private int vbo;
     private int ebo;
 
     public void addVertices(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
@@ -43,7 +42,7 @@ public class AnimatedRenderObject extends GameComponent {
 
         material = new Material(diffuseTexture);
 
-        this.vbo = GL15C.glGenBuffers(); // VertexBufferObject (Vertices)
+        int vbo = GL15C.glGenBuffers(); // VertexBufferObject (Vertices)
         this.ebo = GL15C.glGenBuffers(); // ElementBufferObject (Indices)
         indexCount = indices.capacity();
 
@@ -75,7 +74,6 @@ public class AnimatedRenderObject extends GameComponent {
         shaderProgram.updateUniforms(GetTransform(), material, projectionMatrix, viewMatrix);
 
         this.layout.bind();
-        GL15C.glBindBuffer(GL15C.GL_STATIC_DRAW, this.vbo);
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
         GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
     }

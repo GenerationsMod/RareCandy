@@ -114,7 +114,7 @@ public class ShaderProgram {
                 case GL20.GL_FLOAT_VEC3 -> {
                     if (uniformName.startsWith("LIGHT_")) { // Lighting Magic
                         switch (uniformName.substring("LIGHT_".length())) {
-                            case "pos" -> uniform.uploadVec3f(new Vector3f(0, 0.5f, -2f));
+                            case "pos" -> uniform.uploadVec3f(new Vector3f(0, 0f, 0f));
                             case "color" -> uniform.uploadVec3f(new Vector3f(1, 1, 1));
                             default -> throw new IllegalArgumentException(uniformName.substring("LIGHT_".length()) + " is not a valid vec3 component of Lights");
                         }

@@ -69,7 +69,7 @@ public class Main implements GameProvider {
 
     private void render() {
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-        this.renderer.render(this.root);
+        this.renderer.render(this.root, true);
     }
 
     private void setupGl() {

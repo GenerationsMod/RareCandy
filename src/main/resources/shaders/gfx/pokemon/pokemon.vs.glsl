@@ -24,7 +24,6 @@ layout(std430, binding = 1) readonly restrict buffer TestStorageBuffer {
     float testFloat;
 } testStorageBuffer;
 
-// Got no clue how this works, honestly.
 mat4 getBoneTransform() {
     mat4 boneTransform =
     gBones[uint(boneDataA.x)] * boneDataA.z + // Bone 1 Transform (Bone Transform * Weight)
@@ -53,6 +52,6 @@ void main() {
 
     gl_Position = worldSpace * worldPosition;
     normal = (modelTransform * vec4(inNormal, 0.0)).xyz;
-    toLightVector = LIGHT_pos - worldPosition.xyz;
+    toLightVector = LIGHT_pos - vec3(worldPosition.x, -5.0, worldPosition.z);
     toCameraVector = (inverse(MC_view) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
 }

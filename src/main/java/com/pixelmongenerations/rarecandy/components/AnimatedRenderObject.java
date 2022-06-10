@@ -59,7 +59,7 @@ public class AnimatedRenderObject extends GameComponent {
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Position
                 new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT), // TexCoords
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Normal
-                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // ???
+                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Tangent
                 new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT), // BoneData
                 new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT) // BoneData
         );

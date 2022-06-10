@@ -1,12 +1,12 @@
 #version 450 core
 #define MAX_BONES 200
-in vec3 inPosition;
-in vec2 inTexCoord;
-in vec3 inNormal;
-in vec3 inTangent;
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec2 inTexCoord;
+layout(location = 2) in vec3 inNormal;
+layout(location = 3) in vec3 inTangent;
 
-in vec4 boneDataA;
-in vec4 boneDataB;
+layout(location = 4) in vec4 boneDataA;
+layout(location = 5) in vec4 boneDataB;
 
 out vec2 texCoord0;
 out vec3 toLightVector;

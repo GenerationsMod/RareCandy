@@ -31,7 +31,7 @@ public class VertexLayout {
 
             GL20C.glVertexAttribPointer(i, attrib.size, attrib.glType, false, this.stride, offset);
 
-            offset = offset + switch (attrib.glType) {
+            offset += switch (attrib.glType) {
                 case GL11C.GL_FLOAT, GL11C.GL_INT -> Float.BYTES * attrib.size;
                 default -> throw new IllegalStateException("Unexpected value: " + attrib.glType);
             };

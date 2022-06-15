@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.pixelmongenerations"
-version = "0.3.1"
+version = "0.3.2"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -32,9 +32,9 @@ dependencies {
 
     addNative(this, "org.lwjgl", "lwjgl")
     addNative(this, "org.lwjgl", "lwjgl-assimp")
-    addMcNative(this, "org.lwjgl", "lwjgl-stb")
-    addMcNative(this, "org.lwjgl", "lwjgl-glfw")
-    addMcNative(this, "org.lwjgl", "lwjgl-opengl")
+    addNative(this, "org.lwjgl", "lwjgl-stb")
+    addNative(this, "org.lwjgl", "lwjgl-glfw")
+    addNative(this, "org.lwjgl", "lwjgl-opengl")
 }
 
 publishing {
@@ -68,18 +68,7 @@ fun mcDependency(handler: DependencyHandlerScope, group: String, name: String) {
 // We Exclude 32-bit systems because they are old.
 fun addNative(handler: DependencyHandlerScope, group: String, name: String) {
     handler.implementation(group, name, classifier = "natives-windows")
-    handler.implementation(group, name, classifier = "natives-windows-arm64")
     handler.implementation(group, name, classifier = "natives-linux")
-    handler.implementation(group, name, classifier = "natives-linux-arm64")
     handler.implementation(group, name, classifier = "natives-macos")
     handler.implementation(group, name, classifier = "natives-macos-arm64")
-}
-
-fun addMcNative(handler: DependencyHandlerScope, group: String, name: String) {
-    handler.testImplementation(group, name, classifier = "natives-windows")
-    handler.testImplementation(group, name, classifier = "natives-windows-arm64")
-    handler.testImplementation(group, name, classifier = "natives-linux")
-    handler.testImplementation(group, name, classifier = "natives-linux-arm64")
-    handler.testImplementation(group, name, classifier = "natives-macos")
-    handler.testImplementation(group, name, classifier = "natives-macos-arm64")
 }

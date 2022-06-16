@@ -1,13 +1,12 @@
 package com.pixelmongenerations.rarecandy.components;
 
-import com.pixelmongenerations.pixelmonassetutils.PixelAsset;
 import com.pixelmongenerations.pixelmonassetutils.scene.Scene;
-import com.pixelmongenerations.pixelmonassetutils.scene.objects.Mesh;
-import com.pixelmongenerations.rarecandy.core.VertexLayout;
-import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
-import com.sun.tools.javac.Main;
+import com.pixelmongenerations.pixelmonassetutils.scene.objects.Mesh;
+import com.pixelmongenerations.rarecandy.core.VertexLayout;
+import com.pixelmongenerations.rarecandy.rendering.InstanceState;
+import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -23,25 +22,16 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 
 public class StaticRenderObject extends RenderObject {
-    public ShaderProgram shaderProgram;
-    public Material material;
-
-    private int indexCount;
-    private VertexLayout layout;
-    private int vbo;
-    private int ebo;
 
     public void addVertices(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
         this.shaderProgram = program;
         material = new Material(diffuseTexture);
 
-        this.vbo = GL15C.glGenBuffers(); // VertexBufferObject (Vertices)
+        int vbo = GL15C.glGenBuffers(); // VertexBufferObject (Vertices)
         this.ebo = GL15C.glGenBuffers(); // ElementBufferObject (Indices)
         indexCount = indices.capacity();
 
@@ -64,15 +54,15 @@ public class StaticRenderObject extends RenderObject {
     }
 
     @Override
-    public void render(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
+    public void render(Matrix4f projectionMatrix, List<InstanceState> instances) {
         shaderProgram.bind();
-        shaderProgram.updateUniforms(getTransformationMatrix(), material, projectionMatrix, viewMatrix);
         this.layout.bind();
-        GL15C.glBindBuffer(GL15C.GL_STATIC_DRAW, this.vbo);
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
-        GL11C.glDisable(GL11C.GL_CULL_FACE);
-        GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
-        GL11C.glEnable(GL11C.GL_CULL_FACE);
+
+        for (InstanceState instance : instances) {
+            shaderProgram.updateUniforms(instance.transformationMatrix, material, projectionMatrix, instance.modelViewMatrix);
+            GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
+        }
     }
 
     @Override

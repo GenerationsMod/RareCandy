@@ -21,6 +21,7 @@ public class Window {
     private long handle;
 
     public Window(String title, int width, int height) {
+        System.loadLibrary("renderdoc");
         this.title = title;
         this.width = width;
         this.height = height;

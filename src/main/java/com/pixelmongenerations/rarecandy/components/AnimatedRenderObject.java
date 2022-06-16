@@ -1,11 +1,11 @@
 package com.pixelmongenerations.rarecandy.components;
 
+import com.pixelmongenerations.pixelmonassetutils.assimp.AssimpUtils;
+import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
 import com.pixelmongenerations.rarecandy.core.VertexLayout;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
+import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
-import com.pixelmongenerations.pixelmonassetutils.assimp.AssimpUtils;
-import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
-import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -14,13 +14,10 @@ import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AINodeAnim;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL15C;
-import org.lwjgl.opengl.GL30C;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
+import java.util.List;
 
 @SuppressWarnings("ConstantConditions")
 public class AnimatedRenderObject extends RenderObject {
@@ -31,29 +28,9 @@ public class AnimatedRenderObject extends RenderObject {
     public Matrix4f[] boneTransforms;
     public AINode root;
     public AIAnimation animation;
-    public ShaderProgram shaderProgram;
-    public Material material;
-    private int indexCount;
-    private VertexLayout layout;
-    private int ebo;
 
     public void addVertices(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
-        this.shaderProgram = program;
-
-        material = new Material(diffuseTexture);
-
-        int vbo = GL15C.glGenBuffers(); // VertexBufferObject (Vertices)
-        this.ebo = GL15C.glGenBuffers(); // ElementBufferObject (Indices)
-        indexCount = indices.capacity();
-
-        int vao = GL30C.glGenVertexArrays();
-        GL30C.glBindVertexArray(vao);
-
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+        super.addVertices(program, vertices, indices, diffuseTexture);
 
         this.layout = new VertexLayout(vao,
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Position
@@ -67,15 +44,16 @@ public class AnimatedRenderObject extends RenderObject {
     }
 
     @Override
-    public void render(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
+    public void render(Matrix4f projectionMatrix, List<InstanceState> instances) {
         shaderProgram.bind();
-
         shaderProgram.uniforms.get("gBones").uploadMat4fs(boneTransforms);
-        shaderProgram.updateUniforms(getTransformationMatrix(), material, projectionMatrix, viewMatrix);
-
         this.layout.bind();
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
-        GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
+
+        for (InstanceState instance : instances) {
+            shaderProgram.updateUniforms(instance.transformationMatrix, material, projectionMatrix, instance.modelViewMatrix);
+            GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
+        }
     }
 
     @Override
@@ -83,7 +61,7 @@ public class AnimatedRenderObject extends RenderObject {
         boneTransforms((float) (((double) System.currentTimeMillis() - (double) TIMER) / 1000.0));
     }
 
-    AINodeAnim FindNodeAnim(AIAnimation pAnimation, String NodeName) {
+    AINodeAnim findNodeAnim(AIAnimation pAnimation, String NodeName) {
         for (int i = 0; i < pAnimation.mNumChannels(); i++) {
             AINodeAnim pNodeAnim = AINodeAnim.create(pAnimation.mChannels().get(i));
 
@@ -93,13 +71,13 @@ public class AnimatedRenderObject extends RenderObject {
         return null;
     }
 
-    void CalcInterpolatedPosition(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
+    void calcInterpolatedPosition(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
         if (pNodeAnim.mNumPositionKeys() == 1) {
             Out.set(AssimpUtils.from(pNodeAnim.mPositionKeys().get(0).mValue()));
             return;
         }
 
-        int PositionIndex = FindPosition(AnimationTime, pNodeAnim);
+        int PositionIndex = findPosition(AnimationTime, pNodeAnim);
         int NextPositionIndex = (PositionIndex + 1);
         assert (NextPositionIndex < pNodeAnim.mNumPositionKeys());
         float DeltaTime = (float) (pNodeAnim.mPositionKeys().get(NextPositionIndex).mTime() - pNodeAnim.mPositionKeys().get(PositionIndex).mTime());
@@ -112,13 +90,13 @@ public class AnimatedRenderObject extends RenderObject {
     }
 
 
-    void CalcInterpolatedRotation(Quaternionf Out, float AnimationTime, AINodeAnim pNodeAnim) {
+    void calcInterpolatedRotation(Quaternionf Out, float AnimationTime, AINodeAnim pNodeAnim) {
         if (pNodeAnim.mNumRotationKeys() == 1) {
             Out.set(AssimpUtils.from(pNodeAnim.mRotationKeys().get(0).mValue()));
             return;
         }
 
-        int RotationIndex = FindRotation(AnimationTime, pNodeAnim);
+        int RotationIndex = findRotation(AnimationTime, pNodeAnim);
         int NextRotationIndex = (RotationIndex + 1);
         assert (NextRotationIndex < pNodeAnim.mNumRotationKeys());
         float DeltaTime = (float) (pNodeAnim.mRotationKeys().get(NextRotationIndex).mTime() - pNodeAnim.mRotationKeys().get(RotationIndex).mTime());
@@ -130,12 +108,12 @@ public class AnimatedRenderObject extends RenderObject {
     }
 
 
-    Vector3f CalcInterpolatedScaling(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
+    Vector3f calcInterpolatedScaling(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
         if (pNodeAnim.mNumScalingKeys() == 1) {
             return AssimpUtils.from(pNodeAnim.mScalingKeys().get(0).mValue());
         }
 
-        int ScalingIndex = FindScaling(AnimationTime, pNodeAnim);
+        int ScalingIndex = findScaling(AnimationTime, pNodeAnim);
         int NextScalingIndex = (ScalingIndex + 1);
         assert (NextScalingIndex < pNodeAnim.mNumScalingKeys());
         float DeltaTime = (float) (pNodeAnim.mScalingKeys().get(NextScalingIndex).mTime() - pNodeAnim.mScalingKeys().get(ScalingIndex).mTime());
@@ -147,7 +125,7 @@ public class AnimatedRenderObject extends RenderObject {
         return Out.set(Start.add(Delta.mul(Factor)));
     }
 
-    int FindPosition(float AnimationTime, AINodeAnim pNodeAnim) {
+    int findPosition(float AnimationTime, AINodeAnim pNodeAnim) {
         for (int i = 0; i < pNodeAnim.mNumPositionKeys() - 1; i++) {
             if (AnimationTime < (float) pNodeAnim.mPositionKeys().get(i + 1).mTime()) {
                 return i;
@@ -158,7 +136,7 @@ public class AnimatedRenderObject extends RenderObject {
     }
 
 
-    int FindRotation(float AnimationTime, AINodeAnim pNodeAnim) {
+    int findRotation(float AnimationTime, AINodeAnim pNodeAnim) {
         assert (pNodeAnim.mNumRotationKeys() > 0);
 
         for (int i = 0; i < pNodeAnim.mNumRotationKeys() - 1; i++) {
@@ -171,7 +149,7 @@ public class AnimatedRenderObject extends RenderObject {
     }
 
 
-    int FindScaling(float AnimationTime, AINodeAnim pNodeAnim) {
+    int findScaling(float AnimationTime, AINodeAnim pNodeAnim) {
         assert (pNodeAnim.mNumScalingKeys() > 0);
 
         for (int i = 0; i < pNodeAnim.mNumScalingKeys() - 1; i++) {
@@ -186,22 +164,22 @@ public class AnimatedRenderObject extends RenderObject {
     protected void readNodeHierarchy(float AnimationTime, AINode pNode, Matrix4f ParentTransform) {
         String name = pNode.mName().dataString();
         Matrix4f NodeTransformation = AssimpUtils.from(pNode.mTransformation());
-        AINodeAnim pNodeAnim = FindNodeAnim(animation, name);
+        AINodeAnim pNodeAnim = findNodeAnim(animation, name);
 
         if (pNodeAnim != null) {
             // Interpolate scaling and generate scaling transformation matrix
             Vector3f Scaling = new Vector3f(1, 1, 1);
-            Scaling = CalcInterpolatedScaling(Scaling, AnimationTime, pNodeAnim);
+            Scaling = calcInterpolatedScaling(Scaling, AnimationTime, pNodeAnim);
             Matrix4f ScalingM = new Matrix4f().identity().scale(Scaling.x(), Scaling.y(), Scaling.z());
 
             // Interpolate rotation and generate rotation transformation matrix
             Quaternionf RotationQ = new Quaternionf(0, 0, 0, 0);
-            CalcInterpolatedRotation(RotationQ, AnimationTime, pNodeAnim);
+            calcInterpolatedRotation(RotationQ, AnimationTime, pNodeAnim);
             Matrix4f RotationM = RotationQ.get(new Matrix4f());
 
             // Interpolate translation and generate translation transformation matrix
             Vector3f Translation = new Vector3f(0, 0, 0);
-            CalcInterpolatedPosition(Translation, AnimationTime, pNodeAnim);
+            calcInterpolatedPosition(Translation, AnimationTime, pNodeAnim);
             Matrix4f TranslationM = new Matrix4f().identity().translate(Translation.x(), Translation.y(), Translation.z());
 
             // Combine the above transformations

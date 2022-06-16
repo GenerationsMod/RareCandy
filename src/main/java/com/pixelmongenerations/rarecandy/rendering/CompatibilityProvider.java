@@ -8,5 +8,4 @@ import org.joml.Matrix4f;
 public interface CompatibilityProvider {
 
     Matrix4f getProjectionMatrix();
-    Matrix4f getViewMatrix();
 }

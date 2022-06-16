@@ -122,7 +122,7 @@ public class AnimationUtil {
             bones[b] = mesh.getBones()[b];
         }
 
-        AnimatedRenderObject component = new AnimatedRenderObject();
+        AnimatedRenderObject object = new AnimatedRenderObject();
         FloatBuffer vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
 
         IntBuffer indices = BufferUtils.createIntBuffer(mesh.getIndices().length);
@@ -156,12 +156,12 @@ public class AnimationUtil {
             }
         }
 
-        component.addVertices(ShaderProgram.POKEMON_SHADER, vertBuffer, indices, textures.get(0));
-        component.animation = AIAnimation.create(Objects.requireNonNull(aiScene.mAnimations()).get(0));
-        component.bones = bones;
-        component.boneTransforms = new Matrix4f[bones.length];
-        component.root = aiScene.mRootNode();
-        component.globalInverseTransform = inverseRootTransformation;
-        return component;
+        object.addVertices(ShaderProgram.POKEMON_SHADER, vertBuffer, indices, textures.get(0));
+        object.animation = AIAnimation.create(Objects.requireNonNull(aiScene.mAnimations()).get(aiScene.mNumAnimations() - 1));
+        object.bones = bones;
+        object.boneTransforms = new Matrix4f[bones.length];
+        object.root = aiScene.mRootNode();
+        object.globalInverseTransform = inverseRootTransformation;
+        return object;
     }
 }

@@ -23,7 +23,7 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 
 @SuppressWarnings("ConstantConditions")
-public class AnimatedRenderObject extends GameComponent {
+public class AnimatedRenderObject extends RenderObject {
     public static final long TIMER = System.currentTimeMillis();
 
     public Matrix4f globalInverseTransform;
@@ -71,7 +71,7 @@ public class AnimatedRenderObject extends GameComponent {
         shaderProgram.bind();
 
         shaderProgram.uniforms.get("gBones").uploadMat4fs(boneTransforms);
-        shaderProgram.updateUniforms(GetTransform(), material, projectionMatrix, viewMatrix);
+        shaderProgram.updateUniforms(getTransformationMatrix(), material, projectionMatrix, viewMatrix);
 
         this.layout.bind();
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);

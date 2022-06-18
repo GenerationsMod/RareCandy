@@ -35,7 +35,7 @@ public class StressTest implements CompatibilityProvider {
         GL11C.glEnable(GL11C.GL_CULL_FACE);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        List<RenderObject> models = Stream.of("bulbasaur", "charmander", "clefairy", "diglet", "ditto", "mimikyu", "mudkip").map(this::addPokemon).toList();
+        List<RenderObject> models = Stream.of("bulbasaur", "charmander", "clefairy", "diglet", "ditto", "mimikyu", "mudkip", "solosis").map(this::addPokemon).toList();
         Random random = new Random();
 
         int pokemonRendered = 0;

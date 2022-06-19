@@ -1,11 +1,12 @@
 package com.pixelmongenerations.test;
 
+import com.pixelmongenerations.rarecandy.RendererSettings;
 import com.pixelmongenerations.rarecandy.rendering.CompatibilityProvider;
-import com.pixelmongenerations.rarecandy.rendering.InstanceState;
-import com.pixelmongenerations.rarecandy.rendering.RenderScene;
+import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.test.tests.InstancingTest;
 import com.pixelmongenerations.test.tests.TransparencyFeatureTest;
 import org.joml.Matrix4f;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
 
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ public class FeatureTester implements CompatibilityProvider {
 
     public FeatureTester(List<FeatureTest> activeFeatures) {
         this.activeFeatures = activeFeatures;
-        RenderScene scene = new RenderScene(this);
+        RareCandy scene = new RareCandy(new RendererSettings(window.gl), this);
         GL11C.glClearColor(180 / 255f, 210 / 255f, 255 / 255f, 1.0f);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);
@@ -35,16 +36,19 @@ public class FeatureTester implements CompatibilityProvider {
             activeFeature.init(scene, this.viewMatrix);
         }
 
+        double lastFrameTime = 0;
         while (!this.window.shouldClose()) {
             this.window.pollEvents();
+            double frameTime = GLFW.glfwGetTime();
             scene.preRender();
             for (FeatureTest activeFeature : this.activeFeatures) {
-                activeFeature.update(scene);
+                activeFeature.update(scene, frameTime - lastFrameTime);
             }
 
             GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
             scene.render(true, false);
             this.window.swapBuffers();
+            lastFrameTime = frameTime;
 
 /*          long i = Runtime.getRuntime().maxMemory();
             long j = Runtime.getRuntime().totalMemory();

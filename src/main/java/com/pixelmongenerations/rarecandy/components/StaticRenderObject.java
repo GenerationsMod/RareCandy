@@ -25,9 +25,10 @@ import java.util.List;
 
 import static org.lwjgl.opengl.GL15.*;
 
-public class StaticRenderObject extends RenderObject {
+public class StaticRenderObject extends SingleModelRenderObject {
 
-    public void addVertices(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
+    @Override
+    public void upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
         this.shaderProgram = program;
         material = new Material(diffuseTexture);
 
@@ -127,7 +128,7 @@ public class StaticRenderObject extends RenderObject {
                 }
             }
 
-            component.addVertices(ShaderProgram.STATIC_SHADER, vertBuffer, indices, textures.get(textureIndex));
+            component.upload(ShaderProgram.STATIC_SHADER, vertBuffer, indices, textures.get(textureIndex));
             return component;
         }
         throw new RuntimeException("Failed to create static object.");

@@ -2,7 +2,7 @@ package com.pixelmongenerations.test.tests;
 
 import com.pixelmongenerations.rarecandy.components.RenderObject;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
-import com.pixelmongenerations.rarecandy.rendering.RenderScene;
+import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.test.FeatureTest;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -20,7 +20,7 @@ public class InstancingTest extends FeatureTest {
     }
 
     @Override
-    public void init(RenderScene scene, Matrix4f viewMatrix) {
+    public void init(RareCandy scene, Matrix4f viewMatrix) {
         int pokemonRendered = 0;
         List<RenderObject> compiledModels = this.models.map(this::loadAnimatedModel).toList();
         for (int z = 1; z < 64; z++) {
@@ -38,9 +38,9 @@ public class InstancingTest extends FeatureTest {
     }
 
     @Override
-    public void update(RenderScene scene) {
+    public void update(RareCandy scene, double deltaTime) {
         for (InstanceState object : scene.getAllInstances()) {
-            object.transformationMatrix.rotate(0.005f, 0, 1, 0);
+            object.transformationMatrix.rotate((float) deltaTime, 0, 1, 0);
         }
     }
 }

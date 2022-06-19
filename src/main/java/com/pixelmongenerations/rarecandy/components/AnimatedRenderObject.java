@@ -20,7 +20,7 @@ import java.nio.IntBuffer;
 import java.util.List;
 
 @SuppressWarnings("ConstantConditions")
-public class AnimatedRenderObject extends RenderObject {
+public class AnimatedRenderObject extends SingleModelRenderObject {
     public static final long TIMER = System.currentTimeMillis();
 
     public Matrix4f globalInverseTransform;
@@ -29,8 +29,9 @@ public class AnimatedRenderObject extends RenderObject {
     public AINode root;
     public AIAnimation animation;
 
-    public void addVertices(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
-        super.addVertices(program, vertices, indices, diffuseTexture);
+    @Override
+    public void upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
+        super.upload(program, vertices, indices, diffuseTexture);
 
         this.layout = new VertexLayout(vao,
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Position

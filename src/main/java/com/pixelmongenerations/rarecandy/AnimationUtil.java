@@ -156,7 +156,7 @@ public class AnimationUtil {
             }
         }
 
-        object.addVertices(ShaderProgram.POKEMON_SHADER, vertBuffer, indices, textures.get(0));
+        object.upload(ShaderProgram.ANIMATED_SHADER, vertBuffer, indices, textures.get(0));
         object.animation = AIAnimation.create(Objects.requireNonNull(aiScene.mAnimations()).get(aiScene.mNumAnimations() - 1));
         object.bones = bones;
         object.boneTransforms = new Matrix4f[bones.length];

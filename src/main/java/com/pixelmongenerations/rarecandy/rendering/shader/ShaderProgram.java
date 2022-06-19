@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ShaderProgram {
-    public static final ShaderProgram POKEMON_SHADER = new ShaderProgram("pokemon");
+    public static final ShaderProgram ANIMATED_SHADER = new ShaderProgram("animated");
     public static final ShaderProgram STATIC_SHADER = new ShaderProgram("static");
 
     private final int id;

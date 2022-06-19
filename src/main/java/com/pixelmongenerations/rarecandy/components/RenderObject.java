@@ -16,33 +16,11 @@ import java.util.List;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 
-public class RenderObject {
+public abstract class RenderObject {
     protected ShaderProgram shaderProgram;
     protected Material material;
     protected int indexCount;
     protected VertexLayout layout;
-    protected int ebo;
-    protected int vbo;
-    protected int vao;
-
-    public void addVertices(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
-        this.shaderProgram = program;
-
-        material = new Material(diffuseTexture);
-
-        this.vbo = GL15C.glGenBuffers(); // VertexBufferObject (Vertices)
-        this.ebo = GL15C.glGenBuffers(); // ElementBufferObject (Indices)
-        indexCount = indices.capacity();
-
-        this.vao = GL30C.glGenVertexArrays();
-        GL30C.glBindVertexArray(vao);
-
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
-    }
 
     public void render(Matrix4f projectionMatrix, List<InstanceState> instances) {
     }

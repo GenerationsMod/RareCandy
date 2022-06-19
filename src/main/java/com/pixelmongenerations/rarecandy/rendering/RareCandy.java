@@ -1,5 +1,6 @@
 package com.pixelmongenerations.rarecandy.rendering;
 
+import com.pixelmongenerations.rarecandy.RendererSettings;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
 import org.lwjgl.opengl.GL11C;
 
@@ -8,16 +9,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Some nice scene code in the mess which is Minecraft's rendering system. It's the best way I can see to implement batch rendering without messing with Minecraft too much :p
- * We need to be careful with this because we may leave old objects in here which slows this down over time. Not sure how to handle that, honestly.
- */
-public class RenderScene {
+public class RareCandy {
 
+    private final RendererSettings settings;
     private final Map<RenderObject, List<InstanceState>> objectMap = new HashMap<>();
     public final CompatibilityProvider provider;
 
-    public RenderScene(CompatibilityProvider provider) {
+    public RareCandy(RendererSettings settings, CompatibilityProvider provider) {
+        this.settings = settings;
         this.provider = provider;
     }
 

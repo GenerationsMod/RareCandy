@@ -13,7 +13,7 @@ uniform vec3 LIGHT_color;
 uniform float LIGHT_shineDamper;
 uniform float LIGHT_reflectivity;
 
-const float AMBIENT_LIGHT = 0.2f;
+const float AMBIENT_LIGHT = 0.6f;
 
 void main() {
     vec4 color = texture2D(diffuse, texCoord0);

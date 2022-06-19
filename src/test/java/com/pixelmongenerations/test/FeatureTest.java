@@ -5,7 +5,7 @@ import com.pixelmongenerations.pixelmonassetutils.reader.GlbReader;
 import com.pixelmongenerations.rarecandy.AnimationUtil;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
 import com.pixelmongenerations.rarecandy.components.StaticRenderObject;
-import com.pixelmongenerations.rarecandy.rendering.RenderScene;
+import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import org.joml.Matrix4f;
 
 import java.util.Objects;
@@ -19,9 +19,9 @@ public abstract class FeatureTest {
         this.description = description;
     }
 
-    public abstract void init(RenderScene scene, Matrix4f viewMatrix);
+    public abstract void init(RareCandy scene, Matrix4f viewMatrix);
 
-    public abstract void update(RenderScene scene);
+    public abstract void update(RareCandy scene, double deltaTime);
 
     protected RenderObject loadStaticModel(String name) {
         PixelAsset model = new PixelAsset(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/" + name + ".pk"), "Failed to read /" + name + ".pk"));

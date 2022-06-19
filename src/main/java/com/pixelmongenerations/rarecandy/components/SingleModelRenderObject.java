@@ -12,7 +12,7 @@ import java.nio.IntBuffer;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 
-public class SingleModelRenderObject extends RenderObject {
+public abstract class SingleModelRenderObject extends RenderObject {
 
     protected int ebo;
     protected int vbo;

@@ -1,6 +1,7 @@
 package com.pixelmongenerations.rarecandy;
 
 import com.pixelmongenerations.rarecandy.components.AnimatedRenderObject;
+import com.pixelmongenerations.rarecandy.components.StaticRenderObject;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
 import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import com.pixelmongenerations.pixelmonassetutils.scene.Scene;
@@ -24,7 +25,9 @@ import java.util.List;
 import java.util.Objects;
 
 @Deprecated
-public class AnimationUtil {
+public class OldModelLoader {
+
+    @Deprecated
     public static AnimatedRenderObject loadAnimatedFile(Scene scene, AIScene aiScene) {
         if (aiScene.mNumAnimations() == 0) {
             System.err.println("the imported file does not contain any animations.");
@@ -163,5 +166,73 @@ public class AnimationUtil {
         object.root = aiScene.mRootNode();
         object.globalInverseTransform = inverseRootTransformation;
         return object;
+    }
+
+    /**
+     * Uses old method of loading files. To be removed by 0.5.0
+     */
+    @Deprecated
+    public static StaticRenderObject loadStaticFile(Scene scene, AIScene aiScene, int textureIndex) {
+        int sizeOfVertex = Float.BYTES * 3 + Float.BYTES * 2 + Float.BYTES * 3;
+
+        for (Mesh mesh : scene.meshes) {
+            float[] rawMeshData = new float[mesh.getVertices().length * sizeOfVertex];
+            int index = 0;
+
+            for (int v = 0; v < mesh.getVertices().length; v++) {
+                Vector3f position = mesh.getVertices()[v];
+                Vector3f normal = mesh.getNormals()[v];
+                Vector2f texCoord = mesh.getTexCoords()[v];
+
+                rawMeshData[index++] = position.x();
+                rawMeshData[index++] = position.y();
+                rawMeshData[index++] = position.z();
+
+                rawMeshData[index++] = texCoord.x();
+                rawMeshData[index++] = texCoord.y();
+
+                rawMeshData[index++] = normal.x();
+                rawMeshData[index++] = normal.y();
+                rawMeshData[index++] = normal.z();
+            }
+
+            StaticRenderObject component = new StaticRenderObject();
+            FloatBuffer vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
+
+            IntBuffer indices = BufferUtils.createIntBuffer(mesh.getIndices().length);
+            for (int i : mesh.getIndices()) {
+                indices.put(i);
+            }
+            indices.flip();
+
+            for (float v : rawMeshData) vertBuffer.put(v);
+            vertBuffer.flip();
+
+            List<AITexture> rawTextures = new ArrayList<>();
+
+            // Retrieve Textures
+            PointerBuffer pTextures = aiScene.mTextures();
+            if (pTextures != null) {
+                for (int i = 0; i < aiScene.mNumTextures(); i++) {
+                    rawTextures.add(AITexture.create(pTextures.get(i)));
+                }
+            } else {
+                throw new RuntimeException("How do you expect us to render without textures? Use colours? we don't support that yet!");
+            }
+
+            // Try to load the textures into rosella
+            List<Texture> textures = new ArrayList<>();
+            for (AITexture rawTexture : rawTextures) {
+                if (rawTexture.mHeight() > 0) {
+                    throw new RuntimeException(".glb file had texture with height of 0");
+                } else {
+                    textures.add(new Texture(rawTexture.pcDataCompressed(), rawTexture.mFilename().dataString()));
+                }
+            }
+
+            component.upload(ShaderProgram.STATIC_SHADER, vertBuffer, indices, textures.get(textureIndex));
+            return component;
+        }
+        throw new RuntimeException("Failed to create static object.");
     }
 }

@@ -23,7 +23,7 @@ dependencies {
     implementation("org.joml", "joml", "1.10.4")
     implementation("com.intellij", "forms_rt", "7.0.3")
 
-    implementation(platform("org.lwjgl:lwjgl-bom:3.3.0"))
+    implementation(platform("org.lwjgl:lwjgl-bom:3.3.1"))
     implementation("org.lwjgl", "lwjgl")
     implementation("org.lwjgl", "lwjgl-assimp")
     mcDependency(this, "org.lwjgl", "lwjgl-stb")

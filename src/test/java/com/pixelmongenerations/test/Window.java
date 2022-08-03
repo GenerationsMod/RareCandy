@@ -70,7 +70,7 @@ public class Window {
         this.handle = GLFW.glfwCreateWindow(this.width, this.height, title, MemoryUtil.NULL, MemoryUtil.NULL);
 
         if (this.handle == 0) {
-            // We failed to create a window. Hope its because they installed drivers & need to restart
+            // We failed to create a window. Hope It's because they installed drivers & need to restart
             throw new RuntimeException("Failed to create GLFW Window! Do you need to restart?");
         }
 
@@ -83,14 +83,17 @@ public class Window {
 
         // Set the OpenGL context
         GLFW.glfwMakeContextCurrent(this.handle);
-        GLFW.glfwSwapInterval(0); // Dont limit the fps pls k tnx.
+        GLFW.glfwSwapInterval(0); // Don't limit the fps pls k tnx.
 
         // Setup OpenGL debugging if enabled
         collectGlDiagnostics(GL.createCapabilities(false));
+        /*
         if (DEBUGGING) {
             //GL45C.glDebugMessageCallback(this::onGlError, MemoryUtil.NULL);
             //GL45C.glEnable(GL45C.GL_DEBUG_OUTPUT);
         }
+
+         */
 
         GLFW.glfwShowWindow(this.handle);
     }

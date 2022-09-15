@@ -26,10 +26,9 @@ public class ShaderProgram {
         this.uniforms = new HashMap<>();
 
         String vertexShaderText = loadShader(shaderName + "/" + shaderName + ".vs.glsl");
-        String fragmentShaderText = loadShader(shaderName + "/" + shaderName + ".fs.glsl");
 
         addVertShader(vertexShaderText);
-        addFragShader(fragmentShaderText);
+        addFragShader(loadShader(shaderName + "/" + shaderName + ".fs.glsl"));
         addAttribs(vertexShaderText);
         compileShader();
 

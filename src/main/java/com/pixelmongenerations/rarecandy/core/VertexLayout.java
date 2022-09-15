@@ -42,11 +42,14 @@ public class VertexLayout {
         GL30C.glBindVertexArray(this.vao);
     }
 
+
     public void applyTo(int ebo, int vbo) {
         // No-Op on legacy. Binding is done at the top
         //GL45C.glVertexArrayVertexBuffer(vao, 0, vbo, 0, this.stride);
         //GL45C.glVertexArrayElementBuffer(vao, ebo);
     }
+
+
 
     private void enable() {
         for (int i = 0; i < attribCount; i++) {

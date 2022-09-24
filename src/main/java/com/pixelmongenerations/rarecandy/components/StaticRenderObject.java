@@ -55,7 +55,7 @@ public class StaticRenderObject extends SingleModelRenderObject {
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
 
         for (InstanceState instance : instances) {
-            shaderProgram.updateUniforms(instance.transformationMatrix, variants.get(instance.materialId), projectionMatrix, instance.modelViewMatrix);
+            shaderProgram.updateUniforms(instance.transformationMatrix, getMaterial(instance.materialId), projectionMatrix, instance.modelViewMatrix);
             GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
         }
     }

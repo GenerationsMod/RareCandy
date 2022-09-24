@@ -1,6 +1,7 @@
 package com.pixelmongenerations.rarecandy.components;
 
 import com.pixelmongenerations.pixelmonassetutils.assimp.AssimpUtils;
+import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
 import com.pixelmongenerations.rarecandy.core.VertexLayout;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
@@ -52,9 +53,13 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
 
         for (InstanceState instance : instances) {
-            shaderProgram.updateUniforms(instance.transformationMatrix, variants.get(instance.materialId), projectionMatrix, instance.modelViewMatrix);
+            shaderProgram.updateUniforms(instance.transformationMatrix, getMaterial(instance.materialId), projectionMatrix, instance.modelViewMatrix);
             GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
         }
+    }
+
+    protected Material getMaterial(String materialId) {
+        return variants.getOrDefault(materialId, material.get(0));
     }
 
     @Override

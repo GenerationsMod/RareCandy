@@ -16,7 +16,7 @@ public class TransparencyFeatureTest extends FeatureTest {
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
         RenderObject transparentModel = loadAnimatedModel("solosis");
-        scene.add(transparentModel, new InstanceState(new Matrix4f().translate(new Vector3f(1, 1, 1)).scale(new Vector3f(0.02f, 0.02f, 0.02f)), viewMatrix, 0));
+        scene.add(transparentModel, new InstanceState(new Matrix4f().translate(new Vector3f(1, 1, 1)).scale(new Vector3f(0.02f, 0.02f, 0.02f)), viewMatrix, "shiny"));
     }
 
     @Override

@@ -8,6 +8,7 @@ import com.pixelmongenerations.rarecandy.components.StaticRenderObject;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import org.joml.Matrix4f;
 
+import java.io.InputStream;
 import java.util.Objects;
 
 public abstract class FeatureTest {

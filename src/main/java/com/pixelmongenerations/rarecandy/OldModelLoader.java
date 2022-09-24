@@ -159,7 +159,7 @@ public class OldModelLoader {
             }
         }
 
-        object.upload(ShaderProgram.ANIMATED_SHADER, vertBuffer, indices, textures.get(0));
+        object.upload(ShaderProgram.ANIMATED_SHADER, vertBuffer, indices, textures);
         object.animation = AIAnimation.create(Objects.requireNonNull(aiScene.mAnimations()).get(aiScene.mNumAnimations() - 1));
         object.bones = bones;
         object.boneTransforms = new Matrix4f[bones.length];
@@ -172,7 +172,7 @@ public class OldModelLoader {
      * Uses old method of loading files. To be removed by 0.5.0
      */
     @Deprecated
-    public static StaticRenderObject loadStaticFile(Scene scene, AIScene aiScene, int textureIndex) {
+    public static StaticRenderObject loadStaticFile(Scene scene, AIScene aiScene) {
         int sizeOfVertex = Float.BYTES * 3 + Float.BYTES * 2 + Float.BYTES * 3;
 
         for (Mesh mesh : scene.meshes) {
@@ -208,29 +208,29 @@ public class OldModelLoader {
             for (float v : rawMeshData) vertBuffer.put(v);
             vertBuffer.flip();
 
-            List<AITexture> rawTextures = new ArrayList<>();
+//            List<AITexture> rawTextures = new ArrayList<>();
+//
+//            // Retrieve Textures
+//            PointerBuffer pTextures = aiScene.mTextures();
+//            if (pTextures != null) {
+//                for (int i = 0; i < aiScene.mNumTextures(); i++) {
+//                    rawTextures.add(AITexture.create(pTextures.get(i)));
+//                }
+//            } else {
+//                throw new RuntimeException("How do you expect us to render without textures? Use colours? we don't support that yet!");
+//            }
+//
+//            // Try to load the textures into rosella
+//            List<Texture> textures = new ArrayList<>();
+//            for (AITexture rawTexture : rawTextures) {
+//                if (rawTexture.mHeight() > 0) {
+//                    throw new RuntimeException(".glb file had texture with height of 0");
+//                } else {
+//                    textures.add(new Texture(rawTexture.pcDataCompressed(), rawTexture.mFilename().dataString()));
+//                }
+//            }
 
-            // Retrieve Textures
-            PointerBuffer pTextures = aiScene.mTextures();
-            if (pTextures != null) {
-                for (int i = 0; i < aiScene.mNumTextures(); i++) {
-                    rawTextures.add(AITexture.create(pTextures.get(i)));
-                }
-            } else {
-                throw new RuntimeException("How do you expect us to render without textures? Use colours? we don't support that yet!");
-            }
-
-            // Try to load the textures into rosella
-            List<Texture> textures = new ArrayList<>();
-            for (AITexture rawTexture : rawTextures) {
-                if (rawTexture.mHeight() > 0) {
-                    throw new RuntimeException(".glb file had texture with height of 0");
-                } else {
-                    textures.add(new Texture(rawTexture.pcDataCompressed(), rawTexture.mFilename().dataString()));
-                }
-            }
-
-            component.upload(ShaderProgram.STATIC_SHADER, vertBuffer, indices, textures.get(textureIndex));
+            component.upload(ShaderProgram.STATIC_SHADER, vertBuffer, indices, scene.textures);
             return component;
         }
         throw new RuntimeException("Failed to create static object.");

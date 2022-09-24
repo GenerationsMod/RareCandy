@@ -25,7 +25,7 @@ public abstract class FeatureTest {
 
     protected RenderObject loadStaticModel(String name) {
         PixelAsset model = new PixelAsset(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/" + name + ".pk"), "Failed to read /" + name + ".pk"));
-        return OldModelLoader.loadStaticFile(model.scene, ((GlbReader) model.reader).rawScene, 0);
+        return OldModelLoader.loadStaticFile(model.scene, ((GlbReader) model.reader).rawScene);
     }
 
     protected RenderObject loadAnimatedModel(String name) {

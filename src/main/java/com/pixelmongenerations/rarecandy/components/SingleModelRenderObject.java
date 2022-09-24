@@ -8,6 +8,8 @@ import org.lwjgl.opengl.GL30C;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
@@ -18,10 +20,11 @@ public abstract class SingleModelRenderObject extends RenderObject {
     protected int vbo;
     protected int vao;
 
-    public void upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
+    public void upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, List<Texture> diffuseTextures) {
         this.shaderProgram = program;
 
-        material = new Material(diffuseTexture);
+        material = diffuseTextures.stream().map(Material::new).collect(Collectors.toList());
+        this.variants = material.stream().collect(Collectors.toMap(mat -> mat.diffuseTexture.name, mat -> mat));
 
         this.vbo = GL15C.glGenBuffers(); // VertexBufferObject (Vertices)
         this.ebo = GL15C.glGenBuffers(); // ElementBufferObject (Indices)

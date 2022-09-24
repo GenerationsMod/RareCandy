@@ -30,7 +30,7 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
     public AIAnimation animation;
 
     @Override
-    public void upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, Texture diffuseTexture) {
+    public void upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, List<Texture> diffuseTexture) {
         super.upload(program, vertices, indices, diffuseTexture);
 
         this.layout = new VertexLayout(vao,
@@ -52,7 +52,7 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
 
         for (InstanceState instance : instances) {
-            shaderProgram.updateUniforms(instance.transformationMatrix, material, projectionMatrix, instance.modelViewMatrix);
+            shaderProgram.updateUniforms(instance.transformationMatrix, variants.get(instance.materialId), projectionMatrix, instance.modelViewMatrix);
             GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
         }
     }

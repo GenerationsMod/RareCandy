@@ -23,6 +23,7 @@ dependencies {
     implementation("org.apache.commons", "commons-compress", "1.21")
     implementation("org.joml", "joml", "1.10.5")
     implementation("com.intellij", "forms_rt", "7.0.3")
+    implementation("de.javagl", "jgltf-model", "2.0.3")
 
     implementation(platform("org.lwjgl:lwjgl-bom:3.3.1"))
     implementation("org.lwjgl", "lwjgl")

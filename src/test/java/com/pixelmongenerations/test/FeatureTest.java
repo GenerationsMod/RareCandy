@@ -5,7 +5,6 @@ import com.pixelmongenerations.pkl.reader.GlbReader;
 import com.pixelmongenerations.rarecandy.OldModelLoader;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
-import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import org.joml.Matrix4f;
 
 import java.util.Objects;
@@ -25,11 +24,11 @@ public abstract class FeatureTest {
 
     protected RenderObject loadStaticModel(String name) {
         PixelAsset model = new PixelAsset(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/" + name + ".pk"), "Failed to read /" + name + ".pk"));
-        return OldModelLoader.loadStaticFile(model.scene, ShaderProgram.STATIC);
+        return model.createStaticObject(Pipelines.staticPipeline(() -> FeatureTester.PROJECTION_MATRIX));
     }
 
     protected RenderObject loadAnimatedModel(String name) {
         PixelAsset model = new PixelAsset(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/" + name + ".pk"), "Failed to read /" + name + ".pk"));
-        return OldModelLoader.loadAnimatedFile(model.scene, ((GlbReader) model.reader).rawScene);
+        return OldModelLoader.loadAnimatedFile(model.scene, ((GlbReader) model.reader).rawScene, Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX));
     }
 }

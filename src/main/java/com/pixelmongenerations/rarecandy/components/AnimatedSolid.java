@@ -3,10 +3,11 @@ package com.pixelmongenerations.rarecandy.components;
 import com.pixelmongenerations.pkl.assimp.AssimpUtils;
 import com.pixelmongenerations.pkl.scene.material.Material;
 import com.pixelmongenerations.pkl.scene.material.Texture;
+import com.pixelmongenerations.pkl.scene.objects.Mesh;
 import com.pixelmongenerations.rarecandy.core.VertexLayout;
+import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
-import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -14,14 +15,11 @@ import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AINodeAnim;
 import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.GL15C;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.List;
 
 @SuppressWarnings("ConstantConditions")
-public class AnimatedRenderObject extends SingleModelRenderObject {
+public class AnimatedSolid extends MeshRenderObject {
     public static final long TIMER = System.currentTimeMillis();
 
     public Matrix4f globalInverseTransform;
@@ -31,10 +29,10 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
     public AIAnimation animation;
 
     @Override
-    public RenderObject upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, List<Texture> diffuseTexture) {
-        super.upload(program, vertices, indices, diffuseTexture);
+    public void upload(Mesh mesh, Pipeline pipeline, List<Texture> diffuseTextures) {
+        super.upload(mesh, pipeline, diffuseTextures);
 
-        this.layout = new VertexLayout(vao,
+        VertexLayout layout = new VertexLayout(vao,
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inPosition"),
                 new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT, "inTexCoords"),
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inNormal"),
@@ -42,24 +40,23 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
                 new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT, "boneDataA"),
                 new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT, "boneDataB")
         );
-
-        return this;
     }
 
     @Override
-    public void render(Matrix4f projectionMatrix, List<InstanceState> instances) {
-        shaderProgram.bind();
-        shaderProgram.uniforms.get("gBones").uploadMat4fs(boneTransforms);
-        this.layout.bind();
+    public void render(List<InstanceState> instances) {
+        pipeline.bind();
+        //pipeline.uniforms.get("gBones").uploadMat4fs(boneTransforms);
+        throw new RuntimeException("Fix the line above");
+        /*this.layout.bind();
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
 
         for (InstanceState instance : instances) {
-            shaderProgram.updateUniforms(instance.transformationMatrix, getMaterial(instance.materialId), projectionMatrix, instance.modelMatrix);
+            pipeline.updateUniforms(instance, getMaterial(instance.materialId()));
             GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
-        }
+        }*/
     }
 
-    protected Material getMaterial(String materialId) {
+    public Material getMaterial(String materialId) {
         return variants.getOrDefault(materialId, materials.get(0));
     }
 

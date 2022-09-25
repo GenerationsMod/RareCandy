@@ -33,13 +33,13 @@ vec3 getAnimatedPosition(mat4 worldSpace) {
 }
 
 void main() {
-    texCoord0 = vec2(inTexCoord.x, inTexCoord.y);
-    mat4 worldSpace = MC_projection * MC_view;
-    mat4 modelTransform = MC_model * getBoneTransform();
+    texCoord0 = vec2(inTexCoords.x, inTexCoords.y);
+    mat4 worldSpace = projectionMatrix * viewMatrix;
+    mat4 modelTransform = modelMatrix * getBoneTransform();
     vec4 worldPosition = modelTransform * vec4(inPosition + getAnimatedPosition(worldSpace), 1.0);
 
     gl_Position = worldSpace * worldPosition;
     normal = (modelTransform * vec4(inNormal, 0.0)).xyz;
-    toLightVector = LIGHT_pos - vec3(worldPosition.x, -5.0, worldPosition.z);
-    toCameraVector = (inverse(MC_view) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
+    toLightVector = lightPosition - vec3(worldPosition.x, -5.0, worldPosition.z);
+    toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
 }

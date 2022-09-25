@@ -22,7 +22,7 @@ public class TransparencyFeatureTest extends FeatureTest {
     @Override
     public void update(RareCandy scene, double deltaTime) {
         for (InstanceState object : scene.getObjects()) {
-            object.transformationMatrix.rotate((float) deltaTime, 0, 1, 0);
+            object.transformationMatrix().rotate((float) deltaTime, 0, 1, 0);
         }
     }
 }

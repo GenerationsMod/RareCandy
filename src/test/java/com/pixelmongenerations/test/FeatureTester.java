@@ -1,6 +1,5 @@
 package com.pixelmongenerations.test;
 
-import com.pixelmongenerations.rarecandy.rendering.GameInterface;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.rarecandy.settings.Settings;
 import com.pixelmongenerations.rarecandy.settings.TransparencyMethod;
@@ -13,19 +12,19 @@ import org.lwjgl.opengl.GL11C;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FeatureTester implements GameInterface {
+public class FeatureTester {
     public static final List<FeatureTest> FEATURE_TESTS = List.of(
             new TransparencyFeatureTest(),
             new InstancingTest()
     );
-    public final Window window = new Window("RareCandy Feature Test", 1920, 1080);
-    public final Matrix4f projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) window.width / window.height, 0.1f, 1000.0f);
+    public static final Window WINDOW = new Window("RareCandy Feature Test", 1920, 1080);
+    public static final Matrix4f PROJECTION_MATRIX = new Matrix4f().perspective((float) Math.toRadians(90), (float) WINDOW.width / WINDOW.height, 0.1f, 1000.0f);
     public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public final List<FeatureTest> activeFeatures;
 
     public FeatureTester(List<FeatureTest> activeFeatures) {
         this.activeFeatures = activeFeatures;
-        var scene = new RareCandy(new Settings(0, 1, false, TransparencyMethod.NONE, true), this);
+        var scene = new RareCandy(new Settings(0, 1, false, TransparencyMethod.NONE, true));
         GL11C.glClearColor(180 / 255f, 210 / 255f, 255 / 255f, 1.0f);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);
@@ -38,8 +37,8 @@ public class FeatureTester implements GameInterface {
         }
 
         double lastFrameTime = 0;
-        while (!this.window.shouldClose()) {
-            this.window.pollEvents();
+        while (!WINDOW.shouldClose()) {
+            WINDOW.pollEvents();
             double frameTime = GLFW.glfwGetTime();
             scene.preRender();
             for (FeatureTest activeFeature : this.activeFeatures) {
@@ -48,10 +47,10 @@ public class FeatureTester implements GameInterface {
 
             GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
             scene.render(true, false);
-            this.window.swapBuffers();
+            this.WINDOW.swapBuffers();
             lastFrameTime = frameTime;
 
-            GLFW.glfwSetKeyCallback(this.window.handle, (window1, key, scancode, action, mods) -> {
+            GLFW.glfwSetKeyCallback(this.WINDOW.handle, (window1, key, scancode, action, mods) -> {
                 if(key == GLFW.GLFW_KEY_Z) {
                     long maxMem = Runtime.getRuntime().maxMemory();
                     long totalMem = Runtime.getRuntime().totalMemory();
@@ -61,7 +60,7 @@ public class FeatureTester implements GameInterface {
                 }
             });
         }
-        this.window.destroy();
+        this.WINDOW.destroy();
     }
 
     public static void main(String[] args) {
@@ -78,10 +77,5 @@ public class FeatureTester implements GameInterface {
             activeTests.addAll(FEATURE_TESTS);
         }
         new FeatureTester(activeTests);
-    }
-
-    @Override
-    public Matrix4f getProjectionMatrix() {
-        return this.projectionMatrix;
     }
 }

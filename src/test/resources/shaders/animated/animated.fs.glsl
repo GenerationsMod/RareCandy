@@ -22,7 +22,7 @@ void main() {
         discard;
     }
 
-    // Math Done.
+    // Math
     vec3 unitNormal = normalize(normal);
     vec3 unitLightVector = normalize(toLightVector);
     vec3 lightDir = -unitLightVector;

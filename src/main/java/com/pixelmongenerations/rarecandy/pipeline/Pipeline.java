@@ -1,7 +1,9 @@
 package com.pixelmongenerations.rarecandy.pipeline;
 
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
+import com.pixelmongenerations.rarecandy.components.RenderObject;
 import com.pixelmongenerations.rarecandy.core.VertexLayout;
+import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11C;
@@ -16,33 +18,36 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public final class Pipeline {
-    private final Map<String, Consumer<UniformUploadContext>> uniformSuppliers;
-    private final Function<Mesh, FloatBuffer> meshBuilder;
-    private final Function<Mesh, IntBuffer> indexBuilder;
-    private final int program;
+public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms, Function<Mesh, FloatBuffer> vertexBufferBuilder, Function<Mesh, IntBuffer> indexBuilder, int program) {
 
-    public Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Function<Mesh, FloatBuffer> meshBuilder, Function<Mesh, IntBuffer> indexBuilder, int program) {
-        this.uniformSuppliers = uniformSuppliers;
-        this.meshBuilder = meshBuilder;
-        this.indexBuilder = indexBuilder;
-        this.program = program;
+    public void bind() {
+        GL20C.glUseProgram(program);
+    }
+
+    public void updateUniforms(InstanceState instance, RenderObject renderObject) {
+        for (var name : uniforms.keySet()) {
+            var uniform = uniforms.get(name);
+            if(!uniformSuppliers.containsKey(name)) RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
+            uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
+        }
     }
 
     public static class Builder {
-        private final Map<String, Consumer<UniformUploadContext>> uniformSuppliers = new HashMap<>();
+        private Map<String, Consumer<UniformUploadContext>> uniformSuppliers = new HashMap<>();
         private Function<Mesh, FloatBuffer> meshBuilder;
         private Function<Mesh, IntBuffer> indexBuilder;
         private int program;
-        public final Map<String, Uniform> uniforms = new HashMap<>();
+        public Map<String, Uniform> uniforms = new HashMap<>();
 
         public Builder() {
         }
 
         public Builder(Builder oldBuilder) {
+            this.uniformSuppliers = oldBuilder.uniformSuppliers;
             this.meshBuilder = oldBuilder.meshBuilder;
             this.indexBuilder = oldBuilder.indexBuilder;
             this.program = oldBuilder.program;
+            this.uniforms = oldBuilder.uniforms;
         }
 
         private void addShader(String text, int type, int programId) {
@@ -81,7 +86,7 @@ public final class Pipeline {
 
         public Builder shader(@NotNull String vs, @NotNull String fs, Map<String, String> shaderPath, VertexLayout.AttribLayout... attribs) {
             // Generate in lines for VertexShader
-            var appending = new StringBuilder("#version 450");
+            var appending = new StringBuilder("#version 450\n");
             for (int i = 0; i < attribs.length; i++) {
                 var attrib = attribs[i];
                 appending.append("layout(location = ").append(i).append(") in ").append(getType(attrib)).append(" ").append(attrib.name()).append(";\n");
@@ -135,7 +140,7 @@ public final class Pipeline {
             if (this.indexBuilder == null) throw new RuntimeException("IndexBuilder is null");
             if (this.program == 0) throw new RuntimeException("Shader not created");
 
-            return new Pipeline(uniformSuppliers, meshBuilder, indexBuilder, program);
+            return new Pipeline(uniformSuppliers, uniforms, meshBuilder, indexBuilder, program);
         }
     }
 }

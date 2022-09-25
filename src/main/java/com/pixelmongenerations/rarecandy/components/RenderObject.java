@@ -1,23 +1,22 @@
 package com.pixelmongenerations.rarecandy.components;
 
 import com.pixelmongenerations.pkl.scene.material.Material;
-import com.pixelmongenerations.rarecandy.core.VertexLayout;
+import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
-import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class RenderObject {
-    protected ShaderProgram shaderProgram;
+    protected Pipeline pipeline;
     protected List<Material> materials = new ArrayList<>();
     protected int indexCount;
-    protected VertexLayout layout;
     protected Map<String, Material> variants;
-    public boolean loaded;
 
-    public abstract void render(Matrix4f projectionMatrix, List<InstanceState> instances);
+    public abstract void render(List<InstanceState> instances);
 
     public void update() {}
 
@@ -25,8 +24,8 @@ public abstract class RenderObject {
         return variants.keySet();
     }
 
-    protected Material getMaterial(@Nullable String materialId) {
-        if(!variants.containsKey(materialId)) return materials.get(0);
+    public Material getMaterial(@Nullable String materialId) {
+        if (!variants.containsKey(materialId)) return materials.get(0);
         else return variants.get(materialId);
     }
 }

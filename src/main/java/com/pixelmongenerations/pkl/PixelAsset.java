@@ -3,6 +3,11 @@ package com.pixelmongenerations.pkl;
 import com.pixelmongenerations.pkl.reader.FileReader;
 import com.pixelmongenerations.pkl.reader.InternalFileType;
 import com.pixelmongenerations.pkl.scene.Scene;
+import com.pixelmongenerations.pkl.scene.objects.Mesh;
+import com.pixelmongenerations.rarecandy.components.RenderObject;
+import com.pixelmongenerations.rarecandy.components.RenderObjects;
+import com.pixelmongenerations.rarecandy.components.Solid;
+import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.tukaani.xz.XZ;
@@ -45,8 +50,20 @@ public class PixelAsset {
         }
     }
 
+    public RenderObject createStaticObject(Pipeline pipeline) {
+        var objects = new RenderObjects();
+
+        for (Mesh mesh : scene.meshes) {
+            var renderObject = new Solid();
+            renderObject.upload(mesh, pipeline, scene.textures);
+            objects.add(renderObject);
+        }
+
+        return objects;
+    }
+
     /**
-     * We change 1 bit to make file readers fail to load the file or find its format. I would rather not have reforged digging through the assets, honestly.
+     * We change 1 bit to make file readers fail to load the file or find its format. I would rather not have reforged digging through the assets honestly.
      */
     public static byte[] lockArchive(byte[] originalBytes) {
         originalBytes[0] = (byte) 6;

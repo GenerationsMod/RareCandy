@@ -1,7 +1,6 @@
 package com.pixelmongenerations.rarecandy.components;
 
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
-import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,13 +8,13 @@ import java.util.List;
 /**
  * Used if a .glb has multiple models inside it
  */
-public class ListRenderObject extends RenderObject {
+public class RenderObjects extends RenderObject {
     private final List<RenderObject> renderObjects = new ArrayList<>();
 
     @Override
-    public void render(Matrix4f projectionMatrix, List<InstanceState> instances) {
+    public void render(List<InstanceState> instances) {
         for (RenderObject renderObject : this.renderObjects) {
-            renderObject.render(projectionMatrix, instances);
+            renderObject.render(instances);
         }
     }
 

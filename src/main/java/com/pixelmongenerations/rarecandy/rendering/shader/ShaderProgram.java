@@ -1,6 +1,7 @@
 package com.pixelmongenerations.rarecandy.rendering.shader;
 
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL20;
@@ -14,6 +15,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * //TODO: Refactor uniforms to be a String to a Supplier of a uniformType (Mat4, Vec4, Mat3, Vec3, int, float, etc) <br>
+ * //TODO: not hardcode shaders into this <br>
+ * //TODO: allow shader dependencies <br>
+ * //TODO: compile to SPIR-V if on AMD to increase performance if extension is available <br>
+ * //TODO: better texture handling (comes with uniform fix) <br>
+ */
+@Deprecated
 public class ShaderProgram {
     public static final ShaderProgram ANIMATED_SHADER = new ShaderProgram("animated");
     public static final ShaderProgram STATIC_SHADER = new ShaderProgram("static");
@@ -83,12 +92,16 @@ public class ShaderProgram {
         GL20C.glUseProgram(this.id);
     }
 
-    public void updateUniforms(Matrix4f transform, Material material, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
+    public void updateUniforms(Matrix4f transform, @Nullable Material material, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         for (String uniformName : this.uniforms.keySet()) {
             Uniform uniform = this.uniforms.get(uniformName);
 
             switch (uniform.type) {
                 case GL20.GL_SAMPLER_2D -> {
+                    if (material == null) {
+                        throw new RuntimeException("Shader had a GL_SAMPLER_2D but the material is null.");
+                    }
+
                     int texSlot = switch (uniformName) {
                         case "diffuse" -> 0;
                         case "normal" -> 1;
@@ -105,7 +118,8 @@ public class ShaderProgram {
                             case "projection" -> uniform.uploadMat4f(projectionMatrix);
                             case "view" -> uniform.uploadMat4f(viewMatrix);
                             case "model" -> uniform.uploadMat4f(transform);
-                            default -> throw new IllegalArgumentException(uniformName.substring("MC_".length()) + " is not a valid component of Minecraft");
+                            default ->
+                                    throw new IllegalArgumentException(uniformName.substring("MC_".length()) + " is not a valid component of Minecraft");
                         }
                     }
                 }
@@ -115,17 +129,19 @@ public class ShaderProgram {
                         switch (uniformName.substring("LIGHT_".length())) {
                             case "pos" -> uniform.uploadVec3f(new Vector3f(0, 0f, 0f));
                             case "color" -> uniform.uploadVec3f(new Vector3f(1, 1, 1));
-                            default -> throw new IllegalArgumentException(uniformName.substring("LIGHT_".length()) + " is not a valid vec3 component of Lights");
+                            default ->
+                                    throw new IllegalArgumentException(uniformName.substring("LIGHT_".length()) + " is not a valid vec3 component of Lights");
                         }
                     }
                 }
 
-                case GL20.GL_FLOAT ->  {
+                case GL20.GL_FLOAT -> {
                     if (uniformName.startsWith("LIGHT_")) { // Lighting Magic
                         switch (uniformName.substring("LIGHT_".length())) {
                             case "shineDamper" -> uniform.uploadFloat(60f);
                             case "reflectivity" -> uniform.uploadFloat(0f);
-                            default -> throw new IllegalArgumentException(uniformName.substring("LIGHT_".length()) + " is not a valid float component of Lights");
+                            default ->
+                                    throw new IllegalArgumentException(uniformName.substring("LIGHT_".length()) + " is not a valid float component of Lights");
                         }
                     }
                 }

@@ -42,7 +42,6 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
                 new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT), // BoneData
                 new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT) // BoneData
         );
-        layout.applyTo(ebo, vbo); // Combine Vertex Buffer and Index Buffer into VAO
     }
 
     @Override
@@ -59,7 +58,7 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
     }
 
     protected Material getMaterial(String materialId) {
-        return variants.getOrDefault(materialId, material.get(0));
+        return variants.getOrDefault(materialId, materials.get(0));
     }
 
     @Override
@@ -67,7 +66,7 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
         boneTransforms((float) (((double) System.currentTimeMillis() - (double) TIMER) / 1000.0));
     }
 
-    AINodeAnim findNodeAnim(AIAnimation pAnimation, String NodeName) {
+    public AINodeAnim findNodeAnim(AIAnimation pAnimation, String NodeName) {
         for (int i = 0; i < pAnimation.mNumChannels(); i++) {
             AINodeAnim pNodeAnim = AINodeAnim.create(pAnimation.mChannels().get(i));
 
@@ -77,7 +76,7 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
         return null;
     }
 
-    void calcInterpolatedPosition(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
+    public void calcInterpolatedPosition(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
         if (pNodeAnim.mNumPositionKeys() == 1) {
             Out.set(AssimpUtils.from(pNodeAnim.mPositionKeys().get(0).mValue()));
             return;
@@ -96,7 +95,7 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
     }
 
 
-    void calcInterpolatedRotation(Quaternionf Out, float AnimationTime, AINodeAnim pNodeAnim) {
+    public void calcInterpolatedRotation(Quaternionf Out, float AnimationTime, AINodeAnim pNodeAnim) {
         if (pNodeAnim.mNumRotationKeys() == 1) {
             Out.set(AssimpUtils.from(pNodeAnim.mRotationKeys().get(0).mValue()));
             return;
@@ -114,7 +113,7 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
     }
 
 
-    Vector3f calcInterpolatedScaling(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
+    public Vector3f calcInterpolatedScaling(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
         if (pNodeAnim.mNumScalingKeys() == 1) {
             return AssimpUtils.from(pNodeAnim.mScalingKeys().get(0).mValue());
         }
@@ -131,7 +130,7 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
         return Out.set(Start.add(Delta.mul(Factor)));
     }
 
-    int findPosition(float AnimationTime, AINodeAnim pNodeAnim) {
+    public int findPosition(float AnimationTime, AINodeAnim pNodeAnim) {
         for (int i = 0; i < pNodeAnim.mNumPositionKeys() - 1; i++) {
             if (AnimationTime < (float) pNodeAnim.mPositionKeys().get(i + 1).mTime()) {
                 return i;
@@ -142,7 +141,7 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
     }
 
 
-    int findRotation(float AnimationTime, AINodeAnim pNodeAnim) {
+    public int findRotation(float AnimationTime, AINodeAnim pNodeAnim) {
         assert (pNodeAnim.mNumRotationKeys() > 0);
 
         for (int i = 0; i < pNodeAnim.mNumRotationKeys() - 1; i++) {
@@ -155,7 +154,7 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
     }
 
 
-    int findScaling(float AnimationTime, AINodeAnim pNodeAnim) {
+    public int findScaling(float AnimationTime, AINodeAnim pNodeAnim) {
         assert (pNodeAnim.mNumScalingKeys() > 0);
 
         for (int i = 0; i < pNodeAnim.mNumScalingKeys() - 1; i++) {

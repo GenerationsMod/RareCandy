@@ -1,35 +1,31 @@
 package com.pixelmongenerations.pixelmonassetutils.reader;
 
-import com.pixelmongenerations.rarecandy.rendering.Bone;
-import com.pixelmongenerations.pixelmonassetutils.assimp.AssimpMaterial;
 import com.pixelmongenerations.pixelmonassetutils.assimp.AssimpUtils;
 import com.pixelmongenerations.pixelmonassetutils.scene.Scene;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
 import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
 import com.pixelmongenerations.pixelmonassetutils.scene.objects.Mesh;
+import com.pixelmongenerations.rarecandy.rendering.Bone;
 import de.javagl.jgltf.model.GltfModel;
-import de.javagl.jgltf.model.TextureModel;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarFile;
-import org.joml.*;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.*;
-import org.lwjgl.system.MemoryStack;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
 public class GlbReader implements FileReader {
-    private static final String BUNDLED_TEXTURE_CHAR = "*";
     public GltfModelReader reader = new GltfModelReader();
 
     @Deprecated //FIXME: this is just here so this doesnt error out when trying to merge with the renderer's reader.
@@ -42,43 +38,8 @@ public class GlbReader implements FileReader {
         GltfModel model = pair.b();
         this.rawScene = aiScene;
 
-        List<Texture> textures = new ArrayList<>();
-//        PointerBuffer aiTextures = Objects.requireNonNull(aiScene.mTextures());
-        for (TextureModel textureModel : model.getTextureModels()) {
-//            AITexture aiTexture = AITexture.create(aiTextures.get(i));
-            textures.add(new Texture(textureModel.getImageModel().getImageData(), textureModel.getImageModel().getName()));
-        }
-
+        List<Texture> textures = model.getTextureModels().stream().map(raw -> new Texture(raw.getImageModel().getImageData(), raw.getImageModel().getName())).toList();
         List<Material> materials = textures.stream().map(Material::new).collect(Collectors.toList());
-//        PointerBuffer aiMaterials = Objects.requireNonNull(aiScene.mMaterials());
-//        Texture fallbackTexture = null;
-//        for (int i = 0; i < aiMaterials.capacity(); i++) {
-//            AssimpMaterial aiMaterial = new AssimpMaterial(AIMaterial.create(aiMaterials.get(i)));
-//            boolean hasDiffuse = Assimp.aiGetMaterialTextureCount(aiMaterial.material, Assimp.aiTextureType_DIFFUSE) >= 1;
-//
-//            if (!hasDiffuse) {
-//                if (fallbackTexture == null) {
-//                    throw new RuntimeException("There is not a single texture in this entire mesh. What the fuck");
-//                }
-//                materials.add(i, new Material(fallbackTexture));
-//            } else {
-//                try (MemoryStack stack = MemoryStack.stackPush()) {
-//                    AIString path = AIString.calloc(stack);
-//                    Assimp.aiGetMaterialTexture(aiMaterial.material, Assimp.aiTextureType_DIFFUSE, 0, path, (IntBuffer) null, null, null, null, null, null);
-//
-//                    String texturePath = path.dataString();
-//                    if (texturePath.startsWith(BUNDLED_TEXTURE_CHAR)) {
-//                        Texture diffuse = textures.get(Integer.parseInt(texturePath.substring(1)));
-//                        materials.add(i, new Material(diffuse));
-//
-//                        if (i == 0) {
-//                            // First material for some reason defines the texture for all other materials sometimes
-//                            fallbackTexture = diffuse;
-//                        }
-//                    }
-//                }
-//            }
-//        }
 
         List<Mesh> meshes = new ArrayList<>();
         PointerBuffer aiMeshes = requireNonNull(aiScene.mMeshes());
@@ -95,16 +56,9 @@ public class GlbReader implements FileReader {
         GltfModel model = null;
         for (TarArchiveEntry entry : file.getEntries()) {
             if (entry.getName().endsWith(".glb")) {
-//                GltfAssetReader reader1 = new GltfAssetReader();
-
-//                GltfAsset m = reader1.readWithoutReferences(file.getInputStream(entry));
-
-//                System.out.println(model = new GltfModelV2((GltfAssetV2) m));
-
                 model = reader.readWithoutReferences(file.getInputStream(entry));
 
                 byte[] bytes = file.getInputStream(entry).readAllBytes();
-
                 ByteBuffer buffer = BufferUtils.createByteBuffer(bytes.length);
                 buffer.put(bytes).flip();
 
@@ -119,7 +73,8 @@ public class GlbReader implements FileReader {
         return new Pair<>(aiScene, model);
     }
 
-    private record Pair<A,B>(A a, B b) {}
+    private record Pair<A, B>(A a, B b) {
+    }
 
     private Mesh convert(AIMesh mesh, List<Material> materials) {
         Vector3f[] vertices = new Vector3f[mesh.mNumVertices()];

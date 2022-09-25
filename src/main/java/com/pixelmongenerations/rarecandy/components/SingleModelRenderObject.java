@@ -23,8 +23,8 @@ public abstract class SingleModelRenderObject extends RenderObject {
     public void upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, List<Texture> diffuseTextures) {
         this.shaderProgram = program;
 
-        material = diffuseTextures.stream().map(Material::new).collect(Collectors.toList());
-        this.variants = material.stream().collect(Collectors.toMap(mat -> mat.diffuseTexture.name, mat -> mat));
+        materials = diffuseTextures.stream().map(Material::new).collect(Collectors.toList());
+        this.variants = materials.stream().collect(Collectors.toMap(mat -> mat.diffuseTexture.name, mat -> mat));
 
         this.vbo = GL15C.glGenBuffers(); // VertexBufferObject (Vertices)
         this.ebo = GL15C.glGenBuffers(); // ElementBufferObject (Indices)

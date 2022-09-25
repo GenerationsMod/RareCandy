@@ -23,8 +23,8 @@ public class StaticRenderObject extends SingleModelRenderObject {
     public void upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, List<Texture> diffuseTextures) {
         this.shaderProgram = program;
 
-        this.material = diffuseTextures.stream().map(Material::new).collect(Collectors.toList());
-        this.variants = material.stream().collect(Collectors.toMap(mat -> mat.diffuseTexture.name, mat -> mat));
+        this.materials = diffuseTextures.stream().map(Material::new).collect(Collectors.toList());
+        this.variants = materials.stream().collect(Collectors.toMap(mat -> mat.diffuseTexture.name, mat -> mat));
 
         int vbo = GL15C.glGenBuffers(); // VertexBufferObject (Vertices)
         this.ebo = GL15C.glGenBuffers(); // ElementBufferObject (Indices)
@@ -44,8 +44,6 @@ public class StaticRenderObject extends SingleModelRenderObject {
                 new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT), // TexCoords
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT) // Normal
         );
-
-        layout.applyTo(ebo, vbo);
     }
 
     @Override

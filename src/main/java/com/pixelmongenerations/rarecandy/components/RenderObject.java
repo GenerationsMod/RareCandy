@@ -11,22 +11,21 @@ import java.util.*;
 
 public abstract class RenderObject {
     protected ShaderProgram shaderProgram;
-    protected List<Material> material = new ArrayList<>();
+    protected List<Material> materials = new ArrayList<>();
     protected int indexCount;
     protected VertexLayout layout;
     protected Map<String, Material> variants;
 
     public abstract void render(Matrix4f projectionMatrix, List<InstanceState> instances);
 
-    public void update() {
-    }
+    public void update() {}
 
     public Set<String> availableVariants() {
         return variants.keySet();
     }
 
     protected Material getMaterial(@Nullable String materialId) {
-        if(!variants.containsKey(materialId)) return material.get(0);
+        if(!variants.containsKey(materialId)) return materials.get(0);
         else return variants.get(materialId);
     }
 }

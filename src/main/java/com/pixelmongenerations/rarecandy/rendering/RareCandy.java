@@ -1,7 +1,7 @@
 package com.pixelmongenerations.rarecandy.rendering;
 
-import com.pixelmongenerations.rarecandy.RendererSettings;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
+import com.pixelmongenerations.rarecandy.settings.Settings;
 import org.lwjgl.opengl.GL11C;
 
 import java.util.ArrayList;
@@ -11,11 +11,11 @@ import java.util.Map;
 
 public class RareCandy {
 
-    private final RendererSettings settings;
+    private final Settings settings;
     private final Map<RenderObject, List<InstanceState>> objectMap = new HashMap<>();
     public final CompatibilityProvider provider;
 
-    public RareCandy(RendererSettings settings, CompatibilityProvider provider) {
+    public RareCandy(Settings settings, CompatibilityProvider provider) {
         this.settings = settings;
         this.provider = provider;
     }

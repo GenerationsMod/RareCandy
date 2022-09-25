@@ -1,8 +1,9 @@
 package com.pixelmongenerations.test;
 
-import com.pixelmongenerations.rarecandy.RendererSettings;
 import com.pixelmongenerations.rarecandy.rendering.CompatibilityProvider;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
+import com.pixelmongenerations.rarecandy.settings.Settings;
+import com.pixelmongenerations.rarecandy.settings.TransparencyMethod;
 import com.pixelmongenerations.test.tests.InstancingTest;
 import com.pixelmongenerations.test.tests.TransparencyFeatureTest;
 import org.joml.Matrix4f;
@@ -24,7 +25,7 @@ public class FeatureTester implements CompatibilityProvider {
 
     public FeatureTester(List<FeatureTest> activeFeatures) {
         this.activeFeatures = activeFeatures;
-        RareCandy scene = new RareCandy(new RendererSettings(window.gl), this);
+        RareCandy scene = new RareCandy(new Settings(0, 1, false, TransparencyMethod.NONE), this);
         GL11C.glClearColor(180 / 255f, 210 / 255f, 255 / 255f, 1.0f);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);

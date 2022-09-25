@@ -40,7 +40,6 @@ public class PixelAsset {
             TarFile tarFile = getTarFile(stream);
             this.reader = findFormat(tarFile).reader;
             this.scene = this.reader.read(tarFile);
-            stream.close();
         } catch (IOException e) {
             throw new RuntimeException("Failed to load scene", e);
         }

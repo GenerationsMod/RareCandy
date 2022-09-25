@@ -29,7 +29,7 @@ public class InstancingTest extends FeatureTest {
                     RenderObject model = compiledModels.get(random.nextInt(compiledModels.size()));
                     InstanceState instance = new InstanceState(new Matrix4f(), viewMatrix, "shiny");
                     instance.transformationMatrix.translate(new Vector3f(x, y, z));//.scale(new Vector3f(0.02f, 0.02f, 0.02f));
-                    scene.add(model, instance);
+                    scene.addObject(model, instance);
                     pokemonRendered++;
                 }
             }
@@ -39,7 +39,7 @@ public class InstancingTest extends FeatureTest {
 
     @Override
     public void update(RareCandy scene, double deltaTime) {
-        for (InstanceState object : scene.getAllInstances()) {
+        for (InstanceState object : scene.getObjects()) {
             object.transformationMatrix.rotate((float) deltaTime, 0, 1, 0);
         }
     }

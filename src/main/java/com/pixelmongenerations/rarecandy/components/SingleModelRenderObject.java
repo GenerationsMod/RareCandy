@@ -1,7 +1,7 @@
 package com.pixelmongenerations.rarecandy.components;
 
-import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
-import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
+import com.pixelmongenerations.pkl.scene.material.Material;
+import com.pixelmongenerations.pkl.scene.material.Texture;
 import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL30C;
@@ -20,7 +20,7 @@ public abstract class SingleModelRenderObject extends RenderObject {
     protected int vbo;
     protected int vao;
 
-    public void upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, List<Texture> diffuseTextures) {
+    public RenderObject upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, List<Texture> diffuseTextures) {
         this.shaderProgram = program;
 
         materials = diffuseTextures.stream().map(Material::new).collect(Collectors.toList());
@@ -38,5 +38,7 @@ public abstract class SingleModelRenderObject extends RenderObject {
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+
+        return this;
     }
 }

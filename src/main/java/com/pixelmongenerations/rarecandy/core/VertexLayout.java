@@ -9,10 +9,12 @@ public class VertexLayout {
      */
     private final int vao;
     private final int attribCount;
+    public final AttribLayout[] attribLayouts;
 
     public VertexLayout(int vao, AttribLayout... attribLayouts) {
         this.attribCount = attribLayouts.length;
         this.vao = vao;
+        this.attribLayouts = attribLayouts;
 
         int stride = 0;
         for (AttribLayout attrib : attribLayouts) {
@@ -47,6 +49,6 @@ public class VertexLayout {
         }
     }
 
-    public record AttribLayout(int size, int glType) {
+    public record AttribLayout(int size, int glType, String name) {
     }
 }

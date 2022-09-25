@@ -1,8 +1,8 @@
 package com.pixelmongenerations.rarecandy.components;
 
-import com.pixelmongenerations.pixelmonassetutils.assimp.AssimpUtils;
-import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
-import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
+import com.pixelmongenerations.pkl.assimp.AssimpUtils;
+import com.pixelmongenerations.pkl.scene.material.Material;
+import com.pixelmongenerations.pkl.scene.material.Texture;
 import com.pixelmongenerations.rarecandy.core.VertexLayout;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
@@ -31,17 +31,19 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
     public AIAnimation animation;
 
     @Override
-    public void upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, List<Texture> diffuseTexture) {
+    public RenderObject upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, List<Texture> diffuseTexture) {
         super.upload(program, vertices, indices, diffuseTexture);
 
         this.layout = new VertexLayout(vao,
-                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Position
-                new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT), // TexCoords
-                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Normal
-                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Tangent
-                new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT), // BoneData
-                new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT) // BoneData
+                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inPosition"),
+                new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT, "inTexCoords"),
+                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inNormal"),
+                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inTangent"),
+                new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT, "boneDataA"),
+                new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT, "boneDataB")
         );
+
+        return this;
     }
 
     @Override
@@ -52,7 +54,7 @@ public class AnimatedRenderObject extends SingleModelRenderObject {
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
 
         for (InstanceState instance : instances) {
-            shaderProgram.updateUniforms(instance.transformationMatrix, getMaterial(instance.materialId), projectionMatrix, instance.modelViewMatrix);
+            shaderProgram.updateUniforms(instance.transformationMatrix, getMaterial(instance.materialId), projectionMatrix, instance.modelMatrix);
             GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
         }
     }

@@ -1,12 +1,13 @@
 package com.pixelmongenerations.rarecandy;
 
 import com.pixelmongenerations.rarecandy.components.AnimatedRenderObject;
+import com.pixelmongenerations.rarecandy.components.RenderObject;
 import com.pixelmongenerations.rarecandy.components.StaticRenderObject;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
 import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
-import com.pixelmongenerations.pixelmonassetutils.scene.Scene;
-import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
-import com.pixelmongenerations.pixelmonassetutils.scene.objects.Mesh;
+import com.pixelmongenerations.pkl.scene.Scene;
+import com.pixelmongenerations.pkl.scene.material.Texture;
+import com.pixelmongenerations.pkl.scene.objects.Mesh;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -126,16 +127,6 @@ public class OldModelLoader {
         }
 
         AnimatedRenderObject object = new AnimatedRenderObject();
-        FloatBuffer vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
-
-        IntBuffer indices = BufferUtils.createIntBuffer(mesh.getIndices().length);
-        for (int i : mesh.getIndices()) {
-            indices.put(i);
-        }
-        indices.flip();
-
-        for (float v : rawMeshData) vertBuffer.put(v);
-        vertBuffer.flip();
 
         List<AITexture> rawTextures = new ArrayList<>();
 
@@ -159,7 +150,7 @@ public class OldModelLoader {
             }
         }
 
-        object.upload(ShaderProgram.ANIMATED_SHADER, vertBuffer, indices, textures);
+        object.upload(ShaderProgram.ANIMATED, createVertexBuffer(rawMeshData), createIndexBuffer(mesh.getIndices()), textures);
         object.animation = AIAnimation.create(Objects.requireNonNull(aiScene.mAnimations()).get(aiScene.mNumAnimations() - 1));
         object.bones = bones;
         object.boneTransforms = new Matrix4f[bones.length];
@@ -172,7 +163,7 @@ public class OldModelLoader {
      * Uses old method of loading files. To be removed by 0.5.0
      */
     @Deprecated
-    public static StaticRenderObject loadStaticFile(Scene scene, AIScene aiScene) {
+    public static RenderObject loadStaticFile(Scene scene, ShaderProgram shader) {
         int sizeOfVertex = Float.BYTES * 3 + Float.BYTES * 2 + Float.BYTES * 3;
 
         for (Mesh mesh : scene.meshes) {
@@ -196,43 +187,20 @@ public class OldModelLoader {
                 rawMeshData[index++] = normal.z();
             }
 
-            StaticRenderObject component = new StaticRenderObject();
-            FloatBuffer vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
-
-            IntBuffer indices = BufferUtils.createIntBuffer(mesh.getIndices().length);
-            for (int i : mesh.getIndices()) {
-                indices.put(i);
-            }
-            indices.flip();
-
-            for (float v : rawMeshData) vertBuffer.put(v);
-            vertBuffer.flip();
-
-//            List<AITexture> rawTextures = new ArrayList<>();
-//
-//            // Retrieve Textures
-//            PointerBuffer pTextures = aiScene.mTextures();
-//            if (pTextures != null) {
-//                for (int i = 0; i < aiScene.mNumTextures(); i++) {
-//                    rawTextures.add(AITexture.create(pTextures.get(i)));
-//                }
-//            } else {
-//                throw new RuntimeException("How do you expect us to render without textures? Use colours? we don't support that yet!");
-//            }
-//
-//            // Try to load the textures into rosella
-//            List<Texture> textures = new ArrayList<>();
-//            for (AITexture rawTexture : rawTextures) {
-//                if (rawTexture.mHeight() > 0) {
-//                    throw new RuntimeException(".glb file had texture with height of 0");
-//                } else {
-//                    textures.add(new Texture(rawTexture.pcDataCompressed(), rawTexture.mFilename().dataString()));
-//                }
-//            }
-
-            component.upload(ShaderProgram.STATIC_SHADER, vertBuffer, indices, scene.textures);
-            return component;
+            return new StaticRenderObject().upload(shader, createVertexBuffer(rawMeshData), createIndexBuffer(mesh.getIndices()), scene.textures);
         }
         throw new RuntimeException("Failed to create static object.");
+    }
+
+    public static FloatBuffer createVertexBuffer(float[] rawMeshData) {
+        FloatBuffer vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
+        for (float v : rawMeshData) vertBuffer.put(v);
+        return vertBuffer.flip();
+    }
+
+    public static IntBuffer createIndexBuffer(int[] indices) {
+        IntBuffer pIndices = BufferUtils.createIntBuffer(indices.length);
+        for (int i : indices) pIndices.put(i);
+        return pIndices.flip();
     }
 }

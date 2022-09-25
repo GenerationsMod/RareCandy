@@ -1,6 +1,7 @@
 package com.pixelmongenerations.rarecandy.rendering.shader;
 
-import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
+import com.pixelmongenerations.pkl.scene.material.Material;
+import com.pixelmongenerations.rarecandy.pipeline.Uniform;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -24,8 +25,9 @@ import java.util.Objects;
  */
 @Deprecated
 public class ShaderProgram {
-    public static final ShaderProgram ANIMATED_SHADER = new ShaderProgram("animated");
-    public static final ShaderProgram STATIC_SHADER = new ShaderProgram("static");
+    public static final ShaderProgram ANIMATED = new ShaderProgram("animated");
+    public static final ShaderProgram STATIC = new ShaderProgram("static");
+    public static final ShaderProgram FALLBACK = new ShaderProgram("fallback");
 
     private final int id;
     public final Map<String, Uniform> uniforms;
@@ -34,11 +36,8 @@ public class ShaderProgram {
         this.id = GL20C.glCreateProgram();
         this.uniforms = new HashMap<>();
 
-        String vertexShaderText = loadShader(shaderName + "/" + shaderName + ".vs.glsl");
-
-        addVertShader(vertexShaderText);
+        addVertShader(loadShader(shaderName + "/" + shaderName + ".vs.glsl"));
         addFragShader(loadShader(shaderName + "/" + shaderName + ".fs.glsl"));
-        addAttribs(vertexShaderText);
         compileShader();
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
@@ -146,29 +145,6 @@ public class ShaderProgram {
                     }
                 }
             }
-        }
-    }
-
-    private void addAttribs(String shaderText) {
-        final String ATTRIBUTE_KEYWORD = "attribute";
-        int attributeStartLocation = shaderText.indexOf(ATTRIBUTE_KEYWORD);
-        int attribNumber = 0;
-        while (attributeStartLocation != -1) {
-            if (!(attributeStartLocation != 0 && (Character.isWhitespace(shaderText.charAt(attributeStartLocation - 1)) || shaderText.charAt(attributeStartLocation - 1) == ';') && Character.isWhitespace(shaderText.charAt(attributeStartLocation + ATTRIBUTE_KEYWORD.length())))) {
-                attributeStartLocation = shaderText.indexOf(ATTRIBUTE_KEYWORD, attributeStartLocation + ATTRIBUTE_KEYWORD.length());
-                continue;
-            }
-
-            int begin = attributeStartLocation + ATTRIBUTE_KEYWORD.length() + 1;
-            int end = shaderText.indexOf(";", begin);
-
-            String attributeLine = shaderText.substring(begin, end).trim();
-            String attributeName = attributeLine.substring(attributeLine.indexOf(' ') + 1).trim();
-
-            setAttribLocation(attributeName, attribNumber);
-            attribNumber++;
-
-            attributeStartLocation = shaderText.indexOf(ATTRIBUTE_KEYWORD, attributeStartLocation + ATTRIBUTE_KEYWORD.length());
         }
     }
 

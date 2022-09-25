@@ -6,12 +6,12 @@ import org.joml.Matrix4f;
 public class InstanceState {
 
     public final Matrix4f transformationMatrix;
-    public final Matrix4f modelViewMatrix;
+    public final Matrix4f modelMatrix;
     public final String materialId;
 
     public InstanceState(Matrix4f transformationMatrix, Matrix4f modelViewMatrix, String materialId) {
         this.transformationMatrix = transformationMatrix;
-        this.modelViewMatrix = modelViewMatrix;
+        this.modelMatrix = modelViewMatrix;
         this.materialId = materialId;
     }
 }

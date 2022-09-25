@@ -16,12 +16,12 @@ public class TransparencyFeatureTest extends FeatureTest {
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
         RenderObject transparentModel = loadAnimatedModel("solosis");
-        scene.add(transparentModel, new InstanceState(new Matrix4f().translate(new Vector3f(1, 1, 1)).scale(new Vector3f(0.02f, 0.02f, 0.02f)), viewMatrix, "shiny"));
+        scene.addObject(transparentModel, new InstanceState(new Matrix4f().translate(new Vector3f(1, 1, 1)).scale(new Vector3f(0.02f, 0.02f, 0.02f)), viewMatrix, "shiny"));
     }
 
     @Override
     public void update(RareCandy scene, double deltaTime) {
-        for (InstanceState object : scene.getAllInstances()) {
+        for (InstanceState object : scene.getObjects()) {
             object.transformationMatrix.rotate((float) deltaTime, 0, 1, 0);
         }
     }

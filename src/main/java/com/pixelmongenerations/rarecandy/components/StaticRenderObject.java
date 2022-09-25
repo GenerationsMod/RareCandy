@@ -1,7 +1,7 @@
 package com.pixelmongenerations.rarecandy.components;
 
-import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
-import com.pixelmongenerations.pixelmonassetutils.scene.material.Texture;
+import com.pixelmongenerations.pkl.scene.material.Material;
+import com.pixelmongenerations.pkl.scene.material.Texture;
 import com.pixelmongenerations.rarecandy.core.VertexLayout;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
@@ -20,7 +20,7 @@ import static org.lwjgl.opengl.GL15.*;
 public class StaticRenderObject extends SingleModelRenderObject {
 
     @Override
-    public void upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, List<Texture> diffuseTextures) {
+    public RenderObject upload(ShaderProgram program, FloatBuffer vertices, IntBuffer indices, List<Texture> diffuseTextures) {
         this.shaderProgram = program;
 
         this.materials = diffuseTextures.stream().map(Material::new).collect(Collectors.toList());
@@ -40,10 +40,12 @@ public class StaticRenderObject extends SingleModelRenderObject {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
         this.layout = new VertexLayout(vao,
-                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT), // Position
-                new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT), // TexCoords
-                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT) // Normal
+                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inPosition"),
+                new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT, "inTexCoords"),
+                new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inNormal")
         );
+
+        return this;
     }
 
     @Override
@@ -53,7 +55,7 @@ public class StaticRenderObject extends SingleModelRenderObject {
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
 
         for (InstanceState instance : instances) {
-            shaderProgram.updateUniforms(instance.transformationMatrix, getMaterial(instance.materialId), projectionMatrix, instance.modelViewMatrix);
+            shaderProgram.updateUniforms(instance.transformationMatrix, getMaterial(instance.materialId), projectionMatrix, instance.modelMatrix);
             GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
         }
     }

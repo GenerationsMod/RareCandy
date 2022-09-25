@@ -1,6 +1,6 @@
 package com.pixelmongenerations.test;
 
-import com.pixelmongenerations.rarecandy.rendering.CompatibilityProvider;
+import com.pixelmongenerations.rarecandy.rendering.GameInterface;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.rarecandy.settings.Settings;
 import com.pixelmongenerations.rarecandy.settings.TransparencyMethod;
@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL11C;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FeatureTester implements CompatibilityProvider {
+public class FeatureTester implements GameInterface {
     public static final List<FeatureTest> FEATURE_TESTS = List.of(
             new TransparencyFeatureTest(),
             new InstancingTest()
@@ -25,7 +25,7 @@ public class FeatureTester implements CompatibilityProvider {
 
     public FeatureTester(List<FeatureTest> activeFeatures) {
         this.activeFeatures = activeFeatures;
-        RareCandy scene = new RareCandy(new Settings(0, 1, false, TransparencyMethod.NONE), this);
+        var scene = new RareCandy(new Settings(0, 1, false, TransparencyMethod.NONE, true), this);
         GL11C.glClearColor(180 / 255f, 210 / 255f, 255 / 255f, 1.0f);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);
@@ -51,17 +51,21 @@ public class FeatureTester implements CompatibilityProvider {
             this.window.swapBuffers();
             lastFrameTime = frameTime;
 
-/*          long i = Runtime.getRuntime().maxMemory();
-            long j = Runtime.getRuntime().totalMemory();
-            long k = Runtime.getRuntime().freeMemory();
-            long l = j - k;
-            System.out.printf("Mem: % 2d%% %03d/%03dMB%n", l * 100L / i, bytesToMegabytes(l), bytesToMegabytes(i));*/
+            GLFW.glfwSetKeyCallback(this.window.handle, (window1, key, scancode, action, mods) -> {
+                if(key == GLFW.GLFW_KEY_Z) {
+                    long maxMem = Runtime.getRuntime().maxMemory();
+                    long totalMem = Runtime.getRuntime().totalMemory();
+                    long freeMem = Runtime.getRuntime().freeMemory();
+                    long usedMem = totalMem - freeMem;
+                    System.out.printf("Mem: % 2d%% %03d/%03dMB%n", usedMem * 100L / maxMem, usedMem / 1000000, maxMem / 1000000);
+                }
+            });
         }
         this.window.destroy();
     }
 
     public static void main(String[] args) {
-        List<FeatureTest> activeTests = new ArrayList<>();
+        var activeTests = new ArrayList<FeatureTest>();
         if (args.length > 0) {
             for (String arg : args) {
                 for (FeatureTest featureTest : FEATURE_TESTS) {

@@ -18,7 +18,7 @@ public class Window {
     public final int width;
     public final int height;
     public GLCapabilities gl;
-    private long handle;
+    public long handle;
 
     public Window(String title, int width, int height) {
 //        System.loadLibrary("renderdoc");

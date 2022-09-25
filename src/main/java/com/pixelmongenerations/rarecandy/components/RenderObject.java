@@ -1,6 +1,6 @@
 package com.pixelmongenerations.rarecandy.components;
 
-import com.pixelmongenerations.pixelmonassetutils.scene.material.Material;
+import com.pixelmongenerations.pkl.scene.material.Material;
 import com.pixelmongenerations.rarecandy.core.VertexLayout;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
@@ -15,6 +15,7 @@ public abstract class RenderObject {
     protected int indexCount;
     protected VertexLayout layout;
     protected Map<String, Material> variants;
+    public boolean loaded;
 
     public abstract void render(Matrix4f projectionMatrix, List<InstanceState> instances);
 

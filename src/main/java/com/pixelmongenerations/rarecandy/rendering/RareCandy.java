@@ -1,29 +1,40 @@
 package com.pixelmongenerations.rarecandy.rendering;
 
+import com.pixelmongenerations.pkl.reader.GlbReader;
+import com.pixelmongenerations.rarecandy.OldModelLoader;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
+import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import com.pixelmongenerations.rarecandy.settings.Settings;
 import org.lwjgl.opengl.GL11C;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.*;
 
 public class RareCandy {
 
+    private final ExecutorService modelLoadingPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 4);
+    private final RenderObject placeholderObject;
     private final Settings settings;
     private final Map<RenderObject, List<InstanceState>> objectMap = new HashMap<>();
-    public final CompatibilityProvider provider;
+    public final GameInterface provider;
 
-    public RareCandy(Settings settings, CompatibilityProvider provider) {
+    public RareCandy(Settings settings, GameInterface provider) {
         this.settings = settings;
         this.provider = provider;
+        this.placeholderObject = loadPlaceholderModel();
     }
 
-    public void add(RenderObject object, InstanceState state) {
+    public void addObject(RenderObject object, InstanceState state) {
         this.objectMap.putIfAbsent(object, new ArrayList<>());
         List<InstanceState> instances = this.objectMap.get(object);
         instances.add(state);
+    }
+
+    public void preRender() {
+        for (RenderObject object : this.objectMap.keySet()) {
+            object.update();
+        }
     }
 
     public void render(boolean updateState, boolean clearInstances) {
@@ -46,18 +57,22 @@ public class RareCandy {
         }
     }
 
-    public void preRender() {
-        for (RenderObject object : this.objectMap.keySet()) {
-            object.update();
+    public RenderObject loadPlaceholderModel() {
+        try {
+            var scene = new GlbReader().read(Objects.requireNonNull(RareCandy.class.getResourceAsStream("/fallback/loading_text.glb"), "Placeholder Model is Missing. Cannot Continue!"));
+            return OldModelLoader.loadStaticFile(scene, ShaderProgram.FALLBACK);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load Placeholder model. Cannot Continue!", e);
         }
     }
 
-    public List<InstanceState> getAllInstances() {
+    public List<InstanceState> getObjects() {
         List<InstanceState> instances = new ArrayList<>();
-        for (RenderObject object : this.objectMap.keySet()) {
-            instances.addAll(this.objectMap.get(object));
-        }
-
+        for (RenderObject object : this.objectMap.keySet()) instances.addAll(this.objectMap.get(object));
         return instances;
+    }
+
+    public static void fatal(String message) {
+        throw new RuntimeException("Fatal RareCandy Error! \"" + message + "\"");
     }
 }

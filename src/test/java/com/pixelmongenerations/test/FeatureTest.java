@@ -1,14 +1,13 @@
 package com.pixelmongenerations.test;
 
-import com.pixelmongenerations.pixelmonassetutils.PixelAsset;
-import com.pixelmongenerations.pixelmonassetutils.reader.GlbReader;
+import com.pixelmongenerations.pkl.PixelAsset;
+import com.pixelmongenerations.pkl.reader.GlbReader;
 import com.pixelmongenerations.rarecandy.OldModelLoader;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
-import com.pixelmongenerations.rarecandy.components.StaticRenderObject;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
+import com.pixelmongenerations.rarecandy.rendering.shader.ShaderProgram;
 import org.joml.Matrix4f;
 
-import java.io.InputStream;
 import java.util.Objects;
 
 public abstract class FeatureTest {
@@ -26,7 +25,7 @@ public abstract class FeatureTest {
 
     protected RenderObject loadStaticModel(String name) {
         PixelAsset model = new PixelAsset(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/" + name + ".pk"), "Failed to read /" + name + ".pk"));
-        return OldModelLoader.loadStaticFile(model.scene, ((GlbReader) model.reader).rawScene);
+        return OldModelLoader.loadStaticFile(model.scene, ShaderProgram.STATIC);
     }
 
     protected RenderObject loadAnimatedModel(String name) {

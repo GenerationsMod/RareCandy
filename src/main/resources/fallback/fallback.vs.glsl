@@ -1,10 +1,10 @@
-uniform mat4 MC_view;
-uniform mat4 MC_model;
-uniform mat4 MC_projection;
+uniform mat4 viewMatrix;
+uniform mat4 modelMatrix;
+uniform mat4 projectionMatrix;
 
 void main() {
-    mat4 worldSpace = MC_projection * MC_view;
-    vec4 worldPosition = MC_model * vec4(inPosition, 1.0);
+    mat4 worldSpace = projectionMatrix * viewMatrix;
+    vec4 worldPosition = modelMatrix * vec4(inPosition, 1.0);
 
     gl_Position = worldSpace * worldPosition;
 }

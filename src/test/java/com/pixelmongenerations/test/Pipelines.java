@@ -1,7 +1,7 @@
 package com.pixelmongenerations.test;
 
 import com.pixelmongenerations.rarecandy.components.AnimatedSolid;
-import com.pixelmongenerations.rarecandy.core.VertexLayout;
+import com.pixelmongenerations.rarecandy.rendering.VertexLayout;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
 import org.joml.Matrix4f;
@@ -50,9 +50,9 @@ public class Pipelines {
                     rawMeshData[index++] = normal.z();
                 }
 
-                return createVertexBuffer(rawMeshData);
+                return Pipeline.createVertexBuffer(rawMeshData);
             })
-            .indexBuilder(mesh -> createIndexBuffer(mesh.getIndices()))
+            .indexBuilder(mesh -> Pipeline.createIndexBuffer(mesh.getIndices()))
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("lightPosition", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0, 2, 0)))
@@ -149,9 +149,9 @@ public class Pipelines {
                     }
                 }
 
-                return createVertexBuffer(rawMeshData);
+                return Pipeline.createVertexBuffer(rawMeshData);
             })
-            .indexBuilder(mesh -> createIndexBuffer(mesh.getIndices()))
+            .indexBuilder(mesh -> Pipeline.createIndexBuffer(mesh.getIndices()))
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("lightPosition", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0, 2, 0)))
@@ -177,23 +177,11 @@ public class Pipelines {
     }
 
     private static String builtin(String name) {
-        try (var is = Pipelines.class.getResourceAsStream("/shaders/" + name)) {
+        try (var is = Pipeline.class.getResourceAsStream("/shaders/" + name)) {
             assert is != null;
             return new String(is.readAllBytes());
         } catch (IOException e) {
             throw new RuntimeException("Failed to read built in shader", e);
         }
-    }
-
-    private static FloatBuffer createVertexBuffer(float[] rawMeshData) {
-        var vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
-        for (var v : rawMeshData) vertBuffer.put(v);
-        return vertBuffer.flip();
-    }
-
-    private static IntBuffer createIndexBuffer(int[] indices) {
-        var pIndices = BufferUtils.createIntBuffer(indices.length);
-        for (var i : indices) pIndices.put(i);
-        return pIndices.flip();
     }
 }

@@ -23,9 +23,8 @@ public class Animation {
     }
 
     public double getAnimationTime(double passedSecondsSinceStart) {
-        var timeSinceStart = passedSecondsSinceStart;
         var tps = (float) (animation.mTicksPerSecond() != 0 ? animation.mTicksPerSecond() : 25.0f);
-        var tickTime = timeSinceStart * tps;
+        var tickTime = passedSecondsSinceStart * tps;
         return (tickTime % (float) animation.mDuration());
     }
 

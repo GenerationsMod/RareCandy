@@ -1,4 +1,4 @@
-package com.pixelmongenerations.rarecandy.core;
+package com.pixelmongenerations.rarecandy.rendering;
 
 import org.lwjgl.opengl.*;
 

@@ -1,6 +1,7 @@
 package com.pixelmongenerations.test.tests;
 
 import com.pixelmongenerations.rarecandy.components.AnimatedSolid;
+import com.pixelmongenerations.rarecandy.components.RenderObjects;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.test.FeatureTest;
@@ -13,7 +14,7 @@ import java.util.stream.Stream;
 public class AnimationTest extends FeatureTest {
     private final double startTime = System.currentTimeMillis();
     private final Stream<String> models = Stream.of("eevee", "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
-    private List<AnimatedSolid> objects;
+    private List<RenderObjects<AnimatedSolid>> objects;
     private boolean alreadyUpdated;
 
     public AnimationTest() {
@@ -43,8 +44,10 @@ public class AnimationTest extends FeatureTest {
         if ((int) timePassed % 3 == 0) {
             if (!alreadyUpdated) {
                 for (var object : objects) {
-                    object.activeAnimation++;
-                    if (object.activeAnimation >= object.animations.length) object.activeAnimation = 0;
+                    for (var animatedSolid : object) {
+                        animatedSolid.activeAnimation++;
+                        if (animatedSolid.activeAnimation >= animatedSolid.animations.length) animatedSolid.activeAnimation = 0;
+                    }
                 }
             }
 
@@ -54,7 +57,9 @@ public class AnimationTest extends FeatureTest {
         }
 
         for (var object : objects) {
-            object.animationTime = object.animations[object.activeAnimation].getAnimationTime(timePassed);
+            for (var animatedSolid : object) {
+                animatedSolid.animationTime = animatedSolid.animations[animatedSolid.activeAnimation].getAnimationTime(timePassed);
+            }
         }
     }
 }

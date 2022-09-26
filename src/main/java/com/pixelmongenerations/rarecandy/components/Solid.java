@@ -2,7 +2,7 @@ package com.pixelmongenerations.rarecandy.components;
 
 import com.pixelmongenerations.pkl.scene.material.Texture;
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
-import com.pixelmongenerations.rarecandy.core.VertexLayout;
+import com.pixelmongenerations.rarecandy.rendering.VertexLayout;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import org.lwjgl.opengl.GL11C;

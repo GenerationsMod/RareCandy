@@ -6,7 +6,6 @@ import com.pixelmongenerations.pkl.reader.InternalFileType;
 import com.pixelmongenerations.pkl.scene.Scene;
 import com.pixelmongenerations.rarecandy.animation.Animation;
 import com.pixelmongenerations.rarecandy.components.AnimatedSolid;
-import com.pixelmongenerations.rarecandy.components.RenderObject;
 import com.pixelmongenerations.rarecandy.components.RenderObjects;
 import com.pixelmongenerations.rarecandy.components.Solid;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
@@ -14,7 +13,6 @@ import com.pixelmongenerations.rarecandy.rendering.Bone;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarFile;
-import org.joml.Matrix4f;
 import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.Assimp;
 import org.tukaani.xz.XZ;
@@ -29,9 +27,10 @@ import java.nio.file.Path;
 /**
  * Pixelmon Asset (.pk) file.
  */
+@SuppressWarnings("unused") // This is an API so it has unused methods
 public class PixelAsset {
 
-    public final Scene scene;
+    public Scene scene;
     public FileReader reader;
 
     public PixelAsset(Path path) {
@@ -47,18 +46,27 @@ public class PixelAsset {
         }
     }
 
-    public PixelAsset(InputStream stream) {
+    public PixelAsset(InputStream stream, Type assetType) {
         try {
-            TarFile tarFile = getTarFile(stream);
-            this.reader = findFormat(tarFile).reader;
-            this.scene = this.reader.read(tarFile);
+            switch (assetType) {
+                case PK -> {
+                    TarFile tarFile = getTarFile(stream);
+                    this.reader = findFormat(tarFile).reader;
+                    this.scene = this.reader.read(tarFile);
+                }
+
+                case GLB -> {
+                    this.reader = new GlbReader();
+                    this.scene = ((GlbReader) this.reader).read(stream);
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException("Failed to load scene", e);
         }
     }
 
-    public RenderObject createStaticObject(Pipeline pipeline) {
-        var objects = new RenderObjects();
+    public RenderObjects<Solid> createStaticObject(Pipeline pipeline) {
+        var objects = new RenderObjects<Solid>();
 
         for (var mesh : scene.meshes) {
             var renderObject = new Solid();
@@ -69,26 +77,30 @@ public class PixelAsset {
         return objects;
     }
 
-    public AnimatedSolid createAnimatedObject(Pipeline pipeline) {
+    public RenderObjects<AnimatedSolid> createAnimatedObject(Pipeline pipeline) {
         var aiScene = ((GlbReader) reader).rawScene;
         if (aiScene.mNumAnimations() == 0) RareCandy.fatal("the imported file does not contain any animations. Assimp Error String: " + Assimp.aiGetErrorString());
+        var objects = new RenderObjects<AnimatedSolid>();
 
-        var mesh = scene.meshes.get(0);
-        var bones = new Bone[mesh.getBones().length];
-        var animations = new Animation[aiScene.mNumAnimations()];
+        for (var mesh : scene.meshes) {
+            var bones = new Bone[mesh.getBones().length];
+            var animations = new Animation[aiScene.mNumAnimations()];
 
-        for (var i = 0; i < mesh.getBones().length; i++) {
-            bones[i] = mesh.getBones()[i];
+            for (var i = 0; i < mesh.getBones().length; i++) {
+                bones[i] = mesh.getBones()[i];
+            }
+
+            for (var i = 0; i < aiScene.mNumAnimations(); i++) {
+                var aiAnim = AIAnimation.create(aiScene.mAnimations().get(i)); // Can't close as it's used in Animation later
+                animations[i] = new Animation(aiAnim, bones, aiScene.mRootNode());
+            }
+
+            var object = new AnimatedSolid(animations);
+            object.upload(mesh, pipeline, scene.textures);
+            objects.add(object);
         }
 
-        for (var i = 0; i < aiScene.mNumAnimations(); i++) {
-            var aiAnim = AIAnimation.create(aiScene.mAnimations().get(i)); // Can't close as it's used in Animation later
-            animations[i] = new Animation(aiAnim, bones, aiScene.mRootNode());
-        }
-
-        var object = new AnimatedSolid(animations, new Matrix4f[bones.length]);
-        object.upload(mesh, pipeline, scene.textures);
-        return object;
+        return objects;
     }
 
     private InternalFileType findFormat(TarFile file) {
@@ -132,5 +144,9 @@ public class PixelAsset {
     private InputStream unlockArchive(byte[] originalBytes) {
         System.arraycopy(XZ.HEADER_MAGIC, 0, originalBytes, 0, XZ.HEADER_MAGIC.length);
         return new ByteArrayInputStream(originalBytes);
+    }
+
+    public enum Type {
+        GLB, PK
     }
 }

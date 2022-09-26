@@ -4,7 +4,7 @@ import com.pixelmongenerations.pkl.scene.material.Material;
 import com.pixelmongenerations.pkl.scene.material.Texture;
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
 import com.pixelmongenerations.rarecandy.animation.Animation;
-import com.pixelmongenerations.rarecandy.core.VertexLayout;
+import com.pixelmongenerations.rarecandy.rendering.VertexLayout;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import org.joml.Matrix4f;
@@ -20,9 +20,9 @@ public class AnimatedSolid extends MeshRenderObject {
     public double animationTime;
     private VertexLayout layout;
 
-    public AnimatedSolid(Animation[] animations, Matrix4f[] boneTransforms) {
+    public AnimatedSolid(Animation[] animations) {
         this.animations = animations;
-        this.boneTransforms = boneTransforms;
+        this.boneTransforms = new Matrix4f[0];
     }
 
     @Override

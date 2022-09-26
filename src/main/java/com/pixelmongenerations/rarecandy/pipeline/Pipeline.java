@@ -2,23 +2,52 @@ package com.pixelmongenerations.rarecandy.pipeline;
 
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
-import com.pixelmongenerations.rarecandy.core.VertexLayout;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
+import com.pixelmongenerations.rarecandy.rendering.VertexLayout;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryStack;
 
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms, Function<Mesh, FloatBuffer> vertexBufferBuilder, Function<Mesh, IntBuffer> indexBuilder, int program) {
+    private static final Builder FALLBACK = new Builder()
+            .shader(
+                    builtin("fallback/fallback.vs.glsl"),
+                    builtin("fallback/fallback.fs.glsl"),
+                    Collections.emptyMap(),
+                    new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inPosition")
+            )
+            .meshBuilder(mesh -> {
+                var sizeOfVertex = Float.BYTES * 3;
+                var rawMeshData = new float[mesh.getVertices().length * sizeOfVertex];
+                var index = 0;
+
+                for (var i = 0; i < mesh.getVertices().length; i++) {
+                    var position = mesh.getVertices()[i];
+                    rawMeshData[index++] = position.x();
+                    rawMeshData[index++] = position.y();
+                    rawMeshData[index++] = position.z();
+                }
+
+                return createVertexBuffer(rawMeshData);
+            })
+            .indexBuilder(mesh -> createIndexBuffer(mesh.getIndices()))
+            .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
+            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()));
 
     public void bind() {
         GL20C.glUseProgram(program);
@@ -30,6 +59,33 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
             if(!uniformSuppliers.containsKey(name)) RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
             uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
         }
+    }
+
+    public static Pipeline fallback(Supplier<Matrix4f> projectionMatrix) {
+        return new Pipeline.Builder(FALLBACK)
+                .supplyUniform("projectionMatrix", ctx -> ctx.uniform().uploadMat4f(projectionMatrix.get()))
+                .build();
+    }
+
+    public static String builtin(String name) {
+        try (var is = Pipeline.class.getResourceAsStream("/" + name)) {
+            assert is != null;
+            return new String(is.readAllBytes());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read built in shader", e);
+        }
+    }
+
+    public static FloatBuffer createVertexBuffer(float[] rawMeshData) {
+        var vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
+        for (var v : rawMeshData) vertBuffer.put(v);
+        return vertBuffer.flip();
+    }
+
+    public static IntBuffer createIndexBuffer(int[] indices) {
+        var pIndices = BufferUtils.createIntBuffer(indices.length);
+        for (var i : indices) pIndices.put(i);
+        return pIndices.flip();
     }
 
     public static class Builder {

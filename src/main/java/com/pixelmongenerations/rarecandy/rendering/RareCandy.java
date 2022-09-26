@@ -1,24 +1,32 @@
 package com.pixelmongenerations.rarecandy.rendering;
 
+import com.pixelmongenerations.pkl.PixelAsset;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
+import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.settings.Settings;
+import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11C;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 public class RareCandy {
 
-    private final ExecutorService modelLoadingPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 4);
+    private final ExecutorService modelLoadingPool;
     private final Settings settings;
     private final Map<RenderObject, List<InstanceState>> objectMap = new HashMap<>();
+    private final RenderObject fallbackModel;
 
-    public RareCandy(Settings settings) {
+    public RareCandy(Settings settings, Supplier<Matrix4f> projectionMatrix) {
         this.settings = settings;
+        this.modelLoadingPool = Executors.newFixedThreadPool(settings.modelLoadingThreads());
+        var model = new PixelAsset(Objects.requireNonNull(RareCandy.class.getResourceAsStream("/fallback/loading_text.glb"), "Fallback Model Missing!"), PixelAsset.Type.GLB);
+        this.fallbackModel = model.createStaticObject(Pipeline.fallback(projectionMatrix));
     }
 
     public void addObject(RenderObject object, InstanceState state) {
@@ -59,7 +67,13 @@ public class RareCandy {
         return instances;
     }
 
+    public RenderObject createModel(@NotNull InputStream is, PixelAsset.Type type, Pipeline pipeline) {
+        PixelAsset model = new PixelAsset(is, PixelAsset.Type.PK);
+        return model.createAnimatedObject(pipeline);
+    }
+
     public static void fatal(String message) {
         throw new RuntimeException("Fatal RareCandy Error! '" + message + "'");
     }
+
 }

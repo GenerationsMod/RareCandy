@@ -1,8 +1,7 @@
 package com.pixelmongenerations.test;
 
 import com.pixelmongenerations.pkl.PixelAsset;
-import com.pixelmongenerations.pkl.reader.GlbReader;
-import com.pixelmongenerations.rarecandy.OldModelLoader;
+import com.pixelmongenerations.rarecandy.components.AnimatedSolid;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import org.joml.Matrix4f;
@@ -27,8 +26,8 @@ public abstract class FeatureTest {
         return model.createStaticObject(Pipelines.staticPipeline(() -> FeatureTester.PROJECTION_MATRIX));
     }
 
-    protected RenderObject loadAnimatedModel(String name) {
+    protected AnimatedSolid loadAnimatedModel(String name) {
         PixelAsset model = new PixelAsset(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"), "Failed to read /" + name + ".pk"));
-        return OldModelLoader.loadAnimatedFile(model.scene, ((GlbReader) model.reader).rawScene, Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX));
+        return model.createAnimatedObject(Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX));
     }
 }

@@ -186,14 +186,14 @@ public class Pipelines {
     }
 
     private static FloatBuffer createVertexBuffer(float[] rawMeshData) {
-        FloatBuffer vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
-        for (float v : rawMeshData) vertBuffer.put(v);
+        var vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
+        for (var v : rawMeshData) vertBuffer.put(v);
         return vertBuffer.flip();
     }
 
     private static IntBuffer createIndexBuffer(int[] indices) {
-        IntBuffer pIndices = BufferUtils.createIntBuffer(indices.length);
-        for (int i : indices) pIndices.put(i);
+        var pIndices = BufferUtils.createIntBuffer(indices.length);
+        for (var i : indices) pIndices.put(i);
         return pIndices.flip();
     }
 }

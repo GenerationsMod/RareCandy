@@ -8,7 +8,10 @@ public class Bone {
     public VertexWeight[] weights;
     public Matrix4f offsetMatrix;
 
-    public Matrix4f finalTransformation; // TODO: figure out what to do with this
+    @Override
+    public String toString() {
+        return name;
+    }
 
     public static class VertexWeight {
 

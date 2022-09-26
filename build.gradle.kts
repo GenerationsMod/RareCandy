@@ -37,6 +37,9 @@ dependencies {
     addNative(this, "org.lwjgl", "lwjgl-stb")
     addNative(this, "org.lwjgl", "lwjgl-glfw")
     addNative(this, "org.lwjgl", "lwjgl-opengl")
+
+    compileOnly("org.slf4j:slf4j-api:2.0.2")
+    testImplementation("org.slf4j:slf4j-jdk14:2.0.2")
 }
 
 publishing {

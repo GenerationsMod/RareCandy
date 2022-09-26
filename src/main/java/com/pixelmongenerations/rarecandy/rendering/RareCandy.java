@@ -7,26 +7,29 @@ import com.pixelmongenerations.rarecandy.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11C;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 public class RareCandy {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
     private final ExecutorService modelLoadingPool;
     private final Settings settings;
     private final Map<RenderObject, List<InstanceState>> objectMap = new HashMap<>();
     private final RenderObject fallbackModel;
 
     public RareCandy(Settings settings, Supplier<Matrix4f> projectionMatrix) {
+        var startLoad = System.currentTimeMillis();
         this.settings = settings;
         this.modelLoadingPool = Executors.newFixedThreadPool(settings.modelLoadingThreads());
         var model = new PixelAsset(Objects.requireNonNull(RareCandy.class.getResourceAsStream("/fallback/loading_text.glb"), "Fallback Model Missing!"), PixelAsset.Type.GLB);
         this.fallbackModel = model.createStaticObject(Pipeline.fallback(projectionMatrix));
+        LOGGER.info("RareCandy Startup took " + (System.currentTimeMillis() - startLoad) + "ms");
     }
 
     public void addObject(RenderObject object, InstanceState state) {

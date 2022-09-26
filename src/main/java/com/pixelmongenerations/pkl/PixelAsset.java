@@ -4,8 +4,6 @@ import com.pixelmongenerations.pkl.reader.FileReader;
 import com.pixelmongenerations.pkl.reader.GlbReader;
 import com.pixelmongenerations.pkl.reader.InternalFileType;
 import com.pixelmongenerations.pkl.scene.Scene;
-import com.pixelmongenerations.pkl.scene.material.Texture;
-import com.pixelmongenerations.pkl.scene.objects.Mesh;
 import com.pixelmongenerations.rarecandy.animation.Animation;
 import com.pixelmongenerations.rarecandy.components.AnimatedSolid;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
@@ -18,7 +16,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.joml.Matrix4f;
 import org.lwjgl.assimp.AIAnimation;
-import org.lwjgl.assimp.AITexture;
 import org.lwjgl.assimp.Assimp;
 import org.tukaani.xz.XZ;
 import org.tukaani.xz.XZInputStream;
@@ -28,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
 /**
  * Pixelmon Asset (.pk) file.
@@ -64,7 +60,7 @@ public class PixelAsset {
     public RenderObject createStaticObject(Pipeline pipeline) {
         var objects = new RenderObjects();
 
-        for (Mesh mesh : scene.meshes) {
+        for (var mesh : scene.meshes) {
             var renderObject = new Solid();
             renderObject.upload(mesh, pipeline, scene.textures);
             objects.add(renderObject);
@@ -90,37 +86,9 @@ public class PixelAsset {
             animations[i] = new Animation(aiAnim, bones, aiScene.mRootNode());
         }
 
-        var rawTextures = new ArrayList<AITexture>();
-
-        var pTextures = aiScene.mTextures();
-        if (pTextures != null) {
-            for (var i = 0; i < aiScene.mNumTextures(); i++) {
-                rawTextures.add(AITexture.create(pTextures.get(i)));
-            }
-        } else {
-            throw new RuntimeException("How do you expect us to render without textures? Use colours? we don't support that yet!");
-        }
-
-        var textures = new ArrayList<Texture>();
-        for (var rawTexture : rawTextures) {
-            if (rawTexture.mHeight() > 0) {
-                throw new RuntimeException(".glb file had texture with height of 0");
-            } else {
-                textures.add(new Texture(rawTexture.pcDataCompressed(), rawTexture.mFilename().dataString()));
-            }
-        }
-
         var object = new AnimatedSolid(animations, new Matrix4f[bones.length]);
-        object.upload(mesh, pipeline, textures);
+        object.upload(mesh, pipeline, scene.textures);
         return object;
-    }
-
-    /**
-     * We change 1 bit to make file readers fail to load the file or find its format. I would rather not have reforged digging through the assets honestly.
-     */
-    public static byte[] lockArchive(byte[] originalBytes) {
-        originalBytes[0] = (byte) 6;
-        return originalBytes;
     }
 
     private InternalFileType findFormat(TarFile file) {

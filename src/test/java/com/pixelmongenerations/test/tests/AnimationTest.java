@@ -7,7 +7,6 @@ import com.pixelmongenerations.test.FeatureTest;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -15,6 +14,7 @@ public class AnimationTest extends FeatureTest {
     private final double startTime = System.currentTimeMillis();
     private final Stream<String> models = Stream.of("eevee", "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
     private List<AnimatedSolid> objects;
+    private boolean alreadyUpdated;
 
     public AnimationTest() {
         super("animation", "Tests the animation system");
@@ -34,17 +34,27 @@ public class AnimationTest extends FeatureTest {
 
     @Override
     public void update(RareCandy scene, double deltaTime) {
-        var timePassed = (System.currentTimeMillis() - startTime) / 1000;
+        var timePassed = ((System.currentTimeMillis() - startTime) / 1000);
 
         for (var object : scene.getObjects()) {
             object.transformationMatrix().rotate((float) deltaTime, 0, 1, 0);
         }
 
-        for (var object : objects) {
-            if (timePassed % 3 == 0) {
-                object.activeAnimation++;
-                if(object.activeAnimation >= object.animations.length) object.activeAnimation = 0;
+        if ((int) timePassed % 3 == 0) {
+            if (!alreadyUpdated) {
+                for (var object : objects) {
+                    object.activeAnimation++;
+                    if (object.activeAnimation >= object.animations.length) object.activeAnimation = 0;
+                }
             }
+
+            alreadyUpdated = true;
+        } else {
+            alreadyUpdated = false;
+        }
+
+        for (var object : objects) {
+            object.animationTime = object.animations[object.activeAnimation].getAnimationTime(timePassed);
         }
     }
 }

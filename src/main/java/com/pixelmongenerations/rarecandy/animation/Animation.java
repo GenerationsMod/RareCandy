@@ -10,7 +10,6 @@ import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AINodeAnim;
 
 public class Animation {
-    private static final long TIMER = System.currentTimeMillis();
     private final AIAnimation animation;
     private final Bone[] bones;
     private final AINode rootNode;
@@ -23,13 +22,15 @@ public class Animation {
         this.name = animation.mName().dataString();
     }
 
-    public Matrix4f[] getTransformsForFrame(int offset) {
-        var boneTransforms = new Matrix4f[bones.length];
-        var timeSinceStart = (double) (System.currentTimeMillis() - TIMER) / 1000.0 + offset;
+    public double getAnimationTime(double passedSecondsSinceStart) {
+        var timeSinceStart = passedSecondsSinceStart;
         var tps = (float) (animation.mTicksPerSecond() != 0 ? animation.mTicksPerSecond() : 25.0f);
         var tickTime = timeSinceStart * tps;
-        var animTime = (tickTime % (float) animation.mDuration());
+        return (tickTime % (float) animation.mDuration());
+    }
 
+    public Matrix4f[] getTransformsForFrame(double animTime) {
+        var boneTransforms = new Matrix4f[bones.length];
         readNodeHierarchy((float) animTime, rootNode, new Matrix4f().identity(), boneTransforms);
         return boneTransforms;
     }

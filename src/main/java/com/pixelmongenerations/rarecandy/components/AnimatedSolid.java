@@ -17,7 +17,7 @@ public class AnimatedSolid extends MeshRenderObject {
     public final Animation[] animations;
     public Matrix4f[] boneTransforms;
     public int activeAnimation;
-    public int offset;
+    public double animationTime;
     private VertexLayout layout;
 
     public AnimatedSolid(Animation[] animations, Matrix4f[] boneTransforms) {
@@ -58,6 +58,6 @@ public class AnimatedSolid extends MeshRenderObject {
 
     @Override
     public void update() {
-        this.boneTransforms = animations[activeAnimation].getTransformsForFrame(offset);
+        this.boneTransforms = animations[activeAnimation].getTransformsForFrame(animationTime);
     }
 }

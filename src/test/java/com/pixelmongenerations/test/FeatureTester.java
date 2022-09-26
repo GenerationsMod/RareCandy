@@ -3,6 +3,7 @@ package com.pixelmongenerations.test;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.rarecandy.settings.Settings;
 import com.pixelmongenerations.rarecandy.settings.TransparencyMethod;
+import com.pixelmongenerations.test.tests.AnimationTest;
 import com.pixelmongenerations.test.tests.InstancingTest;
 import com.pixelmongenerations.test.tests.TransparencyFeatureTest;
 import org.joml.Matrix4f;
@@ -15,7 +16,8 @@ import java.util.List;
 public class FeatureTester {
     public static final List<FeatureTest> FEATURE_TESTS = List.of(
             new TransparencyFeatureTest(),
-            new InstancingTest()
+            new InstancingTest(),
+            new AnimationTest()
     );
     public static final Window WINDOW = new Window("RareCandy Feature Test", 1920, 1080);
     public static final Matrix4f PROJECTION_MATRIX = new Matrix4f().perspective((float) Math.toRadians(90), (float) WINDOW.width / WINDOW.height, 0.1f, 1000.0f);
@@ -47,10 +49,10 @@ public class FeatureTester {
 
             GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
             scene.render(true, false);
-            this.WINDOW.swapBuffers();
+            WINDOW.swapBuffers();
             lastFrameTime = frameTime;
 
-            GLFW.glfwSetKeyCallback(this.WINDOW.handle, (window1, key, scancode, action, mods) -> {
+            GLFW.glfwSetKeyCallback(WINDOW.handle, (window1, key, scancode, action, mods) -> {
                 if(key == GLFW.GLFW_KEY_Z) {
                     long maxMem = Runtime.getRuntime().maxMemory();
                     long totalMem = Runtime.getRuntime().totalMemory();
@@ -60,7 +62,7 @@ public class FeatureTester {
                 }
             });
         }
-        this.WINDOW.destroy();
+        WINDOW.destroy();
     }
 
     public static void main(String[] args) {

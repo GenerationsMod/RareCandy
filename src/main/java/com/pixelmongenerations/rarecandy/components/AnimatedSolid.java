@@ -15,6 +15,7 @@ import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AINodeAnim;
 import org.lwjgl.opengl.GL11C;
+import org.lwjgl.opengl.GL15C;
 
 import java.util.List;
 
@@ -27,12 +28,14 @@ public class AnimatedSolid extends MeshRenderObject {
     public Matrix4f[] boneTransforms;
     public AINode root;
     public AIAnimation animation;
+    private VertexLayout layout;
 
     @Override
     public void upload(Mesh mesh, Pipeline pipeline, List<Texture> diffuseTextures) {
         super.upload(mesh, pipeline, diffuseTextures);
 
-        VertexLayout layout = new VertexLayout(vao,
+        layout = new VertexLayout(
+                vao,
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inPosition"),
                 new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT, "inTexCoords"),
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inNormal"),
@@ -45,15 +48,13 @@ public class AnimatedSolid extends MeshRenderObject {
     @Override
     public void render(List<InstanceState> instances) {
         pipeline.bind();
-        //pipeline.uniforms.get("gBones").uploadMat4fs(boneTransforms);
-        throw new RuntimeException("Fix the line above");
-        /*this.layout.bind();
+        layout.bind();
         GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
 
         for (InstanceState instance : instances) {
-            pipeline.updateUniforms(instance, getMaterial(instance.materialId()));
+            pipeline.updateUniforms(instance, this);
             GL11C.glDrawElements(GL11C.GL_TRIANGLES, this.indexCount, GL11C.GL_UNSIGNED_INT, 0);
-        }*/
+        }
     }
 
     public Material getMaterial(String materialId) {

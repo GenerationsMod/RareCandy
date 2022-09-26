@@ -28,7 +28,7 @@ public abstract class FeatureTest {
     }
 
     protected RenderObject loadAnimatedModel(String name) {
-        PixelAsset model = new PixelAsset(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/" + name + ".pk"), "Failed to read /" + name + ".pk"));
+        PixelAsset model = new PixelAsset(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"), "Failed to read /" + name + ".pk"));
         return OldModelLoader.loadAnimatedFile(model.scene, ((GlbReader) model.reader).rawScene, Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX));
     }
 }

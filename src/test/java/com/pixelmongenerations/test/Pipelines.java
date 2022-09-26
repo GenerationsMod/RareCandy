@@ -1,5 +1,6 @@
 package com.pixelmongenerations.test;
 
+import com.pixelmongenerations.rarecandy.components.AnimatedSolid;
 import com.pixelmongenerations.rarecandy.core.VertexLayout;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
@@ -76,18 +77,9 @@ public class Pipelines {
                     new VertexLayout.AttribLayout(4, GL11C.GL_FLOAT, "boneDataB")
             )
             .meshBuilder(mesh -> {
-                int boneInfoOffset = 11; // 3 (Pos) + 2 (TexCoord) + 3 (Normal) + 3 (Tangent)
-                int sizeOfVertex = boneInfoOffset + 4 + 4; // boneInfoOffset + 4 (BoneInfo1) + 4 (BoneInfo2)
+                int boneInfoOffset = 3 + 2 + 3 + 3;
+                int sizeOfVertex = boneInfoOffset + 4 * 2;
 
-                //=Vertex Data Format=
-                // position data 3f
-                // texcoord data 2f
-                // normal   data 3f
-                // tangent  data 3f
-                //
-                // bone		info 4f
-                // bone		info 4f
-                //====================
                 float[] rawMeshData = new float[mesh.getVertices().length * sizeOfVertex];
                 int index = 0;
 
@@ -163,12 +155,14 @@ public class Pipelines {
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("lightPosition", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0, 2, 0)))
-            .supplyUniform("LIGHT_reflectivity", ctx -> ctx.uniform().uploadFloat(0.3f))
-            .supplyUniform("LIGHT_shineDamper", ctx -> ctx.uniform().uploadFloat(0.3f))
+            .supplyUniform("LIGHT_reflectivity", ctx -> ctx.uniform().uploadFloat(0.1f))
+            .supplyUniform("LIGHT_shineDamper", ctx -> ctx.uniform().uploadFloat(0.5f))
+            .supplyUniform("LIGHT_color", ctx -> ctx.uniform().uploadVec3f(new Vector3f(1, 1, 1)))
             .supplyUniform("diffuse", ctx -> {
                 ctx.object().getMaterial(ctx.instance().materialId()).diffuseTexture.bind(0);
                 ctx.uniform().uploadInt(0);
-            });
+            })
+            .supplyUniform("gBones", ctx -> ctx.uniform().uploadMat4fs(((AnimatedSolid) ctx.object()).boneTransforms));
 
     public static Pipeline staticPipeline(Supplier<Matrix4f> projectionMatrix) {
         return new Pipeline.Builder(STATIC)

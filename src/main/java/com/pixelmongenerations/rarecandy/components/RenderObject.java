@@ -15,18 +15,22 @@ public abstract class RenderObject {
     protected List<Material> materials = new ArrayList<>();
     protected int indexCount;
     protected Map<String, Material> variants;
+    protected boolean ready = false;
 
     public abstract void render(List<InstanceState> instances);
 
     public void update() {}
+
+    public boolean isReady() {
+        return ready;
+    }
 
     public Set<String> availableVariants() {
         return variants.keySet();
     }
 
     public Material getMaterial(@Nullable String materialId) {
-        if (!variants.containsKey(materialId)) return materials.get(0);
-        else return variants.get(materialId);
+        return variants.getOrDefault(materialId, materials.get(0));
     }
 }
 

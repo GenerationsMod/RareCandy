@@ -1,87 +1,87 @@
 package com.pixelmongenerations.rarecandy.animation;
 
-import com.pixelmongenerations.pkl.assimp.AssimpUtils;
+import com.pixelmongenerations.rarecandy.Pair;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.lwjgl.assimp.AINodeAnim;
 
 public class AnimationMath {
 
-    public static void calcInterpolatedPosition(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
-        if (pNodeAnim.mNumPositionKeys() == 1) {
-            Out.set(AssimpUtils.from(pNodeAnim.mPositionKeys().get(0).mValue()));
-            return;
+    public static Vector3f calcInterpolatedPosition(float AnimationTime, AnimationStorage.AnimationNode node) {
+        if (node.positionKeys.size() == 1) {
+            return node.getDefaultPosition();
         }
 
-        var PositionIndex = findPosition(AnimationTime, pNodeAnim);
-        var NextPositionIndex = (PositionIndex + 1);
-        var DeltaTime = (float) (pNodeAnim.mPositionKeys().get(NextPositionIndex).mTime() - pNodeAnim.mPositionKeys().get(PositionIndex).mTime());
-        var Factor = (AnimationTime - (float) pNodeAnim.mPositionKeys().get(PositionIndex).mTime()) / DeltaTime;
-        Vector3f Start = AssimpUtils.from(pNodeAnim.mPositionKeys().get(PositionIndex).mValue());
-        Vector3f End = AssimpUtils.from(pNodeAnim.mPositionKeys().get(NextPositionIndex).mValue());
-        Vector3f Delta = End.sub(Start);
-        Out.set(Start.add(Delta.mul(Factor)));
+        var positions = findPositions(AnimationTime, node);
+        var deltaTime = (float) (positions.b() - positions.a());
+        var factor = (float) (double) positions.a() / deltaTime;
+        var start = new Vector3f(node.positionKeys.get(positions.a()));
+        var end = new Vector3f(node.positionKeys.get(positions.b()));
+        var delta = new Vector3f(end.sub(start));
+        return new Vector3f(start.add(delta.mul(factor)));
     }
 
-    public static void calcInterpolatedRotation(Quaternionf Out, float AnimationTime, AINodeAnim pNodeAnim) {
-        if (pNodeAnim.mNumRotationKeys() == 1) {
-            Out.set(AssimpUtils.from(pNodeAnim.mRotationKeys().get(0).mValue()));
-            return;
+    public static Quaternionf calcInterpolatedRotation(float animTime, AnimationStorage.AnimationNode node) {
+        if (node.rotationKeys.size() == 1) {
+            return new Quaternionf(node.getDefaultRotation());
         }
 
-        int RotationIndex = findRotation(AnimationTime, pNodeAnim);
-        int NextRotationIndex = (RotationIndex + 1);
-        assert (NextRotationIndex < pNodeAnim.mNumRotationKeys());
-        float DeltaTime = (float) (pNodeAnim.mRotationKeys().get(NextRotationIndex).mTime() - pNodeAnim.mRotationKeys().get(RotationIndex).mTime());
-        float Factor = (AnimationTime - (float) pNodeAnim.mRotationKeys().get(RotationIndex).mTime()) / DeltaTime;
-        assert (Factor >= 0.0f && Factor <= 1.0f);
-        Quaternionf StartRotationQ = AssimpUtils.from(pNodeAnim.mRotationKeys().get(RotationIndex).mValue());
-        Quaternionf EndRotationQ = AssimpUtils.from(pNodeAnim.mRotationKeys().get(NextRotationIndex).mValue());
-        Out.set(StartRotationQ.slerp(EndRotationQ, Factor));
+        var rotations = findRotations(animTime, node);
+        var deltaTime = (float) (rotations.b() - rotations.a());
+        var factor = (float) (double) rotations.a() / deltaTime;
+        var start = new Quaternionf(node.rotationKeys.get(rotations.a()));
+        var end = new Quaternionf(node.rotationKeys.get(rotations.b()));
+        return new Quaternionf(start.slerp(end, factor));
     }
 
-    public static Vector3f calcInterpolatedScaling(Vector3f Out, float AnimationTime, AINodeAnim pNodeAnim) {
-        if (pNodeAnim.mNumScalingKeys() == 1) return AssimpUtils.from(pNodeAnim.mScalingKeys().get(0).mValue());
+    public static Vector3f calcInterpolatedScaling(float animTime, AnimationStorage.AnimationNode node) {
+        if (node.scaleKeys.size() == 1) return node.getDefaultScale();
 
-        int ScalingIndex = findScaling(AnimationTime, pNodeAnim);
-        int NextScalingIndex = (ScalingIndex + 1);
-        assert (NextScalingIndex < pNodeAnim.mNumScalingKeys());
-        float DeltaTime = (float) (pNodeAnim.mScalingKeys().get(NextScalingIndex).mTime() - pNodeAnim.mScalingKeys().get(ScalingIndex).mTime());
-        float Factor = (AnimationTime - (float) pNodeAnim.mScalingKeys().get(ScalingIndex).mTime()) / DeltaTime;
-        assert (Factor >= 0.0f && Factor <= 1.0f);
-        Vector3f Start = AssimpUtils.from(pNodeAnim.mScalingKeys().get(ScalingIndex).mValue());
-        Vector3f End = AssimpUtils.from(pNodeAnim.mScalingKeys().get(NextScalingIndex).mValue());
-        Vector3f Delta = End.sub(Start);
-        return Out.set(Start.add(Delta.mul(Factor)));
+        var out = new Vector3f(1, 1, 1);
+        var scalings = findScalings(animTime, node);
+        var deltaTime = (float) (scalings.b() - scalings.a());
+        var factor = (float) (double) scalings.a() / deltaTime;
+        var start = new Vector3f(node.positionKeys.get(scalings.a()));
+        var end = new Vector3f(node.positionKeys.get(scalings.b()));
+        var delta = new Vector3f(end.sub(start));
+        return out.add(start.add(delta.mul(factor)));
     }
 
-    public static int findPosition(float AnimationTime, AINodeAnim pNodeAnim) {
-        for (int i = 0; i < pNodeAnim.mNumPositionKeys() - 1; i++) {
-            if (AnimationTime < (float) pNodeAnim.mPositionKeys().get(i + 1).mTime()) {
-                return i;
+    public static Pair<Double, Double> findPositions(float animTime, AnimationStorage.AnimationNode node) {
+        double lastValue = -1;
+        for (Double aDouble : node.positionKeys.keySet()) {
+            if (animTime < (float) (double) aDouble) {
+                return new Pair<>(lastValue, aDouble);
             }
+
+            lastValue = aDouble;
         }
 
-        return 0;
+        return new Pair<>(0d, 0d);
     }
 
-    public static int findRotation(float AnimationTime, AINodeAnim pNodeAnim) {
-        for (int i = 0; i < pNodeAnim.mNumRotationKeys() - 1; i++) {
-            if (AnimationTime < (float) pNodeAnim.mRotationKeys().get(i + 1).mTime()) {
-                return i;
+    public static Pair<Double, Double> findRotations(float animTime, AnimationStorage.AnimationNode node) {
+        double lastValue = -1;
+        for (Double aDouble : node.rotationKeys.keySet()) {
+            if (animTime < (float) (double) aDouble) {
+                return new Pair<>(lastValue, aDouble);
             }
+
+            lastValue = aDouble;
         }
 
-        return 0;
+        return new Pair<>(0d, 0d);
     }
 
-    public static int findScaling(float AnimationTime, AINodeAnim pNodeAnim) {
-        for (int i = 0; i < pNodeAnim.mNumScalingKeys() - 1; i++) {
-            if (AnimationTime < (float) pNodeAnim.mScalingKeys().get(i + 1).mTime()) {
-                return i;
+    public static Pair<Double, Double> findScalings(float animTime, AnimationStorage.AnimationNode node) {
+        double lastValue = -1;
+        for (Double aDouble : node.scaleKeys.keySet()) {
+            if (animTime < (float) (double) aDouble) {
+                return new Pair<>(lastValue, aDouble);
             }
+
+            lastValue = aDouble;
         }
 
-        return 0;
+        return new Pair<>(0d, 0d);
     }
 }

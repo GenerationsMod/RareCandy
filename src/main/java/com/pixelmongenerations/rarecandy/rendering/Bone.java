@@ -3,7 +3,6 @@ package com.pixelmongenerations.rarecandy.rendering;
 import org.joml.Matrix4f;
 
 public class Bone {
-
     public String name;
     public VertexWeight[] weights;
     public Matrix4f offsetMatrix;

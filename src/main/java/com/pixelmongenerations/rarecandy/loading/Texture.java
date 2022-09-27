@@ -1,22 +1,20 @@
-package com.pixelmongenerations.pkl.scene.material;
+package com.pixelmongenerations.rarecandy.loading;
 
-import de.javagl.jgltf.model.image.PixelData;
-import org.lwjgl.opengl.*;
-
-import java.nio.ByteBuffer;
+import com.pixelmongenerations.pkl.reader.TextureReference;
+import org.lwjgl.opengl.GL11C;
+import org.lwjgl.opengl.GL13C;
 
 public class Texture {
 
     public final String name;
     public final int id;
 
-    public Texture(ByteBuffer imageFileBytes, String name) {
-        this.name = name;
+    public Texture(TextureReference reference) {
+        this.name = reference.name();
         this.id = GL11C.glGenTextures();
 
-        PixelData data = de.javagl.jgltf.model.image.PixelDatas.create(imageFileBytes);
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, this.id);
-        GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, data.getWidth(), data.getHeight(), 0, GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, data.getPixelsRGBA());
+        GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, reference.data().getWidth(), reference.data().getHeight(), 0, GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, reference.data().getPixelsRGBA());
 
         GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_S, GL11C.GL_REPEAT);
         GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_T, GL11C.GL_REPEAT);

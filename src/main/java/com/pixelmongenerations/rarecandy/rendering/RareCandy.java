@@ -1,34 +1,25 @@
 package com.pixelmongenerations.rarecandy.rendering;
 
-import com.pixelmongenerations.pkl.PixelAsset;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
-import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
+import com.pixelmongenerations.rarecandy.loading.PKLoader;
 import com.pixelmongenerations.rarecandy.settings.Settings;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RareCandy {
     private static final Logger LOGGER = LoggerFactory.getLogger(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
-    private final ExecutorService modelLoadingPool;
-    private final Settings settings;
+    private final PKLoader loader;
     private final Map<RenderObject, List<InstanceState>> objectMap = new HashMap<>();
-    private final RenderObject fallbackModel;
 
-    public RareCandy(Settings settings, Supplier<Matrix4f> projectionMatrix) {
+    public RareCandy(Settings settings) {
         var startLoad = System.currentTimeMillis();
-        this.settings = settings;
-        this.modelLoadingPool = Executors.newFixedThreadPool(settings.modelLoadingThreads());
-        var model = new PixelAsset(Objects.requireNonNull(RareCandy.class.getResourceAsStream("/fallback/loading_text.glb"), "Fallback Model Missing!"), PixelAsset.Type.GLB);
-        this.fallbackModel = model.createStaticObject(Pipeline.fallback(projectionMatrix));
+        this.loader = new PKLoader(settings.modelLoadingThreads());
         LOGGER.info("RareCandy Startup took " + (System.currentTimeMillis() - startLoad) + "ms");
     }
 
@@ -38,15 +29,12 @@ public class RareCandy {
         instances.add(state);
     }
 
-    public void preRender() {
-        for (RenderObject object : this.objectMap.keySet()) {
-            object.update();
-        }
-    }
-
     public void render(boolean updateState, boolean clearInstances) {
         for (RenderObject object : this.objectMap.keySet()) {
-            object.render(this.objectMap.get(object));
+            if (object.isReady()) {
+                object.update();
+                object.render(this.objectMap.get(object));
+            }
         }
 
         if (updateState) {
@@ -70,9 +58,8 @@ public class RareCandy {
         return instances;
     }
 
-    public RenderObject createModel(@NotNull InputStream is, PixelAsset.Type type, Pipeline pipeline) {
-        PixelAsset model = new PixelAsset(is, PixelAsset.Type.PK);
-        return model.createAnimatedObject(pipeline);
+    public PKLoader getLoader() {
+        return loader;
     }
 
     public static void fatal(String message) {

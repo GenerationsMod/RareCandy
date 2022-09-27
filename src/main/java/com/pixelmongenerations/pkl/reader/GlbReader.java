@@ -3,10 +3,10 @@ package com.pixelmongenerations.pkl.reader;
 import com.pixelmongenerations.pkl.assimp.AssimpUtils;
 import com.pixelmongenerations.pkl.scene.Scene;
 import com.pixelmongenerations.pkl.scene.material.Material;
-import com.pixelmongenerations.pkl.scene.material.Texture;
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
 import de.javagl.jgltf.model.GltfModel;
+import de.javagl.jgltf.model.image.PixelDatas;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarFile;
@@ -28,12 +28,11 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
-public class GlbReader implements FileReader {
+public class GlbReader {
 
-    public GltfModelReader reader = new GltfModelReader();
+    public final GltfModelReader reader = new GltfModelReader();
     public AIScene rawScene;
 
-    @Override
     public Scene read(TarFile file) throws IOException {
         Pair<AIScene, GltfModel> pair = loadScene(file);
         return read(pair);
@@ -50,11 +49,11 @@ public class GlbReader implements FileReader {
         GltfModel model = pair.b();
         this.rawScene = aiScene;
 
-        List<Texture> textures = model.getTextureModels().stream().map(raw -> new Texture(raw.getImageModel().getImageData(), raw.getImageModel().getName())).toList();
-        List<Material> materials = textures.stream().map(Material::new).collect(Collectors.toList());
+        var textures = model.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
+        var materials = textures.stream().map(Material::new).collect(Collectors.toList());
 
-        List<Mesh> meshes = new ArrayList<>();
-        PointerBuffer aiMeshes = requireNonNull(aiScene.mMeshes());
+        var meshes = new ArrayList<Mesh>();
+        var aiMeshes = requireNonNull(aiScene.mMeshes());
         for (int i = 0; i < aiMeshes.capacity(); i++) {
             AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
             meshes.add(convert(aiMesh, materials));
@@ -143,6 +142,6 @@ public class GlbReader implements FileReader {
 
         var material = mesh.mMaterialIndex() >= materials.size() ? null : materials.get(mesh.mMaterialIndex());
 
-        return new Mesh(mesh.mName().dataString(), vertices, indices, normals, texCoords, tangents, bones, material);
+        return new Mesh(mesh.mName().dataString(), vertices, indices, normals, texCoords, tangents, bones);
     }
 }

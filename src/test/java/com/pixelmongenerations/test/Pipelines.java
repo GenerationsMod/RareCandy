@@ -1,18 +1,15 @@
 package com.pixelmongenerations.test;
 
 import com.pixelmongenerations.rarecandy.components.AnimatedSolid;
-import com.pixelmongenerations.rarecandy.rendering.VertexLayout;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
+import com.pixelmongenerations.rarecandy.rendering.VertexLayout;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11C;
 
 import java.io.IOException;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
@@ -60,7 +57,7 @@ public class Pipelines {
             .supplyUniform("LIGHT_shineDamper", ctx -> ctx.uniform().uploadFloat(0.3f))
             .supplyUniform("LIGHT_color", ctx -> ctx.uniform().uploadVec3f(new Vector3f(1, 1, 1)))
             .supplyUniform("diffuse", ctx -> {
-                ctx.object().getMaterial(ctx.instance().materialId()).diffuseTexture.bind(0);
+                ctx.object().getMaterial(ctx.instance().materialId()).getDiffuseTexture().bind(0);
                 ctx.uniform().uploadInt(0);
             });
 
@@ -159,7 +156,7 @@ public class Pipelines {
             .supplyUniform("LIGHT_shineDamper", ctx -> ctx.uniform().uploadFloat(0.5f))
             .supplyUniform("LIGHT_color", ctx -> ctx.uniform().uploadVec3f(new Vector3f(1, 1, 1)))
             .supplyUniform("diffuse", ctx -> {
-                ctx.object().getMaterial(ctx.instance().materialId()).diffuseTexture.bind(0);
+                ctx.object().getMaterial(ctx.instance().materialId()).getDiffuseTexture().bind(0);
                 ctx.uniform().uploadInt(0);
             })
             .supplyUniform("gBones", ctx -> ctx.uniform().uploadMat4fs(((AnimatedSolid) ctx.object()).boneTransforms));

@@ -12,12 +12,24 @@ import java.util.List;
  */
 public class RenderObjects<T extends MeshRenderObject> extends RenderObject implements Iterable<T> {
     private final List<T> renderObjects = new ArrayList<>();
+    public boolean allObjectsAdded = false;
 
     @Override
     public void render(List<InstanceState> instances) {
         for (var renderObject : this.renderObjects) {
             renderObject.render(instances);
         }
+    }
+
+    public boolean isReady() {
+        if (!ready) {
+            for (var renderObject : this.renderObjects) {
+                if (!renderObject.isReady()) break;
+                ready = true;
+            }
+        }
+
+        return ready && allObjectsAdded;
     }
 
     @Override

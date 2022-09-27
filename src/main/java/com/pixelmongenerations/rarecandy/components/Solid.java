@@ -1,10 +1,10 @@
 package com.pixelmongenerations.rarecandy.components;
 
-import com.pixelmongenerations.pkl.scene.material.Texture;
+import com.pixelmongenerations.pkl.reader.TextureReference;
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
-import com.pixelmongenerations.rarecandy.rendering.VertexLayout;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
+import com.pixelmongenerations.rarecandy.rendering.VertexLayout;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL15C;
 
@@ -12,13 +12,12 @@ import java.util.List;
 
 public class Solid extends MeshRenderObject {
 
-    private VertexLayout layout;
-
     @Override
-    public void upload(Mesh mesh, Pipeline pipeline, List<Texture> diffuseTextures) {
-        super.upload(mesh, pipeline, diffuseTextures);
-
-        this.layout = new VertexLayout(vao,
+    public void upload(Mesh mesh, Pipeline pipeline, List<TextureReference> diffuseTextures) {
+        createUploadTask(
+                mesh,
+                pipeline,
+                diffuseTextures,
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inPosition"),
                 new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT, "inTexCoords"),
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inNormal")

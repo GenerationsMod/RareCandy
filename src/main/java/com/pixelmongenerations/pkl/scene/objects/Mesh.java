@@ -1,7 +1,6 @@
 package com.pixelmongenerations.pkl.scene.objects;
 
 import com.pixelmongenerations.rarecandy.rendering.Bone;
-import com.pixelmongenerations.pkl.scene.material.Material;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -13,13 +12,12 @@ public class Mesh implements SceneObject {
     private final int[] indices;
     private final Vector3f[] normals;
     private final Vector2f[] texCoords;
-    private final Material material;
     @Nullable
     private final Vector3f[] tangents;
     @Nullable
     private final Bone[] skeleton;
 
-    public Mesh(String name, Vector3f[] vertices, int[] indices, Vector3f[] normals, Vector2f[] texCoords, @Nullable Vector3f[] tangents, @Nullable Bone[] skeleton, @Nullable Material material) {
+    public Mesh(String name, Vector3f[] vertices, int[] indices, Vector3f[] normals, Vector2f[] texCoords, @Nullable Vector3f[] tangents, @Nullable Bone[] skeleton) {
         this.name = name;
         this.vertices = vertices;
         this.indices = indices;
@@ -27,7 +25,6 @@ public class Mesh implements SceneObject {
         this.texCoords = texCoords;
         this.tangents = tangents;
         this.skeleton = skeleton;
-        this.material = material;
     }
 
     @Override
@@ -53,10 +50,6 @@ public class Mesh implements SceneObject {
 
     public Vector2f[] getTexCoords() {
         return texCoords;
-    }
-
-    public Material getMaterial() {
-        return material;
     }
 
     @Nullable

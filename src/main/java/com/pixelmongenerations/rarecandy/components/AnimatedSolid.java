@@ -1,12 +1,12 @@
 package com.pixelmongenerations.rarecandy.components;
 
-import com.pixelmongenerations.pkl.scene.material.Material;
-import com.pixelmongenerations.pkl.scene.material.Texture;
+import com.pixelmongenerations.pkl.reader.TextureReference;
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
-import com.pixelmongenerations.rarecandy.animation.Animation;
-import com.pixelmongenerations.rarecandy.rendering.VertexLayout;
+import com.pixelmongenerations.rarecandy.animation.AnimationStorage;
+import com.pixelmongenerations.rarecandy.animation.ModelNode;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
+import com.pixelmongenerations.rarecandy.rendering.VertexLayout;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL15C;
@@ -14,23 +14,24 @@ import org.lwjgl.opengl.GL15C;
 import java.util.List;
 
 public class AnimatedSolid extends MeshRenderObject {
-    public final Animation[] animations;
+    public final AnimationStorage[] animations;
+    public final ModelNode node;
     public Matrix4f[] boneTransforms;
     public int activeAnimation;
     public double animationTime;
-    private VertexLayout layout;
 
-    public AnimatedSolid(Animation[] animations) {
+    public AnimatedSolid(AnimationStorage[] animations, ModelNode node) {
         this.animations = animations;
         this.boneTransforms = new Matrix4f[0];
+        this.node = node;
     }
 
     @Override
-    public void upload(Mesh mesh, Pipeline pipeline, List<Texture> diffuseTextures) {
-        super.upload(mesh, pipeline, diffuseTextures);
-
-        layout = new VertexLayout(
-                vao,
+    public void upload(Mesh mesh, Pipeline pipeline, List<TextureReference> diffuseTextures) {
+        createUploadTask(
+                mesh,
+                pipeline,
+                diffuseTextures,
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inPosition"),
                 new VertexLayout.AttribLayout(2, GL11C.GL_FLOAT, "inTexCoords"),
                 new VertexLayout.AttribLayout(3, GL11C.GL_FLOAT, "inNormal"),
@@ -52,12 +53,9 @@ public class AnimatedSolid extends MeshRenderObject {
         }
     }
 
-    public Material getMaterial(String materialId) {
-        return variants.getOrDefault(materialId, materials.get(0));
-    }
-
     @Override
     public void update() {
-        this.boneTransforms = animations[activeAnimation].getTransformsForFrame(animationTime);
+        super.update();
+        this.boneTransforms = animations[activeAnimation].getFrameTransform(animationTime, this.node);
     }
 }

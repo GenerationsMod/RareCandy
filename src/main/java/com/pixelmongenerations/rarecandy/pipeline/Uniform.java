@@ -34,7 +34,12 @@ public class Uniform {
     }
 
     public void uploadMat4fs(Matrix4f[] values) {
-        for (int i = 0; i < values.length; i++) {
+        for (var i = 0; i < values.length; i++) {
+            if (values[i] == null) {
+                //throw new RuntimeException("Matrix4f at index " + i + " is null. If you are passing an animation, Is it the right animation for this model?");
+                values[i] = new Matrix4f().identity();
+            }
+
             values[i].get(MAT4_TRANSFER_BUFFER);
             GL20C.glUniformMatrix4fv(getArrayLocation(i), false, MAT4_TRANSFER_BUFFER);
         }

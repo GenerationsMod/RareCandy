@@ -26,7 +26,7 @@ public class FeatureTester {
 
     public FeatureTester(List<FeatureTest> activeFeatures) {
         this.activeFeatures = activeFeatures;
-        var scene = new RareCandy(new Settings(0, 1, false, TransparencyMethod.NONE, true, 2), () -> PROJECTION_MATRIX);
+        var scene = new RareCandy(new Settings(0, 1, false, TransparencyMethod.NONE, true, 2));
         GL11C.glClearColor(180 / 255f, 210 / 255f, 255 / 255f, 1.0f);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);
@@ -34,16 +34,15 @@ public class FeatureTester {
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
         System.out.println("Loading " + activeFeatures.size() + " Feature Tests");
-        for (FeatureTest activeFeature : this.activeFeatures) {
+        for (var activeFeature : this.activeFeatures) {
             activeFeature.init(scene, this.viewMatrix);
         }
 
         double lastFrameTime = 0;
         while (!WINDOW.shouldClose()) {
             WINDOW.pollEvents();
-            double frameTime = GLFW.glfwGetTime();
-            scene.preRender();
-            for (FeatureTest activeFeature : this.activeFeatures) {
+            var frameTime = GLFW.glfwGetTime();
+            for (var activeFeature : this.activeFeatures) {
                 activeFeature.update(scene, frameTime - lastFrameTime);
             }
 

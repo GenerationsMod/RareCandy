@@ -1,14 +1,12 @@
 package com.pixelmongenerations.rarecandy.animation;
 
 import com.pixelmongenerations.pkl.assimp.AssimpUtils;
-import com.pixelmongenerations.rarecandy.rendering.Bone;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.assimp.AINodeAnim;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class AnimationStorage {
 
@@ -43,19 +41,19 @@ public class AnimationStorage {
     protected void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
         var name = node.name;
         var transform = node.transform;
-        var pNodeAnim = animationNodes.get(name);
+        var animNode = animationNodes.get(name);
 
-        if (pNodeAnim != null) {
-            var scale = AnimationMath.calcInterpolatedScaling(animTime, pNodeAnim);
+        if (animNode != null) {
+            var scale = AnimationMath.calcInterpolatedScaling(animTime, animNode);
             var scalingMat = new Matrix4f().identity().scale(scale.x(), scale.y(), scale.z());
 
-            var rotation = AnimationMath.calcInterpolatedRotation(animTime, pNodeAnim);
+            var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
             var rotationMat = rotation.get(new Matrix4f().identity());
 
-            var translation = AnimationMath.calcInterpolatedPosition(animTime, pNodeAnim);
+            var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
             var translationMat = new Matrix4f().identity().translate(translation.x(), translation.y(), translation.z());
 
-            transform = new Matrix4f(translationMat).mul(new Matrix4f(rotationMat)).mul(new Matrix4f(scalingMat));
+            transform = new Matrix4f(translationMat).mul(rotationMat).mul(scalingMat);
         }
 
         transform = new Matrix4f(parentTransform).mul(transform);

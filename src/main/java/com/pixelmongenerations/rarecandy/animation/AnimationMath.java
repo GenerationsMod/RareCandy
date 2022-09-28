@@ -46,69 +46,30 @@ public class AnimationMath {
         return out;
     }
 
-    public static Pair<Storage.TimeKey<Vector3f>, Storage.TimeKey<Vector3f>> findPositions(float animTime, AnimationStorage.AnimationNode node) {
-        Storage.TimeKey<Vector3f> lastValue = null;
-        for (var positionKeyTime : node.positionKeys) {
-            if (animTime < positionKeyTime.time()) {
-                return new Pair<>(lastValue, positionKeyTime);
-            }
-
-            lastValue = positionKeyTime;
+    public static Pair<TransformStorage.TimeKey<Vector3f>, TransformStorage.TimeKey<Vector3f>> findPositions(float animTime, AnimationStorage.AnimationNode node) {
+        for (var key : node.positionKeys) {
+            if (animTime < key.time())
+                return new Pair<>(node.positionKeys.getBefore(key), key);
         }
 
-        lastValue = null;
-        for (var positionKey : node.scaleKeys) {
-            if (lastValue != null) {
-                return new Pair<>(lastValue, positionKey);
-            } else {
-                lastValue = positionKey;
-            }
-        }
-
-        throw new RuntimeException("Unreachable");
+        return new Pair<>(node.positionKeys.get(0), node.positionKeys.get(1));
     }
 
-    public static Pair<Storage.TimeKey<Quaternionf>, Storage.TimeKey<Quaternionf>> findRotations(float animTime, AnimationStorage.AnimationNode node) {
-        Storage.TimeKey<Quaternionf> lastValue = null;
-        for (var rotationKey : node.rotationKeys) {
-            if (animTime < rotationKey.time()) {
-                return new Pair<>(lastValue, rotationKey);
-            }
-
-            lastValue = rotationKey;
+    public static Pair<TransformStorage.TimeKey<Quaternionf>, TransformStorage.TimeKey<Quaternionf>> findRotations(float animTime, AnimationStorage.AnimationNode node) {
+        for (var key : node.rotationKeys) {
+            if (animTime < key.time())
+                return new Pair<>(node.rotationKeys.getBefore(key), key);
         }
 
-        lastValue = null;
-        for (var rotationKey : node.rotationKeys) {
-            if (lastValue != null) {
-                return new Pair<>(lastValue, rotationKey);
-            } else {
-                lastValue = rotationKey;
-            }
-        }
-
-        throw new RuntimeException("Unreachable");
+        return new Pair<>(node.rotationKeys.get(0), node.rotationKeys.get(1));
     }
 
-    public static Pair<Storage.TimeKey<Vector3f>, Storage.TimeKey<Vector3f>> findScalings(float animTime, AnimationStorage.AnimationNode node) {
-        Storage.TimeKey<Vector3f> lastValue = null;
-        for (var scaleKey : node.scaleKeys) {
-            if (animTime < scaleKey.time()) {
-                return new Pair<>(lastValue, scaleKey);
-            }
-
-            lastValue = scaleKey;
+    public static Pair<TransformStorage.TimeKey<Vector3f>, TransformStorage.TimeKey<Vector3f>> findScalings(float animTime, AnimationStorage.AnimationNode node) {
+        for (var key : node.scaleKeys) {
+            if (animTime < key.time())
+                return new Pair<>(node.scaleKeys.getBefore(key), key);
         }
 
-        lastValue = null;
-        for (var scaleKey : node.scaleKeys) {
-            if (lastValue != null) {
-                return new Pair<>(lastValue, scaleKey);
-            } else {
-                lastValue = scaleKey;
-            }
-        }
-
-        throw new RuntimeException("Unreachable");
+        return new Pair<>(node.scaleKeys.get(0), node.scaleKeys.get(1));
     }
 }

@@ -73,9 +73,9 @@ public class AnimationStorage {
     }
 
     public static class AnimationNode {
-        public final Storage<Vector3f> positionKeys = new Storage<>();
-        public final Storage<Quaternionf> rotationKeys = new Storage<>();
-        public final Storage<Vector3f> scaleKeys = new Storage<>();
+        public final TransformStorage<Vector3f> positionKeys = new TransformStorage<>();
+        public final TransformStorage<Quaternionf> rotationKeys = new TransformStorage<>();
+        public final TransformStorage<Vector3f> scaleKeys = new TransformStorage<>();
 
         public AnimationNode(AINodeAnim animNode) {
             if (animNode.mNumPositionKeys() > 0) {
@@ -97,15 +97,15 @@ public class AnimationStorage {
             }
         }
 
-        public Storage.TimeKey<Vector3f> getDefaultPosition() {
+        public TransformStorage.TimeKey<Vector3f> getDefaultPosition() {
             return positionKeys.get(0);
         }
 
-        public Storage.TimeKey<Quaternionf> getDefaultRotation() {
+        public TransformStorage.TimeKey<Quaternionf> getDefaultRotation() {
             return rotationKeys.get(0);
         }
 
-        public Storage.TimeKey<Vector3f> getDefaultScale() {
+        public TransformStorage.TimeKey<Vector3f> getDefaultScale() {
             return scaleKeys.get(0);
         }
     }

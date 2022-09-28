@@ -40,7 +40,7 @@ public class AnimationStorage {
 
     protected void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
         var name = node.name;
-        var transform = node.transform;
+        var nodeTransform = node.transform;
         var animNode = animationNodes.get(name);
 
         if (animNode != null) {
@@ -53,15 +53,15 @@ public class AnimationStorage {
             var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
             var translationMat = new Matrix4f().identity().translate(translation.x(), translation.y(), translation.z());
 
-            transform = new Matrix4f(translationMat).mul(rotationMat).mul(scalingMat);
+            nodeTransform = new Matrix4f(translationMat).mul(rotationMat).mul(scalingMat);
         }
 
-        transform = new Matrix4f(parentTransform).mul(transform);
+        var globalTransform = new Matrix4f(parentTransform).mul(nodeTransform);
         var bone = bones.get(name);
-        if(bone != null) boneTransforms[bones.getId(bone)] = new Matrix4f().identity().mul(new Matrix4f(transform)).mul(bone.offsetMatrix);
+        if(bone != null) boneTransforms[bones.getId(bone)] = new Matrix4f().mul(new Matrix4f(globalTransform)).mul(bone.offsetMatrix);
 
         for (var child : node.children) {
-            readNodeHierarchy(animTime, child, transform, boneTransforms);
+            readNodeHierarchy(animTime, child, globalTransform, boneTransforms);
         }
     }
 

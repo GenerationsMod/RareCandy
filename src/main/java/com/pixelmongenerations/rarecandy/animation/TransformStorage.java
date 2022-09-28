@@ -2,13 +2,12 @@ package com.pixelmongenerations.rarecandy.animation;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.TreeMap;
 
 public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>> {
     public final TreeMap<Double, TimeKey<T>> keys = new TreeMap<>();
+    public TimeKey<T>[] values = new TimeKey[0];
 
     @NotNull
     @Override
@@ -21,14 +20,14 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
     }
 
     public TimeKey<T> get(int i) {
-        return values().get(i);
+        return values()[i];
     }
 
     public int indexOf(TimeKey<T> value) {
         var values = values();
 
-        for (int i = 0; i < values.size(); i++) {
-            if(values.get(i) == value) return i;
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] == value) return i;
         }
 
         return 0;
@@ -39,8 +38,12 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
         return get(index - 1);
     }
 
-    public List<TimeKey<T>> values() {
-        return new ArrayList<>(keys.values());
+    public TimeKey<T>[] values() {
+        if (keys.size() != values.length) {
+            values = keys.values().<TimeKey<T>>toArray(TimeKey[]::new);
+        }
+
+        return values;
     }
 
     public int size() {

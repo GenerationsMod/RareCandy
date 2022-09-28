@@ -19,7 +19,6 @@ import org.tukaani.xz.XZInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 
 /**
  * Pixelmon Asset (.pk) file.
@@ -52,7 +51,6 @@ public class PixelAsset {
             if (assimpScene.mNumAnimations() == 0) {
                 object = (T) new Solid();
             } else {
-                var bones = Arrays.copyOf(mesh.getBones(), mesh.getBones().length);
                 var animations = new AnimationStorage[assimpScene.mNumAnimations()];
 
                 for (var i = 0; i < assimpScene.mNumAnimations(); i++) {

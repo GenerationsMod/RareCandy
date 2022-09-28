@@ -6,13 +6,12 @@ import org.joml.Vector3f;
 
 public class AnimationMath {
 
-    public static Vector3f calcInterpolatedPosition(float AnimationTime, AnimationStorage.AnimationNode node) {
+    public static Vector3f calcInterpolatedPosition(float animTime, AnimationStorage.AnimationNode node) {
         if (node.positionKeys.size() == 1) return node.getDefaultPosition().value();
 
-        var positions = findPositions(AnimationTime, node);
+        var positions = findPositions(animTime, node);
         var deltaTime = (float) (positions.b().time() - positions.a().time());
         var factor = (float) positions.a().time() / deltaTime;
-        assert (factor >= 0.0f && factor <= 1.0f);
         var start = new Vector3f(positions.a().value());
         var end = new Vector3f(positions.b().value());
         var delta = new Vector3f(end.sub(start));
@@ -25,7 +24,6 @@ public class AnimationMath {
         var rotations = findRotations(animTime, node);
         var deltaTime = (float) (rotations.b().time() - rotations.a().time());
         var factor = (float) rotations.a().time() / deltaTime;
-        assert (factor >= 0.0f && factor <= 1.0f);
         var start = new Quaternionf(rotations.a().value());
         var end = new Quaternionf(rotations.b().value());
         return new Quaternionf(start.slerp(end, factor));
@@ -39,7 +37,6 @@ public class AnimationMath {
         var scalings = findScalings(animTime, node);
         var deltaTime = (float) (scalings.b().time() - scalings.a().time());
         var factor = (float) scalings.a().time() / deltaTime;
-        assert (factor >= 0.0f && factor <= 1.0f);
         var start = new Vector3f(scalings.a().value());
         var end = new Vector3f(scalings.b().value());
         var delta = new Vector3f(end.sub(start));

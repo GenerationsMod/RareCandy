@@ -52,6 +52,10 @@ public class RareCandy {
         }
     }
 
+    public void close() {
+        this.loader.close();
+    }
+
     public List<InstanceState> getObjects() {
         List<InstanceState> instances = new ArrayList<>();
         for (RenderObject object : this.objectMap.keySet()) instances.addAll(this.objectMap.get(object));

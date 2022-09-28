@@ -33,12 +33,11 @@ public class FeatureTester {
         GL11C.glEnable(GL11C.GL_CULL_FACE);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        System.out.println("Loading " + activeFeatures.size() + " Feature Tests");
         for (var activeFeature : this.activeFeatures) {
             activeFeature.init(scene, this.viewMatrix);
         }
 
-        double lastFrameTime = 0;
+        var lastFrameTime = 0d;
         while (!WINDOW.shouldClose()) {
             WINDOW.pollEvents();
             var frameTime = GLFW.glfwGetTime();
@@ -61,7 +60,9 @@ public class FeatureTester {
                 }
             });
         }
+
         WINDOW.destroy();
+        scene.close();
     }
 
     public static void main(String[] args) {

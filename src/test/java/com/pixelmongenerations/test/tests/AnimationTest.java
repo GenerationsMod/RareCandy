@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 public class AnimationTest extends FeatureTest {
     private final double startTime = System.currentTimeMillis();
-    private final Stream<String> models = Stream.of("eevee"); // , "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon"
+    private final Stream<String> models = Stream.of("glaceon"); //"eevee", "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
     private List<RenderObjects<AnimatedSolid>> objects;
     private boolean alreadyUpdated;
 
@@ -45,8 +45,8 @@ public class AnimationTest extends FeatureTest {
             if (!alreadyUpdated) {
                 for (var object : objects) {
                     for (var animatedSolid : object) {
-                        animatedSolid.activeAnimation++;
-                        if (animatedSolid.activeAnimation >= animatedSolid.animations.length) animatedSolid.activeAnimation = 0;
+                        //animatedSolid.activeAnimation++;
+                        //if (animatedSolid.activeAnimation >= animatedSolid.animations.length) animatedSolid.activeAnimation = 0;
                     }
                 }
             }

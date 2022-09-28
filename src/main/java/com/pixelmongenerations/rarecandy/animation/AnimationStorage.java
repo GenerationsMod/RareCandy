@@ -26,10 +26,10 @@ public class AnimationStorage {
         fillAnimationNodes(rawAnimation);
     }
 
-    public double getAnimationTime(double passedSecondsSinceStart) {
+    public double getAnimationTime(double secondsPassed) {
         var tps = ticksPerSecond != 0 ? ticksPerSecond : 25.0f;
-        var tickTime = passedSecondsSinceStart * tps;
-        return (tickTime % (float) animationDuration);
+        var ticksPassed = (float) secondsPassed * tps;
+        return ticksPassed % animationDuration;
     }
 
     public Matrix4f[] getFrameTransform(double animTime, ModelNode rootModelNode) {
@@ -73,56 +73,40 @@ public class AnimationStorage {
     }
 
     public static class AnimationNode {
-        public final TreeMap<Double, Vector3f> positionKeys = new TreeMap<>();
-        public final TreeMap<Double, Quaternionf> rotationKeys = new TreeMap<>();
-        public final TreeMap<Double, Vector3f> scaleKeys = new TreeMap<>();
+        public final Storage<Vector3f> positionKeys = new Storage<>();
+        public final Storage<Quaternionf> rotationKeys = new Storage<>();
+        public final Storage<Vector3f> scaleKeys = new Storage<>();
 
         public AnimationNode(AINodeAnim animNode) {
             if (animNode.mNumPositionKeys() > 0) {
                 for (var positionKey : Objects.requireNonNull(animNode.mPositionKeys(), "Position keys were null")) {
-                    positionKeys.put(positionKey.mTime(), AssimpUtils.from(positionKey.mValue()));
+                    positionKeys.add(positionKey.mTime(), AssimpUtils.from(positionKey.mValue()));
                 }
             }
 
             if (animNode.mNumRotationKeys() > 0) {
                 for (var rotationKey : Objects.requireNonNull(animNode.mRotationKeys(), "Rotation keys were null")) {
-                    rotationKeys.put(rotationKey.mTime(), AssimpUtils.from(rotationKey.mValue()));
+                    rotationKeys.add(rotationKey.mTime(), AssimpUtils.from(rotationKey.mValue()));
                 }
             }
 
             if (animNode.mNumScalingKeys() > 0) {
                 for (var scaleKey : Objects.requireNonNull(animNode.mScalingKeys(), "Scaling keys were null")) {
-                    scaleKeys.put(scaleKey.mTime(), AssimpUtils.from(scaleKey.mValue()));
+                    scaleKeys.add(scaleKey.mTime(), AssimpUtils.from(scaleKey.mValue()));
                 }
             }
         }
 
-        public Matrix4f getTransformForTime(float animTime) {
-            throw new RuntimeException("Not Implemented");
+        public Storage.TimeKey<Vector3f> getDefaultPosition() {
+            return positionKeys.get(0);
         }
 
-        public List<Vector3f> getPositionKeys() {
-            return positionKeys.values().stream().toList();
+        public Storage.TimeKey<Quaternionf> getDefaultRotation() {
+            return rotationKeys.get(0);
         }
 
-        public List<Quaternionf> getRotationKeys() {
-            return rotationKeys.values().stream().toList();
-        }
-
-        public List<Vector3f> getScaleKeys() {
-            return scaleKeys.values().stream().toList();
-        }
-
-        public Vector3f getDefaultPosition() {
-            return positionKeys.get(positionKeys.keySet().stream().toList().get(0));
-        }
-
-        public Quaternionf getDefaultRotation() {
-            return rotationKeys.get(rotationKeys.keySet().stream().toList().get(0));
-        }
-
-        public Vector3f getDefaultScale() {
-            return scaleKeys.get(scaleKeys.keySet().stream().toList().get(0));
+        public Storage.TimeKey<Vector3f> getDefaultScale() {
+            return scaleKeys.get(0);
         }
     }
 

@@ -36,4 +36,8 @@ public class PKLoader {
         objects.update();
         return objects;
     }
+
+    public void close() {
+         modelLoadingPool.shutdown();
+    }
 }

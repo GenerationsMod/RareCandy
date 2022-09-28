@@ -4,6 +4,7 @@ import com.pixelmongenerations.pkl.assimp.AssimpUtils;
 import com.pixelmongenerations.pkl.scene.Scene;
 import com.pixelmongenerations.pkl.scene.material.Material;
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
+import com.pixelmongenerations.rarecandy.Pair;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.image.PixelDatas;
@@ -84,9 +85,6 @@ public class GlbReader {
         }
 
         return new Pair<>(aiScene, model);
-    }
-
-    private record Pair<A, B>(A a, B b) {
     }
 
     private Mesh convert(AIMesh mesh, List<Material> materials) {

@@ -2,6 +2,7 @@ package com.pixelmongenerations.rarecandy.animation;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TreeMap;
 
@@ -12,11 +13,26 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
     @NotNull
     @Override
     public Iterator<TimeKey<T>> iterator() {
-        return keys.values().iterator();
+        return new Iterator<>() {
+            private int i = 0;
+
+            @Override
+            public boolean hasNext() {
+                return values.length > i;
+            }
+
+            @Override
+            public TimeKey<T> next() {
+                return values[i++];
+            }
+        };
     }
 
     public void add(double time, T value) {
-        keys.put(time, new TimeKey<>(time, value));
+        values = Arrays.copyOf(values, values.length + 1);
+        var key = new TimeKey<>(time, values.length - 1, value);
+        keys.put(time, key);
+        values[values.length - 1] = key;
     }
 
     public TimeKey<T> get(int i) {
@@ -24,13 +40,7 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
     }
 
     public int indexOf(TimeKey<T> value) {
-        var values = values();
-
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] == value) return i;
-        }
-
-        return 0;
+        return value.idx;
     }
 
     public TimeKey<T> getBefore(TimeKey<T> valueAhead) {
@@ -39,10 +49,6 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
     }
 
     public TimeKey<T>[] values() {
-        if (keys.size() != values.length) {
-            values = keys.values().<TimeKey<T>>toArray(TimeKey[]::new);
-        }
-
         return values;
     }
 
@@ -50,7 +56,7 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
         return keys.size();
     }
 
-    record TimeKey<T>(double time, T value) implements Comparable<TimeKey<T>> {
+    record TimeKey<T>(double time, int idx, T value) implements Comparable<TimeKey<T>> {
 
         @Override
         public int compareTo(@NotNull TransformStorage.TimeKey<T> timeKey2) {

@@ -25,11 +25,16 @@ public class AnimationTest extends FeatureTest {
     public void init(RareCandy scene, Matrix4f viewMatrix) {
         objects = this.models.map(mdl -> loadAnimatedModel(scene, mdl)).toList();
 
-        for (int i = 0; i < objects.size(); i++) {
+        for (var i = 0; i < objects.size(); i++) {
             var model = objects.get(i);
-            var instance = new InstanceState(new Matrix4f(), viewMatrix, "normal");
-            instance.transformationMatrix().translate(new Vector3f(14 - (i * 4), -2, 8)).scale(new Vector3f(0.06f, 0.06f, 0.06f));
-            scene.addObject(model, instance);
+
+            for (var j = 0; j < 4; j++) {
+                for (int k = 0; k < 20; k++) {
+                    var instance = new InstanceState(new Matrix4f(), viewMatrix, "normal");
+                    instance.transformationMatrix().translate(new Vector3f(14 - (i * 4), -7 + (j * 4), 80 - (k * 4))).scale(new Vector3f(0.06f, 0.06f, 0.06f));
+                    scene.addObject(model, instance);
+                }
+            }
         }
     }
 
@@ -45,8 +50,9 @@ public class AnimationTest extends FeatureTest {
             if (!alreadyUpdated) {
                 for (var object : objects) {
                     for (var animatedSolid : object) {
-                        //animatedSolid.activeAnimation++;
-                        //if (animatedSolid.activeAnimation >= animatedSolid.animations.length) animatedSolid.activeAnimation = 0;
+                        animatedSolid.activeAnimation++;
+                        if (animatedSolid.activeAnimation >= animatedSolid.animations.length) animatedSolid.activeAnimation = 0;
+                        timePassed = System.currentTimeMillis();
                     }
                 }
             }

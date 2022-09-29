@@ -1,14 +1,16 @@
 package com.pixelmongenerations.rarecandy.animation;
 
 import com.pixelmongenerations.pkl.assimp.AssimpUtils;
+import com.pixelmongenerations.rarecandy.rendering.Bone;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.AINodeAnim;
 
 import java.util.*;
 
-public class AnimationStorage {
+public class Animator {
 
     public final String name;
     public final float ticksPerSecond;
@@ -16,14 +18,14 @@ public class AnimationStorage {
     public final Map<String, AnimationNode> animationNodes;
     private final Bones bones;
 
-    public AnimationStorage(RawAnimation rawAnimation) {
-        this.name = rawAnimation.name;
-        this.ticksPerSecond = (float) (rawAnimation.aiAnim.mTicksPerSecond() != 0 ? rawAnimation.aiAnim.mTicksPerSecond() : 25.0f);
-        this.animationDuration = rawAnimation.aiAnim.mDuration();
+    public Animator(AIAnimation aiAnim, Bone[] bones) {
+        this.name = aiAnim.mName().dataString();
+        this.ticksPerSecond = (float) (aiAnim.mTicksPerSecond() != 0 ? aiAnim.mTicksPerSecond() : 25.0f);
+        this.animationDuration = aiAnim.mDuration();
         this.animationNodes = new HashMap<>();
-        this.bones = new Bones(rawAnimation.bones);
+        this.bones = new Bones(bones);
 
-        fillAnimationNodes(rawAnimation);
+        fillAnimationNodes(aiAnim);
     }
 
     public double getAnimationTime(double secondsPassed) {
@@ -65,9 +67,9 @@ public class AnimationStorage {
         }
     }
 
-    private void fillAnimationNodes(RawAnimation rawAnimation) {
-        for (var i = 0; i < rawAnimation.aiAnim.mNumChannels(); i++) {
-            AINodeAnim nodeAnim = AINodeAnim.create(rawAnimation.aiAnim.mChannels().get(i));
+    private void fillAnimationNodes(AIAnimation aiAnim) {
+        for (var i = 0; i < aiAnim.mNumChannels(); i++) {
+            AINodeAnim nodeAnim = AINodeAnim.create(aiAnim.mChannels().get(i));
             animationNodes.put(nodeAnim.mNodeName().dataString(), new AnimationNode(nodeAnim));
         }
     }

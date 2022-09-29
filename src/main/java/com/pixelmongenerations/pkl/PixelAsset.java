@@ -3,9 +3,8 @@ package com.pixelmongenerations.pkl;
 import com.pixelmongenerations.pkl.reader.AssetReference;
 import com.pixelmongenerations.pkl.reader.GlbReader;
 import com.pixelmongenerations.pkl.scene.Scene;
-import com.pixelmongenerations.rarecandy.animation.AnimationStorage;
+import com.pixelmongenerations.rarecandy.animation.Animator;
 import com.pixelmongenerations.rarecandy.animation.ModelNode;
-import com.pixelmongenerations.rarecandy.animation.RawAnimation;
 import com.pixelmongenerations.rarecandy.components.AnimatedSolid;
 import com.pixelmongenerations.rarecandy.components.MeshRenderObject;
 import com.pixelmongenerations.rarecandy.components.RenderObjects;
@@ -46,16 +45,14 @@ public class PixelAsset {
         var assimpScene = READER.rawScene;
 
         for (var mesh : scene.meshes) {
-            T object;
+            T object = (T) new Solid();
 
-            if (assimpScene.mNumAnimations() == 0) {
-                object = (T) new Solid();
-            } else {
-                var animations = new AnimationStorage[assimpScene.mNumAnimations()];
+            if (assimpScene.mNumAnimations() > 0) {
+                var animations = new Animator[assimpScene.mNumAnimations()];
 
                 for (var i = 0; i < assimpScene.mNumAnimations(); i++) {
                     var aiAnim = AIAnimation.create(assimpScene.mAnimations().get(i)); // Can't close as it's used in Animation later
-                    animations[i] = new AnimationStorage(new RawAnimation(aiAnim, mesh.getBones()));
+                    animations[i] = new Animator(aiAnim, mesh.getBones());
                 }
 
                 object = (T) new AnimatedSolid(animations, new ModelNode(assimpScene.mRootNode()));

@@ -1,69 +1,56 @@
 package com.pixelmongenerations.pkl.reader;
 
-import com.pixelmongenerations.pkl.assimp.AssimpUtils;
+import com.pixelmongenerations.pkl.ModelNode;
 import com.pixelmongenerations.pkl.scene.Scene;
 import com.pixelmongenerations.pkl.scene.material.Material;
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
-import com.pixelmongenerations.rarecandy.Pair;
-import com.pixelmongenerations.rarecandy.rendering.Bone;
+import de.javagl.jgltf.model.AccessorModel;
 import de.javagl.jgltf.model.GltfModel;
+import de.javagl.jgltf.model.MeshPrimitiveModel;
 import de.javagl.jgltf.model.image.PixelDatas;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector2f;
 import org.joml.Vector3f;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.assimp.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.requireNonNull;
-
 public class GlbReader {
 
     public final GltfModelReader reader = new GltfModelReader();
-    public AIScene rawScene;
 
     public Scene read(TarFile file) throws IOException {
-        Pair<AIScene, GltfModel> pair = loadScene(file);
-        return read(pair);
+        var model = loadScene(file);
+        return read(model);
     }
 
     public Scene read(InputStream file) throws IOException {
-        Pair<AIScene, GltfModel> pair = loadScene(file.readAllBytes());
-        return read(pair);
+        var model = loadScene(file.readAllBytes());
+        return read(model);
     }
 
     @NotNull
-    private Scene read(Pair<AIScene, GltfModel> pair) {
-        AIScene aiScene = pair.a();
-        GltfModel model = pair.b();
-        this.rawScene = aiScene;
-
+    private Scene read(GltfModel model) {
         var textures = model.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
         var materials = textures.stream().map(Material::new).collect(Collectors.toList());
-
         var meshes = new ArrayList<Mesh>();
-        var aiMeshes = requireNonNull(aiScene.mMeshes());
-        for (int i = 0; i < aiMeshes.capacity(); i++) {
-            AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
-            meshes.add(convert(aiMesh, materials));
+
+        for (var mesh : model.getMeshModels()) {
+            for (var primitiveModel : mesh.getMeshPrimitiveModels()) {
+                meshes.add(convert(primitiveModel, materials));
+            }
         }
 
-        return new Scene(meshes, AssimpUtils.from(requireNonNull(aiScene.mRootNode()).mTransformation()), textures);
+        return new Scene(meshes, model, new ModelNode(model.getNodeModels()), textures);
     }
 
-    private Pair<AIScene, GltfModel> loadScene(TarFile file) throws IOException {
+    private GltfModel loadScene(TarFile file) throws IOException {
         for (TarArchiveEntry entry : file.getEntries()) {
             if (entry.getName().endsWith(".glb")) {
                 return loadScene(file.getInputStream(entry).readAllBytes());
@@ -73,23 +60,33 @@ public class GlbReader {
         throw new RuntimeException("pk format archive contained no glb formatted files");
     }
 
-    private Pair<AIScene, GltfModel> loadScene(byte[] bytes) throws IOException {
-        var model = reader.readWithoutReferences(new ByteArrayInputStream(bytes));
-
-        ByteBuffer buffer = BufferUtils.createByteBuffer(bytes.length);
-        buffer.put(bytes).flip();
-        var aiScene = Assimp.aiImportFileFromMemory(buffer, Assimp.aiProcess_Triangulate | Assimp.aiProcess_FlipUVs | Assimp.aiProcess_CalcTangentSpace | Assimp.aiProcess_LimitBoneWeights, "glb");
-
-        if (aiScene == null || model == null) {
-            throw new RuntimeException("Unable to locate .glb file to load! Reason: " + Assimp.aiGetErrorString());
-        }
-
-        return new Pair<>(aiScene, model);
+    private GltfModel loadScene(byte[] bytes) throws IOException {
+        return reader.readWithoutReferences(new ByteArrayInputStream(bytes));
     }
 
-    private Mesh convert(AIMesh mesh, List<Material> materials) {
-        Vector3f[] vertices = new Vector3f[mesh.mNumVertices()];
-        int[] indices = new int[mesh.mNumFaces() * 3]; // Each face is a triangle, so it must always be 3.
+    private Mesh convert(MeshPrimitiveModel mesh, List<Material> materials) {
+        var indexAccess = mesh.getIndices();
+        var indexBuffer = indexAccess.getBufferViewModel().getBufferViewData().asIntBuffer();
+        var indices = new int[indexAccess.getCount()];
+        for (var i = 0; i < indices.length; i++) {
+            System.out.println("A" + i);
+            if(i == 8310) {
+                System.out.println("break");
+            }
+            indices[i] = indexBuffer.get(i);
+            System.out.println("B" + i);
+        }
+
+        System.out.println("C");
+
+        var positionsAccess = mesh.getAttributes().get("POSITION");
+        var positionBuffer = positionsAccess.getBufferViewModel().getBufferViewData().asFloatBuffer();
+        var vertices = new Vector3f[positionsAccess.getCount()];
+        for (var i = 0; i < vertices.length; i++) {
+            vertices[i] = new Vector3f(positionBuffer.get(i * 3), positionBuffer.get(i * 3 + 1), positionBuffer.get(i * 3 + 2));
+        }
+
+        /*
         Vector3f[] normals = new Vector3f[mesh.mNumVertices()];
         Vector2f[] texCoords = new Vector2f[mesh.mNumVertices() * 2];
         Vector3f[] tangents = new Vector3f[mesh.mNumVertices()];
@@ -136,10 +133,9 @@ public class GlbReader {
         AIVector3D.Buffer aiTangents = requireNonNull(mesh.mTangents());
         for (int i = 0; i < aiTangents.capacity(); i++) {
             tangents[i] = AssimpUtils.from(aiTangents.get(i));
-        }
+        }*/
 
-        var material = mesh.mMaterialIndex() >= materials.size() ? null : materials.get(mesh.mMaterialIndex());
-
-        return new Mesh(mesh.mName().dataString(), vertices, indices, normals, texCoords, tangents, bones);
+        return null;
+        //return new Mesh(mesh.mName().dataString(), vertices, indices, normals, texCoords, tangents, bones);
     }
 }

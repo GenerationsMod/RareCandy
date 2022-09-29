@@ -1,8 +1,9 @@
 package com.pixelmongenerations.rarecandy.animation;
 
+import com.pixelmongenerations.pkl.ModelNode;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
+import de.javagl.jgltf.model.AnimationModel;
 import org.joml.Matrix4f;
-import org.lwjgl.assimp.AIAnimation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,8 +15,8 @@ public class CachedAnimation extends Animation {
     private final Map<Double, Matrix4f[]> cachedBoneTransforms = new HashMap<>();
     private boolean cached = false;
 
-    public CachedAnimation(AIAnimation aiAnim, Bone[] bones) {
-        super(aiAnim, bones);
+    public CachedAnimation(AnimationModel animation, Bone[] bones) {
+        super(animation, bones);
     }
 
     public void cacheAllPossibleFrames(ModelNode rootModelNode) {

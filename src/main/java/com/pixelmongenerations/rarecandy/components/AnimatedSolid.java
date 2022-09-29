@@ -3,7 +3,7 @@ package com.pixelmongenerations.rarecandy.components;
 import com.pixelmongenerations.pkl.reader.TextureReference;
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
 import com.pixelmongenerations.rarecandy.animation.Animation;
-import com.pixelmongenerations.rarecandy.animation.ModelNode;
+import com.pixelmongenerations.pkl.ModelNode;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.VertexLayout;

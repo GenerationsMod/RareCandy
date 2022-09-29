@@ -27,13 +27,11 @@ dependencies {
 
     implementation(platform("org.lwjgl:lwjgl-bom:3.3.1"))
     implementation("org.lwjgl", "lwjgl")
-    implementation("org.lwjgl", "lwjgl-assimp")
     mcDependency(this, "org.lwjgl", "lwjgl-stb")
     mcDependency(this, "org.lwjgl", "lwjgl-glfw")
     mcDependency(this, "org.lwjgl", "lwjgl-opengl")
 
     addNative(this, "org.lwjgl", "lwjgl")
-    addNative(this, "org.lwjgl", "lwjgl-assimp")
     addNative(this, "org.lwjgl", "lwjgl-stb")
     addNative(this, "org.lwjgl", "lwjgl-glfw")
     addNative(this, "org.lwjgl", "lwjgl-opengl")

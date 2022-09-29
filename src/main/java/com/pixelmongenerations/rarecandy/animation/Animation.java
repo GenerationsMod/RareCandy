@@ -1,12 +1,11 @@
 package com.pixelmongenerations.rarecandy.animation;
 
-import com.pixelmongenerations.pkl.assimp.AssimpUtils;
+import com.pixelmongenerations.pkl.ModelNode;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
+import de.javagl.jgltf.model.AnimationModel;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.lwjgl.assimp.AIAnimation;
-import org.lwjgl.assimp.AINodeAnim;
 
 import java.util.*;
 
@@ -18,14 +17,14 @@ public class Animation {
     public final Map<String, AnimationNode> animationNodes;
     protected final Bones bones;
 
-    public Animation(AIAnimation aiAnim, Bone[] bones) {
-        this.name = aiAnim.mName().dataString();
-        this.ticksPerSecond = (float) (aiAnim.mTicksPerSecond() != 0 ? aiAnim.mTicksPerSecond() : 25.0f);
-        this.animationDuration = aiAnim.mDuration();
+    public Animation(AnimationModel animation, Bone[] bones) {
+        this.name = animation.getName();
+        this.ticksPerSecond = 0;//(float) (animation.mTicksPerSecond() != 0 ? animation.mTicksPerSecond() : 25.0f);
+        this.animationDuration = 0;//animation.mDuration();
         this.animationNodes = new HashMap<>();
         this.bones = new Bones(bones);
 
-        fillAnimationNodes(aiAnim);
+        // fillAnimationNodes(animation);
     }
 
     public double getAnimationTime(double secondsPassed) {
@@ -67,20 +66,20 @@ public class Animation {
         }
     }
 
-    private void fillAnimationNodes(AIAnimation aiAnim) {
+/*    private void fillAnimationNodes(AIAnimation aiAnim) {
         for (var i = 0; i < aiAnim.mNumChannels(); i++) {
             AINodeAnim nodeAnim = AINodeAnim.create(aiAnim.mChannels().get(i));
             animationNodes.put(nodeAnim.mNodeName().dataString(), new AnimationNode(nodeAnim));
         }
-    }
+    }*/
 
     public static class AnimationNode {
         public final TransformStorage<Vector3f> positionKeys = new TransformStorage<>();
         public final TransformStorage<Quaternionf> rotationKeys = new TransformStorage<>();
         public final TransformStorage<Vector3f> scaleKeys = new TransformStorage<>();
 
-        public AnimationNode(AINodeAnim animNode) {
-            if (animNode.mNumPositionKeys() > 0) {
+        public AnimationNode(AnimationNode animNode) {
+            /*if (animNode.mNumPositionKeys() > 0) {
                 for (var positionKey : Objects.requireNonNull(animNode.mPositionKeys(), "Position keys were null")) {
                     positionKeys.add(positionKey.mTime(), AssimpUtils.from(positionKey.mValue()));
                 }
@@ -96,7 +95,7 @@ public class Animation {
                 for (var scaleKey : Objects.requireNonNull(animNode.mScalingKeys(), "Scaling keys were null")) {
                     scaleKeys.add(scaleKey.mTime(), AssimpUtils.from(scaleKey.mValue()));
                 }
-            }
+            }*/
         }
 
         public TransformStorage.TimeKey<Vector3f> getDefaultPosition() {

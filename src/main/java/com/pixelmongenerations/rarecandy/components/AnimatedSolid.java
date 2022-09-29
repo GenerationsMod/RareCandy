@@ -2,7 +2,7 @@ package com.pixelmongenerations.rarecandy.components;
 
 import com.pixelmongenerations.pkl.reader.TextureReference;
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
-import com.pixelmongenerations.rarecandy.animation.Animator;
+import com.pixelmongenerations.rarecandy.animation.Animation;
 import com.pixelmongenerations.rarecandy.animation.ModelNode;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
@@ -14,13 +14,13 @@ import org.lwjgl.opengl.GL15C;
 import java.util.List;
 
 public class AnimatedSolid extends MeshRenderObject {
-    public final Animator[] animations;
+    public final Animation[] animations;
     public final ModelNode node;
     public Matrix4f[] boneTransforms;
     public int activeAnimation;
     public double animationTime;
 
-    public AnimatedSolid(Animator[] animations, ModelNode node) {
+    public AnimatedSolid(Animation[] animations, ModelNode node) {
         this.animations = animations;
         this.boneTransforms = new Matrix4f[0];
         this.node = node;

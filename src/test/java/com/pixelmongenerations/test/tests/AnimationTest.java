@@ -50,9 +50,9 @@ public class AnimationTest extends FeatureTest {
             if (!alreadyUpdated) {
                 for (var object : objects) {
                     for (var animatedSolid : object) {
-                        animatedSolid.activeAnimation++;
-                        if (animatedSolid.activeAnimation >= animatedSolid.animations.length) animatedSolid.activeAnimation = 0;
-                        timePassed = System.currentTimeMillis();
+                        // animatedSolid.activeAnimation++;
+                        // if (animatedSolid.activeAnimation >= animatedSolid.animations.length) animatedSolid.activeAnimation = 0;
+                        // timePassed = System.currentTimeMillis();
                     }
                 }
             }

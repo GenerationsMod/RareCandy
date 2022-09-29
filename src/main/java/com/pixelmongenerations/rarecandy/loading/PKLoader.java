@@ -5,6 +5,7 @@ import com.pixelmongenerations.pkl.PixelAsset;
 import com.pixelmongenerations.rarecandy.components.MeshRenderObject;
 import com.pixelmongenerations.rarecandy.components.RenderObjects;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
+import com.pixelmongenerations.rarecandy.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
@@ -13,15 +14,17 @@ import java.util.concurrent.Executors;
 
 public class PKLoader {
     private final ExecutorService modelLoadingPool;
+    private final Settings settings;
 
-    public PKLoader(int modelLoadingThreads) {
-        this.modelLoadingPool = Executors.newFixedThreadPool(modelLoadingThreads);
+    public PKLoader(Settings settings) {
+        this.settings = settings;
+        this.modelLoadingPool = Executors.newFixedThreadPool(settings.modelLoadingThreads());
     }
 
     public <T extends MeshRenderObject> RenderObjects<T> createObject(@NotNull InputStream is, AssetReference.Type type, Pipeline pipeline) {
         var reference = new AssetReference(is, type);
         var objects = new RenderObjects<T>();
-        modelLoadingPool.submit(() -> new PixelAsset(reference).upload(objects, pipeline));
+        modelLoadingPool.submit(() -> new PixelAsset(reference).upload(objects, pipeline, settings));
         return objects;
     }
 
@@ -32,7 +35,7 @@ public class PKLoader {
         var reference = new AssetReference(is, type);
         var objects = new RenderObjects<T>();
         var model = new PixelAsset(reference);
-        model.upload(objects, pipeline);
+        model.upload(objects, pipeline, settings);
         objects.update();
         return objects;
     }

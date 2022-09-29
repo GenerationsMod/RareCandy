@@ -10,15 +10,15 @@ import org.lwjgl.assimp.AINodeAnim;
 
 import java.util.*;
 
-public class Animator {
+public class Animation {
 
     public final String name;
     public final float ticksPerSecond;
     public final double animationDuration;
     public final Map<String, AnimationNode> animationNodes;
-    private final Bones bones;
+    protected final Bones bones;
 
-    public Animator(AIAnimation aiAnim, Bone[] bones) {
+    public Animation(AIAnimation aiAnim, Bone[] bones) {
         this.name = aiAnim.mName().dataString();
         this.ticksPerSecond = (float) (aiAnim.mTicksPerSecond() != 0 ? aiAnim.mTicksPerSecond() : 25.0f);
         this.animationDuration = aiAnim.mDuration();

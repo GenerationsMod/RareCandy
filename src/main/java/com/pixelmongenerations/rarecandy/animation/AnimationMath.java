@@ -6,7 +6,7 @@ import org.joml.Vector3f;
 
 public class AnimationMath {
 
-    public static Vector3f calcInterpolatedPosition(float animTime, Animator.AnimationNode node) {
+    public static Vector3f calcInterpolatedPosition(float animTime, Animation.AnimationNode node) {
         if (node.positionKeys.size() == 1) return node.getDefaultPosition().value();
 
         var positions = findPositions(animTime, node);
@@ -18,7 +18,7 @@ public class AnimationMath {
         return new Vector3f(start.add(delta.mul(factor)));
     }
 
-    public static Quaternionf calcInterpolatedRotation(float animTime, Animator.AnimationNode node) {
+    public static Quaternionf calcInterpolatedRotation(float animTime, Animation.AnimationNode node) {
         if (node.rotationKeys.size() == 1) return new Quaternionf(node.getDefaultRotation().value());
 
         var rotations = findRotations(animTime, node);
@@ -29,7 +29,7 @@ public class AnimationMath {
         return new Quaternionf(start.slerp(end, factor));
     }
 
-    public static Vector3f calcInterpolatedScaling(float animTime, Animator.AnimationNode node) {
+    public static Vector3f calcInterpolatedScaling(float animTime, Animation.AnimationNode node) {
         if (node.scaleKeys.size() == 1) return node.getDefaultScale().value();
 
         var out = new Vector3f();
@@ -42,7 +42,7 @@ public class AnimationMath {
         return out.add(start.add(delta.mul(factor)));
     }
 
-    public static Pair<TransformStorage.TimeKey<Vector3f>, TransformStorage.TimeKey<Vector3f>> findPositions(float animTime, Animator.AnimationNode node) {
+    public static Pair<TransformStorage.TimeKey<Vector3f>, TransformStorage.TimeKey<Vector3f>> findPositions(float animTime, Animation.AnimationNode node) {
         for (var key : node.positionKeys) {
             if (animTime < key.time())
                 return new Pair<>(node.positionKeys.getBefore(key), key);
@@ -51,7 +51,7 @@ public class AnimationMath {
         return new Pair<>(node.positionKeys.get(0), node.positionKeys.get(1));
     }
 
-    public static Pair<TransformStorage.TimeKey<Quaternionf>, TransformStorage.TimeKey<Quaternionf>> findRotations(float animTime, Animator.AnimationNode node) {
+    public static Pair<TransformStorage.TimeKey<Quaternionf>, TransformStorage.TimeKey<Quaternionf>> findRotations(float animTime, Animation.AnimationNode node) {
         for (var key : node.rotationKeys) {
             if (animTime < key.time())
                 return new Pair<>(node.rotationKeys.getBefore(key), key);
@@ -60,7 +60,7 @@ public class AnimationMath {
         return new Pair<>(node.rotationKeys.get(0), node.rotationKeys.get(1));
     }
 
-    public static Pair<TransformStorage.TimeKey<Vector3f>, TransformStorage.TimeKey<Vector3f>> findScalings(float animTime, Animator.AnimationNode node) {
+    public static Pair<TransformStorage.TimeKey<Vector3f>, TransformStorage.TimeKey<Vector3f>> findScalings(float animTime, Animation.AnimationNode node) {
         for (var key : node.scaleKeys) {
             if (animTime < key.time())
                 return new Pair<>(node.scaleKeys.getBefore(key), key);

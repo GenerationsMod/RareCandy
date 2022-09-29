@@ -36,8 +36,7 @@ public class Uniform {
     public void uploadMat4fs(Matrix4f[] values) {
         for (var i = 0; i < values.length; i++) {
             if (values[i] == null) {
-                //throw new RuntimeException("Matrix4f at index " + i + " is null. If you are passing an animation, Is it the right animation for this model?");
-                values[i] = new Matrix4f().identity();
+                throw new RuntimeException("Matrix4f at index " + i + " is null. If you are passing an animation, Is it the right animation for this model?");
             }
 
             values[i].get(MAT4_TRANSFER_BUFFER);

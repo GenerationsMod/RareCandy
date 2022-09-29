@@ -19,7 +19,7 @@ public class RareCandy {
 
     public RareCandy(Settings settings) {
         var startLoad = System.currentTimeMillis();
-        this.loader = new PKLoader(settings.modelLoadingThreads());
+        this.loader = new PKLoader(settings);
         LOGGER.info("RareCandy Startup took " + (System.currentTimeMillis() - startLoad) + "ms");
     }
 

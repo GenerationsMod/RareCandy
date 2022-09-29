@@ -4,7 +4,6 @@ import com.pixelmongenerations.pkl.ModelNode;
 import com.pixelmongenerations.pkl.scene.Scene;
 import com.pixelmongenerations.pkl.scene.material.Material;
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
-import de.javagl.jgltf.model.AccessorModel;
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.MeshPrimitiveModel;
 import de.javagl.jgltf.model.image.PixelDatas;

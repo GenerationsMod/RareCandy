@@ -11,7 +11,7 @@ public class AnimationMath {
 
         var positions = findPositions(animTime, node);
         var deltaTime = (float) (positions.b().time() - positions.a().time());
-        var factor = (float) positions.a().time() / deltaTime;
+        var factor = (animTime - (float) positions.a().time()) / deltaTime;
         var start = new Vector3f(positions.a().value());
         var end = new Vector3f(positions.b().value());
         var delta = new Vector3f(end.sub(start));
@@ -23,7 +23,7 @@ public class AnimationMath {
 
         var rotations = findRotations(animTime, node);
         var deltaTime = (float) (rotations.b().time() - rotations.a().time());
-        var factor = (float) rotations.a().time() / deltaTime;
+        var factor = (animTime - (float) rotations.a().time()) / deltaTime;
         var start = new Quaternionf(rotations.a().value());
         var end = new Quaternionf(rotations.b().value());
         return new Quaternionf(start.slerp(end, factor));
@@ -32,15 +32,14 @@ public class AnimationMath {
     public static Vector3f calcInterpolatedScaling(float animTime, AnimationStorage.AnimationNode node) {
         if (node.scaleKeys.size() == 1) return node.getDefaultScale().value();
 
-        // FIXME: completely broken
-        var out = new Vector3f(1, 1, 1);
+        var out = new Vector3f();
         var scalings = findScalings(animTime, node);
         var deltaTime = (float) (scalings.b().time() - scalings.a().time());
-        var factor = (float) scalings.a().time() / deltaTime;
+        var factor = (animTime - (float) scalings.a().time()) / deltaTime;
         var start = new Vector3f(scalings.a().value());
         var end = new Vector3f(scalings.b().value());
         var delta = new Vector3f(end.sub(start));
-        return out;
+        return out.add(start.add(delta.mul(factor)));
     }
 
     public static Pair<TransformStorage.TimeKey<Vector3f>, TransformStorage.TimeKey<Vector3f>> findPositions(float animTime, AnimationStorage.AnimationNode node) {

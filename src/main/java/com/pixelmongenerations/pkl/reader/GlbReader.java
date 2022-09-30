@@ -1,10 +1,10 @@
 package com.pixelmongenerations.pkl.reader;
 
+import com.pixelmongenerations.pkl.JGltfUtils;
 import com.pixelmongenerations.pkl.ModelNode;
 import com.pixelmongenerations.pkl.scene.Scene;
 import com.pixelmongenerations.pkl.scene.material.Material;
 import com.pixelmongenerations.pkl.scene.objects.Mesh;
-import de.javagl.jgltf.model.AccessorModel;
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.MeshPrimitiveModel;
 import de.javagl.jgltf.model.image.PixelDatas;
@@ -65,26 +65,8 @@ public class GlbReader {
     }
 
     private Mesh convert(MeshPrimitiveModel mesh, List<Material> materials) {
-        var indexAccess = mesh.getIndices();
-        var indexBuffer = indexAccess.getBufferViewModel().getBufferViewData().asIntBuffer();
-        var indices = new int[indexAccess.getCount()];
-        for (var i = 0; i < indices.length; i++) {
-            System.out.println("A" + i);
-            if(i == 8310) {
-                System.out.println("break");
-            }
-            indices[i] = indexBuffer.get(i);
-            System.out.println("B" + i);
-        }
-
-        System.out.println("C");
-
-        var positionsAccess = mesh.getAttributes().get("POSITION");
-        var positionBuffer = positionsAccess.getBufferViewModel().getBufferViewData().asFloatBuffer();
-        var vertices = new Vector3f[positionsAccess.getCount()];
-        for (var i = 0; i < vertices.length; i++) {
-            vertices[i] = new Vector3f(positionBuffer.get(i * 3), positionBuffer.get(i * 3 + 1), positionBuffer.get(i * 3 + 2));
-        }
+        var indices = JGltfUtils.getIndices(mesh.getIndices().getAccessorData());
+        var vertices = JGltfUtils.getVertices(mesh.getAttributes().get("POSITION").getAccessorData());
 
         /*
         Vector3f[] normals = new Vector3f[mesh.mNumVertices()];

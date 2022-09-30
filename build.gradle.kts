@@ -1,6 +1,6 @@
 plugins {
-    id("java-library")
-    id("maven-publish")
+    `java-library`
+    `maven-publish`
     id("com.github.spotbugs") version "5.0.12"
 }
 

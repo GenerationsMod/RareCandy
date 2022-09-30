@@ -7,19 +7,18 @@ import org.lwjgl.opengl.GL11C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RareCandy {
     private static final Logger LOGGER = LoggerFactory.getLogger(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
     private final PKLoader loader;
+    private final Queue<Exception> exceptions = new ConcurrentLinkedQueue<>();
     private final Map<RenderObject, List<InstanceState>> objectMap = new HashMap<>();
 
     public RareCandy(Settings settings) {
         var startLoad = System.currentTimeMillis();
-        this.loader = new PKLoader(settings);
+        this.loader = new PKLoader(settings, this);
         LOGGER.info("RareCandy Startup took " + (System.currentTimeMillis() - startLoad) + "ms");
     }
 
@@ -30,6 +29,10 @@ public class RareCandy {
     }
 
     public void render(boolean updateState, boolean clearInstances) {
+        for (var exception : exceptions) {
+            throw new RuntimeException("An off-thread exception has occurred", exception);
+        }
+
         for (RenderObject object : this.objectMap.keySet()) {
             if (object.isReady()) {
                 object.update();
@@ -70,4 +73,7 @@ public class RareCandy {
         throw new RuntimeException("Fatal RareCandy Error! '" + message + "'");
     }
 
+    public void throwExceptionLater(Exception e) {
+        this.exceptions.add(e);
+    }
 }

@@ -12,7 +12,6 @@ import de.javagl.jgltf.model.io.GltfModelReader;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -43,7 +42,7 @@ public class GlbReader {
 
         for (var mesh : model.getMeshModels()) {
             for (var primitiveModel : mesh.getMeshPrimitiveModels()) {
-                meshes.add(convert(primitiveModel, materials));
+                meshes.add(convert(mesh.getName() + "_" + primitiveModel.hashCode(), primitiveModel, materials));
             }
         }
 
@@ -64,44 +63,16 @@ public class GlbReader {
         return reader.readWithoutReferences(new ByteArrayInputStream(bytes));
     }
 
-    private Mesh convert(MeshPrimitiveModel mesh, List<Material> materials) {
-        var indices = JGltfUtils.getIndices(mesh.getIndices().getAccessorData());
-        var vertices = JGltfUtils.getVertices(mesh.getAttributes().get("POSITION").getAccessorData());
+    private Mesh convert(String name, MeshPrimitiveModel mesh, List<Material> materials) {
+        var indices = JGltfUtils.readShort1(mesh.getIndices().getAccessorData());
+        var vertices = JGltfUtils.readFloat3(mesh.getAttributes().get("POSITION").getAccessorData());
+        var normals = JGltfUtils.readFloat3(mesh.getAttributes().get("NORMAL").getAccessorData());
+        var texCoords = JGltfUtils.readFloat2(mesh.getAttributes().get("TEXCOORD_0").getAccessorData());
+        System.out.println(name);
 
         /*
-        Vector3f[] normals = new Vector3f[mesh.mNumVertices()];
-        Vector2f[] texCoords = new Vector2f[mesh.mNumVertices() * 2];
         Vector3f[] tangents = new Vector3f[mesh.mNumVertices()];
         Bone[] bones = new Bone[mesh.mNumBones()];
-
-        // Convert Vertices
-        AIVector3D.Buffer aiVertices = requireNonNull(mesh.mVertices());
-        for (int i = 0; i < aiVertices.capacity(); i++) {
-            vertices[i] = AssimpUtils.from(aiVertices.get(i));
-        }
-
-        // Convert Indices
-        AIFace.Buffer aiFaces = requireNonNull(mesh.mFaces());
-        for (int i = 0; i < aiFaces.capacity(); i++) {
-            AIFace face = aiFaces.get(i);
-
-            IntBuffer pIndices = face.mIndices();
-            for (int j = 0; j < face.mNumIndices(); j++) {
-                indices[j + (i * face.mNumIndices())] = (pIndices.get(j));
-            }
-        }
-
-        // Convert Texture Coordinates
-        AIVector3D.Buffer aiTexCoords = requireNonNull(mesh.mTextureCoords(0));
-        for (int i = 0; i < aiTexCoords.capacity(); i++) {
-            texCoords[i] = AssimpUtils.from3to2(aiTexCoords.get(i));
-        }
-
-        // Convert Normals
-        AIVector3D.Buffer normalBuffer = requireNonNull(mesh.mNormals());
-        for (int i = 0; i < normalBuffer.capacity(); i++) {
-            normals[i] = AssimpUtils.from(normalBuffer.get(i));
-        }
 
         // Convert Bones & Tangents if they exist.
         if (mesh.mBones() != null) {
@@ -117,7 +88,6 @@ public class GlbReader {
             tangents[i] = AssimpUtils.from(aiTangents.get(i));
         }*/
 
-        return null;
-        //return new Mesh(mesh.mName().dataString(), vertices, indices, normals, texCoords, tangents, bones);
+        return new Mesh(name, vertices, indices, normals, texCoords, null, null);
     }
 }

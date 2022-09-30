@@ -25,7 +25,8 @@ public class ModelNode {
         }
 
         this.name = rootNode.getName();
-        this.transform = new Matrix4f(FloatBuffer.wrap(rootNode.getTranslation()));
+        var rawTranslation = rootNode.getTranslation();
+        this.transform = rawTranslation == null ? new Matrix4f() : new Matrix4f(FloatBuffer.wrap(rawTranslation));
     }
 
     @Override

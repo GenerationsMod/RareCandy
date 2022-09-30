@@ -51,4 +51,31 @@ public class JGltfUtils {
     private static void assertTrue(boolean value) {
         if(!value) throw new RuntimeException("Assertion Failed.");
     }
+
+    public static Vector3f[] computeTangents(int[] indices, Vector3f[] vertices, Vector2f[] texCoords) {
+        var tangents = new Vector3f[indices.length / 3];
+
+        for (var i = 0; i < tangents.length; i++) {
+            var offset = i * 3;
+
+            var v0 = vertices[offset+0];
+            var v1 = vertices[offset+1];
+            var v2 = vertices[offset+2];
+
+            var uv0 = texCoords[offset + 0];
+            var uv1 = texCoords[offset + 1];
+            var uv2 = texCoords[offset + 2];
+
+            var deltaPos1 = v1.sub(v0, new Vector3f());
+            var deltaPos2 = v2.sub(v0, new Vector3f());
+
+            var deltaUV1 = uv1.sub(uv0, new Vector2f());
+            var deltaUV2 = uv2.sub(uv0, new Vector2f());
+
+            var r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+            tangents[i] = deltaPos1.mul(deltaUV2.y, new Vector3f()).sub(deltaPos2.mul(deltaUV1.y, new Vector3f()).mul(r));
+        }
+
+        return tangents;
+    }
 }

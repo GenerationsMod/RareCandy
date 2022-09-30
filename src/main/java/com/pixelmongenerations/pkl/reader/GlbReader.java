@@ -68,6 +68,8 @@ public class GlbReader {
         var vertices = JGltfUtils.readFloat3(mesh.getAttributes().get("POSITION").getAccessorData());
         var normals = JGltfUtils.readFloat3(mesh.getAttributes().get("NORMAL").getAccessorData());
         var texCoords = JGltfUtils.readFloat2(mesh.getAttributes().get("TEXCOORD_0").getAccessorData());
+        var tangents = JGltfUtils.computeTangents(indices, vertices, texCoords);
+
         System.out.println(name);
 
         /*
@@ -83,11 +85,15 @@ public class GlbReader {
             }
         }
 
+
+
         AIVector3D.Buffer aiTangents = requireNonNull(mesh.mTangents());
         for (int i = 0; i < aiTangents.capacity(); i++) {
             tangents[i] = AssimpUtils.from(aiTangents.get(i));
         }*/
 
-        return new Mesh(name, vertices, indices, normals, texCoords, null, null);
+
+
+        return new Mesh(name, vertices, indices, normals, texCoords, tangents, null);
     }
 }

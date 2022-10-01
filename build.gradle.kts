@@ -27,12 +27,10 @@ dependencies {
 
     implementation(platform("org.lwjgl:lwjgl-bom:3.3.1"))
     implementation("org.lwjgl", "lwjgl")
-    mcDependency(this, "org.lwjgl", "lwjgl-stb")
-    mcDependency(this, "org.lwjgl", "lwjgl-glfw")
-    mcDependency(this, "org.lwjgl", "lwjgl-opengl")
+    implementation("org.lwjgl", "lwjgl-glfw")
+    implementation("org.lwjgl", "lwjgl-opengl")
 
     runtimeOnly("org.lwjgl", "lwjgl" , classifier = "natives-linux")
-    runtimeOnly("org.lwjgl", "lwjgl-stb" , classifier = "natives-linux")
     runtimeOnly("org.lwjgl", "lwjgl-glfw" , classifier = "natives-linux")
     runtimeOnly("org.lwjgl", "lwjgl-opengl" , classifier = "natives-linux")
 

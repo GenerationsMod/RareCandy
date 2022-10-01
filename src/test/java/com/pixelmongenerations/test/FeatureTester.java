@@ -33,6 +33,7 @@ public class FeatureTester {
         GL11C.glEnable(GL11C.GL_CULL_FACE);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
+        System.out.printf("Loading tests: " + this.activeFeatures);
         for (var activeFeature : this.activeFeatures) {
             activeFeature.init(scene, this.viewMatrix);
         }

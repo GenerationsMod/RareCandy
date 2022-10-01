@@ -28,13 +28,13 @@ public class AnimationTest extends FeatureTest {
         for (var i = 0; i < objects.size(); i++) {
             var model = objects.get(i);
 
-            for (var j = 0; j < 4; j++) {
-                for (int k = 0; k < 20; k++) {
+//            for (var j = 0; j < 4; j++) {
+//                for (int k = 0; k < 20; k++) {
                     var instance = new InstanceState(new Matrix4f(), viewMatrix, "normal");
-                    instance.transformationMatrix().translate(new Vector3f(14 - (i * 4), -7 + (j * 4), 80 - (k * 4))).scale(new Vector3f(0.06f, 0.06f, 0.06f));
+                    instance.transformationMatrix().translate(new Vector3f(14 - (i * 4), -7, 80)).scale(new Vector3f(0.06f, 0.06f, 0.06f));
                     scene.addObject(model, instance);
-                }
-            }
+//                }
+//            }
         }
     }
 

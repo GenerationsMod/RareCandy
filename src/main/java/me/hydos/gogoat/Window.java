@@ -1,4 +1,4 @@
-package com.pixelmongenerations.test;
+package me.hydos.gogoat;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;

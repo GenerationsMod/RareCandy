@@ -14,14 +14,14 @@ public class JGltfUtils {
 
     public static Vector3f[] readFloat3(AccessorModel model) {
         var data = model.getAccessorData();
-        var buf = data.createByteBuffer().asFloatBuffer();
+        var buf = data.createByteBuffer();
         var count = data.getNumElements();
         var float3Data = new Vector3f[count];
         assertTrue(data.getNumComponentsPerElement() == 3);
         assertTrue(data.getComponentType() == float.class);
 
         for (var i = 0; i < count; i++) {
-            float3Data[i] = new Vector3f(buf.get(), buf.get(), buf.get());
+            float3Data[i] = new Vector3f(buf.getFloat(), buf.getFloat(), buf.getFloat());
         }
 
         return float3Data;
@@ -29,14 +29,14 @@ public class JGltfUtils {
 
     public static Vector2f[] readFloat2(AccessorModel model) {
         var data = model.getAccessorData();
-        var buf = data.createByteBuffer().asFloatBuffer();
+        var buf = data.createByteBuffer();
         var count = data.getNumElements();
         var float2Data = new Vector2f[count];
         assertTrue(data.getNumComponentsPerElement() == 2);
         assertTrue(data.getComponentType() == float.class);
 
         for (var i = 0; i < count; i++) {
-            float2Data[i] = new Vector2f(buf.get(), buf.get());
+            float2Data[i] = new Vector2f(buf.getFloat(), buf.getFloat());
         }
 
         return float2Data;
@@ -44,14 +44,14 @@ public class JGltfUtils {
 
     public static int[] readShort1(AccessorModel model) {
         var data = model.getAccessorData();
-        var buf = data.createByteBuffer().asShortBuffer();
+        var buf = data.createByteBuffer();
         var count = data.getNumElements();
         var short1Data = new int[count];
         assertTrue(data.getNumComponentsPerElement() == 1);
         assertTrue(data.getComponentType() == short.class);
 
         for (var i = 0; i < count; i++) {
-            short1Data[i] = buf.get();
+            short1Data[i] = buf.getShort();
         }
 
         return short1Data;

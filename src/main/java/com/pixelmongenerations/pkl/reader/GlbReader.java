@@ -64,36 +64,12 @@ public class GlbReader {
     }
 
     private Mesh convert(String name, MeshPrimitiveModel mesh, List<Material> materials) {
-        var indices = JGltfUtils.readShort1(mesh.getIndices().getAccessorData());
-        var vertices = JGltfUtils.readFloat3(mesh.getAttributes().get("POSITION").getAccessorData());
-        var normals = JGltfUtils.readFloat3(mesh.getAttributes().get("NORMAL").getAccessorData());
-        var texCoords = JGltfUtils.readFloat2(mesh.getAttributes().get("TEXCOORD_0").getAccessorData());
+        var indices = JGltfUtils.readShort1(mesh.getIndices());
+        var vertices = JGltfUtils.readFloat3(mesh.getAttributes().get("POSITION"));
+        var normals = JGltfUtils.readFloat3(mesh.getAttributes().get("NORMAL"));
+        var texCoords = JGltfUtils.readFloat2(mesh.getAttributes().get("TEXCOORD_0"));
+        var bones = JGltfUtils.readBones(mesh.getAttributes().get("JOINTS_0"));
         var tangents = JGltfUtils.computeTangents(indices, vertices, texCoords);
-
-        System.out.println(name);
-
-        /*
-        Vector3f[] tangents = new Vector3f[mesh.mNumVertices()];
-        Bone[] bones = new Bone[mesh.mNumBones()];
-
-        // Convert Bones & Tangents if they exist.
-        if (mesh.mBones() != null) {
-            PointerBuffer aiBones = requireNonNull(mesh.mBones());
-            for (int i = 0; i < aiBones.capacity(); i++) {
-                AIBone bone = AIBone.create(aiBones.get(i));
-                bones[i] = AssimpUtils.from(bone);
-            }
-        }
-
-
-
-        AIVector3D.Buffer aiTangents = requireNonNull(mesh.mTangents());
-        for (int i = 0; i < aiTangents.capacity(); i++) {
-            tangents[i] = AssimpUtils.from(aiTangents.get(i));
-        }*/
-
-
-
-        return new Mesh(name, vertices, indices, normals, texCoords, tangents, null);
+        return new Mesh(name, vertices, indices, normals, texCoords, tangents, bones);
     }
 }

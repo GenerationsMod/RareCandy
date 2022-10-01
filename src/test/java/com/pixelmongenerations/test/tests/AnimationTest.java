@@ -1,7 +1,7 @@
 package com.pixelmongenerations.test.tests;
 
-import com.pixelmongenerations.rarecandy.components.AnimatedSolid;
 import com.pixelmongenerations.rarecandy.components.RenderObjects;
+import com.pixelmongenerations.rarecandy.components.Solid;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.test.FeatureTest;
@@ -13,8 +13,8 @@ import java.util.stream.Stream;
 
 public class AnimationTest extends FeatureTest {
     private final double startTime = System.currentTimeMillis();
-    private final Stream<String> models = Stream.of("eevee", "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
-    private List<RenderObjects<AnimatedSolid>> objects;
+    private final Stream<String> models = Stream.of("eevee");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
+    private List<RenderObjects<Solid>> objects;
     private boolean alreadyUpdated;
 
     public AnimationTest() {
@@ -23,7 +23,7 @@ public class AnimationTest extends FeatureTest {
 
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
-        objects = this.models.map(mdl -> loadAnimatedModel(scene, mdl)).toList();
+        objects = this.models.map(mdl -> loadStaticModel(scene, mdl)).toList();
 
         for (var i = 0; i < objects.size(); i++) {
             var model = objects.get(i);
@@ -64,7 +64,7 @@ public class AnimationTest extends FeatureTest {
 
         for (var object : objects) {
             for (var animatedSolid : object) {
-                animatedSolid.animationTime = animatedSolid.animations[animatedSolid.activeAnimation].getAnimationTime(timePassed);
+                //animatedSolid.animationTime = animatedSolid.animations[animatedSolid.activeAnimation].getAnimationTime(timePassed);
             }
         }
     }

@@ -31,10 +31,10 @@ dependencies {
     mcDependency(this, "org.lwjgl", "lwjgl-glfw")
     mcDependency(this, "org.lwjgl", "lwjgl-opengl")
 
-    addNative(this, "org.lwjgl", "lwjgl")
-    addNative(this, "org.lwjgl", "lwjgl-stb")
-    addNative(this, "org.lwjgl", "lwjgl-glfw")
-    addNative(this, "org.lwjgl", "lwjgl-opengl")
+    runtimeOnly("org.lwjgl", "lwjgl" , classifier = "natives-linux")
+    runtimeOnly("org.lwjgl", "lwjgl-stb" , classifier = "natives-linux")
+    runtimeOnly("org.lwjgl", "lwjgl-glfw" , classifier = "natives-linux")
+    runtimeOnly("org.lwjgl", "lwjgl-opengl" , classifier = "natives-linux")
 
     compileOnly("org.slf4j:slf4j-api:2.0.2")
     testImplementation("org.slf4j:slf4j-jdk14:2.0.2")
@@ -66,12 +66,4 @@ publishing {
 fun mcDependency(handler: DependencyHandlerScope, group: String, name: String) {
     handler.compileOnly(group, name)
     handler.testImplementation(group, name)
-}
-
-// We Exclude 32-bit systems because they are old.
-fun addNative(handler: DependencyHandlerScope, group: String, name: String) {
-    handler.implementation(group, name, classifier = "natives-windows")
-    handler.implementation(group, name, classifier = "natives-linux")
-    handler.implementation(group, name, classifier = "natives-macos")
-    handler.implementation(group, name, classifier = "natives-macos-arm64")
 }

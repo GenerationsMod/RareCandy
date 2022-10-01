@@ -23,7 +23,7 @@ public abstract class FeatureTest {
     public abstract void update(RareCandy scene, double deltaTime);
 
     protected RenderObjects<Solid> loadStaticModel(RareCandy renderer, String name) {
-        return renderer.getLoader().createObject(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/" + name + ".pk"), "Failed to read /" + name + ".pk"), AssetReference.Type.PK, Pipelines.staticPipeline(() -> FeatureTester.PROJECTION_MATRIX));
+        return renderer.getLoader().createObject(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"), "Failed to read /" + name + ".pk"), AssetReference.Type.PK, Pipelines.staticPipeline(() -> FeatureTester.PROJECTION_MATRIX));
     }
 
     protected RenderObjects<AnimatedSolid> loadAnimatedModel(RareCandy renderer, String name) {

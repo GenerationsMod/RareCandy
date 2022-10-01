@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL43C;
 import org.lwjgl.opengl.GL45C;
 import org.lwjgl.opengl.GLCapabilities;
+import org.lwjgl.system.Configuration;
 import org.lwjgl.system.MemoryUtil;
 
 import java.util.Objects;
@@ -21,7 +22,7 @@ public class Window {
     public long handle;
 
     public Window(String title, int width, int height) {
-        System.loadLibrary("renderdoc");
+        // System.loadLibrary("renderdoc");
         this.title = title;
         this.width = width;
         this.height = height;
@@ -29,6 +30,8 @@ public class Window {
     }
 
     private void initGlfw() {
+        Configuration.DEBUG_LOADER.set(true);
+
         if (!GLFW.glfwInit()) {
             int errorCode = GLFW.glfwGetError(null);
             throw new RuntimeException("Failed to Initialize GLFW. Error Code: " + errorCode);

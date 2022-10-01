@@ -1,12 +1,19 @@
 package com.pixelmongenerations.pkl;
 
-import de.javagl.jgltf.model.AccessorData;
+import com.pixelmongenerations.rarecandy.rendering.Bone;
+import de.javagl.jgltf.model.AccessorModel;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public class JGltfUtils {
 
-    public static Vector3f[] readFloat3(AccessorData data) {
+    public static Bone[] readBones(AccessorModel model) {
+        var data = model.getAccessorData();
+        return null;
+    }
+
+    public static Vector3f[] readFloat3(AccessorModel model) {
+        var data = model.getAccessorData();
         var buf = data.createByteBuffer().asFloatBuffer();
         var count = data.getNumElements();
         var float3Data = new Vector3f[count];
@@ -20,7 +27,8 @@ public class JGltfUtils {
         return float3Data;
     }
 
-    public static Vector2f[] readFloat2(AccessorData data) {
+    public static Vector2f[] readFloat2(AccessorModel model) {
+        var data = model.getAccessorData();
         var buf = data.createByteBuffer().asFloatBuffer();
         var count = data.getNumElements();
         var float2Data = new Vector2f[count];
@@ -34,7 +42,8 @@ public class JGltfUtils {
         return float2Data;
     }
 
-    public static int[] readShort1(AccessorData data) {
+    public static int[] readShort1(AccessorModel model) {
+        var data = model.getAccessorData();
         var buf = data.createByteBuffer().asShortBuffer();
         var count = data.getNumElements();
         var short1Data = new int[count];
@@ -52,28 +61,33 @@ public class JGltfUtils {
         if(!value) throw new RuntimeException("Assertion Failed.");
     }
 
-    public static Vector3f[] computeTangents(int[] indices, Vector3f[] vertices, Vector2f[] texCoords) {
-        var tangents = new Vector3f[indices.length / 3];
+    /**
+     * <a href="http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/#computing-the-tangents-and-bitangents">Based off of this</a>
+     */
+    public static Vector3f[] computeTangents(int[] indices, Vector3f[] vertices, Vector2f[] uvs) {
+        var tangents = new Vector3f[vertices.length];
+        for (var i = 0; i < tangents.length; i+=3) {
+            var indexOffset0 = indices[i + 0];
+            var indexOffset1 = indices[i + 1];
+            var indexOffset2 = indices[i + 2];
 
-        for (var i = 0; i < tangents.length; i++) {
-            var offset = i * 3;
+            var v0 = vertices[indexOffset0];
+            var v1 = vertices[indexOffset1];
+            var v2 = vertices[indexOffset2];
 
-            var v0 = vertices[offset+0];
-            var v1 = vertices[offset+1];
-            var v2 = vertices[offset+2];
+            var uv0 = uvs[indexOffset0];
+            var uv1 = uvs[indexOffset1];
+            var uv2 = uvs[indexOffset2];
 
-            var uv0 = texCoords[offset + 0];
-            var uv1 = texCoords[offset + 1];
-            var uv2 = texCoords[offset + 2];
+            var deltaPos1 = v1.sub(v0);
+            var deltaPos2 = v2.sub(v0);
 
-            var deltaPos1 = v1.sub(v0, new Vector3f());
-            var deltaPos2 = v2.sub(v0, new Vector3f());
+            var deltaUV1 = uv1.sub(uv0);
+            var deltaUV2 = uv2.sub(uv0);
 
-            var deltaUV1 = uv1.sub(uv0, new Vector2f());
-            var deltaUV2 = uv2.sub(uv0, new Vector2f());
-
-            var r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-            tangents[i] = deltaPos1.mul(deltaUV2.y, new Vector3f()).sub(deltaPos2.mul(deltaUV1.y, new Vector3f()).mul(r));
+            float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+            var tangent = deltaPos1.mul(deltaUV2.y).sub(deltaPos2.mul(deltaUV1.y)).mul(r);
+            tangents[i] = tangent;
         }
 
         return tangents;

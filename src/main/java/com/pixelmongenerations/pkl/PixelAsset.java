@@ -46,7 +46,7 @@ public class PixelAsset {
         for (var mesh : scene.meshes) {
             T object = (T) new Solid();
 
-            if (scene.gltf.getAnimationModels().size() > 0) {
+            if (scene.gltf.getAnimationModels().size() > 100) {
                 var animations = scene.gltf.getAnimationModels()
                         .stream()
                         .map(anim -> settings.preCacheAnimations() ? new CachedAnimation(anim, mesh.getBones()) : new Animation(anim, mesh.getBones()))

@@ -1,12 +1,8 @@
 package com.pixelmongenerations.pkl.reader;
 
-import com.pixelmongenerations.pkl.JGltfUtils;
 import com.pixelmongenerations.pkl.ModelNode;
 import com.pixelmongenerations.pkl.scene.Scene;
-import com.pixelmongenerations.pkl.scene.material.Material;
-import com.pixelmongenerations.pkl.scene.objects.Mesh;
 import de.javagl.jgltf.model.GltfModel;
-import de.javagl.jgltf.model.MeshPrimitiveModel;
 import de.javagl.jgltf.model.image.PixelDatas;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -16,9 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class GlbReader {
 
@@ -37,16 +30,7 @@ public class GlbReader {
     @NotNull
     private Scene read(GltfModel model) {
         var textures = model.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
-        var materials = textures.stream().map(Material::new).collect(Collectors.toList());
-        var meshes = new ArrayList<Mesh>();
-
-        for (var mesh : model.getMeshModels()) {
-            for (var primitiveModel : mesh.getMeshPrimitiveModels()) {
-                meshes.add(convert(mesh.getName() + "_" + primitiveModel.hashCode(), primitiveModel, materials));
-            }
-        }
-
-        return new Scene(meshes, model, new ModelNode(model.getNodeModels()), textures);
+        return new Scene(model, new ModelNode(model.getNodeModels()), textures);
     }
 
     private GltfModel loadScene(TarFile file) throws IOException {
@@ -61,15 +45,5 @@ public class GlbReader {
 
     private GltfModel loadScene(byte[] bytes) throws IOException {
         return reader.readWithoutReferences(new ByteArrayInputStream(bytes));
-    }
-
-    private Mesh convert(String name, MeshPrimitiveModel mesh, List<Material> materials) {
-        var indices = JGltfUtils.readShort1(mesh.getIndices());
-        var vertices = JGltfUtils.readFloat3(mesh.getAttributes().get("POSITION"));
-        var normals = JGltfUtils.readFloat3(mesh.getAttributes().get("NORMAL"));
-        var texCoords = JGltfUtils.readFloat2(mesh.getAttributes().get("TEXCOORD_0"));
-        var bones = JGltfUtils.readBones(mesh.getAttributes().get("JOINTS_0"));
-        var tangents = JGltfUtils.computeTangents(indices, vertices, texCoords);
-        return new Mesh(name, vertices, indices, normals, texCoords, tangents, bones);
     }
 }

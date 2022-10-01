@@ -76,6 +76,7 @@ public class GogoatModelLoader {
     }
 
     private void vertexAttribPointer(AccessorModel data, int binding) {
+        GL20.glEnableVertexAttribArray(binding);
         GL20.glVertexAttribPointer(
                 binding,
                 data.getElementType().getNumComponents(),
@@ -83,7 +84,6 @@ public class GogoatModelLoader {
                 false,
                 data.getByteStride(),
                 data.getByteOffset());
-        GL20.glEnableVertexAttribArray(binding);
     }
 
     public void bindArrayBuffer(BufferViewModel bufferViewModel) {

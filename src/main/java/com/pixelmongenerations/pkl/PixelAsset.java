@@ -41,27 +41,6 @@ public class PixelAsset {
         }
     }
 
-    public <T extends MeshRenderObject> void upload(RenderObjects<T> objects, Pipeline pipeline, Settings settings) {
-
-        for (var mesh : scene.meshes) {
-            T object = (T) new Solid();
-
-            if (scene.gltf.getAnimationModels().size() > 100) {
-                var animations = scene.gltf.getAnimationModels()
-                        .stream()
-                        .map(anim -> settings.preCacheAnimations() ? new CachedAnimation(anim, mesh.getBones()) : new Animation(anim, mesh.getBones()))
-                        .toArray(Animation[]::new);
-
-                object = (T) new AnimatedSolid(animations, scene.rootNode);
-            }
-
-            object.upload(mesh, pipeline, scene.textures);
-            objects.add(object);
-        }
-
-        objects.allObjectsAdded = true;
-    }
-
     private TarFile getTarFile(InputStream inputStream) {
         try {
             InputStream unlockedInputStream = unlockArchive(inputStream.readAllBytes());

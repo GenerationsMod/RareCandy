@@ -37,15 +37,17 @@ public class MeshObject extends RenderObject {
             for (var nodeModel : sceneModel.getNodeModels()) {
                 var skinModel = nodeModel.getSkinModel();
 
+                // Model Loading Method #1
                 for (var meshModel : nodeModel.getMeshModels()) {
                     return processMeshModel(nodeModel, meshModel, textures, pipeline);
                 }
 
-//                for (var child : nodeModel.getChildren()) {
-//                    for (var meshModel : child.getMeshModels()) {
-//                        return processMeshModel(nodeModel, meshModel, materials, pipeline);
-//                    }
-//                }
+                // Model Loading Method #2
+                for (var child : nodeModel.getChildren()) {
+                    for (var meshModel : child.getMeshModels()) {
+                        return processMeshModel(nodeModel, meshModel, textures, pipeline);
+                    }
+                }
 
                 if (skinModel != null) {
                     // Animation stuff

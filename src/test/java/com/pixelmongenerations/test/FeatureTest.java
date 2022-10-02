@@ -27,14 +27,8 @@ public abstract class FeatureTest {
     protected RenderObjects<MeshObject> loadStaticModel(RareCandy renderer, String name) {
         var loader = renderer.getLoader();
         return loader.createObject(
-                () -> {
-                    try {
-                        return new ByteArrayInputStream(Files.readAllBytes(Path.of(FeatureTest.class.getResource("/" + name + ".glb").getPath())));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                },
-                AssetType.GLB,
+                () -> FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"),
+                AssetType.PK,
                 asset -> {
                     var gltfModel = loader.read(asset);
                     return MeshObject.create(gltfModel, Pipelines.staticPipeline(() -> FeatureTester.PROJECTION_MATRIX));

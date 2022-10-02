@@ -38,10 +38,19 @@ public class PixelAsset {
 
     private TarFile getTarFile(InputStream inputStream) {
         try {
-            var xzInputStream = new XZInputStream(inputStream);
+            var unlockedArchive = unlockArchive(inputStream.readAllBytes());
+            var xzInputStream = new XZInputStream(unlockedArchive);
             return new TarFile(xzInputStream.readAllBytes());
         } catch (IOException e) {
             throw new RuntimeException("Failed to read file.", e);
         }
+    }
+
+    /**
+     * We change 1 bit to make file readers fail to load the file or find its format. I would rather not have reforged digging through the assets, honestly.
+     */
+    private InputStream unlockArchive(byte[] originalBytes) {
+        System.arraycopy(XZ.HEADER_MAGIC, 0, originalBytes, 0, XZ.HEADER_MAGIC.length);
+        return new ByteArrayInputStream(originalBytes);
     }
 }

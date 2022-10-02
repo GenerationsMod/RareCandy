@@ -1,4 +1,12 @@
+#version 450
 #define MAX_BONES 200
+
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec2 inTexCoords;
+layout(location = 2) in vec3 inNormal;
+layout(location = 3) in vec3 inTangent;
+layout(location = 3) in vec4 joints;
+layout(location = 4) in vec4 weights;
 
 out vec2 texCoord0;
 out vec3 toLightVector;
@@ -14,10 +22,10 @@ uniform mat4 gBones[MAX_BONES];
 
 mat4 getBoneTransform() {
     mat4 boneTransform =
-    gBones[uint(boneDataA.x)] * boneDataA.z + // Bone 1 Transform (Bone Transform * Weight)
-    gBones[uint(boneDataA.y)] * boneDataA.w + // Bone 2 Transform (Bone Transform * Weight)
-    gBones[uint(boneDataB.x)] * boneDataB.z + // Bone 3 Transform (Bone Transform * Weight)
-    gBones[uint(boneDataB.y)] * boneDataB.w ; // Bone 4 Transform (Bone Transform * Weight)
+    gBones[uint(joints.x)] * weights.x + // Bone 1 Transform (Bone Transform * Weight)
+    gBones[uint(joints.y)] * weights.y + // Bone 2 Transform (Bone Transform * Weight)
+    gBones[uint(joints.z)] * weights.z + // Bone 3 Transform (Bone Transform * Weight)
+    gBones[uint(joints.w)] * weights.w ; // Bone 4 Transform (Bone Transform * Weight)
     return boneTransform;
 }
 

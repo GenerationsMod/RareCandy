@@ -62,7 +62,7 @@ public class MeshObject extends RenderObject {
         for (var primitiveModel : meshModel.getMeshPrimitiveModels()) {
             var glMaterials = materials.stream().map(Material::new).toList();
             var variants = glMaterials.stream().collect(Collectors.toMap(mat -> mat.getDiffuseTexture().name, mat -> mat));
-            var glModel = processPrimitiveModel(nodeModel, meshModel, primitiveModel);;
+            var glModel = processPrimitiveModel(nodeModel, meshModel, primitiveModel);
             return new MeshObject(glMaterials, variants, glModel, pipeline);
         }
 
@@ -87,6 +87,19 @@ public class MeshObject extends RenderObject {
         var normal = attributes.get("NORMAL");
         DataUtils.bindArrayBuffer(normal.getBufferViewModel());
         vertexAttribPointer(normal, 2);
+
+        // TODO: make this be able to be disabled later it slows down the game a bit
+        var tangents = DataUtils.createTangents(normal);
+        DataUtils.bindArrayBuffer(tangents.getBufferViewModel());
+        vertexAttribPointer(tangents, 3);
+
+        var joints = attributes.get("JOINTS_0");
+        DataUtils.bindArrayBuffer(joints.getBufferViewModel());
+        vertexAttribPointer(joints, 4);
+
+        var weights = attributes.get("WEIGHTS_0");
+        DataUtils.bindArrayBuffer(weights.getBufferViewModel());
+        vertexAttribPointer(weights, 5);
 
         var ebo = GL15.glGenBuffers();
         GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);

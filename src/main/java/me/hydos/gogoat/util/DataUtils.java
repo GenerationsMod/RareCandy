@@ -5,6 +5,7 @@ import de.javagl.jgltf.model.impl.DefaultAccessorModel;
 import de.javagl.jgltf.model.impl.DefaultBufferModel;
 import de.javagl.jgltf.model.impl.DefaultBufferViewModel;
 import de.javagl.jgltf.model.io.Buffers;
+import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.system.MemoryUtil;
@@ -18,6 +19,31 @@ import java.util.Map;
 public class DataUtils {
     private static final Map<BufferViewModel, Integer> BUFFER_VIEW_MODEL_TO_GL_BUFFER_VIEW = new IdentityHashMap<>();
     private static final List<Integer> bufferViews = new ArrayList<>();
+
+    public static Matrix4f convert(float[] arr) {
+        if(arr == null) return new Matrix4f().identity();
+
+        return new Matrix4f()
+                .m00(arr[0])
+                .m01(arr[1])
+                .m02(arr[2])
+                .m03(arr[3])
+
+                .m10(arr[4])
+                .m11(arr[5])
+                .m12(arr[6])
+                .m13(arr[7])
+
+                .m20(arr[8])
+                .m21(arr[9])
+                .m22(arr[10])
+                .m23(arr[11])
+
+                .m30(arr[12])
+                .m31(arr[13])
+                .m32(arr[14])
+                .m33(arr[15]);
+    }
 
     public static void bindArrayBuffer(BufferViewModel bufferViewModel) {
         var glBufferView = BUFFER_VIEW_MODEL_TO_GL_BUFFER_VIEW.get(bufferViewModel);
@@ -123,7 +149,6 @@ public class DataUtils {
         }
         return (float) Math.sqrt(sum);
     }
-
 
     public void close() {
         for (var bufferId : bufferViews) GL15.glDeleteBuffers(bufferId);

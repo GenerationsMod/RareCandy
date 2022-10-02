@@ -1,7 +1,6 @@
 package com.pixelmongenerations.rarecandy.animation;
 
 import com.pixelmongenerations.pkl.ModelNode;
-import com.pixelmongenerations.rarecandy.rendering.Bone;
 import de.javagl.jgltf.model.AnimationModel;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -15,16 +14,22 @@ public class Animation {
     public final float ticksPerSecond;
     public final double animationDuration;
     public final Map<String, AnimationNode> animationNodes;
-    protected final Bones bones;
+    protected final Skeleton skeleton;
 
-    public Animation(AnimationModel animation, Bone[] bones) {
-        this.name = animation.getName();
-        this.ticksPerSecond = 0;//(float) (animation.mTicksPerSecond() != 0 ? animation.mTicksPerSecond() : 25.0f);
-        this.animationDuration = 0;//animation.mDuration();
+    public Animation(AnimationModel rawAnimation, Skeleton skeleton) {
+        this.name = rawAnimation.getName();
+        this.ticksPerSecond = 0;//(float) (rawAnimation.mTicksPerSecond() != 0 ? rawAnimation.mTicksPerSecond() : 25.0f);
+        this.animationDuration = 0;//rawAnimation.mDuration();
         this.animationNodes = new HashMap<>();
-        this.bones = new Bones(bones);
+        this.skeleton = skeleton;
 
-        // fillAnimationNodes(animation);
+        for (var channel : rawAnimation.getChannels()) {
+            var node = channel.getNodeModel();
+            var type = channel.getPath();
+            System.out.println(type + " - " + node.getName());
+        }
+
+        // fillAnimationNodes(rawAnimation);
     }
 
     public double getAnimationTime(double secondsPassed) {
@@ -34,7 +39,7 @@ public class Animation {
     }
 
     public Matrix4f[] getFrameTransform(double animTime, ModelNode rootModelNode) {
-        var boneTransforms = new Matrix4f[this.bones.boneArray.length];
+        var boneTransforms = new Matrix4f[this.skeleton.boneArray.length];
         readNodeHierarchy((float) animTime, rootModelNode, new Matrix4f().identity(), boneTransforms);
         return boneTransforms;
     }
@@ -58,8 +63,8 @@ public class Animation {
         }
 
         var globalTransform = new Matrix4f(parentTransform).mul(nodeTransform);
-        var bone = bones.get(name);
-        if(bone != null) boneTransforms[bones.getId(bone)] = new Matrix4f().mul(new Matrix4f(globalTransform)).mul(bone.offsetMatrix);
+        var bone = skeleton.get(name);
+        if(bone != null) boneTransforms[skeleton.getId(bone)] = new Matrix4f().mul(new Matrix4f(globalTransform)).mul(bone.offsetMatrix);
 
         for (var child : node.children) {
             readNodeHierarchy(animTime, child, globalTransform, boneTransforms);

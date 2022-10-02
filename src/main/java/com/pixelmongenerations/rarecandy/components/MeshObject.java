@@ -3,6 +3,8 @@ package com.pixelmongenerations.rarecandy.components;
 import com.pixelmongenerations.pkl.reader.TextureReference;
 import com.pixelmongenerations.pkl.scene.material.Material;
 import com.pixelmongenerations.rarecandy.ThreadSafety;
+import com.pixelmongenerations.rarecandy.animation.Animation;
+import com.pixelmongenerations.rarecandy.animation.Skeleton;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import de.javagl.jgltf.model.*;
@@ -32,11 +34,11 @@ public class MeshObject extends RenderObject {
 
     public static MeshObject create(GltfModel gltfModel, Pipeline pipeline) {
         var textures = gltfModel.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
+        var bones = new Skeleton(gltfModel.getSkinModels().get(0));
+        var animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, bones)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
         for (var sceneModel : gltfModel.getSceneModels()) {
             for (var nodeModel : sceneModel.getNodeModels()) {
-                var skinModel = nodeModel.getSkinModel();
-
                 // Model Loading Method #1
                 for (var meshModel : nodeModel.getMeshModels()) {
                     return processMeshModel(nodeModel, meshModel, textures, pipeline);
@@ -47,10 +49,6 @@ public class MeshObject extends RenderObject {
                     for (var meshModel : child.getMeshModels()) {
                         return processMeshModel(nodeModel, meshModel, textures, pipeline);
                     }
-                }
-
-                if (skinModel != null) {
-                    // Animation stuff
                 }
             }
         }

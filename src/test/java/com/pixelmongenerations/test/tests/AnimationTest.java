@@ -1,7 +1,7 @@
 package com.pixelmongenerations.test.tests;
 
+import com.pixelmongenerations.rarecandy.components.MeshObject;
 import com.pixelmongenerations.rarecandy.components.RenderObjects;
-import com.pixelmongenerations.rarecandy.components.Solid;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.test.FeatureTest;
@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 public class AnimationTest extends FeatureTest {
     private final double startTime = System.currentTimeMillis();
     private final Stream<String> models = Stream.of("eevee");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
-    private List<RenderObjects<Solid>> objects;
+    private List<RenderObjects<MeshObject>> objects;
     private boolean alreadyUpdated;
 
     public AnimationTest() {

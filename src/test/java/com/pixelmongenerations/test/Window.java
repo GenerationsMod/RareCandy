@@ -1,5 +1,6 @@
 package com.pixelmongenerations.test;
 
+import com.pixelmongenerations.rarecandy.ThreadSafety;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;

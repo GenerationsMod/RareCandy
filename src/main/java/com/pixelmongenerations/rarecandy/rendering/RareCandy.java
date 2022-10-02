@@ -1,7 +1,8 @@
 package com.pixelmongenerations.rarecandy.rendering;
 
+import com.pixelmongenerations.rarecandy.ThreadSafety;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
-import com.pixelmongenerations.rarecandy.loading.PKLoader;
+import com.pixelmongenerations.rarecandy.loading.GogoatLoader;
 import com.pixelmongenerations.rarecandy.settings.Settings;
 import org.lwjgl.opengl.GL11C;
 import org.slf4j.Logger;
@@ -12,13 +13,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RareCandy {
     private static final Logger LOGGER = LoggerFactory.getLogger(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
-    private final PKLoader loader;
-    private final Queue<Exception> exceptions = new ConcurrentLinkedQueue<>();
+    private final GogoatLoader loader;
+    private static final Queue<Runnable> TASKS = new ConcurrentLinkedQueue<>();
     private final Map<RenderObject, List<InstanceState>> objectMap = new HashMap<>();
 
     public RareCandy(Settings settings) {
+        ThreadSafety.initContextThread();
         var startLoad = System.currentTimeMillis();
-        this.loader = new PKLoader(settings, this);
+        this.loader = new GogoatLoader(settings, this);
         LOGGER.info("RareCandy Startup took " + (System.currentTimeMillis() - startLoad) + "ms");
     }
 
@@ -29,11 +31,14 @@ public class RareCandy {
     }
 
     public void render(boolean updateState, boolean clearInstances) {
-        for (var exception : exceptions) {
-            throw new RuntimeException("An off-thread exception has occurred", exception);
+        var task = TASKS.poll();
+        while (task != null) {
+            task.run();
+
+            task = TASKS.poll();
         }
 
-        for (RenderObject object : this.objectMap.keySet()) {
+        for (var object : this.objectMap.keySet()) {
             if (object.isReady()) {
                 object.update();
                 object.render(this.objectMap.get(object));
@@ -65,7 +70,7 @@ public class RareCandy {
         return instances;
     }
 
-    public PKLoader getLoader() {
+    public GogoatLoader getLoader() {
         return loader;
     }
 
@@ -73,7 +78,7 @@ public class RareCandy {
         throw new RuntimeException("Fatal RareCandy Error! '" + message + "'");
     }
 
-    public void throwExceptionLater(Exception e) {
-        this.exceptions.add(e);
+    public static void runLater(Runnable r) {
+        TASKS.add(r);
     }
 }

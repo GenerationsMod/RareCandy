@@ -1,13 +1,10 @@
 package com.pixelmongenerations.rarecandy.pipeline;
 
-import com.pixelmongenerations.pkl.scene.objects.Mesh;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
-import com.pixelmongenerations.rarecandy.rendering.VertexLayout;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryStack;
@@ -17,9 +14,8 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms, Function<Mesh, FloatBuffer> vertexBufferBuilder, Function<Mesh, IntBuffer> indexBuilder, int program) {
+public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms, int program) {
 
     public void bind() {
         GL20C.glUseProgram(program);
@@ -47,8 +43,6 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
 
     public static class Builder {
         private Map<String, Consumer<UniformUploadContext>> uniformSuppliers = new HashMap<>();
-        private Function<Mesh, FloatBuffer> meshBuilder;
-        private Function<Mesh, IntBuffer> indexBuilder;
         private int program;
         public Map<String, Uniform> uniforms = new HashMap<>();
 
@@ -57,8 +51,6 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
 
         public Builder(Builder oldBuilder) {
             this.uniformSuppliers = oldBuilder.uniformSuppliers;
-            this.meshBuilder = oldBuilder.meshBuilder;
-            this.indexBuilder = oldBuilder.indexBuilder;
             this.program = oldBuilder.program;
             this.uniforms = oldBuilder.uniforms;
         }
@@ -82,29 +74,12 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
                 RareCandy.fatal(GL20C.glGetProgramInfoLog(programId, 1024));
         }
 
-        public Builder meshBuilder(Function<Mesh, FloatBuffer> meshBuilder) {
-            this.meshBuilder = meshBuilder;
-            return this;
-        }
-
-        public Builder indexBuilder(Function<Mesh, IntBuffer> indexBuilder) {
-            this.indexBuilder = indexBuilder;
-            return this;
-        }
-
         public Builder supplyUniform(String name, Consumer<UniformUploadContext> provider) {
             uniformSuppliers.put(name, provider);
             return this;
         }
 
-        public Builder shader(@NotNull String vs, @NotNull String fs, Map<String, String> shaderPath, VertexLayout.AttribLayout... attribs) {
-            var appending = new StringBuilder("#version 450\n");
-            for (var i = 0; i < attribs.length; i++) {
-                var attrib = attribs[i];
-                appending.append("layout(location = ").append(i).append(") in ").append(getType(attrib)).append(" ").append(attrib.name()).append(";\n");
-            }
-
-            vs = appending + vs;
+        public Builder shader(@NotNull String vs, @NotNull String fs) {
             program = GL20C.glCreateProgram();
             addShader(vs, GL20C.GL_VERTEX_SHADER, program);
             addShader(fs, GL20C.GL_FRAGMENT_SHADER, program);
@@ -133,26 +108,10 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
             return this;
         }
 
-        private String getType(VertexLayout.AttribLayout attrib) {
-            if (attrib.glType() == GL11C.GL_FLOAT) {
-                return switch (attrib.size()) {
-                    case 1 -> "float";
-                    case 2 -> "vec2";
-                    case 3 -> "vec3";
-                    case 4 -> "vec4";
-                    default -> throw new RuntimeException("Cant convert float with size " + attrib.size() + " to type");
-                };
-            } else {
-                throw new RuntimeException("Unknown Type for In Attribute " + attrib);
-            }
-        }
-
         public Pipeline build() {
-            if (this.meshBuilder == null) throw new RuntimeException("MeshBuilder is null");
-            if (this.indexBuilder == null) throw new RuntimeException("IndexBuilder is null");
             if (this.program == 0) throw new RuntimeException("Shader not created");
 
-            return new Pipeline(uniformSuppliers, uniforms, meshBuilder, indexBuilder, program);
+            return new Pipeline(uniformSuppliers, uniforms, program);
         }
     }
 }

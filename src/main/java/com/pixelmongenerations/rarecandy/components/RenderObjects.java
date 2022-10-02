@@ -10,9 +10,8 @@ import java.util.List;
 /**
  * Used if a .glb has multiple models inside it
  */
-public class RenderObjects<T extends MeshRenderObject> extends RenderObject implements Iterable<T> {
+public class RenderObjects<T extends RenderObject> extends RenderObject implements Iterable<T> {
     private final List<T> renderObjects = new ArrayList<>();
-    public boolean allObjectsAdded = false;
 
     @Override
     public void render(List<InstanceState> instances) {
@@ -29,7 +28,7 @@ public class RenderObjects<T extends MeshRenderObject> extends RenderObject impl
             }
         }
 
-        return ready && allObjectsAdded;
+        return ready;
     }
 
     @Override

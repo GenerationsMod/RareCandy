@@ -1,13 +1,15 @@
 package com.pixelmongenerations.test;
 
-import com.pixelmongenerations.pkl.reader.AssetReference;
-import com.pixelmongenerations.rarecandy.components.AnimatedSolid;
+import com.pixelmongenerations.pkl.reader.AssetType;
+import com.pixelmongenerations.rarecandy.components.MeshObject;
 import com.pixelmongenerations.rarecandy.components.RenderObjects;
-import com.pixelmongenerations.rarecandy.components.Solid;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import org.joml.Matrix4f;
 
-import java.util.Objects;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public abstract class FeatureTest {
     public final String id;
@@ -22,11 +24,25 @@ public abstract class FeatureTest {
 
     public abstract void update(RareCandy scene, double deltaTime);
 
-    protected RenderObjects<Solid> loadStaticModel(RareCandy renderer, String name) {
-        return renderer.getLoader().createObject(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"), "Failed to read /" + name + ".pk"), AssetReference.Type.PK, Pipelines.staticPipeline(() -> FeatureTester.PROJECTION_MATRIX));
+    protected RenderObjects<MeshObject> loadStaticModel(RareCandy renderer, String name) {
+        var loader = renderer.getLoader();
+        return loader.createObject(
+                () -> {
+                    try {
+                        return new ByteArrayInputStream(Files.readAllBytes(Path.of(FeatureTest.class.getResource("/" + name + ".glb").getPath())));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                AssetType.GLB,
+                asset -> {
+                    var gltfModel = loader.read(asset);
+                    return MeshObject.create(gltfModel, Pipelines.staticPipeline(() -> FeatureTester.PROJECTION_MATRIX));
+                }
+        );
     }
 
-    protected RenderObjects<AnimatedSolid> loadAnimatedModel(RareCandy renderer, String name) {
-        return renderer.getLoader().createObject(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"), "Failed to read /" + name + ".pk"), AssetReference.Type.PK, Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX));
-    }
+    /*protected RenderObjects<AnimatedMeshObject> loadAnimatedModel(RareCandy renderer, String name) {
+        return renderer.getLoader().createObject(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"), "Failed to read /" + name + ".pk"), AssetType.PK, Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX));
+    }*/
 }

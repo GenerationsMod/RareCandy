@@ -17,7 +17,7 @@ public class ModelNode {
 
     public ModelNode(NodeModel rootNodeModel) {
         this.name = rootNodeModel.getName();
-        this.transform = DataUtils.convert(rootNodeModel.getTranslation());
+        this.transform = new Matrix4f().add(DataUtils.convert(rootNodeModel.getTranslation(), rootNodeModel.getRotation(), rootNodeModel.getScale()));
 
         for (NodeModel child : rootNodeModel.getChildren()) {
             children.add(new ModelNode(child));

@@ -2,9 +2,7 @@ package com.pixelmongenerations.rarecandy.animation;
 
 import com.pixelmongenerations.pkl.ModelNode;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
-import de.javagl.jgltf.model.NodeModel;
 import de.javagl.jgltf.model.SkinModel;
-import me.hydos.gogoat.util.DataUtils;
 
 import java.util.HashMap;
 import java.util.Map;

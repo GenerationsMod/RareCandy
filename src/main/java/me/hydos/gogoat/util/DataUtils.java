@@ -6,6 +6,7 @@ import de.javagl.jgltf.model.impl.DefaultBufferModel;
 import de.javagl.jgltf.model.impl.DefaultBufferViewModel;
 import de.javagl.jgltf.model.io.Buffers;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.system.MemoryUtil;
@@ -20,12 +21,17 @@ public class DataUtils {
     private static final Map<BufferViewModel, Integer> BUFFER_VIEW_MODEL_TO_GL_BUFFER_VIEW = new IdentityHashMap<>();
     private static final List<Integer> bufferViews = new ArrayList<>();
 
+    public static Matrix4fc convert(float[] translation, float[] rotation, float[] scale) {
+        Matrix4f transformMatrix = new Matrix4f().identity();
+        if (translation != null) transformMatrix.translate(translation[0], translation[1], translation[2]);
+        if (rotation != null) transformMatrix.rotate(rotation[0], rotation[1], rotation[2], rotation[3]);
+        if (scale != null) transformMatrix.scale(scale[0], scale[1], scale[2]);
+
+        return transformMatrix;
+    }
+
     public static Matrix4f convert(float[] arr) {
         if (arr == null) return new Matrix4f().identity();
-
-        if (arr.length == 3) {
-            return new Matrix4f().translate(arr[0], arr[1], arr[2]);
-        }
 
         if (arr.length == 16) {
             return new Matrix4f()
@@ -50,7 +56,7 @@ public class DataUtils {
                     .m33(arr[15]);
         }
 
-        throw new RuntimeException("Cant handle transformation with " + arr.length + " floats");
+        throw new RuntimeException("Cant handle transformation with " + arr.length + " floats. Need 16");
     }
 
     public static void bindArrayBuffer(BufferViewModel bufferViewModel) {

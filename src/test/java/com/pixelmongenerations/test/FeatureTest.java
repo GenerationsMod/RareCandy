@@ -1,6 +1,7 @@
 package com.pixelmongenerations.test;
 
 import com.pixelmongenerations.pkl.reader.AssetType;
+import com.pixelmongenerations.rarecandy.components.AnimatedMeshObject;
 import com.pixelmongenerations.rarecandy.components.MeshObject;
 import com.pixelmongenerations.rarecandy.components.RenderObjects;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
@@ -36,7 +37,15 @@ public abstract class FeatureTest {
         );
     }
 
-    /*protected RenderObjects<AnimatedMeshObject> loadAnimatedModel(RareCandy renderer, String name) {
-        return renderer.getLoader().createObject(Objects.requireNonNull(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"), "Failed to read /" + name + ".pk"), AssetType.PK, Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX));
-    }*/
+    protected RenderObjects<AnimatedMeshObject> loadAnimatedModel(RareCandy renderer, String name) {
+        var loader = renderer.getLoader();
+        return loader.createObject(
+                () -> FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"),
+                AssetType.PK,
+                asset -> {
+                    var gltfModel = loader.read(asset);
+                    return (AnimatedMeshObject) MeshObject.create(gltfModel, Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX));
+                }
+        );
+    }
 }

@@ -28,6 +28,14 @@ public class MeshObject extends RenderObject {
         this.variants = variants;
         this.glModel = glModel;
         this.pipeline = pipeline;
+
+        // Extended versions may have different things which need to be set first
+        if (this.getClass().getName().equals(MeshObject.class.getName())) {
+            setReady();
+        }
+    }
+
+    public void setReady() {
         this.ready = true;
         System.out.println("Model Ready");
     }
@@ -41,13 +49,13 @@ public class MeshObject extends RenderObject {
             for (var nodeModel : sceneModel.getNodeModels()) {
                 // Model Loading Method #1
                 for (var meshModel : nodeModel.getMeshModels()) {
-                    return processMeshModel(nodeModel, meshModel, textures, pipeline);
+                    return processMeshModel(nodeModel, meshModel, textures, pipeline, animations);
                 }
 
                 // Model Loading Method #2
                 for (var child : nodeModel.getChildren()) {
                     for (var meshModel : child.getMeshModels()) {
-                        return processMeshModel(nodeModel, meshModel, textures, pipeline);
+                        return processMeshModel(nodeModel, meshModel, textures, pipeline, animations);
                     }
                 }
             }
@@ -56,12 +64,12 @@ public class MeshObject extends RenderObject {
         throw new RuntimeException("No Primitive Models inside of GLTF model");
     }
 
-    private static MeshObject processMeshModel(NodeModel nodeModel, MeshModel meshModel, List<TextureReference> materials, Pipeline pipeline) {
+    private static MeshObject processMeshModel(NodeModel nodeModel, MeshModel meshModel, List<TextureReference> materials, Pipeline pipeline, Map<String, Animation> animations) {
         for (var primitiveModel : meshModel.getMeshPrimitiveModels()) {
             var glMaterials = materials.stream().map(Material::new).toList();
             var variants = glMaterials.stream().collect(Collectors.toMap(mat -> mat.getDiffuseTexture().name, mat -> mat));
             var glModel = processPrimitiveModel(nodeModel, meshModel, primitiveModel);
-            return new MeshObject(glMaterials, variants, glModel, pipeline);
+            return new AnimatedMeshObject(glMaterials, variants, glModel, pipeline, animations);
         }
 
         return null;

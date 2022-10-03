@@ -1,6 +1,5 @@
 package com.pixelmongenerations.pkl.reader;
 
-import com.pixelmongenerations.pkl.ModelNode;
 import com.pixelmongenerations.pkl.scene.Scene;
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.image.PixelDatas;
@@ -30,7 +29,7 @@ public class GlbReader {
     @NotNull
     private Scene read(GltfModel model) {
         var textures = model.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
-        return new Scene(model, new ModelNode(model.getNodeModels()), textures);
+        return new Scene(model, textures);
     }
 
     private GltfModel loadScene(TarFile file) throws IOException {

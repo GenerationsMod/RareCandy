@@ -20,20 +20,34 @@ uniform vec3 lightPosition;
 
 uniform mat4 boneTransforms[MAX_BONES];
 
-void main() {
-    mat4 skinMatrix =
+mat4 getBoneTransform() {
+    mat4 boneTransform =
     boneTransforms[uint(joints.x)] * weights.x + // Bone 1 Transform (Bone Transform * Weight)
     boneTransforms[uint(joints.y)] * weights.y + // Bone 2 Transform (Bone Transform * Weight)
     boneTransforms[uint(joints.z)] * weights.z + // Bone 3 Transform (Bone Transform * Weight)
     boneTransforms[uint(joints.w)] * weights.w ; // Bone 4 Transform (Bone Transform * Weight)
+    return boneTransform;
+}
 
-    vec3 outPosition = (skinMatrix * vec4(position, 1.0)).xyz;
+vec3 getAnimatedPosition(mat4 worldSpace) {
+    vec3 worldspaceNormal = normalize((worldSpace * vec4(normals, 2.0)).xyz);
+    vec3 worldspaceTangent = normalize((worldSpace * vec4(tangents.xyz, 2.0)).xyz);
+    vec3 dotTangent = normalize(worldspaceTangent - dot(worldspaceTangent, worldspaceNormal) * worldspaceNormal);
+
+    vec3 biTangent = cross(worldspaceTangent, worldspaceNormal);
+
+    return vec3(worldspaceTangent * dotTangent * biTangent * worldspaceNormal);
+}
+
+void main() {
     mat4 worldSpace = projectionMatrix * viewMatrix;
-    vec4 worldPosition = modelMatrix * vec4(outPosition, 1.0);
+    mat4 modelTransform = modelMatrix * getBoneTransform();
+    vec4 worldPosition = modelTransform * vec4(positions + getAnimatedPosition(worldSpace), 1.0);
 
-    texCoord0 = vec2(inTexCoords.x, inTexCoords.y);
+    normal = (modelMatrix * vec4(normals, 0.0)).xyz;
+    texCoord0 = vec2(texcoords.x, texcoords.y);
     gl_Position = worldSpace * worldPosition;
-    normal = (modelMatrix * vec4(inNormal, 0.0)).xyz;
+
     toLightVector = lightPosition - vec3(worldPosition.x, -5.0, worldPosition.z);
     toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
 }

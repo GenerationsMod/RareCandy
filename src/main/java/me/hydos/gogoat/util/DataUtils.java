@@ -21,28 +21,36 @@ public class DataUtils {
     private static final List<Integer> bufferViews = new ArrayList<>();
 
     public static Matrix4f convert(float[] arr) {
-        if(arr == null) return new Matrix4f().identity();
+        if (arr == null) return new Matrix4f().identity();
 
-        return new Matrix4f()
-                .m00(arr[0])
-                .m01(arr[1])
-                .m02(arr[2])
-                .m03(arr[3])
+        if (arr.length == 3) {
+            return new Matrix4f().translate(arr[0], arr[1], arr[2]);
+        }
 
-                .m10(arr[4])
-                .m11(arr[5])
-                .m12(arr[6])
-                .m13(arr[7])
+        if (arr.length == 16) {
+            return new Matrix4f()
+                    .m00(arr[0])
+                    .m01(arr[1])
+                    .m02(arr[2])
+                    .m03(arr[3])
 
-                .m20(arr[8])
-                .m21(arr[9])
-                .m22(arr[10])
-                .m23(arr[11])
+                    .m10(arr[4])
+                    .m11(arr[5])
+                    .m12(arr[6])
+                    .m13(arr[7])
 
-                .m30(arr[12])
-                .m31(arr[13])
-                .m32(arr[14])
-                .m33(arr[15]);
+                    .m20(arr[8])
+                    .m21(arr[9])
+                    .m22(arr[10])
+                    .m23(arr[11])
+
+                    .m30(arr[12])
+                    .m31(arr[13])
+                    .m32(arr[14])
+                    .m33(arr[15]);
+        }
+
+        throw new RuntimeException("Cant handle transformation with " + arr.length + " floats");
     }
 
     public static void bindArrayBuffer(BufferViewModel bufferViewModel) {
@@ -73,29 +81,28 @@ public class DataUtils {
     public static AccessorModel createTangents(AccessorModel normalsAccessorModel) {
         var count = normalsAccessorModel.getCount();
         var tangentsAccessorModel = DataUtils.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC4, "");
-        AccessorFloatData normalsAccessorData = AccessorDatas.createFloat(normalsAccessorModel);
-        AccessorFloatData tangentsAccessorData = AccessorDatas.createFloat(tangentsAccessorModel);
+        var normalData = AccessorDatas.createFloat(normalsAccessorModel);
+        var tangentData = AccessorDatas.createFloat(tangentsAccessorModel);
         var normal0 = new float[3];
         var normal1 = new float[3];
         var cross = new float[3];
-        var tangent = new float[3];
 
-        for(int i = 0; i < count; i++) {
-            normal0[0] = normalsAccessorData.get(i, 0);
-            normal0[1] = normalsAccessorData.get(i, 1);
-            normal0[2] = normalsAccessorData.get(i, 2);
+        for (int i = 0; i < count; i++) {
+            normal0[0] = normalData.get(i, 0);
+            normal0[1] = normalData.get(i, 1);
+            normal0[2] = normalData.get(i, 2);
 
             normal1[0] = -normal0[2];
             normal1[1] = normal0[0];
             normal1[2] = normal0[1];
 
             DataUtils.cross(normal0, normal1, cross);
-            DataUtils.normalize(cross, tangent);
+            var tangent = DataUtils.normalize(cross);
 
-            tangentsAccessorData.set(i, 0, tangent[0]);
-            tangentsAccessorData.set(i, 1, tangent[1]);
-            tangentsAccessorData.set(i, 2, tangent[2]);
-            tangentsAccessorData.set(i, 3, 1.0F);
+            tangentData.set(i, 0, tangent[0]);
+            tangentData.set(i, 1, tangent[1]);
+            tangentData.set(i, 2, tangent[2]);
+            tangentData.set(i, 3, 2.0F);
         }
 
         return tangentsAccessorModel;
@@ -131,19 +138,22 @@ public class DataUtils {
         result[2] = arr0[0] * arr1[1] - arr0[1] * arr1[0];
     }
 
-    public static void normalize(float arr[], float result[]) {
-        float scaling = 1.0f / computeLength(arr);
-        scale(arr, scaling, result);
+    public static float[] normalize(float[] arr) {
+        return scale(arr, 1.0f / computeLength(arr));
     }
 
-    public static void scale(float arr[], float factor, float result[]) {
-        for (int i = 0; i < arr.length; i++) {
+    public static float[] scale(float[] arr, float factor) {
+        var result = new float[arr.length];
+
+        for (var i = 0; i < arr.length; i++) {
             result[i] = arr[i] * factor;
         }
+
+        return result;
     }
 
     public static float computeLength(float arr[]) {
-        var sum = 0;
+        float sum = 0;
         for (var v : arr) {
             sum += v * v;
         }

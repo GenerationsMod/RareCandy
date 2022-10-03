@@ -8,12 +8,10 @@ import java.util.List;
 
 public class Scene {
     public final GltfModel model;
-    public final ModelNode rootNode;
     public List<TextureReference> textures;
 
-    public Scene(GltfModel model, ModelNode rootNode, List<TextureReference> textures) {
+    public Scene(GltfModel model, List<TextureReference> textures) {
         this.model = model;
-        this.rootNode = rootNode;
         this.textures = textures;
     }
 }

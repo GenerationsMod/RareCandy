@@ -1,5 +1,6 @@
 package com.pixelmongenerations.rarecandy.pipeline;
 
+import com.pixelmongenerations.rarecandy.loading.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL20C;
@@ -71,5 +72,10 @@ public class Uniform {
         }
 
         return locations[0];
+    }
+
+    public void uploadTexture(Texture texture, int slot) {
+        texture.bind(slot);
+        uploadInt(slot);
     }
 }

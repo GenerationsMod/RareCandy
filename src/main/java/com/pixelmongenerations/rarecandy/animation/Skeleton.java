@@ -1,5 +1,6 @@
 package com.pixelmongenerations.rarecandy.animation;
 
+import com.pixelmongenerations.pkl.ModelNode;
 import com.pixelmongenerations.rarecandy.rendering.Bone;
 import de.javagl.jgltf.model.NodeModel;
 import de.javagl.jgltf.model.SkinModel;
@@ -11,13 +12,13 @@ import java.util.Map;
 public class Skeleton {
     public final Bone[] boneArray;
     public final Map<String, Bone> boneMap;
-    public final NodeModel rootNode;
+    public final ModelNode rootNode;
 
     public Skeleton(SkinModel skeleton) {
         var boneCount = skeleton.getJoints().size();
         this.boneArray = new Bone[boneCount];
         this.boneMap = new HashMap<>(boneCount);
-        this.rootNode = skeleton.getJoints().get(0).getParent();
+        this.rootNode = new ModelNode(skeleton.getJoints().get(0).getParent());
 
         for (var i = 0; i < skeleton.getJoints().size(); i++) {
             var jointNode = skeleton.getJoints().get(i);

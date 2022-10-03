@@ -34,7 +34,6 @@ public class RareCandy {
         var task = TASKS.poll();
         while (task != null) {
             task.run();
-
             task = TASKS.poll();
         }
 

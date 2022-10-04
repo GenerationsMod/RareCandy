@@ -56,20 +56,15 @@ public class Animation {
 
         if (animNode != null) {
             var scale = AnimationMath.calcInterpolatedScaling(animTime, animNode);
-            var scalingMat = new Matrix4f().identity().scale(scale.x(), scale.y(), scale.z());
-
             var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
-            var rotationMat = rotation.get(new Matrix4f().identity());
-
             var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
-            var translationMat = new Matrix4f().identity().translate(translation.x(), translation.y(), translation.z());
 
-            nodeTransform = new Matrix4f(translationMat).mul(rotationMat).mul(scalingMat);
+            nodeTransform.identity().translationRotateScale(translation, rotation, scale);
         }
 
-        var globalTransform = new Matrix4f(parentTransform).mul(nodeTransform);
+        var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
         var bone = skeleton.get(name);
-        if (bone != null) boneTransforms[skeleton.getId(bone)] = new Matrix4f().mul(new Matrix4f(globalTransform)).mul(bone.offsetMatrix);
+        if (bone != null) boneTransforms[skeleton.getId(bone)] = globalTransform.mul(bone.inversePoseMatrix, new Matrix4f());
 
         for (var child : node.children) {
             readNodeHierarchy(animTime, child, globalTransform, boneTransforms);

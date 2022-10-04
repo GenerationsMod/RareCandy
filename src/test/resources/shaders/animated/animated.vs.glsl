@@ -5,8 +5,8 @@ layout(location = 0) in vec3 positions;
 layout(location = 1) in vec2 texcoords;
 layout(location = 2) in vec3 normals;
 layout(location = 3) in vec4 tangents;
-layout(location = 3) in vec4 joints;
-layout(location = 4) in vec4 weights;
+layout(location = 4) in vec4 joints;
+layout(location = 5) in vec4 weights;
 
 out vec2 texCoord0;
 out vec3 toLightVector; // TODO: take mc's light direction uniforms and normalise and inverse them to create this

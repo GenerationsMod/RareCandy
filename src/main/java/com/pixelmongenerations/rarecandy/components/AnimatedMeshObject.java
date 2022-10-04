@@ -20,7 +20,7 @@ public class AnimatedMeshObject extends MeshObject {
         super(glMaterials, variants, glModel, pipeline);
         this.animations = animations;
         this.boneTransforms = new Matrix4f[0];
-        this.activeAnimation = new ArrayList<>(animations.keySet()).get(0);
+        this.activeAnimation = new ArrayList<>(animations.keySet()).get(2);
         setReady();
     }
 

@@ -4,9 +4,8 @@
 layout(location = 0) in vec3 positions;
 layout(location = 1) in vec2 texcoords;
 layout(location = 2) in vec3 normals;
-layout(location = 3) in vec4 tangents;
-layout(location = 4) in vec4 joints;
-layout(location = 5) in vec4 weights;
+layout(location = 3) in vec4 joints;
+layout(location = 4) in vec4 weights;
 
 out vec2 texCoord0;
 out vec3 toLightVector; // TODO: take mc's light direction uniforms and normalise and inverse them to create this
@@ -29,20 +28,10 @@ mat4 getBoneTransform() {
     return boneTransform;
 }
 
-vec3 getAnimatedPosition(mat4 worldSpace) {
-    vec3 worldspaceNormal = normalize((worldSpace * vec4(normals, 2.0)).xyz);
-    vec3 worldspaceTangent = normalize((worldSpace * vec4(tangents.xyz, 2.0)).xyz);
-    vec3 dotTangent = normalize(worldspaceTangent - dot(worldspaceTangent, worldspaceNormal) * worldspaceNormal);
-
-    vec3 biTangent = cross(worldspaceTangent, worldspaceNormal);
-
-    return vec3(worldspaceTangent * dotTangent * biTangent * worldspaceNormal);
-}
-
 void main() {
     mat4 worldSpace = projectionMatrix * viewMatrix;
     mat4 modelTransform = modelMatrix * getBoneTransform();
-    vec4 worldPosition = modelTransform * vec4(positions + getAnimatedPosition(worldSpace), 1.0);
+    vec4 worldPosition = modelTransform * vec4(positions, 1.0);
 
     normal = (modelMatrix * vec4(normals, 0.0)).xyz;
     texCoord0 = vec2(texcoords.x, texcoords.y);

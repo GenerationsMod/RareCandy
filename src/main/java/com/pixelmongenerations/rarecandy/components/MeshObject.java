@@ -94,18 +94,13 @@ public class MeshObject extends RenderObject {
         DataUtils.bindArrayBuffer(normal.getBufferViewModel());
         vertexAttribPointer(normal, 2);
 
-        // TODO: make this be able to be disabled later it slows down the game a bit
-        var tangents = DataUtils.createTangents(normal);
-        DataUtils.bindArrayBuffer(tangents.getBufferViewModel());
-        vertexAttribPointer(tangents, 3);
-
         var joints = attributes.get("JOINTS_0");
         DataUtils.bindArrayBuffer(joints.getBufferViewModel());
-        vertexAttribPointer(joints, 4);
+        vertexAttribPointer(joints, 3);
 
         var weights = attributes.get("WEIGHTS_0");
         DataUtils.bindArrayBuffer(weights.getBufferViewModel());
-        vertexAttribPointer(weights, 5);
+        vertexAttribPointer(weights, 4);
 
         var ebo = GL15.glGenBuffers();
         GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);

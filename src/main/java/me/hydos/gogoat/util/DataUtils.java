@@ -1,13 +1,10 @@
 package me.hydos.gogoat.util;
 
 import de.javagl.jgltf.model.*;
-import de.javagl.jgltf.model.impl.DefaultAccessorModel;
 import de.javagl.jgltf.model.impl.DefaultBufferModel;
 import de.javagl.jgltf.model.impl.DefaultBufferViewModel;
-import de.javagl.jgltf.model.io.Buffers;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.system.MemoryUtil;
 
@@ -84,47 +81,6 @@ public class DataUtils {
         return directBuffer;
     }
 
-    public static AccessorModel createTangents(AccessorModel normalsAccessorModel) {
-        var count = normalsAccessorModel.getCount();
-        var tangentsAccessorModel = DataUtils.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC4, "");
-        var normalData = AccessorDatas.createFloat(normalsAccessorModel);
-        var tangentData = AccessorDatas.createFloat(tangentsAccessorModel);
-        var normal0 = new float[3];
-        var normal1 = new float[3];
-        var cross = new float[3];
-
-        for (int i = 0; i < count; i++) {
-            normal0[0] = normalData.get(i, 0);
-            normal0[1] = normalData.get(i, 1);
-            normal0[2] = normalData.get(i, 2);
-
-            normal1[0] = -normal0[2];
-            normal1[1] = normal0[0];
-            normal1[2] = normal0[1];
-
-            DataUtils.cross(normal0, normal1, cross);
-            var tangent = DataUtils.normalize(cross);
-
-            tangentData.set(i, 0, tangent[0]);
-            tangentData.set(i, 1, tangent[1]);
-            tangentData.set(i, 2, tangent[2]);
-            tangentData.set(i, 3, 2.0F);
-        }
-
-        return tangentsAccessorModel;
-    }
-
-    public static AccessorModel createAccessorModel(int componentType, int count, ElementType elementType, String bufferUriString) {
-        var accessorModel = new DefaultAccessorModel(componentType, count, elementType);
-        var elementSize = accessorModel.getElementSizeInBytes();
-        accessorModel.setByteOffset(0);
-
-        var bufferData = Buffers.create(count * elementSize);
-        accessorModel.setBufferViewModel(createBufferViewModel(bufferUriString, bufferData));
-        accessorModel.setAccessorData(AccessorDatas.create(accessorModel));
-        return accessorModel;
-    }
-
     private static DefaultBufferViewModel createBufferViewModel(String uriString, ByteBuffer bufferData) {
         var bufferModel = new DefaultBufferModel();
         bufferModel.setUri(uriString);
@@ -136,16 +92,6 @@ public class DataUtils {
         bufferViewModel.setBufferModel(bufferModel);
 
         return bufferViewModel;
-    }
-
-    public static void cross(float arr0[], float arr1[], float result[]) {
-        result[0] = arr0[1] * arr1[2] - arr0[2] * arr1[1];
-        result[1] = arr0[2] * arr1[0] - arr0[0] * arr1[2];
-        result[2] = arr0[0] * arr1[1] - arr0[1] * arr1[0];
-    }
-
-    public static float[] normalize(float[] arr) {
-        return scale(arr, 1.0f / computeLength(arr));
     }
 
     public static float[] scale(float[] arr, float factor) {

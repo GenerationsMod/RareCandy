@@ -42,14 +42,21 @@ public class MeshObject extends RenderObject {
 
     public static MeshObject create(GltfModel gltfModel, Pipeline pipeline) {
         var textures = gltfModel.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
-        var bones = new Skeleton(gltfModel.getSkinModels().get(0));
-        var animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, bones)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+
+        Map<String, Animation> animations = null;
+
+        if(!gltfModel.getSkinModels().isEmpty()) {
+            var bones = new Skeleton(gltfModel.getSkinModels().get(0));
+            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, bones)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+        }
 
         for (var sceneModel : gltfModel.getSceneModels()) {
             for (var nodeModel : sceneModel.getNodeModels()) {
-                // Model Loading Method #1
-                for (var meshModel : nodeModel.getMeshModels()) {
-                    return processMeshModel(nodeModel, meshModel, textures, pipeline, animations);
+                if(nodeModel.getChildren().isEmpty()) {
+                    // Model Loading Method #1
+                    for (var meshModel : nodeModel.getMeshModels()) {
+                        return processMeshModel(nodeModel, meshModel, textures, pipeline, animations);
+                    }
                 }
 
                 // Model Loading Method #2
@@ -69,7 +76,7 @@ public class MeshObject extends RenderObject {
             var glMaterials = materials.stream().map(Material::new).toList();
             var variants = glMaterials.stream().collect(Collectors.toMap(mat -> mat.getDiffuseTexture().name, mat -> mat));
             var glModel = processPrimitiveModel(nodeModel, meshModel, primitiveModel);
-            return new AnimatedMeshObject(glMaterials, variants, glModel, pipeline, animations);
+            return animations != null ? new AnimatedMeshObject(glMaterials, variants, glModel, pipeline, animations) : new MeshObject(glMaterials, variants, glModel, pipeline);
         }
 
         return null;
@@ -95,12 +102,16 @@ public class MeshObject extends RenderObject {
         vertexAttribPointer(normal, 2);
 
         var joints = attributes.get("JOINTS_0");
-        DataUtils.bindArrayBuffer(joints.getBufferViewModel());
-        vertexAttribPointer(joints, 3);
 
-        var weights = attributes.get("WEIGHTS_0");
-        DataUtils.bindArrayBuffer(weights.getBufferViewModel());
-        vertexAttribPointer(weights, 4);
+        if(joints != null) {
+
+            DataUtils.bindArrayBuffer(joints.getBufferViewModel());
+            vertexAttribPointer(joints, 3);
+
+            var weights = attributes.get("WEIGHTS_0");
+            DataUtils.bindArrayBuffer(weights.getBufferViewModel());
+            vertexAttribPointer(weights, 4);
+        }
 
         var ebo = GL15.glGenBuffers();
         GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);

@@ -33,7 +33,7 @@ public class AnimationTest extends FeatureTest {
 
     @Override
     public void update(RareCandy scene, double deltaTime) {
-        var timePassed = ((System.currentTimeMillis() - startTime) / 1000);
+        var timePassed = ((System.currentTimeMillis() - startTime) / 1000/ 1000);
 
         for (var object : scene.getObjects()) {
             object.transformationMatrix().rotate((float) deltaTime, 0, 1, 0);

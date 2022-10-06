@@ -1,11 +1,11 @@
 plugins {
     `java-library`
     `maven-publish`
-    id("com.github.spotbugs") version "5.0.12"
+//    id("com.github.spotbugs") version "5.0.12"
 }
 
 group = "com.pixelmongenerations"
-version = "0.4.2"
+version = "0.4.3"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -30,9 +30,9 @@ dependencies {
     implementation("org.lwjgl", "lwjgl-glfw")
     implementation("org.lwjgl", "lwjgl-opengl")
 
-    runtimeOnly("org.lwjgl", "lwjgl" , classifier = "natives-linux")
-    runtimeOnly("org.lwjgl", "lwjgl-glfw" , classifier = "natives-linux")
-    runtimeOnly("org.lwjgl", "lwjgl-opengl" , classifier = "natives-linux")
+    runtimeOnly("org.lwjgl", "lwjgl" , classifier = "natives-windows")
+    runtimeOnly("org.lwjgl", "lwjgl-glfw" , classifier = "natives-windows")
+    runtimeOnly("org.lwjgl", "lwjgl-opengl" , classifier = "natives-windows")
 
     compileOnly("org.slf4j:slf4j-api:2.0.2")
     testImplementation("org.slf4j:slf4j-jdk14:2.0.2")

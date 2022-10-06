@@ -12,12 +12,13 @@ uniform sampler2D diffuse;
 uniform vec3 LIGHT_color;
 uniform float LIGHT_shineDamper;
 uniform float LIGHT_reflectivity;
+uniform vec3 tint;
 
 const float AMBIENT_LIGHT = 0.6f;
 
 void main() {
     vec4 color = texture2D(diffuse, texCoord0);
-
+    color.xyz *= tint.xyz;
     if(color.a < 0.1) {
         discard;
     }

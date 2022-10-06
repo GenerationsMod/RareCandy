@@ -23,7 +23,7 @@ public class Window {
     public long handle;
 
     public Window(String title, int width, int height) {
-        System.loadLibrary("renderdoc");
+//        System.loadLibrary("renderdoc");
         this.title = title;
         this.width = width;
         this.height = height;

@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 public class AnimationTest extends FeatureTest {
     private final double startTime = System.currentTimeMillis();
-    private final Stream<String> models = Stream.of("eevee");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
+    private final Stream<String> models = Stream.of("jolteon");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
     private List<RenderObjects<AnimatedMeshObject>> objects;
 
     public AnimationTest() {
@@ -25,9 +25,16 @@ public class AnimationTest extends FeatureTest {
         objects = this.models.map(mdl -> loadAnimatedModel(scene, mdl)).toList();
 
         for (var model : objects) {
-            var instance = new InstanceState(new Matrix4f(), viewMatrix, "normal");
-            instance.transformationMatrix().translate(new Vector3f(0, 0, 2)).rotate((float) Math.toRadians(180), new Vector3f(1, 0, 0)).scale(new Vector3f(0.1f, 0.1f, 0.1f));
-            scene.addObject(model, instance);
+            int i = 0;
+
+            List<String> variants = List.of("none-normal", "none-shiny");
+
+            for (String variant : variants) {
+                var instance = new InstanceState(new Matrix4f(), viewMatrix, variant);
+                instance.transformationMatrix().translate(new Vector3f(i, 0, 0))/*.rotate((float) Math.toRadians(180), new Vector3f(1, 0, 0))*/.scale(new Vector3f(0.01f, 0.01f, 0.01f));
+                scene.addObject(model, instance);
+                i++;
+            }
         }
     }
 

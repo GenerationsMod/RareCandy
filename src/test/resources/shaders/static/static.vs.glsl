@@ -20,7 +20,7 @@ void main() {
     vec4 worldPosition = modelMatrix * vec4(positions, 1.0);
 
     normal = (modelMatrix * vec4(inNormal, 0.0)).xyz;
-    texCoord0 = inTexCoords;
+    texCoord0 = texcoords;
     gl_Position = worldSpace * worldPosition;
 
     toLightVector = lightPosition - worldPosition.xyz;

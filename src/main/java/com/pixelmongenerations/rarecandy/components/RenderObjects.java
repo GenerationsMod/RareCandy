@@ -3,9 +3,8 @@ package com.pixelmongenerations.rarecandy.components;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Used if a .glb has multiple models inside it
@@ -44,6 +43,11 @@ public class RenderObjects<T extends RenderObject> extends RenderObject implemen
 
     public void remove(T object) {
         this.renderObjects.remove(object);
+    }
+
+    @Override
+    public Set<String> availableVariants() {
+        return renderObjects.stream().flatMap(a -> a.availableVariants().stream()).collect(Collectors.toSet());
     }
 
     @NotNull

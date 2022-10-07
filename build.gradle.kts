@@ -1,7 +1,7 @@
 plugins {
     `java-library`
     `maven-publish`
-    id("com.github.spotbugs") version "5.0.12"
+//    id("com.github.spotbugs") version "5.0.12"
 }
 
 group = "com.pixelmongenerations"
@@ -27,14 +27,12 @@ dependencies {
 
     implementation(platform("org.lwjgl:lwjgl-bom:3.3.1"))
     implementation("org.lwjgl", "lwjgl")
-    mcDependency(this, "org.lwjgl", "lwjgl-stb")
-    mcDependency(this, "org.lwjgl", "lwjgl-glfw")
-    mcDependency(this, "org.lwjgl", "lwjgl-opengl")
+    implementation("org.lwjgl", "lwjgl-glfw")
+    implementation("org.lwjgl", "lwjgl-opengl")
 
-    runtimeOnly("org.lwjgl", "lwjgl" , classifier = "natives-linux")
-    runtimeOnly("org.lwjgl", "lwjgl-stb" , classifier = "natives-linux")
-    runtimeOnly("org.lwjgl", "lwjgl-glfw" , classifier = "natives-linux")
-    runtimeOnly("org.lwjgl", "lwjgl-opengl" , classifier = "natives-linux")
+    runtimeOnly("org.lwjgl", "lwjgl" , classifier = "natives-windows")
+    runtimeOnly("org.lwjgl", "lwjgl-glfw" , classifier = "natives-windows")
+    runtimeOnly("org.lwjgl", "lwjgl-opengl" , classifier = "natives-windows")
 
     compileOnly("org.slf4j:slf4j-api:2.0.2")
     testImplementation("org.slf4j:slf4j-jdk14:2.0.2")

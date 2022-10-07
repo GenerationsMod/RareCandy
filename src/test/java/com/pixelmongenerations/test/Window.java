@@ -1,5 +1,6 @@
 package com.pixelmongenerations.test;
 
+import com.pixelmongenerations.rarecandy.ThreadSafety;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
@@ -22,7 +23,7 @@ public class Window {
     public long handle;
 
     public Window(String title, int width, int height) {
-        // System.loadLibrary("renderdoc");
+//        System.loadLibrary("renderdoc");
         this.title = title;
         this.width = width;
         this.height = height;

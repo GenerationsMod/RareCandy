@@ -3,16 +3,14 @@ package com.pixelmongenerations.rarecandy.components;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Used if a .glb has multiple models inside it
  */
-public class RenderObjects<T extends MeshRenderObject> extends RenderObject implements Iterable<T> {
+public class RenderObjects<T extends RenderObject> extends RenderObject implements Iterable<T> {
     private final List<T> renderObjects = new ArrayList<>();
-    public boolean allObjectsAdded = false;
 
     @Override
     public void render(List<InstanceState> instances) {
@@ -29,7 +27,7 @@ public class RenderObjects<T extends MeshRenderObject> extends RenderObject impl
             }
         }
 
-        return ready && allObjectsAdded;
+        return ready;
     }
 
     @Override
@@ -45,6 +43,11 @@ public class RenderObjects<T extends MeshRenderObject> extends RenderObject impl
 
     public void remove(T object) {
         this.renderObjects.remove(object);
+    }
+
+    @Override
+    public Set<String> availableVariants() {
+        return renderObjects.stream().flatMap(a -> a.availableVariants().stream()).collect(Collectors.toSet());
     }
 
     @NotNull

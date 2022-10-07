@@ -1,16 +1,6 @@
 package com.pixelmongenerations.pkl;
 
-import com.pixelmongenerations.pkl.reader.AssetReference;
-import com.pixelmongenerations.pkl.reader.GlbReader;
-import com.pixelmongenerations.pkl.scene.Scene;
-import com.pixelmongenerations.rarecandy.animation.Animation;
-import com.pixelmongenerations.rarecandy.animation.CachedAnimation;
-import com.pixelmongenerations.rarecandy.components.AnimatedSolid;
-import com.pixelmongenerations.rarecandy.components.MeshRenderObject;
-import com.pixelmongenerations.rarecandy.components.RenderObjects;
-import com.pixelmongenerations.rarecandy.components.Solid;
-import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
-import com.pixelmongenerations.rarecandy.settings.Settings;
+import com.pixelmongenerations.pkl.reader.AssetType;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.tukaani.xz.XZ;
 import org.tukaani.xz.XZInputStream;
@@ -23,49 +13,33 @@ import java.io.InputStream;
  * Pixelmon Asset (.pk) file.
  */
 public class PixelAsset {
-    public static final GlbReader READER = new GlbReader();
-    public Scene scene;
 
-    public PixelAsset(AssetReference reference) {
+    public byte[] modelFile;
+
+    public PixelAsset(InputStream is, AssetType type) {
         try {
-            switch (reference.type()) {
+            switch (type) {
                 case PK -> {
-                    TarFile tarFile = getTarFile(reference.is());
-                    this.scene = READER.read(tarFile);
+                    var tarFile = getTarFile(is);
+
+                    for (var entry : tarFile.getEntries()) {
+                        if (entry.getName().endsWith(".glb")) {
+                            this.modelFile = tarFile.getInputStream(entry).readAllBytes();
+                        }
+                    }
                 }
 
-                case GLB -> this.scene = READER.read(reference.is());
+                case GLB -> this.modelFile = is.readAllBytes();
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to load scene", e);
         }
     }
 
-    public <T extends MeshRenderObject> void upload(RenderObjects<T> objects, Pipeline pipeline, Settings settings) {
-
-        for (var mesh : scene.meshes) {
-            T object = (T) new Solid();
-
-            if (scene.gltf.getAnimationModels().size() > 100) {
-                var animations = scene.gltf.getAnimationModels()
-                        .stream()
-                        .map(anim -> settings.preCacheAnimations() ? new CachedAnimation(anim, mesh.getBones()) : new Animation(anim, mesh.getBones()))
-                        .toArray(Animation[]::new);
-
-                object = (T) new AnimatedSolid(animations, scene.rootNode);
-            }
-
-            object.upload(mesh, pipeline, scene.textures);
-            objects.add(object);
-        }
-
-        objects.allObjectsAdded = true;
-    }
-
     private TarFile getTarFile(InputStream inputStream) {
         try {
-            InputStream unlockedInputStream = unlockArchive(inputStream.readAllBytes());
-            XZInputStream xzInputStream = new XZInputStream(unlockedInputStream);
+            var unlockedArchive = unlockArchive(inputStream.readAllBytes());
+            var xzInputStream = new XZInputStream(unlockedArchive);
             return new TarFile(xzInputStream.readAllBytes());
         } catch (IOException e) {
             throw new RuntimeException("Failed to read file.", e);

@@ -17,12 +17,10 @@ const float AMBIENT_LIGHT = 0.6f;
 
 void main() {
     vec4 color = texture2D(diffuse, texCoord0);
-
     if(color.a < 0.1) {
         discard;
     }
 
-    // Math
     vec3 unitNormal = normalize(normal);
     vec3 unitLightVector = normalize(toLightVector);
     vec3 lightDir = -unitLightVector;

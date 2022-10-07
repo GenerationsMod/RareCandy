@@ -13,7 +13,6 @@ import java.util.Set;
 public abstract class RenderObject {
     protected Pipeline pipeline;
     protected List<Material> materials = new ArrayList<>();
-    protected int indexCount;
     protected Map<String, Material> variants;
     protected boolean ready = false;
 

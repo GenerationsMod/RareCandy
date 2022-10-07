@@ -1,7 +1,9 @@
 package com.pixelmongenerations.rarecandy.pipeline;
 
+import com.pixelmongenerations.rarecandy.loading.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryUtil;
 
@@ -10,6 +12,7 @@ import java.nio.FloatBuffer;
 public class Uniform {
     private static final FloatBuffer MAT4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(16);
     private static final FloatBuffer VEC3_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(3);
+    private static final FloatBuffer VEC4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(4);
     public final int type;
     public final int count;
     private final int[] locations;
@@ -71,5 +74,15 @@ public class Uniform {
         }
 
         return locations[0];
+    }
+
+    public void uploadTexture(Texture texture, int slot) {
+        texture.bind(slot);
+        uploadInt(slot);
+    }
+
+    public void uploadVec4f(Vector4f value) {
+        value.get(VEC4_TRANSFER_BUFFER);
+        GL20C.glUniform4fv(getLocation(), VEC4_TRANSFER_BUFFER);
     }
 }

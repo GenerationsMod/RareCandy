@@ -1,7 +1,6 @@
 package com.pixelmongenerations.rarecandy.animation;
 
 import com.pixelmongenerations.pkl.ModelNode;
-import com.pixelmongenerations.rarecandy.rendering.Bone;
 import de.javagl.jgltf.model.AnimationModel;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -15,16 +14,27 @@ public class Animation {
     public final float ticksPerSecond;
     public final double animationDuration;
     public final Map<String, AnimationNode> animationNodes;
-    protected final Bones bones;
+    protected final Skeleton skeleton;
 
-    public Animation(AnimationModel animation, Bone[] bones) {
-        this.name = animation.getName();
-        this.ticksPerSecond = 0;//(float) (animation.mTicksPerSecond() != 0 ? animation.mTicksPerSecond() : 25.0f);
-        this.animationDuration = 0;//animation.mDuration();
+    public Animation(AnimationModel rawAnimation, Skeleton skeleton) {
+        this.name = rawAnimation.getName();
+        this.ticksPerSecond = 1000;
         this.animationNodes = new HashMap<>();
-        this.bones = new Bones(bones);
+        this.skeleton = skeleton;
 
-        // fillAnimationNodes(animation);
+        fillAnimationNodes(rawAnimation.getChannels());
+        this.animationDuration = findLastKeyTime();
+    }
+
+    private double findLastKeyTime() {
+        var duration = 0d;
+
+        for (var value : this.animationNodes.values()) {
+            var key = value.positionKeys.get(value.positionKeys.size() - 1);
+            duration = key.time() > duration ? key.time() : duration;
+        }
+
+        return duration;
     }
 
     public double getAnimationTime(double secondsPassed) {
@@ -33,9 +43,9 @@ public class Animation {
         return ticksPassed % animationDuration;
     }
 
-    public Matrix4f[] getFrameTransform(double animTime, ModelNode rootModelNode) {
-        var boneTransforms = new Matrix4f[this.bones.boneArray.length];
-        readNodeHierarchy((float) animTime, rootModelNode, new Matrix4f().identity(), boneTransforms);
+    public Matrix4f[] getFrameTransform(double animTime) {
+        var boneTransforms = new Matrix4f[this.skeleton.boneArray.length];
+        readNodeHierarchy((float) animTime, skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
         return boneTransforms;
     }
 
@@ -46,56 +56,68 @@ public class Animation {
 
         if (animNode != null) {
             var scale = AnimationMath.calcInterpolatedScaling(animTime, animNode);
-            var scalingMat = new Matrix4f().identity().scale(scale.x(), scale.y(), scale.z());
-
             var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
-            var rotationMat = rotation.get(new Matrix4f().identity());
-
             var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
-            var translationMat = new Matrix4f().identity().translate(translation.x(), translation.y(), translation.z());
 
-            nodeTransform = new Matrix4f(translationMat).mul(rotationMat).mul(scalingMat);
+            nodeTransform.identity().translationRotateScale(translation, rotation, scale);
         }
 
-        var globalTransform = new Matrix4f(parentTransform).mul(nodeTransform);
-        var bone = bones.get(name);
-        if(bone != null) boneTransforms[bones.getId(bone)] = new Matrix4f().mul(new Matrix4f(globalTransform)).mul(bone.offsetMatrix);
+        var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
+        var bone = skeleton.get(name);
+        if (bone != null) boneTransforms[skeleton.getId(bone)] = globalTransform.mul(bone.inversePoseMatrix, new Matrix4f());
 
         for (var child : node.children) {
             readNodeHierarchy(animTime, child, globalTransform, boneTransforms);
         }
     }
 
-/*    private void fillAnimationNodes(AIAnimation aiAnim) {
-        for (var i = 0; i < aiAnim.mNumChannels(); i++) {
-            AINodeAnim nodeAnim = AINodeAnim.create(aiAnim.mChannels().get(i));
-            animationNodes.put(nodeAnim.mNodeName().dataString(), new AnimationNode(nodeAnim));
+    private void fillAnimationNodes(List<AnimationModel.Channel> channels) {
+        for (var channel : channels) {
+            var node = channel.getNodeModel();
+            animationNodes.put(node.getName(), new AnimationNode(channels.stream().filter(c -> c.getNodeModel().equals(node)).toList()));
         }
-    }*/
+    }
 
     public static class AnimationNode {
         public final TransformStorage<Vector3f> positionKeys = new TransformStorage<>();
         public final TransformStorage<Quaternionf> rotationKeys = new TransformStorage<>();
         public final TransformStorage<Vector3f> scaleKeys = new TransformStorage<>();
 
-        public AnimationNode(AnimationNode animNode) {
-            /*if (animNode.mNumPositionKeys() > 0) {
-                for (var positionKey : Objects.requireNonNull(animNode.mPositionKeys(), "Position keys were null")) {
-                    positionKeys.add(positionKey.mTime(), AssimpUtils.from(positionKey.mValue()));
+        public AnimationNode(List<AnimationModel.Channel> nodeChannels) {
+            if (nodeChannels.size() > 3) throw new RuntimeException("More channels than we can handle");
+
+            for (var channel : nodeChannels) {
+                switch (channel.getPath()) {
+                    case "translation" -> {
+                        var timeBuffer = channel.getSampler().getInput().getBufferViewModel().getBufferViewData().asFloatBuffer();
+                        var translationBuffer = channel.getSampler().getOutput().getBufferViewModel().getBufferViewData().asFloatBuffer();
+
+                        for (var i = 0; i < timeBuffer.capacity(); i++) {
+                            positionKeys.add(timeBuffer.get(), new Vector3f(translationBuffer.get(), translationBuffer.get(), translationBuffer.get()));
+                        }
+                    }
+
+                    case "rotation" -> {
+                        var timeBuffer = channel.getSampler().getInput().getBufferViewModel().getBufferViewData().asFloatBuffer();
+                        var rotationBuffer = channel.getSampler().getOutput().getBufferViewModel().getBufferViewData().asFloatBuffer();
+
+                        for (var i = 0; i < timeBuffer.capacity(); i++) {
+                            rotationKeys.add(timeBuffer.get(), new Quaternionf(rotationBuffer.get(), rotationBuffer.get(), rotationBuffer.get(), rotationBuffer.get()));
+                        }
+                    }
+
+                    case "scale" -> {
+                        var timeBuffer = channel.getSampler().getInput().getBufferViewModel().getBufferViewData().asFloatBuffer();
+                        var scaleBuffer = channel.getSampler().getOutput().getBufferViewModel().getBufferViewData().asFloatBuffer();
+
+                        for (var i = 0; i < timeBuffer.capacity(); i++) {
+                            scaleKeys.add(timeBuffer.get(), new Vector3f(scaleBuffer.get(), scaleBuffer.get(), scaleBuffer.get()));
+                        }
+                    }
+
+                    default -> throw new RuntimeException("Unknown Channel Type \"" + channel.getPath() + "\"");
                 }
             }
-
-            if (animNode.mNumRotationKeys() > 0) {
-                for (var rotationKey : Objects.requireNonNull(animNode.mRotationKeys(), "Rotation keys were null")) {
-                    rotationKeys.add(rotationKey.mTime(), AssimpUtils.from(rotationKey.mValue()));
-                }
-            }
-
-            if (animNode.mNumScalingKeys() > 0) {
-                for (var scaleKey : Objects.requireNonNull(animNode.mScalingKeys(), "Scaling keys were null")) {
-                    scaleKeys.add(scaleKey.mTime(), AssimpUtils.from(scaleKey.mValue()));
-                }
-            }*/
         }
 
         public TransformStorage.TimeKey<Vector3f> getDefaultPosition() {

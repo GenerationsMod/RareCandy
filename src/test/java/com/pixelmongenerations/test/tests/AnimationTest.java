@@ -1,7 +1,7 @@
 package com.pixelmongenerations.test.tests;
 
+import com.pixelmongenerations.rarecandy.components.AnimatedMeshObject;
 import com.pixelmongenerations.rarecandy.components.RenderObjects;
-import com.pixelmongenerations.rarecandy.components.Solid;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.test.FeatureTest;
@@ -13,9 +13,8 @@ import java.util.stream.Stream;
 
 public class AnimationTest extends FeatureTest {
     private final double startTime = System.currentTimeMillis();
-    private final Stream<String> models = Stream.of("eevee");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
-    private List<RenderObjects<Solid>> objects;
-    private boolean alreadyUpdated;
+    private final Stream<String> models = Stream.of("jolteon");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
+    private List<RenderObjects<AnimatedMeshObject>> objects;
 
     public AnimationTest() {
         super("animation", "Tests the animation system");
@@ -23,48 +22,33 @@ public class AnimationTest extends FeatureTest {
 
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
-        objects = this.models.map(mdl -> loadStaticModel(scene, mdl)).toList();
+        objects = this.models.map(mdl -> loadAnimatedModel(scene, mdl)).toList();
 
-        for (var i = 0; i < objects.size(); i++) {
-            var model = objects.get(i);
+        for (var model : objects) {
+            int i = 0;
 
-            for (var j = 0; j < 4; j++) {
-                for (int k = 0; k < 20; k++) {
-                    var instance = new InstanceState(new Matrix4f(), viewMatrix, "normal");
-                    instance.transformationMatrix().translate(new Vector3f(14 - (i * 4), -7 + (j * 4), 80 - (k * 4))).scale(new Vector3f(0.06f, 0.06f, 0.06f));
-                    scene.addObject(model, instance);
-                }
+            List<String> variants = List.of("none-normal", "none-shiny");
+
+            for (String variant : variants) {
+                var instance = new InstanceState(new Matrix4f(), viewMatrix, variant);
+                instance.transformationMatrix().translate(new Vector3f(i, 0, 0))/*.rotate((float) Math.toRadians(180), new Vector3f(1, 0, 0))*/.scale(new Vector3f(0.01f, 0.01f, 0.01f));
+                scene.addObject(model, instance);
+                i++;
             }
         }
     }
 
     @Override
     public void update(RareCandy scene, double deltaTime) {
-        var timePassed = ((System.currentTimeMillis() - startTime) / 1000);
+        var timePassed = ((System.currentTimeMillis() - startTime) / 1000/ 1000);
 
         for (var object : scene.getObjects()) {
             object.transformationMatrix().rotate((float) deltaTime, 0, 1, 0);
         }
 
-        if ((int) timePassed % 3 == 0) {
-            if (!alreadyUpdated) {
-                for (var object : objects) {
-                    for (var animatedSolid : object) {
-                        // animatedSolid.activeAnimation++;
-                        // if (animatedSolid.activeAnimation >= animatedSolid.animations.length) animatedSolid.activeAnimation = 0;
-                        // timePassed = System.currentTimeMillis();
-                    }
-                }
-            }
-
-            alreadyUpdated = true;
-        } else {
-            alreadyUpdated = false;
-        }
-
         for (var object : objects) {
             for (var animatedSolid : object) {
-                //animatedSolid.animationTime = animatedSolid.animations[animatedSolid.activeAnimation].getAnimationTime(timePassed);
+                animatedSolid.animationTime = animatedSolid.animations.get(animatedSolid.activeAnimation).getAnimationTime(timePassed);
             }
         }
     }

@@ -2,6 +2,7 @@ package com.pixelmongenerations.rarecandy.animation;
 
 import com.pixelmongenerations.pkl.ModelNode;
 import de.javagl.jgltf.model.AnimationModel;
+import de.javagl.jgltf.model.NodeModel;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -64,7 +65,8 @@ public class Animation {
 
         var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
         var bone = skeleton.get(name);
-        if (bone != null) boneTransforms[skeleton.getId(bone)] = globalTransform.mul(bone.inversePoseMatrix, new Matrix4f());
+        if (bone != null)
+            boneTransforms[skeleton.getId(bone)] = globalTransform.mul(bone.inversePoseMatrix, new Matrix4f());
 
         for (var child : node.children) {
             readNodeHierarchy(animTime, child, globalTransform, boneTransforms);
@@ -74,7 +76,7 @@ public class Animation {
     private void fillAnimationNodes(List<AnimationModel.Channel> channels) {
         for (var channel : channels) {
             var node = channel.getNodeModel();
-            animationNodes.put(node.getName(), new AnimationNode(channels.stream().filter(c -> c.getNodeModel().equals(node)).toList()));
+            animationNodes.put(node.getName(), new AnimationNode(channels.stream().filter(c -> c.getNodeModel().equals(node)).toList(), node));
         }
     }
 
@@ -83,7 +85,7 @@ public class Animation {
         public final TransformStorage<Quaternionf> rotationKeys = new TransformStorage<>();
         public final TransformStorage<Vector3f> scaleKeys = new TransformStorage<>();
 
-        public AnimationNode(List<AnimationModel.Channel> nodeChannels) {
+        public AnimationNode(List<AnimationModel.Channel> nodeChannels, NodeModel node) {
             if (nodeChannels.size() > 3) throw new RuntimeException("More channels than we can handle");
 
             for (var channel : nodeChannels) {
@@ -118,6 +120,10 @@ public class Animation {
                     default -> throw new RuntimeException("Unknown Channel Type \"" + channel.getPath() + "\"");
                 }
             }
+
+            if (positionKeys.size() == 0) positionKeys.add(0, node.getTranslation() != null ? convertArrayToVector3f(node.getTranslation()) : new Vector3f());
+            if (rotationKeys.size() == 0) rotationKeys.add(0, node.getRotation() != null ? convertArrayToQuaterionf(node.getRotation()) : new Quaternionf());
+            if (scaleKeys.size() == 0) scaleKeys.add(0, node.getScale() != null ? convertArrayToVector3f(node.getScale()) : new Vector3f(1, 1, 1));
         }
 
         public TransformStorage.TimeKey<Vector3f> getDefaultPosition() {
@@ -136,5 +142,13 @@ public class Animation {
     @Override
     public String toString() {
         return this.name;
+    }
+
+    private static Vector3f convertArrayToVector3f(float[] array) {
+        return new Vector3f().set(array);
+    }
+
+    private static Quaternionf convertArrayToQuaterionf(float[] array) {
+        return new Quaternionf().set(array[0], array[1], array[2], array[3]);
     }
 }

@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 public class AnimationTest extends FeatureTest {
     private final double startTime = System.currentTimeMillis();
-    private final Stream<String> models = Stream.of("jolteon");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
+    private final Stream<String> models = Stream.of("none");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
     private List<RenderObjects<AnimatedMeshObject>> objects;
 
     public AnimationTest() {

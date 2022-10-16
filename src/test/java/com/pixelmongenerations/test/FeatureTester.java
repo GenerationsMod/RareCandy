@@ -4,6 +4,7 @@ import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.rarecandy.settings.Settings;
 import com.pixelmongenerations.rarecandy.settings.TransparencyMethod;
 import com.pixelmongenerations.test.tests.AnimationTest;
+import com.pixelmongenerations.test.tests.GuiTest;
 import com.pixelmongenerations.test.tests.InstancingTest;
 import com.pixelmongenerations.test.tests.TransparencyFeatureTest;
 import org.joml.Matrix4f;
@@ -17,7 +18,8 @@ public class FeatureTester {
     public static final List<FeatureTest> FEATURE_TESTS = List.of(
             new TransparencyFeatureTest(),
             new InstancingTest(),
-            new AnimationTest()
+            new AnimationTest(),
+            new GuiTest()
     );
     public static final Window WINDOW = new Window("RareCandy Feature Test", 1920, 1080);
     public static final Matrix4f PROJECTION_MATRIX = new Matrix4f().perspective((float) Math.toRadians(90), (float) WINDOW.width / WINDOW.height, 0.1f, 1000.0f);

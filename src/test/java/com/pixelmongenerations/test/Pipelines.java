@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 public class Pipelines {
     private static final Pipeline.Builder STATIC = new Pipeline.Builder()
-            .shader(builtin("static/gui.vs.glsl"), builtin("static/gui.fs.glsl"))
+            .shader(builtin("static/static.vs.glsl"), builtin("static/static.fs.glsl"))
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("lightPosition", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0, 2, 0)))

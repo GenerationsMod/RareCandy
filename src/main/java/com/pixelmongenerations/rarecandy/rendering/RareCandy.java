@@ -20,7 +20,7 @@ public class RareCandy {
     public RareCandy(Settings settings) {
         ThreadSafety.initContextThread();
         var startLoad = System.currentTimeMillis();
-        this.loader = new GogoatLoader(settings, this);
+        this.loader = new GogoatLoader(settings);
         LOGGER.info("RareCandy Startup took " + (System.currentTimeMillis() - startLoad) + "ms");
     }
 

@@ -38,7 +38,6 @@ public class MeshObject extends RenderObject {
 
     public void setReady() {
         this.ready = true;
-        System.out.println("Model Ready");
     }
 
     public static MeshObject create(GltfModel gltfModel, Pipeline pipeline) {

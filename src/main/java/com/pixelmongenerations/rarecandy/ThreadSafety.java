@@ -21,7 +21,7 @@ public class ThreadSafety {
     public static Runnable wrapException(Runnable r) {
         return () -> {
             try {
-                RareCandy.runLater(r);
+                r.run();
             } catch (Exception e) {
                 RareCandy.runLater(() -> {throw e;});
                 throw new RuntimeException("Stopping Thread due to Error");

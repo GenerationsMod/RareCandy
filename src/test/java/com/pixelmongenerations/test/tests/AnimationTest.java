@@ -30,7 +30,7 @@ public class AnimationTest extends FeatureTest {
             List<String> variants = List.of("none-normal", "none-shiny");
 
             for (String variant : variants) {
-                var instance = new InstanceState(new Matrix4f(), viewMatrix, variant);
+                var instance = new InstanceState(new Matrix4f(), viewMatrix, variant, 0xe60a60);
                 instance.transformationMatrix().translate(new Vector3f(i, 0, 0))/*.rotate((float) Math.toRadians(180), new Vector3f(1, 0, 0))*/.scale(new Vector3f(0.01f, 0.01f, 0.01f));
                 scene.addObject(model, instance);
                 i++;

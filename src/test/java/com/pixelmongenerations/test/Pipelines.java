@@ -28,8 +28,8 @@ public class Pipelines {
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("lightPosition", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0, 2, 0)))
             .supplyUniform("LIGHT_reflectivity", ctx -> ctx.uniform().uploadFloat(0.3f))
-            .supplyUniform("LIGHT_shineDamper", ctx -> ctx.uniform().uploadFloat(0.3f))
-            .supplyUniform("LIGHT_color", ctx -> ctx.uniform().uploadVec3f(new Vector3f(1, 1, 1)))
+            .supplyUniform("LIGHT_shineDamper", ctx -> ctx.uniform().uploadFloat(0.1f))
+            .supplyUniform("LIGHT_color", ctx -> ctx.uniform().uploadInt(ctx.instance().lightColor()))
             .supplyUniform("diffuse", ctx -> ctx.uniform().uploadTexture(ctx.object().getMaterial(ctx.instance().materialId()).getDiffuseTexture(), 0))
             .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedMeshObject) ctx.object()).boneTransforms));
 

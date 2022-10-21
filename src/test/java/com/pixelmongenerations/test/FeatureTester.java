@@ -3,10 +3,7 @@ package com.pixelmongenerations.test;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.rarecandy.settings.Settings;
 import com.pixelmongenerations.rarecandy.settings.TransparencyMethod;
-import com.pixelmongenerations.test.tests.AnimationTest;
-import com.pixelmongenerations.test.tests.GuiTest;
-import com.pixelmongenerations.test.tests.InstancingTest;
-import com.pixelmongenerations.test.tests.TransparencyFeatureTest;
+import com.pixelmongenerations.test.tests.*;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
@@ -19,7 +16,8 @@ public class FeatureTester {
             new TransparencyFeatureTest(),
             new InstancingTest(),
             new AnimationTest(),
-            new GuiTest()
+            new GuiTest(),
+            new StatUpTest()
     );
     public static final Window WINDOW = new Window("RareCandy Feature Test", 1920, 1080);
     public static final Matrix4f PROJECTION_MATRIX = new Matrix4f().perspective((float) Math.toRadians(90), (float) WINDOW.width / WINDOW.height, 0.1f, 1000.0f);
@@ -28,7 +26,7 @@ public class FeatureTester {
 
     public FeatureTester(List<FeatureTest> activeFeatures) {
         GLFW.glfwSetKeyCallback(WINDOW.handle, (window1, key, scancode, action, mods) -> {
-            if(key == GLFW.GLFW_KEY_Z) {
+            if (key == GLFW.GLFW_KEY_Z) {
                 long maxMem = Runtime.getRuntime().maxMemory();
                 long totalMem = Runtime.getRuntime().totalMemory();
                 long freeMem = Runtime.getRuntime().freeMemory();
@@ -39,7 +37,7 @@ public class FeatureTester {
 
         this.activeFeatures = activeFeatures;
         var scene = new RareCandy(new Settings(0, 1, false, TransparencyMethod.NONE, true, 1, false));
-        GL11C.glClearColor(180 / 255f, 210 / 255f, 255 / 255f, 1.0f);
+        GL11C.glClearColor(0, 0, 0, 0);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);
         GL11C.glEnable(GL11C.GL_CULL_FACE);

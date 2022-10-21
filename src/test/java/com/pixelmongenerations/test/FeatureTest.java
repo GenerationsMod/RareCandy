@@ -4,7 +4,8 @@ import com.pixelmongenerations.pkl.PixelAsset;
 import com.pixelmongenerations.pkl.reader.AssetType;
 import com.pixelmongenerations.rarecandy.components.AnimatedMeshObject;
 import com.pixelmongenerations.rarecandy.components.MeshObject;
-import com.pixelmongenerations.rarecandy.components.RenderObjects;
+import com.pixelmongenerations.rarecandy.components.ObjectHolder;
+import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import org.joml.Matrix4f;
 
@@ -21,23 +22,24 @@ public abstract class FeatureTest {
 
     public abstract void update(RareCandy scene, double deltaTime);
 
-    protected RenderObjects<MeshObject> loadStaticModel(RareCandy renderer, String name) {
-        /*var loader = renderer.getLoader();
-        return loader.createObject(
-                () -> FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"),
-                asset -> {
-                    var gltfModel = loader.read(asset);
-                    return MeshObject.create(gltfModel, Pipelines.staticPipeline(() -> FeatureTester.PROJECTION_MATRIX));
-                }
-        );*/
-        throw new RuntimeException("Tmp broken");
-    }
-
-    protected RenderObjects<AnimatedMeshObject> loadAnimatedModel(RareCandy renderer, String name) {
+    protected <T extends MeshObject> ObjectHolder<T> load(RareCandy renderer, String name, AssetType type, Pipeline pipeline, Runnable onFinish) {
         var loader = renderer.getLoader();
         return loader.createObject(
-                () -> new PixelAsset(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"), AssetType.PK),
-                asset -> (AnimatedMeshObject) MeshObject.create(asset, Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX))
+                () -> new PixelAsset(FeatureTest.class.getResourceAsStream("/new/" + name + (type == AssetType.PK ? ".pk" : ".glb")), type),
+                asset -> (T) MeshObject.create(asset, pipeline),
+                onFinish
         );
+    }
+
+    protected ObjectHolder<MeshObject> loadStatUpModel(RareCandy renderer, Runnable onFinish) {
+        return load(renderer, "stat_up", AssetType.GLB, Pipelines.statUpPipeline(() -> FeatureTester.PROJECTION_MATRIX), onFinish);
+    }
+
+    protected ObjectHolder<MeshObject> loadStaticModel(RareCandy renderer, String name) {
+        return load(renderer, name, AssetType.PK, Pipelines.staticPipeline(() -> FeatureTester.PROJECTION_MATRIX), null);
+    }
+
+    protected ObjectHolder<AnimatedMeshObject> loadAnimatedModel(RareCandy renderer, String name) {
+        return load(renderer, name, AssetType.PK, Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX), null);
     }
 }

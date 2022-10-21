@@ -6,10 +6,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 /**
  * Used if a .glb has multiple models inside it
+ * @deprecated purpose over extended. Need to switch into an object easier to pass around and one for lists.
  */
-public class RenderObjects<T extends RenderObject> extends RenderObject implements Iterable<T> {
+@Deprecated
+public class ObjectHolder<T extends RenderObject> extends RenderObject implements Iterable<T> {
     private final List<T> renderObjects = new ArrayList<>();
 
     @Override

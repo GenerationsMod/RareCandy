@@ -55,14 +55,14 @@ public class MeshObject extends RenderObject {
 
         Map<String, Animation> animations = null;
 
-        if(!gltfModel.getSkinModels().isEmpty()) {
+        if (!gltfModel.getSkinModels().isEmpty()) {
             var bones = new Skeleton(gltfModel.getSkinModels().get(0));
             animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, bones)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
         }
 
         for (var sceneModel : gltfModel.getSceneModels()) {
             for (var nodeModel : sceneModel.getNodeModels()) {
-                if(nodeModel.getChildren().isEmpty()) {
+                if (nodeModel.getChildren().isEmpty()) {
                     // Model Loading Method #1
                     for (var meshModel : nodeModel.getMeshModels()) {
                         return processMeshModel(nodeModel, meshModel, materials, variants, pipeline, animations);
@@ -82,7 +82,7 @@ public class MeshObject extends RenderObject {
     }
 
     private static List<String> getVariants(GltfModel model) {
-        if(model.getExtensions() == null || model.getExtensions().isEmpty() || !model.getExtensions().containsKey("KHR_materials_variants")) {
+        if (model.getExtensions() == null || model.getExtensions().isEmpty() || !model.getExtensions().containsKey("KHR_materials_variants")) {
             return null;
         }
 
@@ -113,7 +113,7 @@ public class MeshObject extends RenderObject {
     }
 
     private static Map<String, Material> createMeshVariantMap(MeshPrimitiveModel primitiveModel, List<Material> materials, List<String> variantsList) {
-        if(variantsList == null) {
+        if (variantsList == null) {
             String materialId = primitiveModel.getMaterialModel().getName();
 
             return Collections.singletonMap("default", materials.stream().filter(a -> a.getMaterialName().equals(materialId)).findAny().get());
@@ -161,7 +161,7 @@ public class MeshObject extends RenderObject {
 
         var joints = attributes.get("JOINTS_0");
 
-        if(joints != null) {
+        if (joints != null) {
 
             DataUtils.bindArrayBuffer(joints.getBufferViewModel());
             vertexAttribPointer(joints, 3);
@@ -194,10 +194,10 @@ public class MeshObject extends RenderObject {
 
     public void render(List<InstanceState> instances) {
         pipeline.bind();
-
         for (var instance : instances) {
             pipeline.updateUniforms(instance, this);
             glModel.runDrawCalls();
         }
+        pipeline.unbind();
     }
 }

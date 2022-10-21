@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.pixelmongenerations"
-version = "0.5.4"
+version = "0.6.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -33,8 +33,8 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl-glfw" , classifier = "natives-windows")
     runtimeOnly("org.lwjgl", "lwjgl-opengl" , classifier = "natives-windows")
 
-    compileOnly("org.slf4j:slf4j-api:2.0.2")
-    testImplementation("org.slf4j:slf4j-jdk14:2.0.2")
+    compileOnly("org.slf4j:slf4j-api:2.0.3")
+    testImplementation("org.slf4j:slf4j-jdk14:2.0.3")
 }
 
 publishing {

@@ -4,7 +4,7 @@ import com.pixelmongenerations.pkl.PixelAsset;
 import com.pixelmongenerations.pkl.reader.AssetType;
 import com.pixelmongenerations.rarecandy.ThreadSafety;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
-import com.pixelmongenerations.rarecandy.components.RenderObjects;
+import com.pixelmongenerations.rarecandy.components.ObjectHolder;
 import com.pixelmongenerations.rarecandy.settings.Settings;
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.io.GltfModelReader;
@@ -26,11 +26,14 @@ public class GogoatLoader {
         this.modelLoadingPool = Executors.newFixedThreadPool(settings.modelLoadingThreads());
     }
 
-    public <T extends RenderObject> RenderObjects<T> createObject(@NotNull Supplier<PixelAsset> asset, Function<GltfModel, T> consumer) {
-        var objects = new RenderObjects<T>();
+    public <T extends RenderObject> ObjectHolder<T> createObject(@NotNull Supplier<PixelAsset> asset, Function<GltfModel, T> objectBuilder, Runnable onFinish) {
+        var objects = new ObjectHolder<T>();
         modelLoadingPool.submit(ThreadSafety.wrapException(() -> {
             var model = read(asset.get());
-            ThreadSafety.runOnContextThread(() -> objects.add(consumer.apply(model)));
+            ThreadSafety.runOnContextThread(() -> {
+                objects.add(objectBuilder.apply(model));
+                if (onFinish != null) onFinish.run();
+            });
         }));
         return objects;
     }
@@ -38,8 +41,8 @@ public class GogoatLoader {
     /**
      * Stops everything until the model is loaded. This is a horrible idea
      */
-    public <T extends RenderObject> RenderObjects<T> createObjectNow(@NotNull InputStream is, AssetType type,  Function<PixelAsset, T> consumer) {
-        var objects = new RenderObjects<T>();
+    public <T extends RenderObject> ObjectHolder<T> createObjectNow(@NotNull InputStream is, AssetType type, Function<PixelAsset, T> consumer) {
+        var objects = new ObjectHolder<T>();
         objects.add(consumer.apply(new PixelAsset(is, type)));
         return objects;
     }

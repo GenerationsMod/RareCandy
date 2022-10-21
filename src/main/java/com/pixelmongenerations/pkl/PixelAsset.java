@@ -8,6 +8,7 @@ import org.tukaani.xz.XZInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * Pixelmon Asset (.pk) file.
@@ -20,7 +21,7 @@ public class PixelAsset {
         try {
             switch (type) {
                 case PK -> {
-                    var tarFile = getTarFile(is);
+                    var tarFile = getTarFile(Objects.requireNonNull(is, "Input Stream is null"));
 
                     for (var entry : tarFile.getEntries()) {
                         if (entry.getName().endsWith(".glb")) {
@@ -29,7 +30,7 @@ public class PixelAsset {
                     }
                 }
 
-                case GLB -> this.modelFile = is.readAllBytes();
+                case GLB -> this.modelFile = Objects.requireNonNull(is, "Input Stream is null").readAllBytes();
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to load scene", e);

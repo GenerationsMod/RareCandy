@@ -4,21 +4,23 @@ import com.pixelmongenerations.rarecandy.components.RenderObject;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryStack;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms, int program) {
+public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms, Runnable preDrawBatch, Runnable postDrawBatch, int program) {
 
     public void bind() {
         GL20C.glUseProgram(program);
+        preDrawBatch.run();
+    }
+
+    public void unbind() {
+        postDrawBatch.run();
     }
 
     public void updateUniforms(InstanceState instance, RenderObject renderObject) {
@@ -28,31 +30,23 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
             uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
         }
     }
-
-    public static FloatBuffer createVertexBuffer(float[] rawMeshData) {
-        var vertBuffer = BufferUtils.createFloatBuffer(rawMeshData.length);
-        for (var v : rawMeshData) vertBuffer.put(v);
-        return vertBuffer.flip();
-    }
-
-    public static IntBuffer createIndexBuffer(int[] indices) {
-        var pIndices = BufferUtils.createIntBuffer(indices.length);
-        for (var i : indices) pIndices.put(i);
-        return pIndices.flip();
-    }
-
     public static class Builder {
+
         private Map<String, Consumer<UniformUploadContext>> uniformSuppliers = new HashMap<>();
         private int program;
         public Map<String, Uniform> uniforms = new HashMap<>();
+        public Runnable preDrawBatch = () -> {};
+        public Runnable postDrawRunBatch = () -> {};
 
         public Builder() {
         }
 
-        public Builder(Builder oldBuilder) {
-            this.uniformSuppliers = oldBuilder.uniformSuppliers;
-            this.program = oldBuilder.program;
-            this.uniforms = oldBuilder.uniforms;
+        public Builder(Builder base) {
+            this.uniformSuppliers = new HashMap<>(base.uniformSuppliers);
+            this.program = base.program;
+            this.uniforms = new HashMap<>(base.uniforms);
+            this.preDrawBatch = base.preDrawBatch;
+            this.postDrawRunBatch = base.postDrawRunBatch;
         }
 
         private void addShader(String text, int type, int programId) {
@@ -72,6 +66,12 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
             GL20C.glValidateProgram(programId);
             if (GL20C.glGetProgrami(programId, GL20C.GL_VALIDATE_STATUS) == 0)
                 RareCandy.fatal(GL20C.glGetProgramInfoLog(programId, 1024));
+        }
+
+        public Builder prePostDraw(Runnable preDrawBatch, Runnable postDrawRunBatch) {
+            this.preDrawBatch = preDrawBatch;
+            this.postDrawRunBatch = postDrawRunBatch;
+            return this;
         }
 
         public Builder supplyUniform(String name, Consumer<UniformUploadContext> provider) {
@@ -111,7 +111,7 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
         public Pipeline build() {
             if (this.program == 0) throw new RuntimeException("Shader not created");
 
-            return new Pipeline(uniformSuppliers, uniforms, program);
+            return new Pipeline(uniformSuppliers, uniforms, preDrawBatch, postDrawRunBatch, program);
         }
     }
 }

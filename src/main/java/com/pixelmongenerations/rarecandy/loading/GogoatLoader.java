@@ -13,8 +13,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -26,13 +29,16 @@ public class GogoatLoader {
         this.modelLoadingPool = Executors.newFixedThreadPool(settings.modelLoadingThreads());
     }
 
-    public <T extends RenderObject> ObjectHolder<T> createObject(@NotNull Supplier<PixelAsset> asset, Function<GltfModel, T> objectBuilder, Runnable onFinish) {
+    public <T extends RenderObject> ObjectHolder<T> createObject(@NotNull Supplier<PixelAsset> asset, BiFunction<GltfModel, List<Runnable>, T> objectBuilder, Runnable onFinish) {
         var objects = new ObjectHolder<T>();
+        var runnable = new ArrayList<Runnable>();
         modelLoadingPool.submit(ThreadSafety.wrapException(() -> {
             var model = read(asset.get());
+            objects.add(objectBuilder.apply(model, runnable));
+            if (onFinish != null) onFinish.run();
+
             ThreadSafety.runOnContextThread(() -> {
-                objects.add(objectBuilder.apply(model));
-                if (onFinish != null) onFinish.run();
+                runnable.forEach(Runnable::run);
             });
         }));
         return objects;

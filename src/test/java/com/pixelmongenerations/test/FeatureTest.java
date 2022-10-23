@@ -26,7 +26,7 @@ public abstract class FeatureTest {
         var loader = renderer.getLoader();
         return loader.createObject(
                 () -> new PixelAsset(FeatureTest.class.getResourceAsStream("/new/" + name + (type == AssetType.PK ? ".pk" : ".glb")), type),
-                asset -> (T) MeshObject.create(asset, pipeline),
+                (asset, runnable) -> (T) MeshObject.create(asset, runnable, pipeline),
                 onFinish
         );
     }

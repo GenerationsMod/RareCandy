@@ -24,7 +24,6 @@ public class MeshObject extends RenderObject {
     protected GLModel glModel;
 
     public MeshObject(List<Material> glMaterials, Map<String, Material> variants, GLModel glModel, Pipeline pipeline) {
-        ThreadSafety.assertContextThread();
         this.materials = glMaterials;
         this.variants = variants;
         this.glModel = glModel;
@@ -40,7 +39,7 @@ public class MeshObject extends RenderObject {
         this.ready = true;
     }
 
-    public static MeshObject create(GltfModel gltfModel, Pipeline pipeline) {
+    public static MeshObject create(GltfModel gltfModel, List<Runnable> runnables, Pipeline pipeline) {
         var textures = gltfModel.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
         var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
             var textureName = raw.getBaseColorTexture().getImageModel().getName();
@@ -65,14 +64,14 @@ public class MeshObject extends RenderObject {
                 if (nodeModel.getChildren().isEmpty()) {
                     // Model Loading Method #1
                     for (var meshModel : nodeModel.getMeshModels()) {
-                        return processMeshModel(nodeModel, meshModel, materials, variants, pipeline, animations);
+                        return processMeshModel(nodeModel, meshModel, materials, variants, pipeline, animations, runnables);
                     }
                 }
 
                 // Model Loading Method #2
                 for (var child : nodeModel.getChildren()) {
                     for (var meshModel : child.getMeshModels()) {
-                        return processMeshModel(nodeModel, meshModel, materials, variants, pipeline, animations);
+                        return processMeshModel(nodeModel, meshModel, materials, variants, pipeline, animations, runnables);
                     }
                 }
             }
@@ -102,10 +101,10 @@ public class MeshObject extends RenderObject {
         }
     }
 
-    private static MeshObject processMeshModel(NodeModel nodeModel, MeshModel meshModel, List<Material> materials, List<String> variantsList, Pipeline pipeline, Map<String, Animation> animations) {
+    private static MeshObject processMeshModel(NodeModel nodeModel, MeshModel meshModel, List<Material> materials, List<String> variantsList, Pipeline pipeline, Map<String, Animation> animations, List<Runnable> runnables) {
         for (var primitiveModel : meshModel.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
-            var glModel = processPrimitiveModel(nodeModel, meshModel, primitiveModel);
+            var glModel = processPrimitiveModel(nodeModel, meshModel, primitiveModel, runnables);
             return animations != null ? new AnimatedMeshObject(materials, variants, glModel, pipeline, animations) : new MeshObject(materials, variants, glModel, pipeline);
         }
 
@@ -140,44 +139,45 @@ public class MeshObject extends RenderObject {
         }
     }
 
-    private static GLModel processPrimitiveModel(NodeModel nodeModel, MeshModel meshModel, MeshPrimitiveModel primitiveModel) {
+    private static GLModel processPrimitiveModel(NodeModel nodeModel, MeshModel meshModel, MeshPrimitiveModel primitiveModel, List<Runnable> runnables) {
         var model = new GLModel();
         var attributes = primitiveModel.getAttributes();
 
-        var vao = GL30.glGenVertexArrays();
-        GL30.glBindVertexArray(vao);
+        runnables.add(() -> {
+            var vao = GL30.glGenVertexArrays();
+            GL30.glBindVertexArray(vao);
 
-        var position = attributes.get("POSITION");
-        DataUtils.bindArrayBuffer(position.getBufferViewModel());
-        vertexAttribPointer(position, 0);
+            var position = attributes.get("POSITION");
+            DataUtils.bindArrayBuffer(position.getBufferViewModel());
+            vertexAttribPointer(position, 0);
 
-        var uvs = attributes.get("TEXCOORD_0");
-        DataUtils.bindArrayBuffer(uvs.getBufferViewModel());
-        vertexAttribPointer(uvs, 1);
+            var uvs = attributes.get("TEXCOORD_0");
+            DataUtils.bindArrayBuffer(uvs.getBufferViewModel());
+            vertexAttribPointer(uvs, 1);
 
-        var normal = attributes.get("NORMAL");
-        DataUtils.bindArrayBuffer(normal.getBufferViewModel());
-        vertexAttribPointer(normal, 2);
+            var normal = attributes.get("NORMAL");
+            DataUtils.bindArrayBuffer(normal.getBufferViewModel());
+            vertexAttribPointer(normal, 2);
 
-        var joints = attributes.get("JOINTS_0");
+            var joints = attributes.get("JOINTS_0");
 
-        if (joints != null) {
+            if (joints != null) {
 
-            DataUtils.bindArrayBuffer(joints.getBufferViewModel());
-            vertexAttribPointer(joints, 3);
+                DataUtils.bindArrayBuffer(joints.getBufferViewModel());
+                vertexAttribPointer(joints, 3);
 
-            var weights = attributes.get("WEIGHTS_0");
-            DataUtils.bindArrayBuffer(weights.getBufferViewModel());
-            vertexAttribPointer(weights, 4);
-        }
+                var weights = attributes.get("WEIGHTS_0");
+                DataUtils.bindArrayBuffer(weights.getBufferViewModel());
+                vertexAttribPointer(weights, 4);
+            }
 
-        var ebo = GL15.glGenBuffers();
-        GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);
-        GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, DataUtils.makeDirect(primitiveModel.getIndices().getBufferViewModel().getBufferViewData()), GL15.GL_STATIC_DRAW);
+            var ebo = GL15.glGenBuffers();
+            GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);
+            GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, DataUtils.makeDirect(primitiveModel.getIndices().getBufferViewModel().getBufferViewData()), GL15.GL_STATIC_DRAW);
 
-        var mode = primitiveModel.getMode();
-        model.meshDrawCommands.add(new MeshDrawCommand(vao, mode, primitiveModel.getIndices().getComponentType(), ebo, primitiveModel.getIndices().getCount()));
-
+            var mode = primitiveModel.getMode();
+            model.meshDrawCommands.add(new MeshDrawCommand(vao, mode, primitiveModel.getIndices().getComponentType(), ebo, primitiveModel.getIndices().getCount()));
+        });
         return model;
     }
 

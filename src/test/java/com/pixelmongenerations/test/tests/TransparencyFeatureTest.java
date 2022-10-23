@@ -1,6 +1,5 @@
 package com.pixelmongenerations.test.tests;
 
-import com.pixelmongenerations.rarecandy.components.RenderObject;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.test.FeatureTest;
@@ -15,8 +14,9 @@ public class TransparencyFeatureTest extends FeatureTest {
 
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
-        RenderObject transparentModel = loadStaticModel(scene, "solosis");
-        scene.addObject(transparentModel, new InstanceState(new Matrix4f().translate(new Vector3f(1, 1, 1)).scale(new Vector3f(0.02f, 0.02f, 0.02f)), viewMatrix, "shiny"));
+        loadStaticModel(scene, "solosis", object -> {
+            scene.addObject(object, new InstanceState(new Matrix4f().translate(new Vector3f(1, 1, 1)).scale(new Vector3f(0.02f, 0.02f, 0.02f)), viewMatrix, "shiny"));
+        });
     }
 
     @Override

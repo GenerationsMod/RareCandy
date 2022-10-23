@@ -1,7 +1,6 @@
 package com.pixelmongenerations.test.tests;
 
 import com.pixelmongenerations.rarecandy.components.AnimatedMeshObject;
-import com.pixelmongenerations.rarecandy.components.ObjectHolder;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.test.FeatureTest;
@@ -14,7 +13,7 @@ import java.util.stream.Stream;
 public class AnimationTest extends FeatureTest {
     private final double startTime = System.currentTimeMillis();
     private final Stream<String> models = Stream.of("none");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
-    private List<ObjectHolder<AnimatedMeshObject>> objects;
+    private List<AnimatedMeshObject> objects;
 
     public AnimationTest() {
         super("animation", "Tests the animation system");
@@ -22,12 +21,9 @@ public class AnimationTest extends FeatureTest {
 
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
-        objects = this.models.map(mdl -> loadAnimatedModel(scene, mdl)).toList();
-
-        for (var model : objects) {
-            int i = 0;
-
-            List<String> variants = List.of("none-normal", "none-shiny");
+        objects = this.models.map(mdl -> loadAnimatedModel(scene, mdl,model -> {
+            var i = 0;
+            var variants = List.of("none-normal", "none-shiny");
 
             for (String variant : variants) {
                 var instance = new InstanceState(new Matrix4f(), viewMatrix, variant, 0xe60a60);
@@ -35,20 +31,20 @@ public class AnimationTest extends FeatureTest {
                 scene.addObject(model, instance);
                 i++;
             }
-        }
+        })).toList();
     }
 
     @Override
     public void update(RareCandy scene, double deltaTime) {
-        var timePassed = ((System.currentTimeMillis() - startTime) / 1000/ 1000);
+        var timePassed = ((System.currentTimeMillis() - startTime) / 1000 / 1000);
 
         for (var object : scene.getObjects()) {
             object.transformationMatrix().rotate((float) deltaTime, 0, 1, 0);
         }
 
         for (var object : objects) {
-            for (var animatedSolid : object) {
-                animatedSolid.animationTime = animatedSolid.animations.get(animatedSolid.activeAnimation).getAnimationTime(timePassed);
+            if (object.isReady()) {
+                object.animationTime = object.animations.get(object.activeAnimation).getAnimationTime(timePassed);
             }
         }
     }

@@ -1,7 +1,5 @@
 package com.pixelmongenerations.test.tests;
 
-import com.pixelmongenerations.rarecandy.components.MeshObject;
-import com.pixelmongenerations.rarecandy.components.ObjectHolder;
 import com.pixelmongenerations.rarecandy.rendering.InstanceState;
 import com.pixelmongenerations.rarecandy.rendering.RareCandy;
 import com.pixelmongenerations.test.FeatureTest;
@@ -10,7 +8,6 @@ import org.joml.Vector3f;
 
 public class StatUpTest extends FeatureTest {
     public static final double START_TIME = System.currentTimeMillis();
-    private ObjectHolder<MeshObject> statUp;
 
     public StatUpTest() {
         super("stat_up", null);
@@ -18,12 +15,11 @@ public class StatUpTest extends FeatureTest {
 
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
-        statUp = loadStatUpModel(scene, () -> {
-            for (var model : statUp) {
-                var instance = new InstanceState(new Matrix4f(), viewMatrix, "none", 0xe60a60);
-                instance.transformationMatrix().translate(new Vector3f(0, 0, 1)).rotate((float) Math.toRadians(90), new Vector3f(1, 0, 0)).scale(new Vector3f(0.01f, 0.01f, 0.01f));
-                scene.addObject(model, instance);
-            }
+        loadStatUpModel(scene, (model) -> {
+            var instance = new InstanceState(new Matrix4f(), viewMatrix, "none", 0xe60a60);
+            instance.transformationMatrix().translate(new Vector3f(0, 0, 1)).rotate((float) Math.toRadians(90), new Vector3f(1, 0, 0)).scale(new Vector3f(0.01f, 0.01f, 0.01f));
+            scene.addObject(model, instance);
+
         });
     }
 

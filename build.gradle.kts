@@ -1,11 +1,10 @@
 plugins {
     `java-library`
     `maven-publish`
-//    id("com.github.spotbugs") version "5.0.12"
 }
 
 group = "com.pixelmongenerations"
-version = "0.6.0"
+version = "0.7.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17

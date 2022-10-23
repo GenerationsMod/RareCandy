@@ -37,15 +37,13 @@ public class FeatureTester {
 
         this.activeFeatures = activeFeatures;
         var scene = new RareCandy(new Settings(0, 1, false, TransparencyMethod.NONE, true, 1, false));
-        GL11C.glClearColor(0, 0, 0, 0);
+        GL11C.glClearColor(0.5f, 0.5f, 0.5f, 1);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);
         GL11C.glEnable(GL11C.GL_CULL_FACE);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        for (var activeFeature : this.activeFeatures) {
-            activeFeature.init(scene, this.viewMatrix);
-        }
+        for (var activeFeature : this.activeFeatures) activeFeature.init(scene, this.viewMatrix);
 
         var lastFrameTime = 0d;
         while (!WINDOW.shouldClose()) {
@@ -78,6 +76,6 @@ public class FeatureTester {
         } else {
             activeTests.addAll(FEATURE_TESTS);
         }
-        new FeatureTester(List.of(new AnimationTest()));
+        new FeatureTester(activeTests);
     }
 }

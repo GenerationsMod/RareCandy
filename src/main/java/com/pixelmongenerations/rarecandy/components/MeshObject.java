@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MeshObject extends RenderObject {
-    protected GLModel glModel;
+    public GLModel glModel;
 
     public void setup(List<Material> glMaterials, Map<String, Material> variants, GLModel glModel, Pipeline pipeline) {
         this.materials = glMaterials;

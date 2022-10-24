@@ -1,15 +1,17 @@
 package com.pixelmongenerations.rarecandy.loading;
 
 import com.pixelmongenerations.pkl.PixelAsset;
-import com.pixelmongenerations.pkl.reader.AssetType;
 import com.pixelmongenerations.pkl.reader.TextureReference;
 import com.pixelmongenerations.pkl.scene.material.Material;
+import com.pixelmongenerations.rarecandy.DataUtils;
 import com.pixelmongenerations.rarecandy.ThreadSafety;
 import com.pixelmongenerations.rarecandy.animation.Animation;
 import com.pixelmongenerations.rarecandy.animation.Skeleton;
 import com.pixelmongenerations.rarecandy.components.AnimatedMeshObject;
 import com.pixelmongenerations.rarecandy.components.MeshObject;
 import com.pixelmongenerations.rarecandy.components.RenderObject;
+import com.pixelmongenerations.rarecandy.model.GLModel;
+import com.pixelmongenerations.rarecandy.model.MeshDrawCommand;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
 import com.pixelmongenerations.rarecandy.settings.Settings;
 import de.javagl.jgltf.model.AccessorModel;
@@ -19,9 +21,6 @@ import de.javagl.jgltf.model.MeshPrimitiveModel;
 import de.javagl.jgltf.model.image.PixelDatas;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import de.javagl.jgltf.model.v2.MaterialModelV2;
-import me.hydos.gogoat.GLModel;
-import me.hydos.gogoat.MeshDrawCommand;
-import me.hydos.gogoat.util.DataUtils;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL15C;
@@ -30,11 +29,13 @@ import org.lwjgl.opengl.GL30;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.*;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -57,13 +58,6 @@ public class GogoatLoader {
             });
         }));
         return obj;
-    }
-
-    /**
-     * Stops everything until the model is loaded. This is a horrible idea
-     */
-    public <T extends RenderObject> T createObjectNow(@NotNull InputStream is, AssetType type, Function<PixelAsset, T> consumer) {
-        return consumer.apply(new PixelAsset(is, type));
     }
 
     public void close() {
@@ -121,35 +115,46 @@ public class GogoatLoader {
         }
     }
 
-    private static void processMeshModel(MeshObject object, MeshModel meshModel, List<Material> materials, List<String> variantsList, Pipeline pipeline, List<Runnable> runnables) {
+    private static void processMeshModel(MeshObject object, MeshModel meshModel, List<Material> materials, List<String> variantsList, Pipeline pipeline, List<Runnable> glCalls) {
         for (var primitiveModel : meshModel.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
-            var glModel = processPrimitiveModel(primitiveModel, runnables);
+            var glModel = processPrimitiveModel(primitiveModel, glCalls);
             object.setup(materials, variants, glModel, pipeline);
         }
     }
 
-    private static void processMeshModel(AnimatedMeshObject object, MeshModel meshModel, List<Material> materials, List<String> variantsList, Pipeline pipeline, Map<String, Animation> animations, List<Runnable> runnables) {
+    private static void processMeshModel(AnimatedMeshObject object, MeshModel meshModel, List<Material> materials, List<String> variantsList, Pipeline pipeline, Map<String, Animation> animations, List<Runnable> glCalls) {
         for (var primitiveModel : meshModel.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
-            var glModel = processPrimitiveModel(primitiveModel, runnables);
+            var glModel = processPrimitiveModel(primitiveModel, glCalls);
             if (animations == null)
                 throw new RuntimeException("No animations found when trying to load animated model.");
             object.setup(materials, variants, glModel, pipeline, animations);
         }
     }
 
-    private static GLModel processPrimitiveModel(MeshPrimitiveModel primitiveModel, List<Runnable> runnables) {
+    private static GLModel processPrimitiveModel(MeshPrimitiveModel primitiveModel, List<Runnable> glCalls) {
         var model = new GLModel();
         var attributes = primitiveModel.getAttributes();
 
-        runnables.add(() -> {
+        glCalls.add(() -> {
             var vao = GL30.glGenVertexArrays();
             GL30.glBindVertexArray(vao);
 
             var position = attributes.get("POSITION");
             DataUtils.bindArrayBuffer(position.getBufferViewModel());
             vertexAttribPointer(position, 0);
+
+            // FIXME: this is for old models which dont get proper scaling for
+            var buf = position.getBufferViewModel().getBufferViewData();
+            var smallestVertex = 0f;
+            var largestVertex = 0f;
+            for (int i = 4; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
+                var yPoint = buf.getFloat(i);
+                if (smallestVertex > yPoint) smallestVertex = yPoint;
+                if (largestVertex < yPoint) largestVertex = yPoint;
+            }
+            model.vertexYRange = largestVertex - smallestVertex;
 
             var uvs = attributes.get("TEXCOORD_0");
             DataUtils.bindArrayBuffer(uvs.getBufferViewModel());

@@ -1,4 +1,4 @@
-package me.hydos.gogoat;
+package com.pixelmongenerations.rarecandy.model;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15C;

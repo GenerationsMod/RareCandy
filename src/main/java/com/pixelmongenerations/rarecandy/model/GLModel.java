@@ -1,4 +1,4 @@
-package me.hydos.gogoat;
+package com.pixelmongenerations.rarecandy.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,6 +6,7 @@ import java.util.Objects;
 
 public class GLModel {
     public List<MeshDrawCommand> meshDrawCommands = new ArrayList<>();
+    public float vertexYRange = 0;
 
     public void runDrawCalls() {
         for (var drawCommand : meshDrawCommands) {

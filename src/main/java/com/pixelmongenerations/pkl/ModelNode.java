@@ -1,7 +1,7 @@
 package com.pixelmongenerations.pkl;
 
 import de.javagl.jgltf.model.NodeModel;
-import me.hydos.gogoat.util.DataUtils;
+import com.pixelmongenerations.rarecandy.DataUtils;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;

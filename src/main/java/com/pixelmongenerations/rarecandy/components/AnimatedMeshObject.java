@@ -3,7 +3,7 @@ package com.pixelmongenerations.rarecandy.components;
 import com.pixelmongenerations.pkl.scene.material.Material;
 import com.pixelmongenerations.rarecandy.animation.Animation;
 import com.pixelmongenerations.rarecandy.pipeline.Pipeline;
-import me.hydos.gogoat.GLModel;
+import com.pixelmongenerations.rarecandy.model.GLModel;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;

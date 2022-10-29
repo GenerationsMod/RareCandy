@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -46,5 +47,9 @@ public class PixelAsset {
 
     public byte[] getModelFile() {
         return files.get(modelName);
+    }
+
+    public List<Map.Entry<String, byte[]>> getAnimationFiles() {
+        return files.entrySet().stream().filter(a -> a.getKey().endsWith("pkanm")).toList();
     }
 }

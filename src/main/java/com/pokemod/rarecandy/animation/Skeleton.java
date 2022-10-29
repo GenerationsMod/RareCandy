@@ -37,6 +37,16 @@ public class Skeleton {
         return boneArray[id];
     }
 
+    public String getName(int id) {
+        Bone bone = get(id);
+
+        for (Map.Entry<String, Bone> entry : boneMap.entrySet()) {
+            if(entry.getValue().equals(bone)) return entry.getKey();
+        }
+
+        return "";
+    }
+
     public int getId(Bone bone) {
         for (int i = 0; i < boneArray.length; i++) {
             if (bone.equals(boneArray[i])) return i;

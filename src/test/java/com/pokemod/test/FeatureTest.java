@@ -30,9 +30,9 @@ public abstract class FeatureTest {
         return loader.createObject(
                 () -> new PixelAsset(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk")),
                 supplier,
-                (gltfModel, object) -> {
+                (gltfModel, smdFileMap, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    GogoatLoader.create(object, gltfModel, glCalls, pipeline);
+                    GogoatLoader.create(object, gltfModel, smdFileMap, glCalls, pipeline);
                     return glCalls;
                 },
                 onFinish
@@ -49,5 +49,13 @@ public abstract class FeatureTest {
 
     protected AnimatedMeshObject loadAnimatedModel(RareCandy renderer, String name, Consumer<AnimatedMeshObject> onFinish) {
         return load(renderer, name, Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX), AnimatedMeshObject::new, onFinish);
+    }
+
+    public void rightTap() {
+
+    }
+
+    public void leftTap() {
+
     }
 }

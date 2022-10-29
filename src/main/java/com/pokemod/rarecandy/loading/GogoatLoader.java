@@ -1,5 +1,6 @@
 package com.pokemod.rarecandy.loading;
 
+import com.pokemod.TriFunction;
 import com.pokemod.pkl.PixelAsset;
 import com.pokemod.pkl.reader.TextureReference;
 import com.pokemod.rarecandy.model.Material;
@@ -21,11 +22,16 @@ import de.javagl.jgltf.model.MeshPrimitiveModel;
 import de.javagl.jgltf.model.image.PixelDatas;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import de.javagl.jgltf.model.v2.MaterialModelV2;
+import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
+import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
+import dev.thecodewarrior.binarysmd.studiomdl.SMDFileBlock;
+import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.msgpack.core.MessagePack;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -46,17 +52,37 @@ public class GogoatLoader {
         this.modelLoadingPool = Executors.newFixedThreadPool(settings.modelLoadingThreads());
     }
 
-    public <T extends RenderObject> T createObject(@NotNull Supplier<PixelAsset> asset, Supplier<T> objectCreator, BiFunction<GltfModel, T, List<Runnable>> objectSetup, Consumer<T> onFinish) {
+    public <T extends RenderObject> T createObject(@NotNull Supplier<PixelAsset> asset, Supplier<T> objectCreator, TriFunction<GltfModel, Map<String, SMDFile>, T, List<Runnable>> objectSetup, Consumer<T> onFinish) {
         var obj = objectCreator.get();
         modelLoadingPool.submit(ThreadSafety.wrapException(() -> {
             var model = read(asset.get());
-            var glCalls = objectSetup.apply(model, obj);
+            var smdxAnimations = readAnimations(asset.get());
+            var glCalls = objectSetup.apply(model, smdxAnimations, obj);
             ThreadSafety.runOnContextThread(() -> {
                 glCalls.forEach(Runnable::run);
                 if (onFinish != null) onFinish.accept(obj);
             });
         }));
         return obj;
+    }
+
+    private Map<String, SMDFile> readAnimations(PixelAsset pixelAsset) {
+        var files = pixelAsset.getAnimationFiles();
+
+        var map = new HashMap<String, SMDFile>();
+        var reader = new SMDBinaryReader();
+
+        for (Map.Entry<String, byte[]> entry : files) {
+            var unpacker = MessagePack.newDefaultUnpacker(entry.getValue());
+            try {
+                var smdFile = reader.read(unpacker);
+                map.put(entry.getKey(), smdFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return map;
     }
 
     public void close() {
@@ -71,7 +97,7 @@ public class GogoatLoader {
         }
     }
 
-    public static void create(MeshObject object, GltfModel gltfModel, List<Runnable> glCalls, Pipeline pipeline) {
+    public static void create(MeshObject object, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, List<Runnable> glCalls, Pipeline pipeline) {
         var textures = gltfModel.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
         var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
             var textureName = raw.getBaseColorTexture().getImageModel().getName();
@@ -89,6 +115,19 @@ public class GogoatLoader {
         if (!gltfModel.getSkinModels().isEmpty()) {
             var bones = new Skeleton(gltfModel.getSkinModels().get(0));
             animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, bones)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+
+            for (Map.Entry<String, SMDFile> entry : smdFileMap.entrySet()) {
+                var key = entry.getKey();
+                var value = entry.getValue();
+
+                for (SMDFileBlock block : value.blocks) {
+                    if (block instanceof SkeletonBlock skeletonBlock) {
+                        var animation = new Animation(key, skeletonBlock, bones);
+                        animations.put(key, animation);
+                        break;
+                    }
+                }
+            }
         }
 
         for (var sceneModel : gltfModel.getSceneModels()) {
@@ -225,6 +264,7 @@ public class GogoatLoader {
             var variantMap = new HashMap<String, Material>();
 
             for (var mapping : mappings) {
+                if(!mapping.containsKey("material")) continue;
                 var material = materials.get((Integer) mapping.get("material"));
                 var variants = (List<Integer>) mapping.get("variants");
 

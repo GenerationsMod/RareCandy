@@ -1,8 +1,12 @@
 package com.pokemod.rarecandy.animation;
 
 import com.pokemod.pkl.ModelNode;
+import com.pokemod.rarecandy.Pair;
 import de.javagl.jgltf.model.AnimationModel;
 import de.javagl.jgltf.model.NodeModel;
+import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
+import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -23,8 +27,22 @@ public class Animation {
         this.animationNodes = new HashMap<>();
         this.skeleton = skeleton;
 
-        fillAnimationNodes(rawAnimation.getChannels());
+        fillAnimationNodesGlb(rawAnimation.getChannels());
         this.animationDuration = findLastKeyTime();
+    }
+
+    public Animation(String name, SkeletonBlock smdFile, Skeleton bones) {
+        this.name = name;
+        this.ticksPerSecond = 1000;
+        this.animationNodes = new HashMap<>();
+        this.skeleton = bones;
+        fillAnimationNodesSmdx(smdFile.keyframes);
+        this.animationDuration = findLastKeyTime();
+    }
+
+    @Nullable
+    private static <T> T getBlock(SMDFile file, Class<T> tClass) {
+        return file.blocks.stream().filter(tClass::isInstance).map(tClass::cast).findFirst().orElse(null);
     }
 
     private double findLastKeyTime() {
@@ -73,17 +91,51 @@ public class Animation {
         }
     }
 
-    private void fillAnimationNodes(List<AnimationModel.Channel> channels) {
+    private void fillAnimationNodesGlb(List<AnimationModel.Channel> channels) {
         for (var channel : channels) {
             var node = channel.getNodeModel();
             animationNodes.put(node.getName(), new AnimationNode(channels.stream().filter(c -> c.getNodeModel().equals(node)).toList(), node));
         }
     }
 
+
+    private void fillAnimationNodesSmdx(List<SkeletonBlock.Keyframe> keyframes) {
+        Map<String, List<Pair<Vector3f, Quaternionf>>> nodes = new HashMap<>();
+
+        for (SkeletonBlock.Keyframe keyframe : keyframes) {
+            var time = keyframe.time;
+            var states = keyframe.states;
+
+            for (SkeletonBlock.BoneState state : states) {
+                var id = skeleton.getName(state.bone);
+                List<Pair<Vector3f, Quaternionf>> list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
+                list.add(time, new Pair<Vector3f, Quaternionf>(new Vector3f(state.posX, state.posY, state.posZ), new Quaternionf().rotateXYZ(state.rotX, state.rotY, state.rotZ)));
+            }
+        }
+
+        nodes.forEach((key, node) -> {
+            animationNodes.put(key, new AnimationNode(node));
+        });
+    }
+
     public static class AnimationNode {
         public final TransformStorage<Vector3f> positionKeys = new TransformStorage<>();
         public final TransformStorage<Quaternionf> rotationKeys = new TransformStorage<>();
         public final TransformStorage<Vector3f> scaleKeys = new TransformStorage<>();
+
+        public AnimationNode(List<Pair<Vector3f, Quaternionf>> pairs) {
+            if(pairs.isEmpty()) {
+                positionKeys.add(0, new Vector3f());
+                rotationKeys.add(0, new Quaternionf());
+            } else {
+                for (int time = 0; time < pairs.size(); time++) {
+                    positionKeys.add(time, pairs.get(time).a());
+                    rotationKeys.add(time, pairs.get(time).b());
+                }
+            }
+
+            scaleKeys.add(0, new Vector3f(1, 1, 1));
+        }
 
         public AnimationNode(List<AnimationModel.Channel> nodeChannels, NodeModel node) {
             if (nodeChannels.size() > 3) throw new RuntimeException("More channels than we can handle");

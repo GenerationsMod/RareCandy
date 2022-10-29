@@ -11,6 +11,8 @@ import org.lwjgl.opengl.GL11C;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.glfw.GLFW.*;
+
 public class FeatureTester {
     public static final List<FeatureTest> FEATURE_TESTS = List.of(
             new TransparencyFeatureTest(),
@@ -32,6 +34,16 @@ public class FeatureTester {
                 long freeMem = Runtime.getRuntime().freeMemory();
                 long usedMem = totalMem - freeMem;
                 System.out.printf("Mem: % 2d%% %03d/%03dMB%n", usedMem * 100L / maxMem, usedMem / 1000000, maxMem / 1000000);
+            }
+
+            if(action == GLFW_RELEASE) {
+                if(key == GLFW_KEY_LEFT) {
+                    this.leftTap();
+                }
+
+                if(key == GLFW_KEY_RIGHT) {
+                    this.rightTap();
+                }
             }
         });
 
@@ -61,6 +73,14 @@ public class FeatureTester {
 
         WINDOW.destroy();
         scene.close();
+    }
+
+    private void leftTap() {
+        activeFeatures.forEach(FeatureTest::leftTap);
+    }
+
+    private void rightTap() {
+        activeFeatures.forEach(FeatureTest::rightTap);
     }
 
     public static void main(String[] args) {

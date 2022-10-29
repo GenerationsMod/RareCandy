@@ -3,6 +3,7 @@ package com.pokemod.rarecandy.loading;
 import com.pokemod.TriFunction;
 import com.pokemod.pkl.PixelAsset;
 import com.pokemod.pkl.reader.TextureReference;
+import com.pokemod.rarecandy.components.MutiRenderObject;
 import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.DataUtils;
 import com.pokemod.rarecandy.ThreadSafety;
@@ -35,11 +36,13 @@ import org.msgpack.core.MessagePack;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -52,12 +55,13 @@ public class GogoatLoader {
         this.modelLoadingPool = Executors.newFixedThreadPool(settings.modelLoadingThreads());
     }
 
-    public <T extends RenderObject> T createObject(@NotNull Supplier<PixelAsset> asset, Supplier<T> objectCreator, TriFunction<GltfModel, Map<String, SMDFile>, T, List<Runnable>> objectSetup, Consumer<T> onFinish) {
-        var obj = objectCreator.get();
+    public <T extends RenderObject> MutiRenderObject<T> createObject(@NotNull Supplier<InputStream> is, TriFunction<GltfModel, Map<String, SMDFile>, MutiRenderObject<T>, List<Runnable>> objectCreator, Consumer<MutiRenderObject<T>> onFinish) {
+        var obj = new MutiRenderObject<T>();
         modelLoadingPool.submit(ThreadSafety.wrapException(() -> {
-            var model = read(asset.get());
-            var smdxAnimations = readAnimations(asset.get());
-            var glCalls = objectSetup.apply(model, smdxAnimations, obj);
+            var asset = new PixelAsset(is.get());
+            var model = read(asset);
+            var separateAims = readAnimations(asset);
+            var glCalls = objectCreator.apply(model, separateAims, obj);
             ThreadSafety.runOnContextThread(() -> {
                 glCalls.forEach(Runnable::run);
                 if (onFinish != null) onFinish.accept(obj);
@@ -97,7 +101,7 @@ public class GogoatLoader {
         }
     }
 
-    public static void create(MeshObject object, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, List<Runnable> glCalls, Pipeline pipeline) {
+    public static <T extends MeshObject> void create(MutiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, List<Runnable> glCalls, Pipeline pipeline, Supplier<T> supplier) {
         var textures = gltfModel.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
         var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
             var textureName = raw.getBaseColorTexture().getImageModel().getName();
@@ -135,18 +139,24 @@ public class GogoatLoader {
                 if (nodeModel.getChildren().isEmpty()) {
                     // Model Loading Method #1
                     for (var meshModel : nodeModel.getMeshModels()) {
+                        var object = supplier.get();
                         if (object instanceof AnimatedMeshObject animatedMeshObject)
                             processMeshModel(animatedMeshObject, meshModel, materials, variants, pipeline, animations, glCalls);
                         else processMeshModel(object, meshModel, materials, variants, pipeline, glCalls);
+                        objects.add(object);
                     }
                 }
 
                 // Model Loading Method #2
                 for (var child : nodeModel.getChildren()) {
                     for (var meshModel : child.getMeshModels()) {
+                        var object = supplier.get();
                         if (object instanceof AnimatedMeshObject animatedMeshObject)
                             processMeshModel(animatedMeshObject, meshModel, materials, variants, pipeline, animations, glCalls);
-                        else processMeshModel(object, meshModel, materials, variants, pipeline, glCalls);
+                        else {
+                            processMeshModel(object, meshModel, materials, variants, pipeline, glCalls);
+                        }
+                        objects.add(object);
                     }
                 }
             }

@@ -16,10 +16,10 @@ public class AnimatedMeshObject extends MeshObject {
     public String activeAnimation;
     public double animationTime;
 
-    public void setup(List<Material> glMaterials, Map<String, Material> variants, GLModel glModel, Pipeline pipeline, Map<String, Animation> animations) {
+    public void setup(List<Material> glMaterials, Map<String, Material> variants, GLModel model, Pipeline pipeline, Map<String, Animation> animations) {
         this.materials = glMaterials;
         this.variants = variants;
-        this.glModel = glModel;
+        this.model = model;
         this.pipeline = pipeline;
         this.animations = animations;
         this.boneTransforms = new Matrix4f[0];

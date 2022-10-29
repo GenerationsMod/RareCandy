@@ -8,7 +8,6 @@ import org.tukaani.xz.XZOutputStream;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,22 +26,22 @@ public class PixelConverter {
                 Files.createFile(output);
             }
 
-            try (OutputStream xz = new XZOutputStream(Files.newOutputStream(output), OPTIONS)) {
-                try (var tar = new TarArchiveOutputStream(xz)) {
+            try (var xzWriter = new XZOutputStream(Files.newOutputStream(output), OPTIONS)) {
+                try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
 
                     for (var animationFile : files) {
-                        tar.putArchiveEntry(new TarArchiveEntry(animationFile, animationFile.getFileName().toString()));
-                        IOUtils.copy(new BufferedInputStream(Files.newInputStream(animationFile)), tar);
-                        tar.closeArchiveEntry();
+                        tarWriter.putArchiveEntry(new TarArchiveEntry(animationFile, animationFile.getFileName().toString()));
+                        IOUtils.copy(new BufferedInputStream(Files.newInputStream(animationFile)), tarWriter);
+                        tarWriter.closeArchiveEntry();
                     }
                 }
             }
 
             try (var is = Files.newInputStream(output)) {
-                byte[] lockedBytes = is.readAllBytes();
+                var bytes = is.readAllBytes();
 
                 try (var out = Files.newOutputStream(output)) {
-                    out.write(lockedBytes);
+                    out.write(bytes);
                 }
             }
         } catch (IOException e) {

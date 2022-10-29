@@ -23,11 +23,19 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
         postDrawBatch.run();
     }
 
-    public void updateUniforms(InstanceState instance, RenderObject renderObject) {
+    public void updateOtherUniforms(InstanceState instance, RenderObject renderObject) {
         for (var name : uniforms.keySet()) {
             var uniform = uniforms.get(name);
-            if(!uniformSuppliers.containsKey(name)) RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
-            uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
+            if (!uniformSuppliers.containsKey(name)) RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
+            if (uniform.type != GL20C.GL_SAMPLER_2D) uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
+        }
+    }
+
+    public void updateTexUniforms(InstanceState instance, RenderObject renderObject) {
+        for (var name : uniforms.keySet()) {
+            var uniform = uniforms.get(name);
+            if (!uniformSuppliers.containsKey(name)) RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
+            if (uniform.type == GL20C.GL_SAMPLER_2D) uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
         }
     }
     public static class Builder {

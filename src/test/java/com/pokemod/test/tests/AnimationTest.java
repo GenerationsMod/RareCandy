@@ -1,6 +1,7 @@
 package com.pokemod.test.tests;
 
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
+import com.pokemod.rarecandy.components.MutiRenderObject;
 import com.pokemod.rarecandy.rendering.InstanceState;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import com.pokemod.test.FeatureTest;
@@ -13,7 +14,7 @@ import java.util.stream.Stream;
 public class AnimationTest extends FeatureTest {
     private final double startTime = System.currentTimeMillis();
     private final Stream<String> models = Stream.of("sobble");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
-    private List<AnimatedMeshObject> objects;
+    private List<MutiRenderObject<AnimatedMeshObject>> objects;
 
     public AnimationTest() {
         super("animation", "Tests the animation system");
@@ -21,10 +22,10 @@ public class AnimationTest extends FeatureTest {
 
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
-        objects = this.models.map(mdl -> loadAnimatedModel(scene, mdl,model -> {
+        objects = this.models.map(mdl -> loadAnimatedModel(scene, mdl, model -> {
             var i = 0;
             var variants = List.of("none-normal", "none-shiny");
-            var scale = 2.2f/(model.glModel.vertexYRange/100);
+
             for (String variant : variants) {
                 var instance = new InstanceState(new Matrix4f(), viewMatrix, variant, 0xe60a60);
                 instance.transformationMatrix().translate(new Vector3f(i, 0, 0))/*.rotate((float) Math.toRadians(180), new Vector3f(1, 0, 0))*/.scale(new Vector3f(0.01f, 0.01f, 0.01f));//.mul(scale));
@@ -42,33 +43,34 @@ public class AnimationTest extends FeatureTest {
 //            object.transformationMatrix().rotate((float) deltaTime, 0, 1, 0);
         }
 
-        for (var object : objects) {
-            if (object.isReady()) {
-                object.animationTime = object.animations.get(object.activeAnimation).getAnimationTime(timePassed);
-            }
+        for (var obj : objects) {
+            obj.apply(object -> object.animationTime = object.animations.get(object.activeAnimation).getAnimationTime(timePassed));
         }
     }
 
     @Override
     public void leftTap() {
-        objects.forEach(a -> {
-            var map = a.animations.keySet().stream().toList();
+        for (var obj : objects) {
+            obj.apply(a -> {
+                var map = a.animations.keySet().stream().toList();
 
-            var active = map.indexOf(a.activeAnimation);
+                var active = map.indexOf(a.activeAnimation);
 
-            a.activeAnimation = map.get(clamp(active - 1, 0, map.size() - 1));
-        });
+                a.activeAnimation = map.get(clamp(active - 1, 0, map.size() - 1));
+            });
+        }
     }
 
     @Override
     public void rightTap() {
-        objects.forEach(a -> {
-            var map = a.animations.keySet().stream().toList();
+        for (var obj : objects) {
+            obj.apply(a -> {
+                var map = a.animations.keySet().stream().toList();
+                var active = map.indexOf(a.activeAnimation);
 
-            var active = map.indexOf(a.activeAnimation);
-
-            a.activeAnimation = map.get(clamp(active + 1, 0, map.size() - 1));
-        });
+                a.activeAnimation = map.get(clamp(active + 1, 0, map.size() - 1));
+            });
+        }
     }
 
     private static int clamp(int value, int min, int max) {

@@ -1,6 +1,5 @@
 package com.pokemod.pkl;
 
-import com.pokemod.pkl.reader.AssetType;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.tukaani.xz.XZ;
 import org.tukaani.xz.XZInputStream;
@@ -8,6 +7,8 @@ import org.tukaani.xz.XZInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -15,22 +16,19 @@ import java.util.Objects;
  */
 public class PixelAsset {
 
-    public byte[] modelFile;
+    public final Map<String, byte[]> files = new HashMap<>();
+    public String modelName;
 
-    public PixelAsset(InputStream is, AssetType type) {
+    public PixelAsset(InputStream is) {
         try {
-            switch (type) {
-                case PK -> {
-                    var tarFile = getTarFile(Objects.requireNonNull(is, "Input Stream is null"));
+            var tarFile = getTarFile(Objects.requireNonNull(is, "Input Stream is null"));
 
-                    for (var entry : tarFile.getEntries()) {
-                        if (entry.getName().endsWith(".glb")) {
-                            this.modelFile = tarFile.getInputStream(entry).readAllBytes();
-                        }
-                    }
+            for (var entry : tarFile.getEntries()) {
+                if (entry.getName().endsWith(".glb")) {
+                    this.modelName = entry.getName();
                 }
 
-                case GLB -> this.modelFile = Objects.requireNonNull(is, "Input Stream is null").readAllBytes();
+                files.put(entry.getName(), tarFile.getInputStream(entry).readAllBytes());
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to load scene", e);
@@ -39,19 +37,14 @@ public class PixelAsset {
 
     private TarFile getTarFile(InputStream inputStream) {
         try {
-            var unlockedArchive = unlockArchive(inputStream.readAllBytes());
-            var xzInputStream = new XZInputStream(unlockedArchive);
+            var xzInputStream = new XZInputStream(inputStream);
             return new TarFile(xzInputStream.readAllBytes());
         } catch (IOException e) {
             throw new RuntimeException("Failed to read file.", e);
         }
     }
 
-    /**
-     * We change 1 bit to make file readers fail to load the file or find its format. I would rather not have reforged digging through the assets, honestly.
-     */
-    private InputStream unlockArchive(byte[] originalBytes) {
-        System.arraycopy(XZ.HEADER_MAGIC, 0, originalBytes, 0, XZ.HEADER_MAGIC.length);
-        return new ByteArrayInputStream(originalBytes);
+    public byte[] getModelFile() {
+        return files.get(modelName);
     }
 }

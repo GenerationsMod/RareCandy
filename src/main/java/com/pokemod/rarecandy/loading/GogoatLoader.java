@@ -65,7 +65,7 @@ public class GogoatLoader {
 
     public GltfModel read(PixelAsset asset) {
         try {
-            return reader.readWithoutReferences(new ByteArrayInputStream(asset.modelFile));
+            return reader.readWithoutReferences(new ByteArrayInputStream(asset.getModelFile()));
         } catch (IOException e) {
             throw new RuntimeException("", e);
         }

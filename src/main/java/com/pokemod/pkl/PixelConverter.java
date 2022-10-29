@@ -6,33 +6,35 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.tukaani.xz.LZMA2Options;
 import org.tukaani.xz.XZOutputStream;
 
-import javax.swing.*;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * Utility for writing and reading Pixelmon: Generation's model format.
  */
 public class PixelConverter {
+    private static final LZMA2Options OPTIONS = new LZMA2Options();
 
-    private static final LZMA2Options options = new LZMA2Options();
-
-    public static void convertToPk(Path glbFile, Path output) {
+    public static void convertToPk(List<Path> files, Path output) {
         try {
             if (!Files.exists(output)) {
                 Files.createDirectories(output.getParent());
                 Files.createFile(output);
             }
 
-            try (OutputStream xz = new XZOutputStream(Files.newOutputStream(output), options)) {
-                try (TarArchiveOutputStream tar = new TarArchiveOutputStream(xz)) {
-                    tar.putArchiveEntry(new TarArchiveEntry(glbFile, glbFile.getFileName().toString()));
-                    IOUtils.copy(new BufferedInputStream(Files.newInputStream(glbFile)), tar);
-                    tar.closeArchiveEntry();
+            try (OutputStream xz = new XZOutputStream(Files.newOutputStream(output), OPTIONS)) {
+                try (var tar = new TarArchiveOutputStream(xz)) {
+
+                    for (var animationFile : files) {
+                        tar.putArchiveEntry(new TarArchiveEntry(animationFile, animationFile.getFileName().toString()));
+                        IOUtils.copy(new BufferedInputStream(Files.newInputStream(animationFile)), tar);
+                        tar.closeArchiveEntry();
+                    }
                 }
             }
 
@@ -57,10 +59,14 @@ public class PixelConverter {
 
 
         Files.walk(inFolder).forEach(path -> {
-            if (Files.isRegularFile(path)) {
-                var relativePath = inFolder.relativize(path);
-                var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".glb", ".pk"));
-                convertToPk(path, outputPath);
+            if (Files.isDirectory(path) && !path.equals(inFolder)) {
+                try {
+                    var relativePath = inFolder.relativize(path);
+                    var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString() + ".pk");
+                    convertToPk(Files.list(path).toList(), outputPath);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }

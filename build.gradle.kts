@@ -13,6 +13,7 @@ java {
 
 repositories {
     mavenCentral()
+    maven("https://jitpack.io")
 }
 
 dependencies {
@@ -27,6 +28,7 @@ dependencies {
     implementation("org.lwjgl", "lwjgl")
     implementation("org.lwjgl", "lwjgl-glfw")
     implementation("org.lwjgl", "lwjgl-opengl")
+    implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT")
 
     runtimeOnly("org.lwjgl", "lwjgl" , classifier = "natives-windows")
     runtimeOnly("org.lwjgl", "lwjgl-glfw" , classifier = "natives-windows")

@@ -2,6 +2,7 @@
 /.idea
 /.gradle
 /build
+/converter
 *.iml
 gradlew
 *.log

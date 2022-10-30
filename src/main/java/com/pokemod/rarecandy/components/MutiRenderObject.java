@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 public class MutiRenderObject<T extends RenderObject> extends RenderObject {
 
     private final List<T> objects = new ArrayList<>();
+    private final List<Consumer<T>> queue = new ArrayList<>();
     private boolean dirty = true;
     private boolean smartRender = false;
 
@@ -23,8 +24,8 @@ public class MutiRenderObject<T extends RenderObject> extends RenderObject {
         return true;
     }
 
-    public void apply(Consumer<T> consumer) {
-        for (T t : objects) if(t.isReady()) consumer.accept(t);
+    public void onUpdate(Consumer<T> consumer) {
+        queue.add(consumer);
     }
 
     public void add(T obj) {
@@ -33,13 +34,26 @@ public class MutiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
+    public void update() {
+        for (T t : objects) {
+            if (t.isReady()) {
+                for (var consumer : queue) {
+                    consumer.accept(t);
+                }
+            }
+        }
+
+        super.update();
+    }
+
+    @Override
     public void render(List<InstanceState> instances) {
         if (dirty) {
             pipeline = null;
             smartRender = true;
             for (T object : objects) {
-                if(pipeline == null) pipeline = object.pipeline;
-                else if(pipeline != object.pipeline) smartRender = false;
+                if (pipeline == null) pipeline = object.pipeline;
+                else if (pipeline != object.pipeline) smartRender = false;
             }
         }
 

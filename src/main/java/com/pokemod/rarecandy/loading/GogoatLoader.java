@@ -3,16 +3,16 @@ package com.pokemod.rarecandy.loading;
 import com.pokemod.TriFunction;
 import com.pokemod.pkl.PixelAsset;
 import com.pokemod.pkl.reader.TextureReference;
-import com.pokemod.rarecandy.components.MutiRenderObject;
-import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.DataUtils;
 import com.pokemod.rarecandy.ThreadSafety;
 import com.pokemod.rarecandy.animation.Animation;
 import com.pokemod.rarecandy.animation.Skeleton;
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
+import com.pokemod.rarecandy.components.MutiRenderObject;
 import com.pokemod.rarecandy.components.RenderObject;
 import com.pokemod.rarecandy.model.GLModel;
+import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.model.MeshDrawCommand;
 import com.pokemod.rarecandy.pipeline.Pipeline;
 import com.pokemod.rarecandy.settings.Settings;
@@ -28,6 +28,7 @@ import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFileBlock;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL20;
@@ -40,9 +41,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -139,35 +138,33 @@ public class GogoatLoader {
                 if (nodeModel.getChildren().isEmpty()) {
                     // Model Loading Method #1
                     for (var meshModel : nodeModel.getMeshModels()) {
-                        var object = supplier.get();
-                        if (object instanceof AnimatedMeshObject animatedMeshObject)
-                            processMeshModel(animatedMeshObject, meshModel, materials, variants, pipeline, animations, glCalls);
-                        else processMeshModel(object, meshModel, materials, variants, pipeline, glCalls);
-                        objects.add(object);
+                        processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
                     }
-                }
-
-                // Model Loading Method #2
-                for (var child : nodeModel.getChildren()) {
-                    for (var meshModel : child.getMeshModels()) {
-                        var object = supplier.get();
-                        if (object instanceof AnimatedMeshObject animatedMeshObject)
-                            processMeshModel(animatedMeshObject, meshModel, materials, variants, pipeline, animations, glCalls);
-                        else {
-                            processMeshModel(object, meshModel, materials, variants, pipeline, glCalls);
+                } else {
+                    // Model Loading Method #2
+                    for (var child : nodeModel.getChildren()) {
+                        for (var meshModel : child.getMeshModels()) {
+                            processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
                         }
-                        objects.add(object);
                     }
                 }
             }
         }
     }
 
-    private static void processMeshModel(MeshObject object, MeshModel meshModel, List<Material> materials, List<String> variantsList, Pipeline pipeline, List<Runnable> glCalls) {
-        for (var primitiveModel : meshModel.getMeshPrimitiveModels()) {
+    private static <T extends MeshObject> void processPrimitiveModels(MutiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Pipeline pipeline, List<Runnable> glCalls, @Nullable Map<String, Animation> animations) {
+        for (var primitiveModel : model.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
             var glModel = processPrimitiveModel(primitiveModel, glCalls);
-            object.setup(materials, variants, glModel, pipeline);
+            var renderObject = objSupplier.get();
+
+            if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
+                animatedMeshObject.setup(materials, variants, glModel, pipeline, animations);
+            } else {
+                renderObject.setup(materials, variants, glModel, pipeline);
+            }
+
+            objects.add(renderObject);
         }
     }
 
@@ -179,6 +176,12 @@ public class GogoatLoader {
                 throw new RuntimeException("No animations found when trying to load animated model.");
             object.setup(materials, variants, glModel, pipeline, animations);
         }
+    }
+
+    private static void processPrimitiveModel(MeshObject object, MeshPrimitiveModel primitiveModel, List<Material> materials, List<String> variantsList, Pipeline pipeline, List<Runnable> glCalls) {
+        var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
+        var glModel = processPrimitiveModel(primitiveModel, glCalls);
+        object.setup(materials, variants, glModel, pipeline);
     }
 
     private static GLModel processPrimitiveModel(MeshPrimitiveModel primitiveModel, List<Runnable> glCalls) {
@@ -274,7 +277,7 @@ public class GogoatLoader {
             var variantMap = new HashMap<String, Material>();
 
             for (var mapping : mappings) {
-                if(!mapping.containsKey("material")) continue;
+                if (!mapping.containsKey("material")) continue;
                 var material = materials.get((Integer) mapping.get("material"));
                 var variants = (List<Integer>) mapping.get("variants");
 

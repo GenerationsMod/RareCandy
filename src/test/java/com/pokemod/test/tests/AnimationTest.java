@@ -28,7 +28,7 @@ public class AnimationTest extends FeatureTest {
 
             for (String variant : variants) {
                 var instance = new InstanceState(new Matrix4f(), viewMatrix, variant, 0xe60a60);
-                instance.transformationMatrix().translate(new Vector3f(i, 0, 0))/*.rotate((float) Math.toRadians(180), new Vector3f(1, 0, 0))*/;//.mul(scale));
+                instance.transformationMatrix().translate(new Vector3f(i, 0, 0)).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0));//.mul(scale));
                 scene.addObject(model, instance);
                 i++;
             }
@@ -44,14 +44,14 @@ public class AnimationTest extends FeatureTest {
         }
 
         for (var obj : objects) {
-            obj.apply(object -> object.animationTime = object.animations.get(object.activeAnimation).getAnimationTime(timePassed));
+            obj.onUpdate(object -> object.animationTime = object.animations.get(object.activeAnimation).getAnimationTime(timePassed));
         }
     }
 
     @Override
     public void leftTap() {
         for (var obj : objects) {
-            obj.apply(a -> {
+            obj.onUpdate(a -> {
                 var map = a.animations.keySet().stream().toList();
 
                 var active = map.indexOf(a.activeAnimation);
@@ -64,7 +64,7 @@ public class AnimationTest extends FeatureTest {
     @Override
     public void rightTap() {
         for (var obj : objects) {
-            obj.apply(a -> {
+            obj.onUpdate(a -> {
                 var map = a.animations.keySet().stream().toList();
                 var active = map.indexOf(a.activeAnimation);
 

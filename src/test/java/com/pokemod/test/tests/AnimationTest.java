@@ -28,7 +28,7 @@ public class AnimationTest extends FeatureTest {
 
             for (String variant : variants) {
                 var instance = new InstanceState(new Matrix4f(), viewMatrix, variant, 0xe60a60);
-                instance.transformationMatrix().translate(new Vector3f(i, 0, 0)).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0));//.mul(scale));
+                instance.transformationMatrix().translate(new Vector3f(i * 2 - 1, -0.5f, 1)).scale(2).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0));//.mul(scale));
                 scene.addObject(model, instance);
                 i++;
             }

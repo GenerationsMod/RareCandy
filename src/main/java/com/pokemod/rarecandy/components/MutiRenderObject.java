@@ -43,6 +43,7 @@ public class MutiRenderObject<T extends RenderObject> extends RenderObject {
             }
         }
 
+        queue.clear();
         super.update();
     }
 

@@ -41,6 +41,8 @@ public class MutiRenderObject<T extends RenderObject> extends RenderObject {
                     consumer.accept(t);
                 }
             }
+
+            t.update();
         }
 
         queue.clear();

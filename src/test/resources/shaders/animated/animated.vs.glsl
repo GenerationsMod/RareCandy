@@ -31,7 +31,7 @@ mat4 getBoneTransform() {
 void main() {
     mat4 worldSpace = projectionMatrix * viewMatrix;
     mat4 modelTransform = modelMatrix * getBoneTransform();
-    vec4 worldPosition = modelMatrix * vec4(positions, 1.0);
+    vec4 worldPosition = modelTransform * vec4(positions, 1.0);
 
     normal = (modelMatrix * vec4(normals, 0.0)).xyz;
     texCoord0 = vec2(texcoords.x, texcoords.y);

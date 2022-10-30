@@ -100,7 +100,7 @@ public class Animation {
 
 
     private void fillAnimationNodesSmdx(List<SkeletonBlock.Keyframe> keyframes) {
-        Map<String, List<Pair<Vector3f, Quaternionf>>> nodes = new HashMap<>();
+        Map<String, List<BoneStateKey>> nodes = new HashMap<>();
 
         for (SkeletonBlock.Keyframe keyframe : keyframes) {
             var time = keyframe.time;
@@ -108,9 +108,11 @@ public class Animation {
 
             for (SkeletonBlock.BoneState state : states) {
                 var id = skeleton.getName(state.bone);
-                List<Pair<Vector3f, Quaternionf>> list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
-                list.add(time, new Pair<Vector3f, Quaternionf>(new Vector3f(state.posX, state.posY, state.posZ), new Quaternionf().rotateXYZ(state.rotX, state.rotY, state.rotZ)));
+                List<BoneStateKey> list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
+                list.add(new BoneStateKey(time, new Vector3f(state.posX, state.posY, state.posZ), new Quaternionf().rotateZYX(state.rotZ, state.rotY, state.rotX)));
             }
+
+            nodes.forEach((k, v) -> v.sort(Comparator.comparingInt(BoneStateKey::time)));
         }
 
         nodes.forEach((key, node) -> {
@@ -118,19 +120,21 @@ public class Animation {
         });
     }
 
+    public record BoneStateKey(int time, Vector3f pos, Quaternionf rot) {}
+
     public static class AnimationNode {
         public final TransformStorage<Vector3f> positionKeys = new TransformStorage<>();
         public final TransformStorage<Quaternionf> rotationKeys = new TransformStorage<>();
         public final TransformStorage<Vector3f> scaleKeys = new TransformStorage<>();
 
-        public AnimationNode(List<Pair<Vector3f, Quaternionf>> pairs) {
-            if(pairs.isEmpty()) {
+        public AnimationNode(List<BoneStateKey> keys) {
+            if(keys.isEmpty()) {
                 positionKeys.add(0, new Vector3f());
                 rotationKeys.add(0, new Quaternionf());
             } else {
-                for (int time = 0; time < pairs.size(); time++) {
-                    positionKeys.add(time, pairs.get(time).a());
-                    rotationKeys.add(time, pairs.get(time).b());
+                for (BoneStateKey key : keys) {
+                    positionKeys.add(key.time(), key.pos());
+                    rotationKeys.add(key.time(), key.rot());
                 }
             }
 

@@ -27,8 +27,8 @@ public class AnimationTest extends FeatureTest {
             var variants = List.of("none-normal", "none-shiny");
 
             for (String variant : variants) {
-                var instance = new InstanceState(new Matrix4f(), viewMatrix, variant, 0xe60a60);
-                instance.transformationMatrix().translate(new Vector3f(i * 2 - 1, -0.5f, 5)).scale(1).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0)).scale(0.3f);
+                var instance = new InstanceState(new Matrix4f(), viewMatrix, variant, 0xFFFFFFFF);
+                instance.transformationMatrix().translate(new Vector3f(i * 8 - 4, -2f, 8)).scale(1).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0)).scale(0.3f);
                 scene.addObject(model, instance);
                 i++;
             }
@@ -38,10 +38,6 @@ public class AnimationTest extends FeatureTest {
     @Override
     public void update(RareCandy scene, double deltaTime) {
         var timePassed = ((System.currentTimeMillis() - startTime) / 16000);
-
-        for (var object : scene.getObjects()) {
-//            object.transformationMatrix().rotate((float) deltaTime, 0, 1, 0);
-        }
 
         for (var obj : objects) {
             obj.onUpdate(object -> object.animationTime = object.animations.get(object.activeAnimation).getAnimationTime(timePassed));
@@ -56,7 +52,8 @@ public class AnimationTest extends FeatureTest {
 
                 var active = map.indexOf(a.activeAnimation);
 
-                a.activeAnimation = map.get(clamp(active - 1, 0, map.size() - 1));
+                a.activeAnimation = map.get(clamp(active - 1, map.size() - 1));
+                System.out.println(a.activeAnimation);
             });
         }
     }
@@ -68,12 +65,13 @@ public class AnimationTest extends FeatureTest {
                 var map = a.animations.keySet().stream().toList();
                 var active = map.indexOf(a.activeAnimation);
 
-                a.activeAnimation = map.get(clamp(active + 1, 0, map.size() - 1));
+                a.activeAnimation = map.get(clamp(active + 1, map.size() - 1));
+                System.out.println(a.activeAnimation);
             });
         }
     }
 
-    private static int clamp(int value, int min, int max) {
-        return Math.min(Math.max(value, min), max);
+    private static int clamp(int value, int max) {
+        return Math.min(Math.max(value, 0), max);
     }
 }

@@ -29,7 +29,7 @@ void main() {
     vec3 unitLightVector = normalize(toLightVector);
     vec3 lightDir = -unitLightVector;
     vec3 unitToCameraVector = normalize(toCameraVector);
-    vec3 lightColor = intToColor();
+    vec3 lightColor = vec3(1.0, 1.0, 1.0);
 
     // Diffuse Lighting
     float rawDiffuse = dot(unitNormal, unitLightVector);

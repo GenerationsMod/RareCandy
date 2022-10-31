@@ -1,6 +1,6 @@
 package com.pokemod.rarecandy.model;
 
-import com.pokemod.pkl.reader.TextureReference;
+import com.pokemod.pokeutils.reader.TextureReference;
 import com.pokemod.rarecandy.loading.Texture;
 
 public class Material {

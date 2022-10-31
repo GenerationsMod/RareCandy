@@ -1,4 +1,4 @@
-package com.pokemod.pkl;
+package com.pokemod.pokeutils;
 
 import de.javagl.jgltf.model.NodeModel;
 import com.pokemod.rarecandy.DataUtils;

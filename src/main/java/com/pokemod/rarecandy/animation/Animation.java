@@ -1,7 +1,6 @@
 package com.pokemod.rarecandy.animation;
 
-import com.pokemod.pkl.ModelNode;
-import com.pokemod.rarecandy.Pair;
+import com.pokemod.pokeutils.ModelNode;
 import de.javagl.jgltf.model.AnimationModel;
 import de.javagl.jgltf.model.NodeModel;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;

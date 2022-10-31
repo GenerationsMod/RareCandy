@@ -1,4 +1,4 @@
-package com.pokemod.pkl.reader;
+package com.pokemod.pokeutils.reader;
 
 import de.javagl.jgltf.model.image.PixelData;
 

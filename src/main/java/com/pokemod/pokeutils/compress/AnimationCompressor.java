@@ -1,4 +1,4 @@
-package com.pokemod.pkl.compress;
+package com.pokemod.pokeutils.compress;
 
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryWriter;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;

@@ -1,10 +1,8 @@
-package com.pokemod.pkl;
+package com.pokemod.pokeutils;
 
 import org.apache.commons.compress.archivers.tar.TarFile;
-import org.tukaani.xz.XZ;
 import org.tukaani.xz.XZInputStream;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;

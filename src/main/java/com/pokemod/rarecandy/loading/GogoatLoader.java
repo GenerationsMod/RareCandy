@@ -1,8 +1,8 @@
 package com.pokemod.rarecandy.loading;
 
 import com.pokemod.TriFunction;
-import com.pokemod.pkl.PixelAsset;
-import com.pokemod.pkl.reader.TextureReference;
+import com.pokemod.pokeutils.PixelAsset;
+import com.pokemod.pokeutils.reader.TextureReference;
 import com.pokemod.rarecandy.DataUtils;
 import com.pokemod.rarecandy.ThreadSafety;
 import com.pokemod.rarecandy.animation.Animation;

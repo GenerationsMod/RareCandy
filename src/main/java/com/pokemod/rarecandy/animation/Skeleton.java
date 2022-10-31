@@ -1,6 +1,6 @@
 package com.pokemod.rarecandy.animation;
 
-import com.pokemod.pkl.ModelNode;
+import com.pokemod.pokeutils.ModelNode;
 import com.pokemod.rarecandy.rendering.Bone;
 import de.javagl.jgltf.model.SkinModel;
 import org.joml.Matrix4f;

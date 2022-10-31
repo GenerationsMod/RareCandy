@@ -1,6 +1,6 @@
 package com.pokemod.rarecandy.loading;
 
-import com.pokemod.pkl.reader.TextureReference;
+import com.pokemod.pokeutils.reader.TextureReference;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL13C;
 

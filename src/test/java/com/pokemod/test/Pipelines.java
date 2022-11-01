@@ -11,10 +11,10 @@ import java.io.IOException;
 import java.util.function.Supplier;
 
 public class Pipelines {
-    private static final Pipeline.Builder STATIC = new Pipeline.Builder()
-            .shader(builtin("static/static.vs.glsl"), builtin("static/static.fs.glsl"))
+    private static final Pipeline.Builder BASE = new Pipeline.Builder()
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
+            .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(FeatureTester.PROJECTION_MATRIX))
             .supplyUniform("lightPosition", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0, 2, 0)))
             .supplyUniform("LIGHT_reflectivity", ctx -> ctx.uniform().uploadFloat(0.001f))
             .supplyUniform("LIGHT_shineDamper", ctx -> ctx.uniform().uploadFloat(0.1f))
@@ -24,33 +24,29 @@ public class Pipelines {
                 ctx.uniform().uploadInt(0);
             });
 
-    private static final Pipeline.Builder STAT_UP = new Pipeline.Builder(STATIC)
+    public static final Pipeline STATIC = new Pipeline.Builder(BASE)
+            .shader(builtin("static/static.vs.glsl"), builtin("static/static.fs.glsl"))
+            .build();
+
+
+    public static final Pipeline STAT_UP = new Pipeline.Builder(BASE)
             .shader(builtin("stat_up/stat_up.vs.glsl"), builtin("stat_up/stat_up.fs.glsl"))
             .supplyUniform("time", ctx -> ctx.uniform().uploadFloat((float) StatUpTest.getTimePassed() * 2500))
-            .prePostDraw(() -> GL11C.glEnable(GL11C.GL_BLEND),() -> GL11C.glDisable(GL11C.GL_BLEND));
+            .prePostDraw(() -> GL11C.glEnable(GL11C.GL_BLEND),() -> GL11C.glDisable(GL11C.GL_BLEND))
+            .build();
 
 
-    private static final Pipeline.Builder ANIMATED = new Pipeline.Builder(STATIC)
+    public static final Pipeline ANIMATED = new Pipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated.fs.glsl"))
-            .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedMeshObject) ctx.object()).boneTransforms));
+            .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedMeshObject) ctx.object()).boneTransforms))
+            .build();
 
-    public static Pipeline staticPipeline(Supplier<Matrix4f> projectionMatrix) {
-        return new Pipeline.Builder(STATIC)
-                .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix.get()))
-                .build();
-    }
+    public static final Pipeline POKEMON_EYES = new Pipeline.Builder(BASE)
+            .shader(builtin("animated/animated.vs.glsl"), builtin("animated_pokemon_eyes.fs.glsl"))
+            .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedMeshObject) ctx.object()).boneTransforms))
+            .build();
 
-    public static Pipeline statUpPipeline(Supplier<Matrix4f> projectionMatrix) {
-        return new Pipeline.Builder(STAT_UP)
-                .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix.get()))
-                .build();
-    }
-
-    public static Pipeline animatedPipeline(Supplier<Matrix4f> projectionMatrix) {
-        return new Pipeline.Builder(ANIMATED)
-                .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix.get()))
-                .build();
-    }
+    public static void onInitialize() {}
 
     private static String builtin(String name) {
         try (var is = Pipeline.class.getResourceAsStream("/shaders/" + name)) {

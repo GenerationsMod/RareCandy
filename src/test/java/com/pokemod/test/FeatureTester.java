@@ -21,7 +21,7 @@ public class FeatureTester {
             new GuiTest(),
             new StatUpTest()
     );
-    public static final Window WINDOW = new Window("RareCandy Feature Test", 1920, 1080);
+    public static final Window WINDOW = new Window("RareCandy Feature Test", 960, 540);
     public static final Matrix4f PROJECTION_MATRIX = new Matrix4f().perspective((float) Math.toRadians(90), (float) WINDOW.width / WINDOW.height, 0.1f, 1000.0f);
     public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public final List<FeatureTest> activeFeatures;
@@ -55,6 +55,7 @@ public class FeatureTester {
         GL11C.glEnable(GL11C.GL_CULL_FACE);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
+        Pipelines.onInitialize();
         for (var activeFeature : this.activeFeatures) activeFeature.init(scene, this.viewMatrix);
 
         var lastFrameTime = 0d;

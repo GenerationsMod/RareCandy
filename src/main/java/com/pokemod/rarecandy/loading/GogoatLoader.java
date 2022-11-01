@@ -42,6 +42,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -100,7 +101,7 @@ public class GogoatLoader {
         }
     }
 
-    public static <T extends MeshObject> void create(MutiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, List<Runnable> glCalls, Pipeline pipeline, Supplier<T> supplier) {
+    public static <T extends MeshObject> void create(MutiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
         var textures = gltfModel.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
         var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
             var textureName = raw.getBaseColorTexture().getImageModel().getName();
@@ -152,16 +153,17 @@ public class GogoatLoader {
         }
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MutiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Pipeline pipeline, List<Runnable> glCalls, @Nullable Map<String, Animation> animations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MutiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Map<String, Animation> animations) {
         for (var primitiveModel : model.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
             var glModel = processPrimitiveModel(primitiveModel, glCalls);
             var renderObject = objSupplier.get();
+            var appliedPipeline = pipeline.apply(primitiveModel.getMaterialModel().getName());
 
             if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-                animatedMeshObject.setup(materials, variants, glModel, pipeline, animations);
+                animatedMeshObject.setup(materials, variants, glModel, appliedPipeline, animations);
             } else {
-                renderObject.setup(materials, variants, glModel, pipeline);
+                renderObject.setup(materials, variants, glModel, appliedPipeline);
             }
 
             objects.add(renderObject);

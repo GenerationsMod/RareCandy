@@ -22,7 +22,7 @@ public class AnimationTest extends FeatureTest {
 
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
-        objects = this.models.map(mdl -> loadAnimatedModel(scene, mdl, model -> {
+        objects = this.models.map(mdl -> loadPokemonModel(scene, mdl, model -> {
             var i = 0;
             var variants = List.of("none-normal", "none-shiny");
 

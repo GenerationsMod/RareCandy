@@ -4,12 +4,15 @@ import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
 import com.pokemod.rarecandy.components.MutiRenderObject;
 import com.pokemod.rarecandy.loading.GogoatLoader;
+import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.pipeline.Pipeline;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class FeatureTest {
@@ -25,13 +28,13 @@ public abstract class FeatureTest {
 
     public abstract void update(RareCandy scene, double deltaTime);
 
-    protected <T extends MeshObject> MutiRenderObject<T> load(RareCandy renderer, String name, Pipeline pipeline, Consumer<MutiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected <T extends MeshObject> MutiRenderObject<T> load(RareCandy renderer, String name, Function<String, Pipeline> pipelineFactory, Consumer<MutiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
         return loader.createObject(
                 () -> FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"),
                 (gltfModel, smdFileMap, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    GogoatLoader.create(object, gltfModel, smdFileMap, glCalls, pipeline, supplier);
+                    GogoatLoader.create(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
                     return glCalls;
                 },
                 onFinish
@@ -39,15 +42,24 @@ public abstract class FeatureTest {
     }
 
     protected void loadStatUpModel(RareCandy renderer, Consumer<MutiRenderObject<MeshObject>> onFinish) {
-        load(renderer, "stat_up", Pipelines.statUpPipeline(() -> FeatureTester.PROJECTION_MATRIX), onFinish, MeshObject::new);
+        load(renderer, "stat_up", materials -> Pipelines.STAT_UP, onFinish, MeshObject::new);
     }
 
     protected void loadStaticModel(RareCandy renderer, String name, Consumer<MutiRenderObject<MeshObject>> onFinish) {
-        load(renderer, name, Pipelines.staticPipeline(() -> FeatureTester.PROJECTION_MATRIX), onFinish, MeshObject::new);
+        load(renderer, name, materials -> Pipelines.STATIC, onFinish, MeshObject::new);
     }
 
     protected MutiRenderObject<AnimatedMeshObject> loadAnimatedModel(RareCandy renderer, String name, Consumer<MutiRenderObject<AnimatedMeshObject>> onFinish) {
-        return load(renderer, name, Pipelines.animatedPipeline(() -> FeatureTester.PROJECTION_MATRIX), onFinish, AnimatedMeshObject::new);
+        return load(renderer, name, materials -> Pipelines.ANIMATED, onFinish, AnimatedMeshObject::new);
+    }
+
+    protected MutiRenderObject<AnimatedMeshObject> loadPokemonModel(RareCandy renderer, String name, Consumer<MutiRenderObject<AnimatedMeshObject>> onFinish) {
+        return load(renderer, name, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
+    }
+
+    private Pipeline getPokemonPipeline(String materialName) {
+        System.out.println("E");
+        return Pipelines.ANIMATED;
     }
 
     public void rightTap() {

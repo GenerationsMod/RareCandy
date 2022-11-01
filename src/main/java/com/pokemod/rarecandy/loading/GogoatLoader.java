@@ -29,6 +29,8 @@ import dev.thecodewarrior.binarysmd.studiomdl.SMDFileBlock;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL20;
@@ -102,7 +104,10 @@ public class GogoatLoader {
     }
 
     public static <T extends MeshObject> void create(MutiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
+        checkForRootTransformation(objects, gltfModel);
+
         var textures = gltfModel.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
+
         var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
             var textureName = raw.getBaseColorTexture().getImageModel().getName();
 
@@ -153,6 +158,19 @@ public class GogoatLoader {
         }
     }
 
+    private static <T extends MeshObject> void checkForRootTransformation(MutiRenderObject<T> objects, GltfModel gltfModel) {
+        if(gltfModel.getSkinModels().isEmpty()) {
+
+            var node = gltfModel.getNodeModels().get(0);
+
+            while (node.getParent() != null) node = node.getParent();
+
+            var rootTransformation = new Matrix4f().set(node.createGlobalTransformSupplier().get());
+
+            objects.setRootTransformation(rootTransformation);
+        }
+    }
+
     private static <T extends MeshObject> void processPrimitiveModels(MutiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Map<String, Animation> animations) {
         for (var primitiveModel : model.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
@@ -200,14 +218,24 @@ public class GogoatLoader {
 
             // FIXME: this is for old models which dont get proper scaling for
             var buf = position.getBufferViewModel().getBufferViewData();
-            var smallestVertex = 0f;
-            var largestVertex = 0f;
-            for (int i = 4; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
-                var yPoint = buf.getFloat(i);
-                if (smallestVertex > yPoint) smallestVertex = yPoint;
-                if (largestVertex < yPoint) largestVertex = yPoint;
+            var smallestVertexX = 0f;
+            var smallestVertexY = 0f;
+            var smallestVertexZ = 0f;
+            var largestVertexX = 0f;
+            var largestVertexY = 0f;
+            var largestVertexZ = 0f;
+            for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
+                var xPoint = buf.getFloat(i);
+                var yPoint = buf.getFloat(i + 4);
+                var zPoint = buf.getFloat(i + 8);
+                if (smallestVertexX > xPoint) smallestVertexX = xPoint;
+                if (smallestVertexY > xPoint) smallestVertexY = yPoint;
+                if (smallestVertexZ > xPoint) smallestVertexZ = zPoint;
+                if (largestVertexX < xPoint) largestVertexX = xPoint;
+                if (largestVertexY < yPoint) largestVertexY = yPoint;
+                if (largestVertexZ < zPoint) largestVertexZ = zPoint;
             }
-            model.vertexYRange = largestVertex - smallestVertex;
+            model.dimensions = new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ);
 
             var uvs = attributes.get("TEXCOORD_0");
             DataUtils.bindArrayBuffer(uvs.getBufferViewModel());

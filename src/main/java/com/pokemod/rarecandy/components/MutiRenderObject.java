@@ -1,6 +1,8 @@
 package com.pokemod.rarecandy.components;
 
 import com.pokemod.rarecandy.rendering.InstanceState;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,8 @@ public class MutiRenderObject<T extends RenderObject> extends RenderObject {
     private final List<Consumer<T>> queue = new ArrayList<>();
     private boolean dirty = true;
     private boolean smartRender = false;
+    private Matrix4f rootTransformation = new Matrix4f();
+    private final Vector3f dimensions = new Vector3f();
 
     @Override
     public boolean isReady() {
@@ -31,6 +35,22 @@ public class MutiRenderObject<T extends RenderObject> extends RenderObject {
     public void add(T obj) {
         this.objects.add(obj);
         dirty = true;
+        if(obj instanceof MeshObject mesh) {
+            dimensions.min(mesh.model.dimensions);
+        }
+    }
+
+    public void setRootTransformation(Matrix4f rootTransformation) {
+        this.rootTransformation = rootTransformation;
+    }
+
+    @Override
+    public void applyRootTransformation(InstanceState state) {
+        state.transformationMatrix().mul(rootTransformation, state.transformationMatrix());
+    }
+
+    public Vector3f getDimensions() {
+        return dimensions;
     }
 
     @Override

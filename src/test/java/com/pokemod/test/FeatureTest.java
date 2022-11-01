@@ -1,5 +1,6 @@
 package com.pokemod.test;
 
+import com.pokemod.pokeutils.PixelAsset;
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
 import com.pokemod.rarecandy.components.MutiRenderObject;
@@ -31,7 +32,7 @@ public abstract class FeatureTest {
     protected <T extends MeshObject> MutiRenderObject<T> load(RareCandy renderer, String name, Function<String, Pipeline> pipelineFactory, Consumer<MutiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
         return loader.createObject(
-                () -> FeatureTest.class.getResourceAsStream("/new/" + name + ".pk"),
+                () -> new PixelAsset(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk")),
                 (gltfModel, smdFileMap, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     GogoatLoader.create(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
@@ -57,7 +58,7 @@ public abstract class FeatureTest {
         return load(renderer, name, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
     }
 
-    private Pipeline getPokemonPipeline(String materialName) {
+    private Pipeline  getPokemonPipeline(String materialName) {
         System.out.println("E");
         return Pipelines.ANIMATED;
     }

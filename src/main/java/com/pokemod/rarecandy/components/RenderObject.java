@@ -24,6 +24,10 @@ public abstract class RenderObject {
         return ready;
     }
 
+    public void applyRootTransformation(InstanceState state) {
+
+    }
+
     public Set<String> availableVariants() {
         return variants.keySet();
     }

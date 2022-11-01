@@ -25,6 +25,7 @@ public class RareCandy {
     }
 
     public void addObject(RenderObject object, InstanceState state) {
+        object.applyRootTransformation(state);
         this.objectMap.putIfAbsent(object, new ArrayList<>());
         List<InstanceState> instances = this.objectMap.get(object);
         instances.add(state);

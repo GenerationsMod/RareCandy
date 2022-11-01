@@ -1,12 +1,14 @@
 package com.pokemod.rarecandy.model;
 
+import org.joml.Vector3f;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class GLModel {
     public List<MeshDrawCommand> meshDrawCommands = new ArrayList<>();
-    public float vertexYRange = 0;
+    public Vector3f dimensions = new Vector3f();
 
     public void runDrawCalls() {
         for (var drawCommand : meshDrawCommands) {

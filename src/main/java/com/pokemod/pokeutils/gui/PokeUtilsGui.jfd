@@ -61,6 +61,9 @@ new FormModel {
 					name: "canvasPanel"
 					"maximumSize": new java.awt.Dimension( 1920, 1080 )
 					"preferredSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
+					auxiliary() {
+						"JavaCodeGenerator.variableModifiers": 1
+					}
 				}, new FormLayoutConstraints( class java.lang.String ) {
 					"value": "right"
 				} )

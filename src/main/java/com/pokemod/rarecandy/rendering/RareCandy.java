@@ -69,6 +69,12 @@ public class RareCandy {
         return instances;
     }
 
+    public void clearAllInstances() {
+        for (var entry : objectMap.entrySet()) {
+            entry.getValue().clear();
+        }
+    }
+
     public GogoatLoader getLoader() {
         return loader;
     }

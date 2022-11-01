@@ -9,8 +9,7 @@ import org.tukaani.xz.XZOutputStream;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -39,6 +38,11 @@ public class GuiHandler implements KeyListener {
         frame.setVisible(true);
         frame.pack();
         frame.transferFocus();
+        gui.canvasPanel.addMouseWheelListener(e -> getCanvas().onMouseScroll(e));
+    }
+
+    public RareCandyCanvas getCanvas() {
+        return (RareCandyCanvas) gui.canvasPanel.getComponents()[0];
     }
 
     public void initializeAsset(PixelAsset asset, Path path) {
@@ -106,6 +110,7 @@ public class GuiHandler implements KeyListener {
             var title = BASE_TITLE + " - " + filePath.getFileName().toString();
             frame.setTitle(title);
             this.currentTitle = title;
+            getCanvas().openFile(asset);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

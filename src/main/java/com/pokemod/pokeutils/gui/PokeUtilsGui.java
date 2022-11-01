@@ -1,7 +1,6 @@
 package com.pokemod.pokeutils.gui;
 
 import com.github.weisj.darklaf.LafManager;
-import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 
 import javax.swing.*;
@@ -27,11 +26,7 @@ public class PokeUtilsGui extends JPanel {
         var renderLoop = new Runnable() {
             @Override
             public void run() {
-                if (!renderingWindow.isValid()) {
-                    GL.setCapabilities(null);
-                } else {
-                    renderingWindow.render();
-                }
+                if (renderingWindow.isValid()) renderingWindow.render();
                 SwingUtilities.invokeLater(this);
             }
         };
@@ -56,6 +51,7 @@ public class PokeUtilsGui extends JPanel {
     }
 
     private void createUIComponents() {
+        System.load("C:/Program Files/RenderDoc/renderdoc.dll");
         this.fileViewer = new PixelAssetTree(this);
         this.renderingWindow = new RareCandyCanvas();
     }
@@ -68,7 +64,7 @@ public class PokeUtilsGui extends JPanel {
     private JMenuItem saveAs;
     private JScrollPane scrollPane1;
     public JTree fileViewer;
-    private JPanel canvasPanel;
+    public JPanel canvasPanel;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 
     private void initComponents() {
@@ -125,6 +121,7 @@ public class PokeUtilsGui extends JPanel {
 
             //======== scrollPane1 ========
             {
+                scrollPane1.setMinimumSize(new Dimension(250, 16));
 
                 //---- fileViewer ----
                 fileViewer.setPreferredSize(new Dimension(250, 0));

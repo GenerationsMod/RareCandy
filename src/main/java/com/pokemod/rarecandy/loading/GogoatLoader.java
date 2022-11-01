@@ -55,10 +55,10 @@ public class GogoatLoader {
         this.modelLoadingPool = Executors.newFixedThreadPool(settings.modelLoadingThreads());
     }
 
-    public <T extends RenderObject> MutiRenderObject<T> createObject(@NotNull Supplier<InputStream> is, TriFunction<GltfModel, Map<String, SMDFile>, MutiRenderObject<T>, List<Runnable>> objectCreator, Consumer<MutiRenderObject<T>> onFinish) {
+    public <T extends RenderObject> MutiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, TriFunction<GltfModel, Map<String, SMDFile>, MutiRenderObject<T>, List<Runnable>> objectCreator, Consumer<MutiRenderObject<T>> onFinish) {
         var obj = new MutiRenderObject<T>();
         modelLoadingPool.submit(ThreadSafety.wrapException(() -> {
-            var asset = new PixelAsset(is.get());
+            var asset = is.get();
             var model = read(asset);
             var separateAims = readAnimations(asset);
             var glCalls = objectCreator.apply(model, separateAims, obj);

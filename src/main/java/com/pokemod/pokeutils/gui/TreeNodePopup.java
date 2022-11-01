@@ -1,6 +1,5 @@
 package com.pokemod.pokeutils.gui;
 
-import com.pokemod.pokeutils.PixelAsset;
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
 import org.msgpack.core.MessagePack;
@@ -15,11 +14,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 public class TreeNodePopup extends JPopupMenu {
-    private final PixelAsset asset;
-    private final PokeUtilsGui gui;
+    private final GuiHandler gui;
 
-    public TreeNodePopup(JTree tree, PixelAsset asset, PokeUtilsGui gui, MouseEvent e) {
-        this.asset = asset;
+    public TreeNodePopup(JTree tree, GuiHandler gui, MouseEvent e) {
         this.gui = gui;
         var delete = new JMenuItem("Delete");
         var rename = new JMenuItem("Rename    ");
@@ -40,7 +37,7 @@ public class TreeNodePopup extends JPopupMenu {
         var model = (DefaultTreeModel) tree.getModel();
 
         if (!model.getRoot().equals(pathNode.getLastPathComponent())) {
-            if (asset.files.remove(pathNode.getPath()[pathNode.getPath().length - 1].toString()) == null)
+            if (gui.asset.files.remove(pathNode.getPath()[pathNode.getPath().length - 1].toString()) == null)
                 throw new RuntimeException("Removed non-existing file");
             model.removeNodeFromParent((MutableTreeNode) pathNode.getLastPathComponent());
             model.reload((TreeNode) pathNode.getParentPath().getLastPathComponent());
@@ -59,9 +56,9 @@ public class TreeNodePopup extends JPopupMenu {
                 return;
             }
 
-            var fileBytes = asset.files.remove(target.toString());
+            var fileBytes = gui.asset.files.remove(target.toString());
             if (fileBytes == null) throw new RuntimeException("Removed non-existing file");
-            asset.files.put(newName, fileBytes);
+            gui.asset.files.put(newName, fileBytes);
 
             var parent = (MutableTreeNode) pathNode.getParentPath().getLastPathComponent();
             parent.insert(new DefaultMutableTreeNode(newName), model.getIndexOfChild(parent, target));
@@ -76,8 +73,8 @@ public class TreeNodePopup extends JPopupMenu {
         try {
             var fileName = pathNode.getLastPathComponent().toString();
             var exportFileType = getExportFileType(fileName);
-            var exportBytes = getExportBytes(asset.files.get(fileName));
-            var outputPath = PokeUtilsGui.saveFile(exportFileType);
+            var exportBytes = getExportBytes(gui.asset.files.get(fileName));
+            var outputPath = DialogueUtils.saveFile(exportFileType);
             if (outputPath != null) Files.write(outputPath, exportBytes);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -10,12 +10,12 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 public class PixelAssetTree extends JTree {
 
-    private final PokeUtilsGui gui;
-    private PixelAsset asset;
+    public final PokeUtilsGui gui;
 
     public PixelAssetTree(PokeUtilsGui gui) {
         super();
@@ -29,15 +29,14 @@ public class PixelAssetTree extends JTree {
                 if (e.isPopupTrigger()) {
                     var path = getClosestPathForLocation(e.getPoint().x, e.getPoint().y);
                     if (path.getLastPathComponent().toString().equals("animations")) return;
-                    new TreeNodePopup(PixelAssetTree.this, asset, gui, e).show(e.getComponent(), e.getX(), e.getY());
+                    new TreeNodePopup(PixelAssetTree.this, gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
                 }
             }
         });
     }
 
-    public void initializeAsset(PixelAsset asset, String fileName) {
-        this.asset = asset;
-        var tree = node(fileName);
+    public void initializeAsset(PixelAsset asset, Path assetPath) {
+        var tree = node(assetPath.getFileName().toString());
         var animationsNode = node("animations");
 
         for (var s : asset.files.keySet()) {

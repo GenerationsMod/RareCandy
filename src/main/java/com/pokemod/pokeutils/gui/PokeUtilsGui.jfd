@@ -3,24 +3,10 @@ JFDML JFormDesigner: "8.0.0.0.194" Java: "17.0.4.1" encoding: "UTF-8"
 new FormModel {
 	contentType: "form/swing"
 	root: new FormRoot {
-		add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class com.intellij.uiDesigner.core.GridLayoutManager ) {
-			"$columnCount": 1
-			"$rowCount": 3
-		} ) {
+		add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.BorderLayout ) ) {
 			name: "this"
 			"minimumSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
 			"maximumSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
-			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class com.intellij.uiDesigner.core.GridLayoutManager ) {
-				"$columnCount": 1
-				"$rowCount": 1
-			} ) {
-				name: "workPanel"
-				auxiliary() {
-					"JavaCodeGenerator.variableLocal": true
-				}
-			}, new FormLayoutConstraints( class com.intellij.uiDesigner.core.GridConstraints ) {
-				"row": 2
-			} )
 			add( new FormContainer( "javax.swing.JMenuBar", new FormLayoutManager( class javax.swing.JMenuBar ) ) {
 				name: "toolbar"
 				"maximumSize": new java.awt.Dimension( 29, 20 )
@@ -43,10 +29,8 @@ new FormModel {
 						"text": "Save As"
 					} )
 				} )
-			}, new FormLayoutConstraints( class com.intellij.uiDesigner.core.GridConstraints ) {
-				"anchor": 9
-				"fill": 1
-				"vSizePolicy": 0
+			}, new FormLayoutConstraints( class java.lang.String ) {
+				"value": "North"
 			} )
 			add( new FormContainer( "javax.swing.JSplitPane", new FormLayoutManager( class javax.swing.JSplitPane ) ) {
 				name: "splitPane1"
@@ -57,31 +41,31 @@ new FormModel {
 				auxiliary() {
 					"JavaCodeGenerator.variableLocal": true
 				}
-				add( new FormComponent( "com.pokemod.pokeutils.gui.PixelAssetTree" ) {
-					name: "fileViewer"
-					"preferredSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
-					"maximumSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
-					"minimumSize": new java.awt.Dimension( 200, 1080 )
+				add( new FormContainer( "javax.swing.JScrollPane", new FormLayoutManager( class javax.swing.JScrollPane ) ) {
+					name: "scrollPane1"
+					"minimumSize": new java.awt.Dimension( 250, 16 )
+					add( new FormComponent( "javax.swing.JTree" ) {
+						name: "fileViewer"
+						"preferredSize": new java.awt.Dimension( 250, 0 )
+						"maximumSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
+						"minimumSize": new java.awt.Dimension( 200, 0 )
+						auxiliary() {
+							"JavaCodeGenerator.customCreate": true
+							"JavaCodeGenerator.variableModifiers": 1
+						}
+					} )
 				}, new FormLayoutConstraints( class java.lang.String ) {
 					"value": "left"
 				} )
-				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class com.intellij.uiDesigner.core.GridLayoutManager ) {
-					"$columnCount": 2
-					"$rowCount": 2
-				} ) {
-					name: "renderingWindow"
+				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.BorderLayout ) ) {
+					name: "canvasPanel"
 					"maximumSize": new java.awt.Dimension( 1920, 1080 )
 					"preferredSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
 				}, new FormLayoutConstraints( class java.lang.String ) {
 					"value": "right"
 				} )
-			}, new FormLayoutConstraints( class com.intellij.uiDesigner.core.GridConstraints ) {
-				"fill": 3
-				"preferredSize": new java.awt.Dimension( 1920, 1080 )
-				"row": 1
-				"anchor": 9
-				"minimumSize": new java.awt.Dimension( 1920, 1080 )
-				"useParentLayout": false
+			}, new FormLayoutConstraints( class java.lang.String ) {
+				"value": "Center"
 			} )
 		}, new FormLayoutConstraints( null ) {
 			"location": new java.awt.Point( 0, 0 )

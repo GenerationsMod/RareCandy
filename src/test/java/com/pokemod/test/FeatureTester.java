@@ -48,7 +48,7 @@ public class FeatureTester {
         });
 
         this.activeFeatures = activeFeatures;
-        var scene = new RareCandy(new Settings(0, 1, false, TransparencyMethod.NONE, true, 1, false));
+        var scene = new RareCandy(new Settings(TransparencyMethod.NONE,1));
         GL11C.glClearColor(0.5f, 0.5f, 0.5f, 1);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);

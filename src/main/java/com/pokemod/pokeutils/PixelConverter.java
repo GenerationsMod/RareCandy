@@ -36,14 +36,6 @@ public class PixelConverter {
                     }
                 }
             }
-
-            try (var is = Files.newInputStream(output)) {
-                var bytes = is.readAllBytes();
-
-                try (var out = Files.newOutputStream(output)) {
-                    out.write(bytes);
-                }
-            }
         } catch (IOException e) {
             e.printStackTrace();
         }

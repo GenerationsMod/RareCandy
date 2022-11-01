@@ -24,6 +24,7 @@ public class MutiRenderObject<T extends RenderObject> extends RenderObject {
 
     @Override
     public boolean isReady() {
+        if(objects.isEmpty()) return false;
         for (T object : objects) if (!object.isReady()) return false;
         return true;
     }
@@ -36,7 +37,7 @@ public class MutiRenderObject<T extends RenderObject> extends RenderObject {
         this.objects.add(obj);
         dirty = true;
         if(obj instanceof MeshObject mesh) {
-            dimensions.min(mesh.model.dimensions);
+            dimensions.max(mesh.model.dimensions);
         }
     }
 

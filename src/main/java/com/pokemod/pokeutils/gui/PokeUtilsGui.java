@@ -121,12 +121,13 @@ public class PokeUtilsGui extends JPanel {
 
             //======== scrollPane1 ========
             {
-                scrollPane1.setMinimumSize(new Dimension(250, 16));
+                scrollPane1.setMinimumSize(new Dimension(250, 540));
+                scrollPane1.setPreferredSize(new Dimension(262, 540));
 
                 //---- fileViewer ----
-                fileViewer.setPreferredSize(new Dimension(250, 0));
+                fileViewer.setPreferredSize(new Dimension(250, 2000));
                 fileViewer.setMaximumSize(null);
-                fileViewer.setMinimumSize(new Dimension(200, 0));
+                fileViewer.setMinimumSize(new Dimension(200, 540));
                 scrollPane1.setViewportView(fileViewer);
             }
             splitPane1.setLeftComponent(scrollPane1);

@@ -43,12 +43,13 @@ new FormModel {
 				}
 				add( new FormContainer( "javax.swing.JScrollPane", new FormLayoutManager( class javax.swing.JScrollPane ) ) {
 					name: "scrollPane1"
-					"minimumSize": new java.awt.Dimension( 250, 16 )
+					"minimumSize": new java.awt.Dimension( 250, 540 )
+					"preferredSize": new java.awt.Dimension( 262, 540 )
 					add( new FormComponent( "javax.swing.JTree" ) {
 						name: "fileViewer"
-						"preferredSize": new java.awt.Dimension( 250, 0 )
+						"preferredSize": new java.awt.Dimension( 250, 2000 )
 						"maximumSize": sfield com.jformdesigner.model.FormObject NULL_VALUE
-						"minimumSize": new java.awt.Dimension( 200, 0 )
+						"minimumSize": new java.awt.Dimension( 200, 540 )
 						auxiliary() {
 							"JavaCodeGenerator.customCreate": true
 							"JavaCodeGenerator.variableModifiers": 1

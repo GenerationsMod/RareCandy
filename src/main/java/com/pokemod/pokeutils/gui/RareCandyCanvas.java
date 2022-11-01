@@ -20,7 +20,6 @@ import org.lwjgl.opengl.awt.GLData;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseWheelEvent;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -30,10 +29,11 @@ import java.util.function.Supplier;
 public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
     public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-    private final double startTime = System.currentTimeMillis();
+    public double startTime = System.currentTimeMillis();
     private RareCandy renderer;
-    private MutiRenderObject<AnimatedMeshObject> object;
+    public MutiRenderObject<AnimatedMeshObject> object;
     private int scaleModifier = 0;
+    public String currentAnimation = null;
 
     public RareCandyCanvas() {
         super(defaultData());
@@ -48,6 +48,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     private static GLData defaultData() {
         var data = new GLData();
         data.profile = GLData.Profile.CORE;
+        data.forwardCompatible = true;
         data.api = GLData.API.GL;
         data.majorVersion = 3;
         data.minorVersion = 2;
@@ -55,6 +56,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public void openFile(PixelAsset pkFile) {
+        currentAnimation = null;
         renderer.clearAllInstances();
         this.object = loadPokemonModel(renderer, pkFile, model -> {
             var i = 0;
@@ -91,7 +93,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
         if (object != null) {
             var timePassed = ((System.currentTimeMillis() - startTime) / 16000);
             object.onUpdate(object -> {
-                if (object.activeAnimation != null)
+                if (object.animations.containsKey(currentAnimation)) {
+                    object.activeAnimation = currentAnimation;
+                }
+
+                if (object.activeAnimation != null && object.getAnimation(object.activeAnimation) != null)
                     object.animationTime = object.getAnimation(object.activeAnimation).getAnimationTime(timePassed);
             });
 

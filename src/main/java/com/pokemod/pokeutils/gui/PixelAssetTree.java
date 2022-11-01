@@ -29,8 +29,17 @@ public class PixelAssetTree extends JTree {
                 if (e.isPopupTrigger()) {
                     var path = getClosestPathForLocation(e.getPoint().x, e.getPoint().y);
                     if (path.getLastPathComponent().toString().equals("animations")) return;
-                    new TreeNodePopup(PixelAssetTree.this, gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
+                    new TreeNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
                 }
+            }
+        });
+
+        addTreeSelectionListener(e -> {
+            var selectedNode = (DefaultMutableTreeNode) getLastSelectedPathComponent();
+
+            if (selectedNode != null) {
+                this.gui.handler.getCanvas().currentAnimation = selectedNode.toString();
+                this.gui.handler.getCanvas().startTime = System.currentTimeMillis();
             }
         });
     }

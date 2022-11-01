@@ -31,15 +31,15 @@ public class AnimatedMeshObject extends MeshObject {
     @Override
     public void update() {
         super.update();
-        if(activeAnimation == null) {
+        if(activeAnimation == null || getAnimation(activeAnimation) == null) {
             boneTransforms = new Matrix4f[200];
             var identity = new Matrix4f().identity();
             Arrays.fill(boneTransforms, identity);
         }
-        else this.boneTransforms = animations.get(activeAnimation).getFrameTransform(animationTime);
+        else this.boneTransforms = getAnimation(activeAnimation).getFrameTransform(animationTime);
     }
 
     public Animation getAnimation(String activeAnimation) {
-        return animations.get(activeAnimation);
+        return animations.getOrDefault(activeAnimation, null);
     }
 }

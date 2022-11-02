@@ -9,7 +9,7 @@ import com.pokemod.rarecandy.animation.Animation;
 import com.pokemod.rarecandy.animation.Skeleton;
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
-import com.pokemod.rarecandy.components.MutiRenderObject;
+import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.components.RenderObject;
 import com.pokemod.rarecandy.model.GLModel;
 import com.pokemod.rarecandy.model.Material;
@@ -39,7 +39,6 @@ import org.msgpack.core.MessagePack;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,8 +56,8 @@ public class GogoatLoader {
         this.modelLoadingPool = Executors.newFixedThreadPool(settings.modelLoadingThreads());
     }
 
-    public <T extends RenderObject> MutiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, TriFunction<GltfModel, Map<String, SMDFile>, MutiRenderObject<T>, List<Runnable>> objectCreator, Consumer<MutiRenderObject<T>> onFinish) {
-        var obj = new MutiRenderObject<T>();
+    public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, TriFunction<GltfModel, Map<String, SMDFile>, MultiRenderObject<T>, List<Runnable>> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
+        var obj = new MultiRenderObject<T>();
         modelLoadingPool.submit(ThreadSafety.wrapException(() -> {
             var asset = is.get();
             var model = read(asset);
@@ -66,6 +65,7 @@ public class GogoatLoader {
             var glCalls = objectCreator.apply(model, separateAims, obj);
             ThreadSafety.runOnContextThread(() -> {
                 glCalls.forEach(Runnable::run);
+                obj.updateDimensions();
                 if (onFinish != null) onFinish.accept(obj);
             });
         }));
@@ -103,7 +103,7 @@ public class GogoatLoader {
         }
     }
 
-    public static <T extends MeshObject> void create(MutiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
+    public static <T extends MeshObject> void create(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
         checkForRootTransformation(objects, gltfModel);
 
         var textures = gltfModel.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
@@ -158,7 +158,7 @@ public class GogoatLoader {
         }
     }
 
-    private static <T extends MeshObject> void checkForRootTransformation(MutiRenderObject<T> objects, GltfModel gltfModel) {
+    private static <T extends MeshObject> void checkForRootTransformation(MultiRenderObject<T> objects, GltfModel gltfModel) {
         if(gltfModel.getSkinModels().isEmpty()) {
 
             var node = gltfModel.getNodeModels().get(0);
@@ -171,7 +171,7 @@ public class GogoatLoader {
         }
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MutiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Map<String, Animation> animations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Map<String, Animation> animations) {
         for (var primitiveModel : model.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
             var glModel = processPrimitiveModel(primitiveModel, glCalls);

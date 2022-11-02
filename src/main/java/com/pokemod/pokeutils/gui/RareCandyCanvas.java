@@ -3,7 +3,7 @@ package com.pokemod.pokeutils.gui;
 import com.pokemod.pokeutils.PixelAsset;
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
-import com.pokemod.rarecandy.components.MutiRenderObject;
+import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.loading.GogoatLoader;
 import com.pokemod.rarecandy.pipeline.Pipeline;
 import com.pokemod.rarecandy.rendering.InstanceState;
@@ -31,7 +31,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public double startTime = System.currentTimeMillis();
     private RareCandy renderer;
-    public MutiRenderObject<AnimatedMeshObject> object;
+    public MultiRenderObject<AnimatedMeshObject> object;
     private int scaleModifier = 0;
     public String currentAnimation = null;
 
@@ -68,6 +68,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 renderer.addObject(model, instance);
                 i++;
             }
+
+            model.updateDimensions();
         });
     }
 
@@ -111,11 +113,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
         }
     }
 
-    protected MutiRenderObject<AnimatedMeshObject> loadPokemonModel(RareCandy renderer, PixelAsset is, Consumer<MutiRenderObject<AnimatedMeshObject>> onFinish) {
+    protected MultiRenderObject<AnimatedMeshObject> loadPokemonModel(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
         return load(renderer, is, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
     }
 
-    protected <T extends MeshObject> MutiRenderObject<T> load(RareCandy renderer, PixelAsset is, Function<String, Pipeline> pipelineFactory, Consumer<MutiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected <T extends MeshObject> MultiRenderObject<T> load(RareCandy renderer, PixelAsset is, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
         return loader.createObject(
                 () -> is,

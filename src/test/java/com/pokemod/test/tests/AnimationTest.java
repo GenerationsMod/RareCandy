@@ -1,7 +1,7 @@
 package com.pokemod.test.tests;
 
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
-import com.pokemod.rarecandy.components.MutiRenderObject;
+import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.rendering.InstanceState;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import com.pokemod.test.FeatureTest;
@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 public class AnimationTest extends FeatureTest {
     private final double startTime = System.currentTimeMillis();
     private final Stream<String> models = Stream.of("sobble");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
-    private List<MutiRenderObject<AnimatedMeshObject>> objects;
+    private List<MultiRenderObject<AnimatedMeshObject>> objects;
 
     public AnimationTest() {
         super("animation", "Tests the animation system");

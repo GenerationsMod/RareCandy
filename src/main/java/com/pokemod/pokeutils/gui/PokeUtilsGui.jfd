@@ -21,6 +21,10 @@ new FormModel {
 						"text": "Open Archive (.pk)    "
 					} )
 					add( new FormComponent( "javax.swing.JMenuItem" ) {
+                    	name: "convertGLB"
+                    	"text": "Convert GLB (.glb)    "
+                    } )
+					add( new FormComponent( "javax.swing.JMenuItem" ) {
 						name: "save"
 						"text": "Save"
 					} )

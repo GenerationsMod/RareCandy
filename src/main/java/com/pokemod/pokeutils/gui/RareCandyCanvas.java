@@ -95,6 +95,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         if (object != null) {
             var timePassed = ((System.currentTimeMillis() - startTime) / 16000);
             object.onUpdate(object -> {
+                if(object.animations == null) return;
                 if (object.animations.containsKey(currentAnimation)) {
                     object.activeAnimation = currentAnimation;
                 }

@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,12 +53,16 @@ public class GuiHandler implements KeyListener {
     }
 
     public void save() {
+        save(assetPath);
+    }
+
+    public void save(Path savePath) {
         if (dirty) {
             try {
-                if (!Files.exists(assetPath)) {
-                    Files.deleteIfExists(assetPath);
-                    Files.createDirectories(assetPath.getParent());
-                    Files.createFile(assetPath);
+                if (!Files.exists(savePath)) {
+                    Files.deleteIfExists(savePath);
+                    Files.createDirectories(savePath.getParent());
+                    Files.createFile(savePath);
                 }
 
                 var saveBox = new JDialog(frame, "Saving File", true);
@@ -131,5 +136,20 @@ public class GuiHandler implements KeyListener {
     @Override
     public void keyReleased(KeyEvent e) {
         pressedKeys.remove((Integer) e.getKeyCode());
+    }
+
+    public void convertGlb(Path chosenFile) {
+        try {
+            var is = Files.newInputStream(chosenFile);
+            var filePath = Path.of(chosenFile.toString().replace(".glb", ".pk"));
+            initializeAsset(new PixelAsset(chosenFile.getFileName().toString(), is.readAllBytes()), filePath);
+            var title = BASE_TITLE + " - " + filePath.getFileName().toString();
+            frame.setTitle(title);
+            this.currentTitle = title;
+            getCanvas().openFile(asset);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

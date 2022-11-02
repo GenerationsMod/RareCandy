@@ -21,7 +21,26 @@ public class PokeUtilsGui extends JPanel {
             var chosenFile = DialogueUtils.chooseFile("pk");
             if (chosenFile != null) handler.openAsset(chosenFile);
         });
+        createArchive.addActionListener(e -> {
+            var chosenFile = DialogueUtils.chooseFile("glb");
+            if (chosenFile != null) handler.convertGlb(chosenFile);
+        });
+
+        createArchive.addActionListener(e -> {
+            var chosenFile = DialogueUtils.saveFile("pk");
+            if (chosenFile != null) handler.convertGlb(chosenFile);
+        });
+
         save.addActionListener(e -> handler.save());
+
+        saveAs.addActionListener(e -> {
+            var chosenFile = DialogueUtils.saveFile("pk");
+            if (chosenFile != null) {
+                handler.markDirty();
+                handler.save(chosenFile);
+            }
+        });
+
 
         var renderLoop = new Runnable() {
             @Override
@@ -60,6 +79,7 @@ public class PokeUtilsGui extends JPanel {
     private JMenuBar toolbar;
     private JMenu file;
     private JMenuItem openArchive;
+    private JMenuItem createArchive;
     private JMenuItem save;
     private JMenuItem saveAs;
     private JScrollPane scrollPane1;
@@ -74,6 +94,7 @@ public class PokeUtilsGui extends JPanel {
         toolbar = new JMenuBar();
         file = new JMenu();
         openArchive = new JMenuItem();
+        createArchive = new JMenuItem();
         save = new JMenuItem();
         saveAs = new JMenuItem();
         var splitPane1 = new JSplitPane();
@@ -99,6 +120,10 @@ public class PokeUtilsGui extends JPanel {
                 //---- openArchive ----
                 openArchive.setText("Open Archive (.pk)    ");
                 file.add(openArchive);
+
+                //---- convertGlb ----
+                createArchive.setText("Create Archive (.glb)    ");
+                file.add(createArchive);
 
                 //---- save ----
                 save.setText("Save");

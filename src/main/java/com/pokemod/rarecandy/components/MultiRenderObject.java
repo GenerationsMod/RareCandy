@@ -13,7 +13,7 @@ import java.util.function.Consumer;
  *
  * @param <T> the type to use
  */
-public class MutiRenderObject<T extends RenderObject> extends RenderObject {
+public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
     private final List<T> objects = new ArrayList<>();
     private final List<Consumer<T>> queue = new ArrayList<>();
@@ -36,9 +36,6 @@ public class MutiRenderObject<T extends RenderObject> extends RenderObject {
     public void add(T obj) {
         this.objects.add(obj);
         dirty = true;
-        if(obj instanceof MeshObject mesh) {
-            dimensions.max(mesh.model.dimensions);
-        }
     }
 
     public void setRootTransformation(Matrix4f rootTransformation) {
@@ -99,6 +96,14 @@ public class MutiRenderObject<T extends RenderObject> extends RenderObject {
         } else {
             for (T object : this.objects) {
                 object.render(instances);
+            }
+        }
+    }
+
+    public void updateDimensions() {
+        for (RenderObject object : objects) {
+            if(object instanceof MeshObject mesh) {
+                dimensions.max(mesh.model.dimensions);
             }
         }
     }

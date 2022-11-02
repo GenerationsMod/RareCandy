@@ -24,6 +24,7 @@ public class MeshObject extends RenderObject {
 
         for (var instance : instances) {
             pipeline.updateOtherUniforms(instance, this);
+            pipeline.updateTexUniforms(instance, this);
             model.runDrawCalls();
         }
 

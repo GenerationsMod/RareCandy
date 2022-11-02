@@ -129,8 +129,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     private Pipeline getPokemonPipeline(String materialName) {
-        System.out.println("E");
-        return GuiPipelines.ANIMATED;
+        return materialName.contains("Eyes") ? GuiPipelines.POKEMON_EYES : GuiPipelines.ANIMATED;
     }
 
     public void onMouseScroll(MouseWheelEvent e) {

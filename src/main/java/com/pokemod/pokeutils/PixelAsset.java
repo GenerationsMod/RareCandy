@@ -18,6 +18,11 @@ public class PixelAsset {
     public final Map<String, byte[]> files = new HashMap<>();
     public String modelName;
 
+    public PixelAsset(String modelName, byte[] glbFile) {
+        this.modelName = modelName;
+        files.put(modelName, glbFile);
+    }
+
     public PixelAsset(InputStream is) {
         try {
             var tarFile = getTarFile(Objects.requireNonNull(is, "Input Stream is null"));

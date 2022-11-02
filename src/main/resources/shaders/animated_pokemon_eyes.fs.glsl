@@ -20,7 +20,15 @@ vec3 intToColor() {
 }
 
 void main() {
-    vec4 color = texture2D(diffuse, texCoord0);
+    vec2 texCoords = vec2(texCoord0.xy);
+    if(texCoords.x < 0.5) {
+        texCoords.x += 0.5;
+    }
+    if(texCoords.x > 0) {
+        texCoords.x -= 0.5;
+    }
+
+    vec4 color = texture2D(diffuse, texCoords);
     if(color.a < 0.1) {
         discard;
     }

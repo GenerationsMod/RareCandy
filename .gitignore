@@ -3,6 +3,7 @@
 /.gradle
 /build
 /converter
+/.fleet
 *.iml
 gradlew
 *.log

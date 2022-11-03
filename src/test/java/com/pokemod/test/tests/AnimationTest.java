@@ -40,7 +40,7 @@ public class AnimationTest extends FeatureTest {
         var timePassed = ((System.currentTimeMillis() - startTime) / 16000);
 
         for (var obj : objects) {
-            obj.onUpdate(object -> object.animationTime = object.animations.get(object.activeAnimation).getAnimationTime(timePassed));
+            obj.onUpdate(object -> object.updateAnimationTime(timePassed));
         }
     }
 

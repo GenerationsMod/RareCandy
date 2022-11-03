@@ -100,8 +100,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
                     object.activeAnimation = currentAnimation;
                 }
 
-                if (object.activeAnimation != null && object.getAnimation(object.activeAnimation) != null)
-                    object.animationTime = object.getAnimation(object.activeAnimation).getAnimationTime(timePassed);
+                object.updateAnimationTime(timePassed);
             });
 
             for (var rendererObject : renderer.getObjects()) {

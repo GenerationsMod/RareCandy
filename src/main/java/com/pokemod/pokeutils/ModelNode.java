@@ -12,6 +12,7 @@ import java.util.List;
  */
 public class ModelNode {
     public final String name;
+    public int id = -1;
     public final Matrix4f transform;
     public final List<ModelNode> children = new ArrayList<>();
 

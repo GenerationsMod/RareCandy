@@ -47,4 +47,9 @@ public class AnimatedMeshObject extends MeshObject {
         if(getAnimation() == null) return;
         animationTime = getAnimation().getAnimationTime(secondsPassed);
     }
+
+    public void changeAnimation(String animName) {
+        activeAnimation = animName;
+        getAnimation().resetNodes();
+    }
 }

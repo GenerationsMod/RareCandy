@@ -3,9 +3,7 @@ package com.pokemod.rarecandy.animation;
 import com.pokemod.pokeutils.ModelNode;
 import de.javagl.jgltf.model.AnimationModel;
 import de.javagl.jgltf.model.NodeModel;
-import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -17,37 +15,30 @@ public class Animation {
     public final String name;
     public final float ticksPerSecond;
     public final double animationDuration;
-    public final Map<String, AnimationNode> animationNodes;
+    public final Map<String, Integer> nodeIdMap = new HashMap<>();
+    public final AnimationNode[] animationNodes;
     protected final Skeleton skeleton;
 
     public Animation(AnimationModel rawAnimation, Skeleton skeleton) {
         this.name = rawAnimation.getName();
         this.ticksPerSecond = 1000;
-        this.animationNodes = new HashMap<>();
         this.skeleton = skeleton;
-
-        fillAnimationNodesGlb(rawAnimation.getChannels());
+        this.animationNodes = fillAnimationNodesGlb(rawAnimation.getChannels());
         this.animationDuration = findLastKeyTime();
     }
 
     public Animation(String name, SkeletonBlock smdFile, Skeleton bones) {
         this.name = name;
         this.ticksPerSecond = 1000;
-        this.animationNodes = new HashMap<>();
         this.skeleton = bones;
-        fillAnimationNodesSmdx(smdFile.keyframes);
+        this.animationNodes = fillAnimationNodesSmdx(smdFile.keyframes);
         this.animationDuration = findLastKeyTime();
-    }
-
-    @Nullable
-    private static <T> T getBlock(SMDFile file, Class<T> tClass) {
-        return file.blocks.stream().filter(tClass::isInstance).map(tClass::cast).findFirst().orElse(null);
     }
 
     private double findLastKeyTime() {
         var duration = 0d;
 
-        for (var value : this.animationNodes.values()) {
+        for (var value : this.animationNodes) {
             var key = value.positionKeys.get(value.positionKeys.size() - 1);
             duration = key.time() > duration ? key.time() : duration;
         }
@@ -67,17 +58,33 @@ public class Animation {
         return boneTransforms;
     }
 
+    public void resetNodes() {
+        resetNodes(skeleton.rootNode);
+    }
+
+    public void resetNodes(ModelNode rootNode) {
+        rootNode.id = -1;
+
+        for (var child : rootNode.children) {
+            resetNodes(child);
+        }
+    }
+
     protected void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
         var name = node.name;
         var nodeTransform = node.transform;
-        var animNode = animationNodes.get(name);
+        if (node.id == -1) node.id = nodeIdMap.getOrDefault(name, -1);
 
-        if (animNode != null) {
-            var scale = AnimationMath.calcInterpolatedScaling(animTime, animNode);
-            var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
-            var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
+        if (node.id != -1) {
+            var animNode = animationNodes[node.id];
 
-            nodeTransform.identity().translationRotateScale(translation, rotation, scale);
+            if (animNode != null) {
+                var scale = AnimationMath.calcInterpolatedScaling(animTime, animNode);
+                var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
+                var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
+
+                nodeTransform.identity().translationRotateScale(translation, rotation, scale);
+            }
         }
 
         var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
@@ -90,16 +97,20 @@ public class Animation {
         }
     }
 
-    private void fillAnimationNodesGlb(List<AnimationModel.Channel> channels) {
+    private AnimationNode[] fillAnimationNodesGlb(List<AnimationModel.Channel> channels) {
+        var animationNodes = new AnimationNode[channels.size()];
+
         for (var channel : channels) {
             var node = channel.getNodeModel();
-            animationNodes.put(node.getName(), new AnimationNode(channels.stream().filter(c -> c.getNodeModel().equals(node)).toList(), node));
+            animationNodes[nodeIdMap.computeIfAbsent(node.getName(), this::newNode)] = new AnimationNode(channels.stream().filter(c -> c.getNodeModel().equals(node)).toList(), node);
         }
+
+        return animationNodes;
     }
 
 
-    private void fillAnimationNodesSmdx(List<SkeletonBlock.Keyframe> keyframes) {
-        Map<String, List<BoneStateKey>> nodes = new HashMap<>();
+    private AnimationNode[] fillAnimationNodesSmdx(List<SkeletonBlock.Keyframe> keyframes) {
+        var nodes = new HashMap<String, List<BoneStateKey>>();
 
         for (SkeletonBlock.Keyframe keyframe : keyframes) {
             var time = keyframe.time;
@@ -114,12 +125,20 @@ public class Animation {
             nodes.forEach((k, v) -> v.sort(Comparator.comparingInt(BoneStateKey::time)));
         }
 
-        nodes.forEach((key, node) -> {
-            animationNodes.put(key, new AnimationNode(node));
-        });
+        var animationNodes = new AnimationNode[nodes.size()];
+        for (var entry : nodes.entrySet()) {
+            animationNodes[nodeIdMap.computeIfAbsent(entry.getKey(), this::newNode)] = new AnimationNode(entry.getValue());
+        }
+        return animationNodes;
     }
 
-    public record BoneStateKey(int time, Vector3f pos, Quaternionf rot) {}
+    private int newNode(String nodeName) {
+        int size = nodeIdMap.size();
+        return size;
+    }
+
+    public record BoneStateKey(int time, Vector3f pos, Quaternionf rot) {
+    }
 
     public static class AnimationNode {
         public final TransformStorage<Vector3f> positionKeys = new TransformStorage<>();
@@ -127,7 +146,7 @@ public class Animation {
         public final TransformStorage<Vector3f> scaleKeys = new TransformStorage<>();
 
         public AnimationNode(List<BoneStateKey> keys) {
-            if(keys.isEmpty()) {
+            if (keys.isEmpty()) {
                 positionKeys.add(0, new Vector3f());
                 rotationKeys.add(0, new Quaternionf());
             } else {
@@ -176,9 +195,12 @@ public class Animation {
                 }
             }
 
-            if (positionKeys.size() == 0) positionKeys.add(0, node.getTranslation() != null ? convertArrayToVector3f(node.getTranslation()) : new Vector3f());
-            if (rotationKeys.size() == 0) rotationKeys.add(0, node.getRotation() != null ? convertArrayToQuaterionf(node.getRotation()) : new Quaternionf());
-            if (scaleKeys.size() == 0) scaleKeys.add(0, node.getScale() != null ? convertArrayToVector3f(node.getScale()) : new Vector3f(1, 1, 1));
+            if (positionKeys.size() == 0)
+                positionKeys.add(0, node.getTranslation() != null ? convertArrayToVector3f(node.getTranslation()) : new Vector3f());
+            if (rotationKeys.size() == 0)
+                rotationKeys.add(0, node.getRotation() != null ? convertArrayToQuaterionf(node.getRotation()) : new Quaternionf());
+            if (scaleKeys.size() == 0)
+                scaleKeys.add(0, node.getScale() != null ? convertArrayToVector3f(node.getScale()) : new Vector3f(1, 1, 1));
         }
 
         public TransformStorage.TimeKey<Vector3f> getDefaultPosition() {

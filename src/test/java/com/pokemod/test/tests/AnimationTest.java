@@ -49,11 +49,8 @@ public class AnimationTest extends FeatureTest {
         for (var obj : objects) {
             obj.onUpdate(a -> {
                 var map = a.animations.keySet().stream().toList();
-
                 var active = map.indexOf(a.activeAnimation);
-
-                a.activeAnimation = map.get(clamp(active - 1, map.size() - 1));
-                System.out.println(a.activeAnimation);
+                a.changeAnimation(map.get(clamp(active - 1, map.size() - 1)));
             });
         }
     }
@@ -64,9 +61,7 @@ public class AnimationTest extends FeatureTest {
             obj.onUpdate(a -> {
                 var map = a.animations.keySet().stream().toList();
                 var active = map.indexOf(a.activeAnimation);
-
-                a.activeAnimation = map.get(clamp(active + 1, map.size() - 1));
-                System.out.println(a.activeAnimation);
+                a.changeAnimation(map.get(clamp(active + 1, map.size() - 1)));
             });
         }
     }

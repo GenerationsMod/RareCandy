@@ -20,7 +20,7 @@ public class ModelNode {
         this.name = rootNodeModel.getName();
         this.transform = new Matrix4f().add(DataUtils.convert(rootNodeModel.getTranslation(), rootNodeModel.getRotation(), rootNodeModel.getScale()));
 
-        for (NodeModel child : rootNodeModel.getChildren()) {
+        for (var child : rootNodeModel.getChildren()) {
             children.add(new ModelNode(child));
         }
     }

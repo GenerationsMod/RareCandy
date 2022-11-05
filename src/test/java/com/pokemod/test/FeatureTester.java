@@ -1,8 +1,6 @@
 package com.pokemod.test;
 
 import com.pokemod.rarecandy.rendering.RareCandy;
-import com.pokemod.rarecandy.settings.Settings;
-import com.pokemod.rarecandy.settings.TransparencyMethod;
 import com.pokemod.test.tests.*;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
@@ -21,6 +19,7 @@ public class FeatureTester {
             new GuiTest(),
             new StatUpTest()
     );
+    private static final double startTime = System.currentTimeMillis();
     public static final Window WINDOW = new Window("RareCandy Feature Test", 960, 540);
     public static final Matrix4f PROJECTION_MATRIX = new Matrix4f().perspective((float) Math.toRadians(90), (float) WINDOW.width / WINDOW.height, 0.1f, 1000.0f);
     public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
@@ -48,7 +47,7 @@ public class FeatureTester {
         });
 
         this.activeFeatures = activeFeatures;
-        var scene = new RareCandy(new Settings(TransparencyMethod.NONE,1));
+        var scene = new RareCandy();
         GL11C.glClearColor(0.5f, 0.5f, 0.5f, 1);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);
@@ -67,7 +66,7 @@ public class FeatureTester {
             }
 
             GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-            scene.render(true, false);
+            scene.render(false, ((System.currentTimeMillis() - startTime) / 16000));
             WINDOW.swapBuffers();
             lastFrameTime = frameTime;
         }

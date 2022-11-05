@@ -4,12 +4,10 @@ import com.pokemod.pokeutils.PixelAsset;
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
 import com.pokemod.rarecandy.components.MultiRenderObject;
-import com.pokemod.rarecandy.loading.GogoatLoader;
+import com.pokemod.rarecandy.loading.ModelLoader;
 import com.pokemod.rarecandy.pipeline.Pipeline;
-import com.pokemod.rarecandy.rendering.InstanceState;
 import com.pokemod.rarecandy.rendering.RareCandy;
-import com.pokemod.rarecandy.settings.Settings;
-import com.pokemod.rarecandy.settings.TransparencyMethod;
+import com.pokemod.rarecandy.storage.AnimatedInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
@@ -31,7 +29,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public double startTime = System.currentTimeMillis();
     private RareCandy renderer;
-    public MultiRenderObject<AnimatedMeshObject> object;
+    public final List<AnimatedInstance> instances = new ArrayList<>();
     private int scaleModifier = 0;
     public String currentAnimation = null;
 
@@ -57,15 +55,15 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     public void openFile(PixelAsset pkFile) {
         currentAnimation = null;
-        renderer.clearAllInstances();
-        this.object = loadPokemonModel(renderer, pkFile, model -> {
+        renderer.objectManager.clearObjects();
+        loadPokemonModel(renderer, pkFile, model -> {
             var i = 0;
             var variants = List.of("none-normal", "none-shiny");
 
             for (String variant : variants) {
-                var instance = new InstanceState(new Matrix4f(), viewMatrix, variant, 0xFFFFFFFF);
+                var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variant, 0xFFFFFFFF);
                 instance.transformationMatrix().translate(new Vector3f(i * 8 - 4, -2f, 8)).scale(1).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0)).scale(0.3f);
-                renderer.addObject(model, instance);
+                instances.add(renderer.objectManager.add(model, instance));
                 i++;
             }
 
@@ -78,7 +76,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
         GL.createCapabilities(true);
         GuiPipelines.onInitialize();
-        this.renderer = new RareCandy(new Settings(TransparencyMethod.NONE, 2));
+        this.renderer = new RareCandy();
         GL11C.glClearColor(60 / 255f, 63 / 255f, 65 / 255f, 1);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);
@@ -89,41 +87,42 @@ public class RareCandyCanvas extends AWTGLCanvas {
     @Override
     public void paintGL() {
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-        renderer.render(true, false);
+        renderer.render(false, ((System.currentTimeMillis() - startTime) / 16000));
         swapBuffers();
 
-        if (object != null) {
-            var timePassed = ((System.currentTimeMillis() - startTime) / 16000);
-            object.onUpdate(object -> {
-                if(object.animations == null) return;
-                if (object.animations.containsKey(currentAnimation)) {
-                    object.activeAnimation = currentAnimation;
-                }
+        if (instances.size() > 1) {
+            ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
+                for (var instance : instances) {
+                    var oldAnimation = instance.currentAnimation;
+                    var newAnimation = a.animations.get(currentAnimation);
 
-                object.updateAnimationTime(timePassed);
+                    if(newAnimation != null) {
+                        instance.currentAnimation = newAnimation;
+                        renderer.objectManager.changeAnimation(oldAnimation, newAnimation);
+                    }
+                }
             });
+        }
 
-            for (var rendererObject : renderer.getObjects()) {
-                if (scaleModifier != 0) {
-                    var newScale = 1 - (scaleModifier * 0.1f);
-                    rendererObject.transformationMatrix().scale(newScale);
-                }
+        for (var instance : instances) {
+            if (scaleModifier != 0) {
+                var newScale = 1 - (scaleModifier * 0.1f);
+                instance.transformationMatrix().scale(newScale);
             }
-            scaleModifier = 0;
         }
     }
 
-    protected MultiRenderObject<AnimatedMeshObject> loadPokemonModel(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
-        return load(renderer, is, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
+    protected void loadPokemonModel(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
+        load(renderer, is, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
     }
 
-    protected <T extends MeshObject> MultiRenderObject<T> load(RareCandy renderer, PixelAsset is, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
-        return loader.createObject(
+        loader.createObject(
                 () -> is,
                 (gltfModel, smdFileMap, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    GogoatLoader.create(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
+                    ModelLoader.create(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
                     return glCalls;
                 },
                 onFinish

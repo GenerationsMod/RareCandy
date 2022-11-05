@@ -12,9 +12,11 @@ public class Skeleton {
     public final Bone[] boneArray;
     public final Map<String, Bone> boneMap;
     public final ModelNode rootNode;
+    private final SkinModel raw;
 
     public Skeleton(SkinModel skeleton) {
         var boneCount = skeleton.getJoints().size();
+        this.raw = skeleton;
         this.boneArray = new Bone[boneCount];
         this.boneMap = new HashMap<>(boneCount);
         this.rootNode = new ModelNode(skeleton.getJoints().get(0).getParent());
@@ -27,6 +29,10 @@ public class Skeleton {
             this.boneArray[i] = bone;
             this.boneMap.put(jointNode.getName(), bone);
         }
+    }
+
+    public Skeleton(Skeleton skeleton) {
+        this(skeleton.raw);
     }
 
     public Bone get(String name) {

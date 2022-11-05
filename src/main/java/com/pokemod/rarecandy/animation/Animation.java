@@ -46,28 +46,16 @@ public class Animation {
         return duration;
     }
 
-    public double getAnimationTime(double secondsPassed) {
+    public float getAnimationTime(double secondsPassed) {
         var tps = ticksPerSecond != 0 ? ticksPerSecond : 25.0f;
         var ticksPassed = (float) secondsPassed * tps;
-        return ticksPassed % animationDuration;
+        return (float) (ticksPassed % animationDuration);
     }
 
-    public Matrix4f[] getFrameTransform(double animTime) {
+    public Matrix4f[] getFrameTransform(double secondsPassed) {
         var boneTransforms = new Matrix4f[this.skeleton.boneArray.length];
-        readNodeHierarchy((float) animTime, skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
+        readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
         return boneTransforms;
-    }
-
-    public void resetNodes() {
-        resetNodes(skeleton.rootNode);
-    }
-
-    public void resetNodes(ModelNode rootNode) {
-        rootNode.id = -1;
-
-        for (var child : rootNode.children) {
-            resetNodes(child);
-        }
     }
 
     protected void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
@@ -133,8 +121,7 @@ public class Animation {
     }
 
     private int newNode(String nodeName) {
-        int size = nodeIdMap.size();
-        return size;
+        return nodeIdMap.size();
     }
 
     public record BoneStateKey(int time, Vector3f pos, Quaternionf rot) {

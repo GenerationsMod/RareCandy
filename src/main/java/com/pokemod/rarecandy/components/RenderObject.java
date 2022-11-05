@@ -2,7 +2,7 @@ package com.pokemod.rarecandy.components;
 
 import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.pipeline.Pipeline;
-import com.pokemod.rarecandy.rendering.InstanceState;
+import com.pokemod.rarecandy.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -16,7 +16,9 @@ public abstract class RenderObject {
     protected Map<String, Material> variants;
     protected boolean ready = false;
 
-    public abstract void render(List<InstanceState> instances);
+
+
+    public abstract void render(List<ObjectInstance> instances);
 
     public void update() {}
 
@@ -24,7 +26,7 @@ public abstract class RenderObject {
         return ready;
     }
 
-    public void applyRootTransformation(InstanceState state) {
+    public void applyRootTransformation(ObjectInstance state) {
 
     }
 

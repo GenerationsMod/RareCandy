@@ -4,7 +4,7 @@ import com.pokemod.pokeutils.PixelAsset;
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
 import com.pokemod.rarecandy.components.MultiRenderObject;
-import com.pokemod.rarecandy.loading.GogoatLoader;
+import com.pokemod.rarecandy.loading.ModelLoader;
 import com.pokemod.rarecandy.pipeline.Pipeline;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import org.joml.Matrix4f;
@@ -17,13 +17,16 @@ import java.util.function.Supplier;
 public abstract class FeatureTest {
     public final String id;
     public final String description;
+    public RareCandy renderer;
 
     protected FeatureTest(String id, String description) {
         this.id = id;
         this.description = description;
     }
 
-    public abstract void init(RareCandy scene, Matrix4f viewMatrix);
+    public void init(RareCandy scene, Matrix4f viewMatrix) {
+        this.renderer = scene;
+    }
 
     public abstract void update(RareCandy scene, double deltaTime);
 
@@ -33,7 +36,7 @@ public abstract class FeatureTest {
                 () -> new PixelAsset(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk")),
                 (gltfModel, smdFileMap, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    GogoatLoader.create(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
+                    ModelLoader.create(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
                     return glCalls;
                 },
                 onFinish
@@ -48,16 +51,11 @@ public abstract class FeatureTest {
         load(renderer, name, materials -> Pipelines.STATIC, onFinish, MeshObject::new);
     }
 
-    protected MultiRenderObject<AnimatedMeshObject> loadAnimatedModel(RareCandy renderer, String name, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
-        return load(renderer, name, materials -> Pipelines.ANIMATED, onFinish, AnimatedMeshObject::new);
-    }
-
-    protected MultiRenderObject<AnimatedMeshObject> loadPokemonModel(RareCandy renderer, String name, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
-        return load(renderer, name, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
+    protected void loadPokemonModel(RareCandy renderer, String name, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
+        load(renderer, name, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
     }
 
     private Pipeline  getPokemonPipeline(String materialName) {
-        System.out.println("E");
         return Pipelines.ANIMATED;
     }
 

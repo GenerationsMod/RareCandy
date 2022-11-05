@@ -3,7 +3,7 @@ package com.pokemod.rarecandy.components;
 import com.pokemod.rarecandy.model.GLModel;
 import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.pipeline.Pipeline;
-import com.pokemod.rarecandy.rendering.InstanceState;
+import com.pokemod.rarecandy.rendering.ObjectInstance;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,7 @@ public class MeshObject extends RenderObject {
         this.ready = true;
     }
 
-    public void render(List<InstanceState> instances) {
+    public void render(List<ObjectInstance> instances) {
         pipeline.bind();
 
         for (var instance : instances) {

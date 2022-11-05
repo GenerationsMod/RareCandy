@@ -15,7 +15,6 @@ import com.pokemod.rarecandy.model.GLModel;
 import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.model.MeshDrawCommand;
 import com.pokemod.rarecandy.pipeline.Pipeline;
-import com.pokemod.rarecandy.settings.Settings;
 import de.javagl.jgltf.model.AccessorModel;
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.MeshModel;
@@ -48,12 +47,12 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class GogoatLoader {
+public class ModelLoader {
     private final GltfModelReader reader = new GltfModelReader();
     private final ExecutorService modelLoadingPool;
 
-    public GogoatLoader(Settings settings) {
-        this.modelLoadingPool = Executors.newFixedThreadPool(settings.modelLoadingThreads());
+    public ModelLoader() {
+        this.modelLoadingPool = Executors.newFixedThreadPool(2);
     }
 
     public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, TriFunction<GltfModel, Map<String, SMDFile>, MultiRenderObject<T>, List<Runnable>> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
@@ -122,8 +121,8 @@ public class GogoatLoader {
         Map<String, Animation> animations = null;
 
         if (!gltfModel.getSkinModels().isEmpty()) {
-            var bones = new Skeleton(gltfModel.getSkinModels().get(0));
-            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, bones)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+            var skeleton = new Skeleton(gltfModel.getSkinModels().get(0));
+            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, new Skeleton(skeleton))).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
             for (Map.Entry<String, SMDFile> entry : smdFileMap.entrySet()) {
                 var key = entry.getKey();
@@ -131,7 +130,7 @@ public class GogoatLoader {
 
                 for (SMDFileBlock block : value.blocks) {
                     if (block instanceof SkeletonBlock skeletonBlock) {
-                        var animation = new Animation(key, skeletonBlock, bones);
+                        var animation = new Animation(key, skeletonBlock, new Skeleton(skeleton));
                         animations.put(key, animation);
                         break;
                     }

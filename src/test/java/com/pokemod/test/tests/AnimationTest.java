@@ -2,19 +2,17 @@ package com.pokemod.test.tests;
 
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MultiRenderObject;
-import com.pokemod.rarecandy.rendering.InstanceState;
 import com.pokemod.rarecandy.rendering.RareCandy;
+import com.pokemod.rarecandy.storage.AnimatedInstance;
 import com.pokemod.test.FeatureTest;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class AnimationTest extends FeatureTest {
-    private final double startTime = System.currentTimeMillis();
-    private final Stream<String> models = Stream.of("sobble");//, "espeon", "flareon", "glaceon", "jolteon", "leafeon", "umbreon", "vaporeon");
-    private List<MultiRenderObject<AnimatedMeshObject>> objects;
+    private final List<AnimatedInstance> instances = new ArrayList<>();
 
     public AnimationTest() {
         super("animation", "Tests the animation system");
@@ -22,48 +20,50 @@ public class AnimationTest extends FeatureTest {
 
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
-        objects = this.models.map(mdl -> loadPokemonModel(scene, mdl, model -> {
+        super.init(scene, viewMatrix);
+        loadPokemonModel(scene, "sobble", model -> {
             var i = 0;
             var variants = List.of("none-normal", "none-shiny");
 
             for (String variant : variants) {
-                var instance = new InstanceState(new Matrix4f(), viewMatrix, variant, 0xFFFFFFFF);
+                var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variant, 0xFFFFFFFF);
                 instance.transformationMatrix().translate(new Vector3f(i * 8 - 4, -2f, 8)).scale(1).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0)).scale(0.3f);
-                scene.addObject(model, instance);
+                instances.add(scene.objectManager.add(model, instance));
                 i++;
             }
-        })).toList();
+        });
     }
 
     @Override
     public void update(RareCandy scene, double deltaTime) {
-        var timePassed = ((System.currentTimeMillis() - startTime) / 16000);
-
-        for (var obj : objects) {
-            obj.onUpdate(object -> object.updateAnimationTime(timePassed));
-        }
     }
 
     @Override
     public void leftTap() {
-        for (var obj : objects) {
-            obj.onUpdate(a -> {
-                var map = a.animations.keySet().stream().toList();
-                var active = map.indexOf(a.activeAnimation);
-                a.changeAnimation(map.get(clamp(active - 1, map.size() - 1)));
-            });
-        }
+        ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
+            for (var instance : instances) {
+                var map = a.animations.values().stream().toList();
+                var oldAnimation = instance.currentAnimation;
+                var active = map.indexOf(oldAnimation);
+                var newAnimation = map.get(clamp(active - 1, map.size() - 1));
+                instance.currentAnimation = newAnimation;
+                renderer.objectManager.changeAnimation(oldAnimation, newAnimation);
+            }
+        });
     }
 
     @Override
     public void rightTap() {
-        for (var obj : objects) {
-            obj.onUpdate(a -> {
-                var map = a.animations.keySet().stream().toList();
-                var active = map.indexOf(a.activeAnimation);
-                a.changeAnimation(map.get(clamp(active + 1, map.size() - 1)));
-            });
-        }
+        ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
+            for (var instance : instances) {
+                var map = a.animations.values().stream().toList();
+                var oldAnimation = instance.currentAnimation;
+                var active = map.indexOf(oldAnimation);
+                var newAnimation = map.get(clamp(active + 1, map.size() - 1));
+                instance.currentAnimation = newAnimation;
+                renderer.objectManager.changeAnimation(oldAnimation, newAnimation);
+            }
+        });
     }
 
     private static int clamp(int value, int max) {

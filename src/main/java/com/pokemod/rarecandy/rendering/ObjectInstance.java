@@ -1,22 +1,28 @@
 package com.pokemod.rarecandy.rendering;
 
+import com.pokemod.rarecandy.components.RenderObject;
 import org.joml.Matrix4f;
 
-public final class InstanceState {
+public class ObjectInstance {
     private final Matrix4f transformationMatrix;
     private final Matrix4f viewMatrix;
     private final String materialId;
     private final int lightColor;
+    private RenderObject object;
 
-    public InstanceState(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId, int lightColor) {
+    public ObjectInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId, int lightColor) {
         this.transformationMatrix = transformationMatrix;
         this.viewMatrix = viewMatrix;
         this.materialId = materialId;
         this.lightColor = lightColor;
     }
 
-    public InstanceState(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId) {
+    public ObjectInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId) {
         this(transformationMatrix, viewMatrix, materialId, 0xffffff);
+    }
+
+    public void link(RenderObject object) {
+        this.object = object;
     }
 
     public Matrix4f transformationMatrix() {
@@ -33,5 +39,9 @@ public final class InstanceState {
 
     public int lightColor() {
         return lightColor;
+    }
+
+    public RenderObject object() {
+        return object;
     }
 }

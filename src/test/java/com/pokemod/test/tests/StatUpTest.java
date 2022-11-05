@@ -1,6 +1,6 @@
 package com.pokemod.test.tests;
 
-import com.pokemod.rarecandy.rendering.InstanceState;
+import com.pokemod.rarecandy.rendering.ObjectInstance;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import com.pokemod.test.FeatureTest;
 import org.joml.Matrix4f;
@@ -16,9 +16,9 @@ public class StatUpTest extends FeatureTest {
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
         loadStatUpModel(scene, (model) -> {
-            var instance = new InstanceState(new Matrix4f(), viewMatrix, "none", 0xe60a60);
+            var instance = new ObjectInstance(new Matrix4f(), viewMatrix, "none", 0xe60a60);
             instance.transformationMatrix().translate(new Vector3f(0, 0, 1)).rotate((float) Math.toRadians(90), new Vector3f(1, 0, 0)).scale(new Vector3f(0.01f, 0.01f, 0.01f));
-            scene.addObject(model, instance);
+            scene.objectManager.add(model, instance);
 
         });
     }
@@ -29,8 +29,8 @@ public class StatUpTest extends FeatureTest {
 
     @Override
     public void update(RareCandy scene, double deltaTime) {
-        for (var object : scene.getObjects()) {
+        /*for (var object : scene.getObjects()) {
             //object.transformationMatrix().rotate((float) deltaTime, 0, 1, 0);
-        }
+        }*/
     }
 }

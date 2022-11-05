@@ -1,6 +1,6 @@
 package com.pokemod.test.tests;
 
-import com.pokemod.rarecandy.rendering.InstanceState;
+import com.pokemod.rarecandy.rendering.ObjectInstance;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import com.pokemod.test.FeatureTest;
 import org.joml.Matrix4f;
@@ -20,9 +20,9 @@ public class InstancingTest extends FeatureTest {
         int[] xSpacing = {0};
         int[] zSpacing = {0};
         this.models.forEach(mdl -> loadStaticModel(scene, mdl, model -> {
-            var instance = new InstanceState(new Matrix4f(), viewMatrix, "normal");
+            var instance = new ObjectInstance(new Matrix4f(), viewMatrix, "normal");
             instance.transformationMatrix().rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0));//.scale(new Vector3f(0.04f, 0.04f, 0.04f));
-            scene.addObject(model, instance);
+            scene.objectManager.add(model, instance);
 //            xSpacing[0] += 4;
 
 //            if (xSpacing[0] % 20 == 0) {
@@ -34,8 +34,8 @@ public class InstancingTest extends FeatureTest {
 
     @Override
     public void update(RareCandy scene, double deltaTime) {
-        for (var object : scene.getObjects()) {
+        /*for (var object : scene.getObjects()) {
             object.transformationMatrix().rotate((float) deltaTime, 0, 1, 0);
-        }
+        }*/
     }
 }

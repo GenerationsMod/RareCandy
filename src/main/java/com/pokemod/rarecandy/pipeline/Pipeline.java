@@ -1,7 +1,7 @@
 package com.pokemod.rarecandy.pipeline;
 
 import com.pokemod.rarecandy.components.RenderObject;
-import com.pokemod.rarecandy.rendering.InstanceState;
+import com.pokemod.rarecandy.rendering.ObjectInstance;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL20;
@@ -23,7 +23,7 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
         postDrawBatch.run();
     }
 
-    public void updateOtherUniforms(InstanceState instance, RenderObject renderObject) {
+    public void updateOtherUniforms(ObjectInstance instance, RenderObject renderObject) {
         for (var name : uniforms.keySet()) {
             var uniform = uniforms.get(name);
             if (!uniformSuppliers.containsKey(name)) RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
@@ -31,7 +31,7 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
         }
     }
 
-    public void updateTexUniforms(InstanceState instance, RenderObject renderObject) {
+    public void updateTexUniforms(ObjectInstance instance, RenderObject renderObject) {
         for (var name : uniforms.keySet()) {
             var uniform = uniforms.get(name);
             if (!uniformSuppliers.containsKey(name)) RareCandy.fatal("No handler for uniform with name \"" + name + "\"");

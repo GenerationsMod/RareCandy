@@ -1,6 +1,6 @@
 package com.pokemod.rarecandy.components;
 
-import com.pokemod.rarecandy.rendering.InstanceState;
+import com.pokemod.rarecandy.rendering.ObjectInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -43,7 +43,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public void applyRootTransformation(InstanceState state) {
+    public void applyRootTransformation(ObjectInstance state) {
         state.transformationMatrix().mul(rootTransformation, state.transformationMatrix());
     }
 
@@ -68,7 +68,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public void render(List<InstanceState> instances) {
+    public void render(List<ObjectInstance> instances) {
         if (dirty) {
             pipeline = null;
             smartRender = true;

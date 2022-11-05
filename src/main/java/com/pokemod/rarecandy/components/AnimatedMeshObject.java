@@ -1,21 +1,15 @@
 package com.pokemod.rarecandy.components;
 
-import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.animation.Animation;
-import com.pokemod.rarecandy.pipeline.Pipeline;
 import com.pokemod.rarecandy.model.GLModel;
-import org.joml.Matrix4f;
+import com.pokemod.rarecandy.model.Material;
+import com.pokemod.rarecandy.pipeline.Pipeline;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class AnimatedMeshObject extends MeshObject {
     public Map<String, Animation> animations;
-    public Matrix4f[] boneTransforms;
-    public String activeAnimation;
-    public double animationTime;
 
     public void setup(List<Material> glMaterials, Map<String, Material> variants, GLModel model, Pipeline pipeline, Map<String, Animation> animations) {
         this.materials = glMaterials;
@@ -23,33 +17,6 @@ public class AnimatedMeshObject extends MeshObject {
         this.model = model;
         this.pipeline = pipeline;
         this.animations = animations;
-        this.boneTransforms = new Matrix4f[0];
-        this.activeAnimation = null;
         this.ready = true;
-    }
-
-    @Override
-    public void update() {
-        super.update();
-        if(activeAnimation == null || getAnimation() == null) {
-            boneTransforms = new Matrix4f[200];
-            var identity = new Matrix4f().identity();
-            Arrays.fill(boneTransforms, identity);
-        }
-        else this.boneTransforms = getAnimation().getFrameTransform(animationTime);
-    }
-
-    public Animation getAnimation() {
-        return animations.getOrDefault(activeAnimation, null);
-    }
-
-    public void updateAnimationTime(double secondsPassed) {
-        if(getAnimation() == null) return;
-        animationTime = getAnimation().getAnimationTime(secondsPassed);
-    }
-
-    public void changeAnimation(String animName) {
-        activeAnimation = animName;
-        getAnimation().resetNodes();
     }
 }

@@ -1,5 +1,7 @@
 package com.pokemod.pokeutils.gui;
 
+import com.pokemod.rarecandy.components.AnimatedMeshObject;
+import com.pokemod.rarecandy.components.MultiRenderObject;
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
 import org.msgpack.core.MessagePack;
@@ -59,12 +61,16 @@ public class TreeNodePopup extends JPopupMenu {
             var fileBytes = gui.asset.files.remove(target.toString());
             if (fileBytes == null) throw new RuntimeException("Removed non-existing file");
             gui.asset.files.put(newName, fileBytes);
-            gui.getCanvas().object.onUpdate(obj -> {
-                if (obj.animations.containsKey(target.toString())) {
-                    obj.animations.put(newName, obj.animations.get(target.toString()));
-                    obj.animations.remove(target.toString());
-                }
-            });
+
+            for (var instance : gui.getCanvas().instances) {
+                var mro = ((MultiRenderObject<AnimatedMeshObject>) instance.object());
+                mro.onUpdate(obj -> {
+                    if (obj.animations.containsKey(target.toString())) {
+                        obj.animations.put(newName, obj.animations.get(target.toString()));
+                        obj.animations.remove(target.toString());
+                    }
+                });
+            }
 
             var parent = (MutableTreeNode) pathNode.getParentPath().getLastPathComponent();
             parent.insert(new DefaultMutableTreeNode(newName), model.getIndexOfChild(parent, target));

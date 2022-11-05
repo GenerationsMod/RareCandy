@@ -13,8 +13,6 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class FeatureTester {
     public static final List<FeatureTest> FEATURE_TESTS = List.of(
-            new TransparencyFeatureTest(),
-            new InstancingTest(),
             new AnimationTest(),
             new GuiTest(),
             new StatUpTest()

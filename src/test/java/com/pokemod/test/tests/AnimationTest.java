@@ -26,7 +26,7 @@ public class AnimationTest extends FeatureTest {
             var variants = List.of("none-normal", "none-shiny");
 
             for (String variant : variants) {
-                var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variant, 0xFFFFFFFF);
+                var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variant);
                 instance.transformationMatrix().translate(new Vector3f(i * 8 - 4, -2f, 8)).scale(1).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0)).scale(0.3f);
                 instances.add(scene.objectManager.add(model, instance));
                 i++;
@@ -46,8 +46,7 @@ public class AnimationTest extends FeatureTest {
                 var oldAnimation = instance.currentAnimation;
                 var active = map.indexOf(oldAnimation);
                 var newAnimation = map.get(clamp(active - 1, map.size() - 1));
-                instance.currentAnimation = newAnimation;
-                renderer.objectManager.changeAnimation(oldAnimation, newAnimation);
+                renderer.objectManager.changeAnimation(instance, newAnimation);
             }
         });
     }
@@ -60,8 +59,7 @@ public class AnimationTest extends FeatureTest {
                 var oldAnimation = instance.currentAnimation;
                 var active = map.indexOf(oldAnimation);
                 var newAnimation = map.get(clamp(active + 1, map.size() - 1));
-                instance.currentAnimation = newAnimation;
-                renderer.objectManager.changeAnimation(oldAnimation, newAnimation);
+                renderer.objectManager.changeAnimation(instance, newAnimation);
             }
         });
     }

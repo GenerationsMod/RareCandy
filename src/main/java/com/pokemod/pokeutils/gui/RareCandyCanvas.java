@@ -61,7 +61,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
             var variants = List.of("none-normal", "none-shiny");
 
             for (String variant : variants) {
-                var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variant, 0xFFFFFFFF);
+                var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variant);
                 instance.transformationMatrix().translate(new Vector3f(i * 8 - 4, -2f, 8)).scale(1).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0)).scale(0.3f);
                 instances.add(renderer.objectManager.add(model, instance));
                 i++;
@@ -93,12 +93,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
         if (instances.size() > 1) {
             ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
                 for (var instance : instances) {
-                    var oldAnimation = instance.currentAnimation;
                     var newAnimation = a.animations.get(currentAnimation);
 
                     if(newAnimation != null) {
-                        instance.currentAnimation = newAnimation;
-                        renderer.objectManager.changeAnimation(oldAnimation, newAnimation);
+                        renderer.objectManager.changeAnimation(instance, newAnimation);
                     }
                 }
             });

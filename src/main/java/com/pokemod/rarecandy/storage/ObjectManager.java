@@ -47,7 +47,7 @@ public class ObjectManager {
         }
     }
 
-    public <T extends ObjectInstance> T add(RenderObject object, T instance) {
+    public <T extends ObjectInstance> T add(@NotNull RenderObject object, @NotNull T instance) {
         instance.link(object);
 
         if (instance instanceof AnimatedInstance animatedInstance) {
@@ -66,14 +66,14 @@ public class ObjectManager {
     /**
      * Called if you want to remove the memory of the last calculated frame for an animation
      */
-    public void cleanStorage(Animation animation) {
+    public void cleanStorage(@NotNull Animation animation) {
         frameTransformMap.remove(animation);
     }
 
     /**
      * Used to manually change the use count of an animation. This is useful for example if you want to disable animations at a further distance and the animation can stay on a single frame without issue
      */
-    public void decrementUse(Animation animation) {
+    public void decrementUse(@NotNull Animation animation) {
         if (inUseAnimations.containsKey(animation)) {
             int uses = inUseAnimations.remove(animation) - 1;
             if (uses > 0) inUseAnimations.put(animation, uses);
@@ -83,11 +83,22 @@ public class ObjectManager {
     /**
      * Used after {@link ObjectManager#decrementUse(Animation)} to make sure the animation can get updated again
      */
-    public void incrementUse(Animation animation) {
+    public void incrementUse(@NotNull Animation animation) {
         if (inUseAnimations.containsKey(animation)) {
             int uses = inUseAnimations.remove(animation) + 1;
             inUseAnimations.put(animation, uses);
         }
+    }
+
+    /**
+     * Updates information that the oldAnim is used 1 less time and adds newAnim to the updating animation map
+     *
+     * @param instance the objected that is changing animation
+     * @param newAnim  the animation that is now playing
+     */
+    public void changeAnimation(@NotNull AnimatedInstance instance, @NotNull Animation newAnim) {
+        changeAnimation(instance.currentAnimation, newAnim);
+        instance.currentAnimation = newAnim;
     }
 
     /**

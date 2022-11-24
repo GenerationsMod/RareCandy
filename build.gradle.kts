@@ -34,8 +34,8 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-windows")
     runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-windows")
 
-    compileOnly("org.slf4j:slf4j-api:2.0.3")
-    testImplementation("org.slf4j:slf4j-jdk14:2.0.3")
+    compileOnly("org.slf4j:slf4j-api:2.0.4")
+    testImplementation("org.slf4j:slf4j-jdk14:2.0.4")
 
     // PokeUtils Libs
     implementation("com.github.weisj:darklaf-core:3.0.2")
@@ -68,6 +68,6 @@ publishing {
 }
 
 fun mcDependency(handler: DependencyHandlerScope, group: String, name: String) {
-    handler.compileOnly(group, name)
-    handler.testImplementation(group, name)
+    handler.compileOnly("$group:$name")
+    handler.testImplementation("$group:$name")
 }

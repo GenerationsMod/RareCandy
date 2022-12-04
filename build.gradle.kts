@@ -20,7 +20,7 @@ dependencies {
     compileOnly("org.jetbrains", "annotations", "23.0.0")
 
     implementation("org.tukaani", "xz", "1.9")
-    implementation("org.apache.commons", "commons-compress", "1.21")
+    implementation("org.apache.commons", "commons-compress", "1.22")
     implementation("org.joml", "joml", "1.10.5")
     implementation("de.javagl", "jgltf-model", "2.0.3")
 
@@ -34,8 +34,8 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-windows")
     runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-windows")
 
-    compileOnly("org.slf4j:slf4j-api:2.0.4")
-    testImplementation("org.slf4j:slf4j-jdk14:2.0.4")
+    compileOnly("org.slf4j:slf4j-api:2.0.5")
+    testImplementation("org.slf4j:slf4j-jdk14:2.0.5")
 
     // PokeUtils Libs
     implementation("com.github.weisj:darklaf-core:3.0.2")

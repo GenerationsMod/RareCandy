@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.pixelmongenerations"
-version = "0.8.0"
+version = "0.8.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.jetbrains", "annotations", "23.0.0")
+    compileOnly("org.jetbrains", "annotations", "23.1.0")
 
     implementation("org.tukaani", "xz", "1.9")
     implementation("org.apache.commons", "commons-compress", "1.22")

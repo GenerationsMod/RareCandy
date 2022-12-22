@@ -57,6 +57,7 @@ publishing {
             //val releasesRepoUrl = "https://maven.pixelmongenerations.com/repository/maven-releases/"
             //val snapshotsRepoUrl = "https://maven.pixelmongenerations.com/repository/maven-snapshots/"
             //url = uri(if (version.toString().endsWith("SNAPSHOT") || version.toString().startsWith("0")) snapshotsRepoUrl else releasesRepoUrl)
+            name = "PokeModRepo"
             url = uri("https://maven.pixelmongenerations.com/repository/maven-private/")
             credentials {
                 username = project.properties["repoLogin"]?.toString() ?: findProperty("REPO_LOGIN").toString()

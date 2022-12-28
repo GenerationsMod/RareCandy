@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.pixelmongenerations"
-version = "0.8.1-SNAPSHOT"
+version = "0.8.2"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17

@@ -94,6 +94,6 @@ public class FeatureTester {
         } else {
             activeTests.addAll(FEATURE_TESTS);
         }
-        new FeatureTester(activeTests);
+        new FeatureTester(List.of(new AnimationTest()));
     }
 }

@@ -39,8 +39,10 @@ public class Animation {
         var duration = 0d;
 
         for (var value : this.animationNodes) {
-            var key = value.positionKeys.get(value.positionKeys.size() - 1);
-            duration = key.time() > duration ? key.time() : duration;
+            if (value != null) {
+                var key = value.positionKeys.get(value.positionKeys.size() - 1);
+                duration = key.time() > duration ? key.time() : duration;
+            }
         }
 
         return duration;

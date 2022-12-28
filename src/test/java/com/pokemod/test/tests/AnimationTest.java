@@ -21,13 +21,13 @@ public class AnimationTest extends FeatureTest {
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
         super.init(scene, viewMatrix);
-        loadPokemonModel(scene, "sobble", model -> {
+        loadPokemonModel(scene, "pokeball", model -> {
             var i = 0;
-            var variants = List.of("none-normal", "none-shiny");
+            var variants = List.of("none");
 
             for (String variant : variants) {
                 var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variant);
-                instance.transformationMatrix().translate(new Vector3f(i * 8 - 4, -2f, 8)).scale(1).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0)).scale(0.3f);
+                instance.transformationMatrix().translate(new Vector3f(i * 8 - 4, -2f, 8)).scale(1).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0)).scale(0.01f);
                 instances.add(scene.objectManager.add(model, instance));
                 i++;
             }

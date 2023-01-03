@@ -139,13 +139,16 @@ public class ModelLoader {
 
             if (node.getChildren().isEmpty()) {
                 // Model Loading Method #1
+                objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
+
                 for (var meshModel : node.getMeshModels()) {
                     processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
                 }
             } else {
                 // Model Loading Method #2
                 for (var child : node.getChildren()) {
-                    applyTransforms(transform, child );
+                    applyTransforms(transform, child);
+                    objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
 
                     for (var meshModel : child.getMeshModels()) {
                         processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
@@ -157,8 +160,14 @@ public class ModelLoader {
 
     private static void applyTransforms(Matrix4f transform, NodeModel node) {
         if (node.getScale() != null) transform.scale(new Vector3f(node.getScale()));
-        if (node.getRotation() != null) transform.rotate(new Quaternionf(node.getRotation()[0], node.getRotation()[1], node.getRotation()[2], node.getRotation()[3]));
-        if (node.getTranslation() != null) transform.add(new Matrix4f().set(node.getTranslation()));
+        if (node.getRotation() != null)
+            transform.rotate(new Quaternionf(node.getRotation()[0], node.getRotation()[1], node.getRotation()[2], node.getRotation()[3]));
+        if (node.getTranslation() != null) {
+            if (node.getTranslation().length == 3)
+                transform.add(new Matrix4f().setTranslation(node.getTranslation()[0], node.getTranslation()[1], node.getTranslation()[2]));
+            else
+                transform.add(new Matrix4f().set(node.getTranslation()));
+        }
     }
 
     private static <T extends MeshObject> void checkForRootTransformation(MultiRenderObject<T> objects, GltfModel gltfModel) {
@@ -298,7 +307,7 @@ public class ModelLoader {
 
     private static Map<String, Material> createMeshVariantMap(MeshPrimitiveModel primitiveModel, List<Material> materials, List<String> variantsList) {
         if (variantsList == null) {
-            String materialId = primitiveModel.getMaterialModel().getName();
+            var materialId = primitiveModel.getMaterialModel().getName();
             return Collections.singletonMap("default", materials.stream().filter(a -> a.getMaterialName().equals(materialId)).findAny().get());
         } else {
             var map = (Map<String, Object>) primitiveModel.getExtensions().get("KHR_materials_variants");

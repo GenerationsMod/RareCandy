@@ -16,7 +16,7 @@ public class StatUpTest extends FeatureTest {
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
         loadStatUpModel(scene, (model) -> {
-            var instance = new ObjectInstance(new Matrix4f(), viewMatrix, "none", 0xe60a60);
+            var instance = new ObjectInstance(new Matrix4f(), viewMatrix, "none");
             instance.transformationMatrix().translate(new Vector3f(0, 0, 1)).rotate((float) Math.toRadians(90), new Vector3f(1, 0, 0)).scale(new Vector3f(0.01f, 0.01f, 0.01f));
             scene.objectManager.add(model, instance);
 

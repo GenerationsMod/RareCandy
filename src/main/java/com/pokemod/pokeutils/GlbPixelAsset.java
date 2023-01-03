@@ -4,8 +4,8 @@ public class GlbPixelAsset extends PixelAsset{
 
     private final byte[] glbFile;
 
-    public GlbPixelAsset(byte[] glbFile) {
-        super("unknown", glbFile);
+    public GlbPixelAsset(String name, byte[] glbFile) {
+        super(name, glbFile);
         this.glbFile = glbFile;
     }
 

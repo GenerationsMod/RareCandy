@@ -42,7 +42,10 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
         this.rootTransformation = rootTransformation;
     }
 
-    @Override
+    public Matrix4f getRootTransformation() {
+        return rootTransformation;
+    }
+
     public void applyRootTransformation(ObjectInstance state) {
         state.transformationMatrix().mul(rootTransformation, state.transformationMatrix());
     }

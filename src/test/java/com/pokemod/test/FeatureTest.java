@@ -54,14 +54,18 @@ public abstract class FeatureTest {
                 () -> {
                     try {
                         var is = FeatureTest.class.getResourceAsStream(path);
-                        return name.endsWith("pk") ? new PixelAsset(is, path) : new GlbPixelAsset(is.readAllBytes());
+                        return name.endsWith("pk") ? new PixelAsset(is, path) : new GlbPixelAsset(name, is.readAllBytes());
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 },
                 (gltfModel, smdFileMap, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    ModelLoader.create2(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
+                    try {
+                        ModelLoader.create2(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to interpret data", e);
+                    }
                     return glCalls;
                 },
                 onFinish

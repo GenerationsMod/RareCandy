@@ -10,20 +10,15 @@ import org.joml.Matrix4f;
 import java.util.List;
 
 public class AnimatedInstance extends ObjectInstance {
-    @Nullable
-    public Animation currentAnimation;
+    public @Nullable Animation currentAnimation;
     public Matrix4f[] transforms = ObjectManager.NO_ANIMATION;
 
     public AnimatedInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId) {
-        this(transformationMatrix, viewMatrix, materialId, 0xFFFFFFFF);
-    }
-
-    public AnimatedInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId, int lightColor) {
-        super(transformationMatrix, viewMatrix, materialId, lightColor);
+        super(transformationMatrix, viewMatrix, materialId);
     }
 
     public AnimatedMeshObject getAnimatedMesh() {
-        if (object() instanceof MultiRenderObject mro) {
+        if (object() instanceof MultiRenderObject<?> mro) {
             return ((List<AnimatedMeshObject>) mro.objects).get(0);
         }
         return (AnimatedMeshObject) object();

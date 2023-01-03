@@ -1,6 +1,7 @@
 package com.pokemod.pokeutils;
 
 import org.apache.commons.compress.archivers.tar.TarFile;
+import org.jetbrains.annotations.Nullable;
 import org.tukaani.xz.XZInputStream;
 
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class PixelAsset {
         files.put(modelName, glbFile);
     }
 
-    public PixelAsset(InputStream is) {
+    public PixelAsset(InputStream is, @Nullable String debugName) {
         try {
             var tarFile = getTarFile(Objects.requireNonNull(is, "Input Stream is null"));
 
@@ -34,8 +35,8 @@ public class PixelAsset {
 
                 files.put(entry.getName(), tarFile.getInputStream(entry).readAllBytes());
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load scene", e);
+        } catch (IOException | NullPointerException e) {
+            throw new RuntimeException("Failed to load " + debugName, e);
         }
     }
 

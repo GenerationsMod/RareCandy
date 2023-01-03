@@ -93,10 +93,12 @@ public class RareCandyCanvas extends AWTGLCanvas {
         if (instances.size() > 1) {
             ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
                 for (var instance : instances) {
-                    var newAnimation = a.animations.get(currentAnimation);
+                    if(a.animations != null) {
+                        var newAnimation = a.animations.get(currentAnimation);
 
-                    if(newAnimation != null) {
-                        renderer.objectManager.changeAnimation(instance, newAnimation);
+                        if(newAnimation != null) {
+                            renderer.objectManager.changeAnimation(instance, newAnimation);
+                        }
                     }
                 }
             });

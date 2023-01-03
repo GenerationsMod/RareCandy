@@ -19,7 +19,7 @@ import java.util.List;
 public class PixelConverter {
     private static final LZMA2Options OPTIONS = new LZMA2Options();
 
-    public static void convertToPk(List<Path> files, Path output) {
+    public static void convertToPk(Path pkFile, Path output) {
         try {
             if (!Files.exists(output)) {
                 Files.createDirectories(output.getParent());
@@ -28,12 +28,9 @@ public class PixelConverter {
 
             try (var xzWriter = new XZOutputStream(Files.newOutputStream(output), OPTIONS)) {
                 try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
-
-                    for (var animationFile : files) {
-                        tarWriter.putArchiveEntry(new TarArchiveEntry(animationFile, animationFile.getFileName().toString()));
-                        IOUtils.copy(new BufferedInputStream(Files.newInputStream(animationFile)), tarWriter);
-                        tarWriter.closeArchiveEntry();
-                    }
+                    tarWriter.putArchiveEntry(new TarArchiveEntry(pkFile, pkFile.getFileName().toString()));
+                    IOUtils.copy(new BufferedInputStream(Files.newInputStream(pkFile)), tarWriter);
+                    tarWriter.closeArchiveEntry();
                 }
             }
         } catch (IOException e) {
@@ -50,14 +47,10 @@ public class PixelConverter {
 
 
         Files.walk(inFolder).forEach(path -> {
-            if (Files.isDirectory(path) && !path.equals(inFolder)) {
-                try {
-                    var relativePath = inFolder.relativize(path);
-                    var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString() + ".pk");
-                    convertToPk(Files.list(path).toList(), outputPath);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+            if (!Files.isDirectory(path) && !path.equals(inFolder)) {
+                var relativePath = inFolder.relativize(path);
+                var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".glb", ".pk"));
+                convertToPk(path, outputPath);
             }
         });
     }

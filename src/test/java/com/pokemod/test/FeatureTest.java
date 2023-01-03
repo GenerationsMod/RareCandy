@@ -30,10 +30,11 @@ public abstract class FeatureTest {
 
     public abstract void update(RareCandy scene, double deltaTime);
 
-    protected <T extends MeshObject> MultiRenderObject<T> load(RareCandy renderer, String name, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected <T extends MeshObject> MultiRenderObject<T> load(RareCandy renderer, boolean folderPrefix, String name, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
+        var path = folderPrefix ? "/new/" : "/" + name + ".pk";
         return loader.createObject(
-                () -> new PixelAsset(FeatureTest.class.getResourceAsStream("/new/" + name + ".pk")),
+                () -> new PixelAsset(FeatureTest.class.getResourceAsStream(path), path),
                 (gltfModel, smdFileMap, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     ModelLoader.create(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
@@ -44,15 +45,15 @@ public abstract class FeatureTest {
     }
 
     protected void loadStatUpModel(RareCandy renderer, Consumer<MultiRenderObject<MeshObject>> onFinish) {
-        load(renderer, "stat_up", materials -> Pipelines.STAT_UP, onFinish, MeshObject::new);
+        load(renderer, true, "stat_up", materials -> Pipelines.STAT_UP, onFinish, MeshObject::new);
     }
 
     protected void loadStaticModel(RareCandy renderer, String name, Consumer<MultiRenderObject<MeshObject>> onFinish) {
-        load(renderer, name, materials -> Pipelines.STATIC, onFinish, MeshObject::new);
+        load(renderer, false, name, materials -> Pipelines.STATIC, onFinish, MeshObject::new);
     }
 
     protected void loadPokemonModel(RareCandy renderer, String name, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
-        load(renderer, name, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
+        load(renderer, true, name, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
     }
 
     private Pipeline  getPokemonPipeline(String materialName) {

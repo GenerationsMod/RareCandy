@@ -158,14 +158,10 @@ public class ModelLoader {
     }
 
     private static <T extends MeshObject> void checkForRootTransformation(MultiRenderObject<T> objects, GltfModel gltfModel) {
-        if(gltfModel.getSkinModels().isEmpty()) {
-
+        if (gltfModel.getSkinModels().isEmpty()) {
             var node = gltfModel.getNodeModels().get(0);
-
             while (node.getParent() != null) node = node.getParent();
-
             var rootTransformation = new Matrix4f().set(node.createGlobalTransformSupplier().get());
-
             objects.setRootTransformation(rootTransformation);
         }
     }

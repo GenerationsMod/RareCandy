@@ -24,10 +24,48 @@ public class BlockTest extends FeatureTest {
             List.of("utility_blocks/table_pc.glb"),
             List.of("utility_blocks/trade_machine.glb"),
             List.of("utility_blocks/vending_machine.glb"),
-            List.of("utility_blocks/zygarde_machine.glb")
+            List.of("utility_blocks/zygarde_machine.glb"),
+            List.of("decorations/shop/shop_cabnet.glb"),
+            List.of("decorations/shop/shop_cabnet2.glb"),
+            List.of("decorations/shop/shop_shelf.glb"),
+            List.of("decorations/shop/shop_shelf2.glb"),
+            List.of("decorations/shop/shop_shelf_round.glb"),
+            List.of("decorations/shop/shop_shelf_round2.glb"),
+            List.of("decorations/bench.glb"),
+            List.of("decorations/blue_desk.glb"),
+            List.of("decorations/bookshelf.glb"),
+            List.of("decorations/box.glb"),
+            List.of("decorations/clock.glb"),
+            List.of("decorations/couch.glb"),
+            List.of("decorations/cushion_chair.glb"),
+            List.of("decorations/desk.glb"),
+            List.of("decorations/double_street_lamp.glb"),
+            List.of("decorations/end_table.glb"),
+            List.of("decorations/floor_cushion.glb"),
+            List.of("decorations/fossil_display.glb"),
+            List.of("decorations/fridge.glb"),
+            List.of("decorations/gym_sign.glb"),
+            List.of("decorations/house_lamp.glb"),
+            List.of("decorations/litwick_candle.glb"),
+            List.of("decorations/litwick_candles.glb"),
+            List.of("decorations/pastel_bean_bag.glb"),
+            List.of("decorations/pokeball_statue.glb"),
+            List.of("decorations/pokecenter_scarlet_sign.glb"),
+            List.of("decorations/pot_plant.glb"),
+            List.of("decorations/rug.glb"),
+            List.of("decorations/snorlax_bean_bag.glb"),
+            List.of("decorations/switch.glb"),
+            List.of("decorations/swivel_chair.glb"),
+            List.of("decorations/tall_house_lamp.glb"),
+            List.of("decorations/trash_can.glb"),
+            List.of("decorations/tree.glb"),
+            List.of("decorations/umbrella.glb"),
+            List.of("decorations/water_float.glb"),
+            List.of("decorations/work_desk.glb")
     );
     private double timeSinceLastReset = 1000;
     private double lastTime = GLFW.glfwGetTime();
+    private final List<List<ObjectInstance>> recycleQueue = new ArrayList<>();
     private final List<List<ObjectInstance>> instances = new ArrayList<>();
 
     public BlockTest() {
@@ -62,13 +100,16 @@ public class BlockTest extends FeatureTest {
     public void update(RareCandy scene, double deltaTime) {
         for (var instanceSet : instances) {
             var pos = instanceSet.get(0).transformationMatrix().getTranslation(new Vector3f());
-            if (-pos.x > 10 && timeSinceLastReset > 0.5) {
-                timeSinceLastReset = 0;
-                pos.x = 8;
-                instanceSet.forEach(instance -> instance.transformationMatrix().setTranslation(pos));
-            }
-
+            if (-pos.x > 20 && !recycleQueue.contains(instanceSet)) recycleQueue.add(instanceSet);
             instanceSet.forEach(instance -> instance.transformationMatrix().translate((float) (time() * 5f), 0, 0));
+        }
+
+        if (timeSinceLastReset > 0.5 && recycleQueue.size() > 0) {
+            var nextSet = recycleQueue.remove(0);
+            var pos = nextSet.get(0).transformationMatrix().getTranslation(new Vector3f());
+            timeSinceLastReset = 0;
+            pos.x = 8;
+            nextSet.forEach(instance -> instance.transformationMatrix().setTranslation(pos));
         }
 
         timeSinceLastReset += time();

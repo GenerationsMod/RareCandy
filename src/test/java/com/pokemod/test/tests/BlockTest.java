@@ -19,8 +19,8 @@ public class BlockTest extends FeatureTest {
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
         super.init(scene, viewMatrix);
-        add(scene, viewMatrix, "utility_blocks/pc", -2);
-        add(scene, viewMatrix, "utility_blocks/healer", 0);
+        add(scene, viewMatrix, "utility_blocks/pc.pk", -2);
+        add(scene, viewMatrix, "healer.glb", 0);
 
     }
 

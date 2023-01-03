@@ -122,7 +122,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 () -> is,
                 (gltfModel, smdFileMap, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    ModelLoader.create(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
+                    ModelLoader.create2(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
                     return glCalls;
                 },
                 onFinish

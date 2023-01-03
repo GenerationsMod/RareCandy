@@ -15,10 +15,7 @@ import com.pokemod.rarecandy.model.GLModel;
 import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.model.MeshDrawCommand;
 import com.pokemod.rarecandy.pipeline.Pipeline;
-import de.javagl.jgltf.model.AccessorModel;
-import de.javagl.jgltf.model.GltfModel;
-import de.javagl.jgltf.model.MeshModel;
-import de.javagl.jgltf.model.MeshPrimitiveModel;
+import de.javagl.jgltf.model.*;
 import de.javagl.jgltf.model.image.PixelDatas;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import de.javagl.jgltf.model.v2.MaterialModelV2;
@@ -29,6 +26,7 @@ import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL15C;
@@ -98,37 +96,33 @@ public class ModelLoader {
         try {
             return reader.readWithoutReferences(new ByteArrayInputStream(asset.getModelFile()));
         } catch (IOException e) {
-            throw new RuntimeException("", e);
+            throw new RuntimeException("Issue reading GLTF Model", e);
         }
     }
 
-    public static <T extends MeshObject> void create(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
         checkForRootTransformation(objects, gltfModel);
+        if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
 
         var textures = gltfModel.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
-
         var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
             var textureName = raw.getBaseColorTexture().getImageModel().getName();
-
             int textureIndex = IntStream.range(0, textures.size()).filter(a -> textures.get(a).name().equals(textureName)).findFirst().orElse(-1);
-
             var textureReference = textures.get(textureIndex);
-
             return new Material(raw.getName(), textureReference);
         }).toList();
         var variants = getVariants(gltfModel);
-
         Map<String, Animation> animations = null;
 
         if (!gltfModel.getSkinModels().isEmpty()) {
             var skeleton = new Skeleton(gltfModel.getSkinModels().get(0));
             animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, new Skeleton(skeleton))).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
-            for (Map.Entry<String, SMDFile> entry : smdFileMap.entrySet()) {
+            for (var entry : smdFileMap.entrySet()) {
                 var key = entry.getKey();
                 var value = entry.getValue();
 
-                for (SMDFileBlock block : value.blocks) {
+                for (var block : value.blocks) {
                     if (block instanceof SkeletonBlock skeletonBlock) {
                         var animation = new Animation(key, skeletonBlock, new Skeleton(skeleton));
                         animations.put(key, animation);
@@ -138,23 +132,33 @@ public class ModelLoader {
             }
         }
 
-        for (var sceneModel : gltfModel.getSceneModels()) {
-            for (var nodeModel : sceneModel.getNodeModels()) {
-                if (nodeModel.getChildren().isEmpty()) {
-                    // Model Loading Method #1
-                    for (var meshModel : nodeModel.getMeshModels()) {
+        // gltfModel.getSceneModels().get(0).getNodeModels().get(0).getScale()
+        for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
+            var transform = new Matrix4f();
+            applyTransforms(transform, node);
+
+            if (node.getChildren().isEmpty()) {
+                // Model Loading Method #1
+                for (var meshModel : node.getMeshModels()) {
+                    processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
+                }
+            } else {
+                // Model Loading Method #2
+                for (var child : node.getChildren()) {
+                    applyTransforms(transform, child );
+
+                    for (var meshModel : child.getMeshModels()) {
                         processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
-                    }
-                } else {
-                    // Model Loading Method #2
-                    for (var child : nodeModel.getChildren()) {
-                        for (var meshModel : child.getMeshModels()) {
-                            processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
-                        }
                     }
                 }
             }
         }
+    }
+
+    private static void applyTransforms(Matrix4f transform, NodeModel node) {
+        if (node.getScale() != null) transform.scale(new Vector3f(node.getScale()));
+        if (node.getRotation() != null) transform.rotate(new Quaternionf(node.getRotation()[0], node.getRotation()[1], node.getRotation()[2], node.getRotation()[3]));
+        if (node.getTranslation() != null) transform.add(new Matrix4f().set(node.getTranslation()));
     }
 
     private static <T extends MeshObject> void checkForRootTransformation(MultiRenderObject<T> objects, GltfModel gltfModel) {

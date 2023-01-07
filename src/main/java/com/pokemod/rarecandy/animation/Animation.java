@@ -102,14 +102,16 @@ public class Animation {
     private AnimationNode[] fillAnimationNodesSmdx(List<SkeletonBlock.Keyframe> keyframes) {
         var nodes = new HashMap<String, List<BoneStateKey>>();
 
-        for (SkeletonBlock.Keyframe keyframe : keyframes) {
+        for (var keyframe : keyframes) {
             var time = keyframe.time;
             var states = keyframe.states;
 
-            for (SkeletonBlock.BoneState state : states) {
-                var id = skeleton.getName(state.bone);
-                List<BoneStateKey> list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
-                list.add(new BoneStateKey(time, new Vector3f(state.posX, state.posY, state.posZ), new Quaternionf().rotateZYX(state.rotZ, state.rotY, state.rotX)));
+            for (var boneState : states) {
+                if (boneState.bone < skeleton.boneArray.length - 1) {
+                    var id = skeleton.getName(boneState.bone);
+                    var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
+                    list.add(new BoneStateKey(time, new Vector3f(boneState.posX, boneState.posY, boneState.posZ), new Quaternionf().rotateZYX(boneState.rotZ, boneState.rotY, boneState.rotX)));
+                }
             }
 
             nodes.forEach((k, v) -> v.sort(Comparator.comparingInt(BoneStateKey::time)));
@@ -119,6 +121,7 @@ public class Animation {
         for (var entry : nodes.entrySet()) {
             animationNodes[nodeIdMap.computeIfAbsent(entry.getKey(), this::newNode)] = new AnimationNode(entry.getValue());
         }
+
         return animationNodes;
     }
 

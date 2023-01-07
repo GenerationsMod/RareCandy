@@ -24,7 +24,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
     @Override
     public boolean isReady() {
-        if(objects.isEmpty()) return false;
+        if (objects.isEmpty()) return false;
         for (T object : objects) if (!object.isReady()) return false;
         return true;
     }
@@ -57,13 +57,13 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     @Override
     public void update() {
         for (T t : objects) {
-            if (t.isReady()) {
-                for (var consumer : queue) {
-                    consumer.accept(t);
-                }
-            }
-
             t.update();
+        }
+
+        if (objects.get(0) != null && objects.get(0).isReady()) {
+            for (var consumer : queue) {
+                consumer.accept(objects.get(0));
+            }
         }
 
         queue.clear();
@@ -105,7 +105,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
     public void updateDimensions() {
         for (RenderObject object : objects) {
-            if(object instanceof MeshObject mesh) {
+            if (object instanceof MeshObject mesh) {
                 dimensions.max(mesh.model.dimensions);
             }
         }

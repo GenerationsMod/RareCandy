@@ -76,7 +76,7 @@ public class PixelAssetTree extends JTree {
                 var root = (DefaultMutableTreeNode) model.getRoot();
                 var data = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
 
-                for (File f : data) root.add(new DefaultMutableTreeNode(f.getName()));
+                for (var f : data) root.add(new DefaultMutableTreeNode(f.getName()));
                 return true;
             } catch (Exception e) {
                 throw new RuntimeException(e);

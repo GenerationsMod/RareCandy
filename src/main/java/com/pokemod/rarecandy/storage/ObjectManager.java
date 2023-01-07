@@ -42,7 +42,7 @@ public class ObjectManager {
                     instance.transforms = frameTransformMap.getOrDefault(instance.currentAnimation, NO_ANIMATION);
                 }
 
-                object.render(new ArrayList<>(animationEntries.getValue())); // Java Generics Pls
+                object.render(new ArrayList<>(animationEntries.getValue()));
             }
         }
     }

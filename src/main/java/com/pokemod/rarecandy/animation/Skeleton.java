@@ -20,8 +20,7 @@ public class Skeleton {
         this.boneArray = new Bone[boneCount];
         this.boneMap = new HashMap<>(boneCount);
         this.rootNode = new ModelNode(skeleton.getJoints().get(0).getParent());
-
-        float[] array = new float[16];
+        var array = new float[16];
 
         for (var i = 0; i < skeleton.getJoints().size(); i++) {
             var jointNode = skeleton.getJoints().get(i);
@@ -40,14 +39,15 @@ public class Skeleton {
     }
 
     public Bone get(int id) {
+        if (id > boneArray.length) throw new RuntimeException("Animation is referencing bones which are out of bounds. Model is missing bone " + id);
         return boneArray[id];
     }
 
     public String getName(int id) {
-        Bone bone = get(id);
+        var bone = get(id);
 
-        for (Map.Entry<String, Bone> entry : boneMap.entrySet()) {
-            if(entry.getValue().equals(bone)) return entry.getKey();
+        for (var entry : boneMap.entrySet()) {
+            if (entry.getValue().equals(bone)) return entry.getKey();
         }
 
         return "";

@@ -19,9 +19,8 @@ import de.javagl.jgltf.model.*;
 import de.javagl.jgltf.model.image.PixelDatas;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import de.javagl.jgltf.model.v2.MaterialModelV2;
-import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
+import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
-import dev.thecodewarrior.binarysmd.studiomdl.SMDFileBlock;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +31,6 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import org.msgpack.core.MessagePack;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -71,18 +69,12 @@ public class ModelLoader {
 
     private Map<String, SMDFile> readAnimations(PixelAsset pixelAsset) {
         var files = pixelAsset.getAnimationFiles();
-
         var map = new HashMap<String, SMDFile>();
-        var reader = new SMDBinaryReader();
+        var reader = new SMDTextReader();
 
-        for (Map.Entry<String, byte[]> entry : files) {
-            var unpacker = MessagePack.newDefaultUnpacker(entry.getValue());
-            try {
-                var smdFile = reader.read(unpacker);
-                map.put(entry.getKey(), smdFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        for (var entry : files) {
+            var smdFile = reader.read(new String(entry.getValue()));
+            map.put(entry.getKey(), smdFile);
         }
 
         return map;

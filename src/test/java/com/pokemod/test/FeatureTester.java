@@ -13,9 +13,8 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class FeatureTester {
     public static final List<FeatureTest> FEATURE_TESTS = List.of(
-            new AnimationTest(),
-            new GuiTest(),
-            new StatUpTest()
+            new PokemonTest(),
+            new BlockTest()
     );
     private static final double startTime = System.currentTimeMillis();
     public static final Window WINDOW = new Window("RareCandy Feature Test", 960, 540);
@@ -82,18 +81,6 @@ public class FeatureTester {
     }
 
     public static void main(String[] args) {
-        var activeTests = new ArrayList<FeatureTest>();
-        if (args.length > 0) {
-            for (String arg : args) {
-                for (FeatureTest featureTest : FEATURE_TESTS) {
-                    if (featureTest.id.equals(arg)) {
-                        activeTests.add(featureTest);
-                    }
-                }
-            }
-        } else {
-            activeTests.addAll(FEATURE_TESTS);
-        }
-        new FeatureTester(List.of(new BlockTest()));
+        new FeatureTester(List.of(new PokemonTest()));
     }
 }

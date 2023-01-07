@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BlockTest extends FeatureTest {
-    private static final List<List<String>> BLOCK_MODELS = List.of(
+    private static final List<List<String>> BLOCK_MODELS = List.<List<String>>of(
             List.of("utility_blocks/breeder/auto_feeder.glb", "utility_blocks/breeder/auto_feeder_fill.glb", "utility_blocks/breeder/breeder.glb", "utility_blocks/breeder/egg.glb"),
             List.of("utility_blocks/cooking_pot.glb"),
             List.of("utility_blocks/fossil_cleaner.glb"),
@@ -61,16 +61,18 @@ public class BlockTest extends FeatureTest {
             List.of("decorations/tree.glb"),
             List.of("decorations/umbrella.glb"),
             List.of("decorations/water_float.glb"),
-            List.of("decorations/work_desk.glb")
+            List.of("shrines/hoopa/prison_bottle_0.glb"),
+            List.of("shrines/hoopa/prison_bottle_1.glb"),
+            List.of("shrines/hoopa/prison_bottle_2.glb"),
+            List.of("shrines/hoopa/prison_bottle_3.glb"),
+            List.of("shrines/hoopa/prison_bottle_4.glb"),
+            List.of("shrines/hoopa/prison_bottle_5.glb"),
+            List.of("shrines/hoopa/prison_bottle_6.glb")
     );
     private double timeSinceLastReset = 1000;
     private double lastTime = GLFW.glfwGetTime();
     private final List<List<ObjectInstance>> recycleQueue = new ArrayList<>();
     private final List<List<ObjectInstance>> instances = new ArrayList<>();
-
-    public BlockTest() {
-        super("blocks", null);
-    }
 
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {

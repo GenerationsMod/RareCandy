@@ -11,23 +11,19 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AnimationTest extends FeatureTest {
+public class PokemonTest extends FeatureTest {
     private final List<AnimatedInstance> instances = new ArrayList<>();
-
-    public AnimationTest() {
-        super("animation", "Tests the animation system");
-    }
 
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
         super.init(scene, viewMatrix);
-        loadPokemonModel(scene, "pokeball", model -> {
+        loadPokemonModel(scene, "pokemon/quaquaval.pk", model -> {
             var i = 0;
-            var variants = List.of("none");
+            var variants = List.of("none-normal", "none-shiny");
 
             for (String variant : variants) {
                 var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variant);
-                instance.transformationMatrix().translate(new Vector3f(i * 8 - 4, -2f, 8)).scale(1).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0)).scale(0.01f);
+                instance.transformationMatrix().translate(new Vector3f(i * 4 - 2, -1f, 1)).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0));
                 instances.add(scene.objectManager.add(model, instance));
                 i++;
             }
@@ -43,8 +39,7 @@ public class AnimationTest extends FeatureTest {
         ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
             for (var instance : instances) {
                 var map = a.animations.values().stream().toList();
-                var oldAnimation = instance.currentAnimation;
-                var active = map.indexOf(oldAnimation);
+                var active = map.indexOf(instance.currentAnimation);
                 var newAnimation = map.get(clamp(active - 1, map.size() - 1));
                 renderer.objectManager.changeAnimation(instance, newAnimation);
             }
@@ -56,9 +51,9 @@ public class AnimationTest extends FeatureTest {
         ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
             for (var instance : instances) {
                 var map = a.animations.values().stream().toList();
-                var oldAnimation = instance.currentAnimation;
-                var active = map.indexOf(oldAnimation);
+                var active = map.indexOf(instance.currentAnimation);
                 var newAnimation = map.get(clamp(active + 1, map.size() - 1));
+                System.out.println("animation is now " + newAnimation.name);
                 renderer.objectManager.changeAnimation(instance, newAnimation);
             }
         });

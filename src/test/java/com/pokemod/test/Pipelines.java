@@ -1,9 +1,7 @@
 package com.pokemod.test;
 
-import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.pipeline.Pipeline;
 import com.pokemod.rarecandy.storage.AnimatedInstance;
-import com.pokemod.test.tests.StatUpTest;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11C;
 
@@ -28,11 +26,11 @@ public class Pipelines {
             .build();
 
 
-    public static final Pipeline STAT_UP = new Pipeline.Builder(BASE)
+/*    public static final Pipeline STAT_UP = new Pipeline.Builder(BASE)
             .shader(builtin("stat_up/stat_up.vs.glsl"), builtin("stat_up/stat_up.fs.glsl"))
             .supplyUniform("time", ctx -> ctx.uniform().uploadFloat((float) StatUpTest.getTimePassed() * 2500))
             .prePostDraw(() -> GL11C.glEnable(GL11C.GL_BLEND),() -> GL11C.glDisable(GL11C.GL_BLEND))
-            .build();
+            .build();*/
 
 
     public static final Pipeline ANIMATED = new Pipeline.Builder(BASE)

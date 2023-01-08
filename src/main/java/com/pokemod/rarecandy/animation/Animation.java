@@ -11,7 +11,9 @@ import org.joml.Vector3f;
 import java.util.*;
 
 public class Animation {
-
+    public static final int FPS_60 = 1000;
+    public static final int FPS_24 = 400;
+    public static final int GLB_SPEED = FPS_60;
     public final String name;
     public final float ticksPerSecond;
     public final double animationDuration;
@@ -19,17 +21,17 @@ public class Animation {
     public final AnimationNode[] animationNodes;
     protected final Skeleton skeleton;
 
-    public Animation(AnimationModel rawAnimation, Skeleton skeleton) {
+    public Animation(AnimationModel rawAnimation, Skeleton skeleton, int speed) {
         this.name = rawAnimation.getName();
-        this.ticksPerSecond = 1000;
+        this.ticksPerSecond = 20;
         this.skeleton = skeleton;
         this.animationNodes = fillAnimationNodesGlb(rawAnimation.getChannels());
         this.animationDuration = findLastKeyTime();
     }
 
-    public Animation(String name, SkeletonBlock smdFile, Skeleton bones) {
+    public Animation(String name, SkeletonBlock smdFile, Skeleton bones, int speed) {
         this.name = name;
-        this.ticksPerSecond = 1000;
+        this.ticksPerSecond = speed;
         this.skeleton = bones;
         this.animationNodes = fillAnimationNodesSmdx(smdFile.keyframes);
         this.animationDuration = findLastKeyTime();

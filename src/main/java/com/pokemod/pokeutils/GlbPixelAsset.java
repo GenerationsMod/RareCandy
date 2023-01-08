@@ -1,6 +1,6 @@
 package com.pokemod.pokeutils;
 
-public class GlbPixelAsset extends PixelAsset{
+public class GlbPixelAsset extends PixelAsset {
 
     private final byte[] glbFile;
 

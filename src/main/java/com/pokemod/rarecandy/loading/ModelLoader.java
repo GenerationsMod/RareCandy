@@ -108,7 +108,7 @@ public class ModelLoader {
 
         if (!gltfModel.getSkinModels().isEmpty()) {
             var skeleton = new Skeleton(gltfModel.getSkinModels().get(0));
-            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, new Skeleton(skeleton))).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, new Skeleton(skeleton), Animation.GLB_SPEED)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
             for (var entry : smdFileMap.entrySet()) {
                 var key = entry.getKey();
@@ -116,7 +116,7 @@ public class ModelLoader {
 
                 for (var block : value.blocks) {
                     if (block instanceof SkeletonBlock skeletonBlock) {
-                        var animation = new Animation(key, skeletonBlock, new Skeleton(skeleton));
+                        var animation = new Animation(key, skeletonBlock, new Skeleton(skeleton), Animation.FPS_24);
                         animations.put(key, animation);
                         break;
                     }

@@ -26,18 +26,10 @@ public abstract class FeatureTest {
 
     public abstract void update(RareCandy scene, double deltaTime);
 
-    protected <T extends MeshObject> void load(RareCandy renderer, String name, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected <T extends MeshObject> void load(RareCandy renderer, Supplier<PixelAsset> asset, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
-        var path = "/" + name;
         loader.createObject(
-                () -> {
-                    try {
-                        var is = FeatureTest.class.getResourceAsStream(path);
-                        return name.endsWith("pk") ? new PixelAsset(is, path) : new GlbPixelAsset(name, Objects.requireNonNull(is).readAllBytes());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                },
+                asset,
                 (gltfModel, smdFileMap, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     try {
@@ -51,23 +43,29 @@ public abstract class FeatureTest {
         );
     }
 
-    protected void loadStaticModel(RareCandy renderer, String name, Consumer<MultiRenderObject<MeshObject>> onFinish) {
-        load(renderer, name, materials -> Pipelines.STATIC, onFinish, MeshObject::new);
+    protected PixelAsset loadDefaultAsset(String name) {
+        var path = "/" + name;
+        try {
+            var is = FeatureTest.class.getResourceAsStream(path);
+            return name.endsWith("pk") ? new PixelAsset(is, path) : new GlbPixelAsset(name, Objects.requireNonNull(is).readAllBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    protected void loadPokemonModel(RareCandy renderer, String name, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
-        load(renderer, name, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
+    protected void loadStaticModel(RareCandy renderer, String name, Consumer<MultiRenderObject<MeshObject>> onFinish) {
+        load(renderer, () -> loadDefaultAsset(name), materials -> Pipelines.STATIC, onFinish, MeshObject::new);
+    }
+
+    protected void loadPokemonModel(RareCandy renderer, Supplier<PixelAsset> assetSupplier, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
+        load(renderer, assetSupplier, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
     }
 
     private Pipeline  getPokemonPipeline(String materialName) {
         return Pipelines.ANIMATED;
     }
 
-    public void rightTap() {
+    public void rightTap() {}
 
-    }
-
-    public void leftTap() {
-
-    }
+    public void leftTap() {}
 }

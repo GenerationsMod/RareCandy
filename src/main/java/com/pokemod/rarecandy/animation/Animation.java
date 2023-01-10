@@ -1,5 +1,6 @@
 package com.pokemod.rarecandy.animation;
 
+import com.pokemod.miraidon.*;
 import com.pokemod.pokeutils.ModelNode;
 import de.javagl.jgltf.model.AnimationModel;
 import de.javagl.jgltf.model.NodeModel;
@@ -15,17 +16,25 @@ public class Animation {
     public static final int FPS_24 = 400;
     public static final int GLB_SPEED = FPS_60;
     public final String name;
-    public final float ticksPerSecond;
     public final double animationDuration;
     public final Map<String, Integer> nodeIdMap = new HashMap<>();
     public final AnimationNode[] animationNodes;
+    public float ticksPerSecond;
     protected final Skeleton skeleton;
 
     public Animation(AnimationModel rawAnimation, Skeleton skeleton, int speed) {
         this.name = rawAnimation.getName();
-        this.ticksPerSecond = 20;
+        this.ticksPerSecond = speed;
         this.skeleton = skeleton;
         this.animationNodes = fillAnimationNodesGlb(rawAnimation.getChannels());
+        this.animationDuration = findLastKeyTime();
+    }
+
+    public Animation(String name, com.pokemod.miraidon.Animation rawAnimation, Skeleton skeleton) {
+        this.name = name;
+        this.ticksPerSecond = rawAnimation.meta().fps() * 4;
+        this.skeleton = skeleton;
+        this.animationNodes = fillAnimationNodesGfb(rawAnimation);
         this.animationDuration = findLastKeyTime();
     }
 
@@ -100,9 +109,137 @@ public class Animation {
         return animationNodes;
     }
 
+    private AnimationNode[] fillAnimationNodesGfb(com.pokemod.miraidon.Animation rawAnimation) {
+        var animationNodes = new AnimationNode[rawAnimation.anim().bonesLength()]; // BoneGroup
+
+        for (int i = 0; i < rawAnimation.anim().bonesLength(); i++) {
+            var boneAnim = rawAnimation.anim().bones(i);
+            nodeIdMap.put(boneAnim.name(), i);
+            animationNodes[i] = new AnimationNode();
+
+            switch (boneAnim.rotType()) {
+                case QuatTrack.DynamicQuatTrack -> {
+                    var rotate = (DynamicQuatTrack) boneAnim.rot(new DynamicQuatTrack());
+
+                    for (int j = 0; j < rotate.vecLength(); j++) {
+                        Vec3s vec = rotate.vec(j);
+                        animationNodes[i].rotationKeys.add(j, new Quaternionf().rotateXYZ(vec.x(), vec.y(), vec.z()));
+                    }
+                }
+                case QuatTrack.FixedQuatTrack -> {
+                    var rotate = (FixedQuatTrack) boneAnim.rot(new FixedQuatTrack());
+                    var vec = rotate.vec();
+                    animationNodes[i].rotationKeys.add(0, new Quaternionf().rotateXYZ(vec.x(), vec.y(), vec.z()));
+                }
+                case QuatTrack.Framed8QuatTrack -> {
+                    var rotate = (Framed8QuatTrack) boneAnim.rot(new Framed8QuatTrack());
+
+                    for (int j = 0; j < rotate.vecLength(); j++) {
+                        var vec = rotate.vec(j);
+                        int frame = j;
+
+                        if (j > rotate.framesLength()) frame = rotate.frames(j);
+                        animationNodes[i].rotationKeys.add(frame, new Quaternionf().rotateXYZ(vec.x(), vec.y(), vec.z()));
+                    }
+                }
+                case QuatTrack.Framed16QuatTrack -> {
+                    var rotate = (Framed16QuatTrack) boneAnim.rot(new Framed16QuatTrack());
+
+                    for (int j = 0; j < rotate.vecLength(); j++) {
+                        var vec = rotate.vec(j);
+                        int frame = j;
+
+                        if (j > rotate.framesLength()) frame = rotate.frames(j);
+                        animationNodes[i].rotationKeys.add(frame, new Quaternionf().rotateXYZ(vec.x(), vec.y(), vec.z()));
+                    }
+                }
+                default -> {
+                }
+            }
+
+            switch (boneAnim.scaleType()) {
+                case VectorTrack.DynamicVectorTrack -> {
+                    var dynamicTrack = (DynamicVectorTrack) boneAnim.trans(new DynamicVectorTrack());
+
+                    for (int j = 0; j < dynamicTrack.vecLength(); j++) {
+                        animationNodes[i].scaleKeys.add(j, new Vector3f(dynamicTrack.vec(j).x(), dynamicTrack.vec(j).y(), dynamicTrack.vec(j).z()));
+                    }
+                }
+                case VectorTrack.FixedVectorTrack -> {
+                    var trans = (FixedVectorTrack) boneAnim.trans(new FixedVectorTrack());
+                    animationNodes[i].scaleKeys.add(0, new Vector3f(trans.vec().x() + 1, trans.vec().y() + 1, trans.vec().z() + 1));
+                }
+                case VectorTrack.Framed8VectorTrack -> {
+                    var trans = (Framed8VectorTrack) boneAnim.rot(new Framed8VectorTrack());
+
+                    for (int j = 0; j < trans.vecLength(); j++) {
+                        var vec = trans.vec(j);
+                        int frame = j;
+
+                        if (j > trans.framesLength()) frame = trans.frames(j);
+                        animationNodes[i].scaleKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
+                    }
+                }
+                case VectorTrack.Framed16VectorTrack -> {
+                    var trans = (Framed16VectorTrack) boneAnim.rot(new Framed16VectorTrack());
+
+                    for (int j = 0; j < trans.vecLength(); j++) {
+                        var vec = trans.vec(j);
+                        int frame = j;
+
+                        if (j > trans.framesLength()) frame = trans.frames(j);
+                        animationNodes[i].scaleKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
+                    }
+                }
+                default -> {
+                }
+            }
+
+            switch (boneAnim.transType()) {
+                case VectorTrack.DynamicVectorTrack -> {
+                    var dynamicTrack = (DynamicVectorTrack) boneAnim.trans(new DynamicVectorTrack());
+
+                    for (int j = 0; j < dynamicTrack.vecLength(); j++) {
+                        animationNodes[i].positionKeys.add(j, new Vector3f(dynamicTrack.vec(j).x(), dynamicTrack.vec(j).y(), dynamicTrack.vec(j).z()));
+                    }
+                }
+                case VectorTrack.FixedVectorTrack -> {
+                    var trans = (FixedVectorTrack) boneAnim.trans(new FixedVectorTrack());
+                    animationNodes[i].positionKeys.add(0, new Vector3f(trans.vec().x(), trans.vec().y(), trans.vec().z()));
+                }
+                case VectorTrack.Framed8VectorTrack -> {
+                    var trans = (Framed8VectorTrack) boneAnim.rot(new Framed8VectorTrack());
+
+                    for (int j = 0; j < trans.vecLength(); j++) {
+                        var vec = trans.vec(j);
+                        int frame = j;
+
+                        if (j > trans.framesLength()) frame = trans.frames(j);
+                        animationNodes[i].positionKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
+                    }
+                }
+                case VectorTrack.Framed16VectorTrack -> {
+                    var trans = (Framed16VectorTrack) boneAnim.rot(new Framed16VectorTrack());
+
+                    for (int j = 0; j < trans.vecLength(); j++) {
+                        var vec = trans.vec(j);
+                        int frame = j;
+
+                        if (j > trans.framesLength()) frame = trans.frames(j);
+                        animationNodes[i].positionKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
+                    }
+                }
+                default -> {
+                }
+            }
+        }
+
+        return animationNodes;
+    }
+
 
     private AnimationNode[] fillAnimationNodesSmdx(List<SkeletonBlock.Keyframe> keyframes) {
-        var nodes = new HashMap<String, List<BoneStateKey>>();
+        var nodes = new HashMap<String, List<SmdBoneStateKey>>();
 
         for (var keyframe : keyframes) {
             var time = keyframe.time;
@@ -112,11 +249,11 @@ public class Animation {
                 if (boneState.bone < skeleton.boneArray.length - 1) {
                     var id = skeleton.getName(boneState.bone);
                     var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
-                    list.add(new BoneStateKey(time, new Vector3f(boneState.posX, boneState.posY, boneState.posZ), new Quaternionf().rotateZYX(boneState.rotZ, boneState.rotY, boneState.rotX)));
+                    list.add(new SmdBoneStateKey(time, new Vector3f(boneState.posX, boneState.posY, boneState.posZ), new Quaternionf().rotateZYX(boneState.rotZ, boneState.rotY, boneState.rotX)));
                 }
             }
 
-            nodes.forEach((k, v) -> v.sort(Comparator.comparingInt(BoneStateKey::time)));
+            nodes.forEach((k, v) -> v.sort(Comparator.comparingInt(SmdBoneStateKey::time)));
         }
 
         var animationNodes = new AnimationNode[nodes.size()];
@@ -131,7 +268,10 @@ public class Animation {
         return nodeIdMap.size();
     }
 
-    public record BoneStateKey(int time, Vector3f pos, Quaternionf rot) {
+    public record SmdBoneStateKey(int time, Vector3f pos, Quaternionf rot) {
+    }
+
+    public record PkxBoneStateKey(int time, Vector3f pos, Quaternionf rot, Vector3f scale) {
     }
 
     public static class AnimationNode {
@@ -139,18 +279,21 @@ public class Animation {
         public final TransformStorage<Quaternionf> rotationKeys = new TransformStorage<>();
         public final TransformStorage<Vector3f> scaleKeys = new TransformStorage<>();
 
-        public AnimationNode(List<BoneStateKey> keys) {
+        public AnimationNode(List<SmdBoneStateKey> keys) {
             if (keys.isEmpty()) {
                 positionKeys.add(0, new Vector3f());
                 rotationKeys.add(0, new Quaternionf());
             } else {
-                for (BoneStateKey key : keys) {
+                for (var key : keys) {
                     positionKeys.add(key.time(), key.pos());
                     rotationKeys.add(key.time(), key.rot());
                 }
             }
 
             scaleKeys.add(0, new Vector3f(1, 1, 1));
+        }
+
+        public AnimationNode() {
         }
 
         public AnimationNode(List<AnimationModel.Channel> nodeChannels, NodeModel node) {

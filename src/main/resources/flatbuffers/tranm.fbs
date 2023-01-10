@@ -1,0 +1,104 @@
+file_extension "tranm";
+namespace com.pokemod.miraidon;
+
+struct Vec3s {
+    X:ushort;
+    Y:ushort;
+    Z:ushort;
+}
+
+struct Vec4s {
+    X:ushort;
+    Y:ushort;
+    Z:ushort;
+    W:ushort;
+}
+
+struct Vec3f {
+    X:float;
+    Y:float;
+    Z:float;
+}
+
+struct Vec4f {
+    X:float;
+    Y:float;
+    Z:float;
+    W:float;
+}
+
+struct Transform {
+    scale:Vec3f;
+    rotate:Vec4f;
+    translate:Vec3f;
+}
+
+union VectorTrack { FixedVectorTrack, DynamicVectorTrack, Framed16VectorTrack, Framed8VectorTrack }
+
+table FixedVectorTrack {
+    Vec:Vec3f;
+}
+
+table DynamicVectorTrack {
+    Vec:[Vec3f];
+}
+
+table Framed16VectorTrack {
+    frames:[uint16];
+    Vec:[Vec3f];
+}
+
+table Framed8VectorTrack {
+    frames:[uint8];
+    Vec:[Vec3f];
+}
+
+union QuatTrack { FixedQuatTrack, DynamicQuatTrack, Framed16QuatTrack, Framed8QuatTrack }
+
+table FixedQuatTrack {
+    Vec:Vec3s;
+}
+
+table DynamicQuatTrack {
+    Vec:[Vec3s];
+}
+
+table Framed16QuatTrack {
+    frames:[uint16];
+    Vec:[Vec3s];
+}
+
+table Framed8QuatTrack {
+    frames:[uint8];
+    Vec:[Vec3s];
+}
+
+table Bone {
+    Name:string;
+    Scale:VectorTrack;
+    Rot:QuatTrack;
+    Trans:VectorTrack;
+}
+
+table BoneInit {
+    IsInit:uint32;
+    transform:Transform;
+}
+
+table SkelAnim {
+    Bones:[Bone];
+    InitData:[BoneInit];
+}
+
+table Metadata {
+    Loops:uint;
+    Keyframes:uint;
+    FPS:uint;
+}
+
+table Animation {
+    Meta:Metadata;
+    Anim:SkelAnim;
+}
+
+root_type Animation;

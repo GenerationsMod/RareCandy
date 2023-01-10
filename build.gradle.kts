@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.pixelmongenerations"
-version = "0.8.4"
+version = "0.8.5"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -43,6 +43,8 @@ dependencies {
     implementation("org.lwjgl", "lwjgl-nfd")
     runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows")
     implementation("org.lwjglx", "lwjgl3-awt", "0.1.8")
+
+    implementation("com.google.flatbuffers:flatbuffers-java:23.1.4")
 }
 
 publishing {

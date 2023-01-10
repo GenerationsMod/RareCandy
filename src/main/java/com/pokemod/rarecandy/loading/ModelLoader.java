@@ -1,6 +1,5 @@
 package com.pokemod.rarecandy.loading;
 
-import com.pokemod.TriFunction;
 import com.pokemod.pokeutils.PixelAsset;
 import com.pokemod.pokeutils.reader.TextureReference;
 import com.pokemod.rarecandy.DataUtils;
@@ -12,6 +11,7 @@ import com.pokemod.rarecandy.components.MeshObject;
 import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.components.RenderObject;
 import com.pokemod.rarecandy.model.GLModel;
+import com.pokemod.rarecandy.model.GlCallSupplier;
 import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.model.MeshDrawCommand;
 import com.pokemod.rarecandy.pipeline.Pipeline;
@@ -34,6 +34,7 @@ import org.lwjgl.opengl.GL30;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,13 +52,14 @@ public class ModelLoader {
         this.modelLoadingPool = Executors.newFixedThreadPool(2);
     }
 
-    public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, TriFunction<GltfModel, Map<String, SMDFile>, MultiRenderObject<T>, List<Runnable>> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
+    public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
         var obj = new MultiRenderObject<T>();
         modelLoadingPool.submit(ThreadSafety.wrapException(() -> {
             var asset = is.get();
             var model = read(asset);
-            var separateAims = readAnimations(asset);
-            var glCalls = objectCreator.apply(model, separateAims, obj);
+            var smdAnims = readSmdAnimations(asset);
+            var gfbAnims = readGfbAnimations(asset);
+            var glCalls = objectCreator.getCalls(model, smdAnims, gfbAnims, obj);
             ThreadSafety.runOnContextThread(() -> {
                 glCalls.forEach(Runnable::run);
                 obj.updateDimensions();
@@ -67,7 +69,13 @@ public class ModelLoader {
         return obj;
     }
 
-    private Map<String, SMDFile> readAnimations(PixelAsset pixelAsset) {
+    private Map<String, byte[]> readGfbAnimations(PixelAsset asset) {
+        return asset.files.entrySet().stream()
+                .filter(stringEntry -> stringEntry.getKey().endsWith(".pkx"))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private Map<String, SMDFile> readSmdAnimations(PixelAsset pixelAsset) {
         var files = pixelAsset.getAnimationFiles();
         var map = new HashMap<String, SMDFile>();
         var reader = new SMDTextReader();
@@ -92,7 +100,11 @@ public class ModelLoader {
         }
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
+        create2(objects, gltfModel, smdFileMap, gfbFileMap, glCalls, pipeline, supplier, Animation.GLB_SPEED);
+    }
+
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier, int animationSpeed) {
         checkForRootTransformation(objects, gltfModel);
         if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
 
@@ -108,7 +120,14 @@ public class ModelLoader {
 
         if (!gltfModel.getSkinModels().isEmpty()) {
             var skeleton = new Skeleton(gltfModel.getSkinModels().get(0));
-            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, new Skeleton(skeleton), Animation.GLB_SPEED)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, new Skeleton(skeleton), animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+
+            for (var entry : gfbFileMap.entrySet()) {
+                var name = entry.getKey();
+                var buffer = ByteBuffer.wrap(entry.getValue());
+                var gfbAnim = com.pokemod.miraidon.Animation.getRootAsAnimation(buffer);
+                animations.put(name, new Animation(name, gfbAnim, new Skeleton(skeleton)));
+            }
 
             for (var entry : smdFileMap.entrySet()) {
                 var key = entry.getKey();
@@ -116,8 +135,7 @@ public class ModelLoader {
 
                 for (var block : value.blocks) {
                     if (block instanceof SkeletonBlock skeletonBlock) {
-                        var animation = new Animation(key, skeletonBlock, new Skeleton(skeleton), Animation.FPS_24);
-                        animations.put(key, animation);
+                        animations.put(key, new Animation(key, skeletonBlock, new Skeleton(skeleton), Animation.FPS_24));
                         break;
                     }
                 }
@@ -186,22 +204,6 @@ public class ModelLoader {
 
             objects.add(renderObject);
         }
-    }
-
-    private static void processMeshModel(AnimatedMeshObject object, MeshModel meshModel, List<Material> materials, List<String> variantsList, Pipeline pipeline, Map<String, Animation> animations, List<Runnable> glCalls) {
-        for (var primitiveModel : meshModel.getMeshPrimitiveModels()) {
-            var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
-            var glModel = processPrimitiveModel(primitiveModel, glCalls);
-            if (animations == null)
-                throw new RuntimeException("No animations found when trying to load animated model.");
-            object.setup(materials, variants, glModel, pipeline, animations);
-        }
-    }
-
-    private static void processPrimitiveModel(MeshObject object, MeshPrimitiveModel primitiveModel, List<Material> materials, List<String> variantsList, Pipeline pipeline, List<Runnable> glCalls) {
-        var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
-        var glModel = processPrimitiveModel(primitiveModel, glCalls);
-        object.setup(materials, variants, glModel, pipeline);
     }
 
     private static GLModel processPrimitiveModel(MeshPrimitiveModel primitiveModel, List<Runnable> glCalls) {

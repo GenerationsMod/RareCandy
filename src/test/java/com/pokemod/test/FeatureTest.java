@@ -30,10 +30,10 @@ public abstract class FeatureTest {
         var loader = renderer.getLoader();
         loader.createObject(
                 asset,
-                (gltfModel, smdFileMap, object) -> {
+                (gltfModel, smdFileMap, gfbFileMap, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     try {
-                        ModelLoader.create2(object, gltfModel, smdFileMap, glCalls, pipelineFactory, supplier);
+                        ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, glCalls, pipelineFactory, supplier);
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to interpret data", e);
                     }

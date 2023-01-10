@@ -10,11 +10,9 @@ import com.pokemod.test.FeatureTest;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class PokemonTest extends FeatureTest {
     private final List<AnimatedInstance> instances = new ArrayList<>();
@@ -39,9 +37,10 @@ public class PokemonTest extends FeatureTest {
     }
 
     private PixelAsset loadQuaquavalFromConverter() {
-        /*return new PixelAsset("quaquaval", Objects.requireNonNull(PokemonTest.class.getResourceAsStream("/pokemon/quaquaval.pk")).readAllBytes());*/return new LoosePixelAsset(
-                Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/quaquaval_with_glb_anim"),
-                Paths.get("quaquaval_with_glb_anim.glb")
+        return new LoosePixelAsset(
+                Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/meowscarada"),
+                Paths.get("meowscarada.glb"),
+                Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/walk.pkx")
         );
     }
 

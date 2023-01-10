@@ -125,13 +125,13 @@ public class Animation {
 
                     for (int j = 0; j < rotate.vecLength(); j++) {
                         Vec3s vec = rotate.vec(j);
-                        animationNodes[i].rotationKeys.add(j, new Quaternionf().rotateXYZ(vec.x(), vec.y(), vec.z()));
+                        animationNodes[i].rotationKeys.add(j, new Quaternionf().rotateXYZ((float) Math.toRadians(vec.x()), (float) Math.toRadians(vec.y()), (float) Math.toRadians(vec.z())));
                     }
                 }
                 case QuatTrack.FixedQuatTrack -> {
                     var rotate = (FixedQuatTrack) boneAnim.rot(new FixedQuatTrack());
                     var vec = rotate.vec();
-                    animationNodes[i].rotationKeys.add(0, new Quaternionf().rotateXYZ(vec.x(), vec.y(), vec.z()));
+                    animationNodes[i].rotationKeys.add(0, new Quaternionf().rotateXYZ((float) Math.toRadians(vec.x()), (float) Math.toRadians(vec.y()), (float) Math.toRadians(vec.z())));
                 }
                 case QuatTrack.Framed8QuatTrack -> {
                     var rotate = (Framed8QuatTrack) boneAnim.rot(new Framed8QuatTrack());
@@ -141,7 +141,7 @@ public class Animation {
                         int frame = j;
 
                         if (j > rotate.framesLength()) frame = rotate.frames(j);
-                        animationNodes[i].rotationKeys.add(frame, new Quaternionf().rotateXYZ(vec.x(), vec.y(), vec.z()));
+                        animationNodes[i].rotationKeys.add(frame, new Quaternionf().rotateXYZ((float) Math.toRadians(vec.x()), (float) Math.toRadians(vec.y()), (float) Math.toRadians(vec.z())));
                     }
                 }
                 case QuatTrack.Framed16QuatTrack -> {
@@ -152,7 +152,7 @@ public class Animation {
                         int frame = j;
 
                         if (j > rotate.framesLength()) frame = rotate.frames(j);
-                        animationNodes[i].rotationKeys.add(frame, new Quaternionf().rotateXYZ(vec.x(), vec.y(), vec.z()));
+                        animationNodes[i].rotationKeys.add(frame, new Quaternionf().rotateXYZ((float) Math.toRadians(vec.x()), (float) Math.toRadians(vec.y()), (float) Math.toRadians(vec.z())));
                     }
                 }
                 default -> {
@@ -169,7 +169,7 @@ public class Animation {
                 }
                 case VectorTrack.FixedVectorTrack -> {
                     var scale = (FixedVectorTrack) boneAnim.scale(new FixedVectorTrack());
-                    animationNodes[i].scaleKeys.add(0, new Vector3f(scale.vec().x() + 1, scale.vec().y() + 1, scale.vec().z() + 1));
+                    animationNodes[i].scaleKeys.add(0, new Vector3f(scale.vec().x(), scale.vec().y(), scale.vec().z()));
                 }
                 case VectorTrack.Framed8VectorTrack -> {
                     var scale = (Framed8VectorTrack) boneAnim.scale(new Framed8VectorTrack());

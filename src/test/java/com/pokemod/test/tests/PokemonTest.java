@@ -40,7 +40,8 @@ public class PokemonTest extends FeatureTest {
                 Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/meowscarada"),
                 Paths.get("meowscarada.glb"),
                 Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/walk.pkx"),
-                Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/mouth.pkx")
+                Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/mouth.pkx"),
+                Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/wait.pkx")
         );
     }
 

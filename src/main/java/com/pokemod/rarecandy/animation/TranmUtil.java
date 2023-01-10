@@ -66,21 +66,21 @@ public class TranmUtil {
     }
 
     public static void processFramed8QuatTrack(Framed8QuatTrack track, TransformStorage<Quaternionf> rotationKeys) {
-        for (int j = 0; j < track.vecLength(); j++) {
-            var vec = track.vec(j);
-            int frame = j;
+        for (int i = 0; i < track.vecLength(); i++) {
+            var vec = track.vec(i);
+            int frame = i;
 
-            if (j > track.framesLength()) frame = track.frames(j);
+            if (i < track.framesLength()) frame = track.frames(i);
             rotationKeys.add(frame, TranmUtil.packedToQuat((short) vec.x(), (short) vec.y(), (short) vec.z()));
         }
     }
 
     public static void processFramed16QuatTrack(Framed16QuatTrack track, TransformStorage<Quaternionf> rotationKeys) {
-        for (int j = 0; j < track.vecLength(); j++) {
-            var vec = track.vec(j);
-            int frame = j;
+        for (int i = 0; i < track.vecLength(); i++) {
+            var vec = track.vec(i);
+            int frame = i;
 
-            if (j > track.framesLength()) frame = track.frames(j);
+            if (i < track.framesLength()) frame = track.frames(i);
             rotationKeys.add(frame, TranmUtil.packedToQuat((short) vec.x(), (short) vec.y(), (short) vec.z()));
         }
     }
@@ -98,21 +98,21 @@ public class TranmUtil {
     }
 
     public static void processFramed8VecTrack(Framed8VectorTrack track, TransformStorage<Vector3f> vecKeys) {
-        for (int j = 0; j < track.vecLength(); j++) {
-            var vec = track.vec(j);
-            int frame = j;
+        for (int i = 0; i < track.vecLength(); i++) {
+            var vec = track.vec(i);
+            int frame = i;
 
-            if (j > track.framesLength()) frame = track.frames(j);
+            if (i < track.framesLength()) frame = track.frames(i);
             vecKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
         }
     }
 
     public static void processFramed16VecTrack(Framed16VectorTrack track, TransformStorage<Vector3f> vecKeys) {
-        for (int j = 0; j < track.vecLength(); j++) {
-            var vec = track.vec(j);
-            int frame = j;
+        for (int i = 0; i < track.vecLength(); i++) {
+            var vec = track.vec(i);
+            int frame = i;
 
-            if (j > track.framesLength()) frame = track.frames(j);
+            if (i < track.framesLength()) frame = track.frames(i);
             vecKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
         }
     }

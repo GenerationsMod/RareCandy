@@ -38,10 +38,10 @@ public class PokemonTest extends FeatureTest {
 
     private PixelAsset loadQuaquavalFromConverter() {
         return new LoosePixelAsset(
-                Paths.get("D:\\Git Repos\\RareCandy\\src\\test\\resources\\pkx\\"),
+                Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/meowscarada"),
                 Paths.get("meowscarada.glb"),
-                Paths.get("wait.pkx"),
-                Paths.get("walk.pkx")
+                Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/walk.pkx"),
+                Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/mouth.pkx")
         );
     }
 

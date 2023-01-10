@@ -11,7 +11,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Animation {
     public static final int FPS_60 = 1000;
@@ -142,13 +141,13 @@ public class Animation {
 
                     for (int j = 0; j < rotate.vecLength(); j++) {
                         Vec3s vec = rotate.vec(j);
-                        animationNodes[i].rotationKeys.add(j, QuatUtil.packedToQuat(vec));
+                        animationNodes[i].rotationKeys.add(j, TranmUtil.packedToQuat(vec));
                     }
                 }
                 case QuatTrack.FixedQuatTrack -> {
                     var rotate = (FixedQuatTrack) boneAnim.rot(new FixedQuatTrack());
                     var vec = rotate.vec();
-                    animationNodes[i].rotationKeys.add(0, QuatUtil.packedToQuat(vec));
+                    animationNodes[i].rotationKeys.add(0, TranmUtil.packedToQuat(vec));
                 }
                 case QuatTrack.Framed8QuatTrack -> {
                     var rotate = (Framed8QuatTrack) boneAnim.rot(new Framed8QuatTrack());
@@ -158,7 +157,7 @@ public class Animation {
                         int frame = j;
 
                         if (j > rotate.framesLength()) frame = rotate.frames(j);
-                        animationNodes[i].rotationKeys.add(frame, QuatUtil.packedToQuat(vec));
+                        animationNodes[i].rotationKeys.add(frame, TranmUtil.packedToQuat(vec));
                     }
                 }
                 case QuatTrack.Framed16QuatTrack -> {
@@ -169,7 +168,7 @@ public class Animation {
                         int frame = j;
 
                         if (j > rotate.framesLength()) frame = rotate.frames(j);
-                        animationNodes[i].rotationKeys.add(frame, QuatUtil.packedToQuat(vec));
+                        animationNodes[i].rotationKeys.add(frame, TranmUtil.packedToQuat(vec));
                     }
                 }
                 default -> {

@@ -3,7 +3,7 @@ package com.pokemod.rarecandy.animation;
 import com.pokemod.miraidon.Vec3s;
 import org.joml.Quaternionf;
 
-public class QuatUtil {
+public class TranmUtil {
     private static short UnpackS15(short u15)
     {
         int sign = (u15 >> 14) & 1;
@@ -18,9 +18,9 @@ public class QuatUtil {
     };
 
     public static Quaternionf packedToQuat(Vec3s vec) {
-        int x = vec.x();
+        int z = vec.x();
         int y = vec.y();
-        int z = vec.z();
+        int x = vec.z();
 
         int count = 15;
         int BASE = (1 << count) - 1;

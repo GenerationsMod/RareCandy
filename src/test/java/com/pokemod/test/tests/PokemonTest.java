@@ -28,8 +28,7 @@ public class PokemonTest extends FeatureTest {
                 var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variant);
                 instance.transformationMatrix()
                         .translate(new Vector3f(i * 4 - 2, -1f, 0))
-                        .rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0))
-                        .rotate((float) Math.toRadians(-90), new Vector3f(-1, 0, 0));
+                        .rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0));
                 instances.add(scene.objectManager.add(model, instance));
                 i++;
             }

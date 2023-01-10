@@ -88,8 +88,6 @@ public class Animation {
                 var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
 
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
-
-                System.out.println("e");
             }
         }
 

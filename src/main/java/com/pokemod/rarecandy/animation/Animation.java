@@ -33,7 +33,7 @@ public class Animation {
 
     public Animation(String name, com.pokemod.miraidon.Animation rawAnimation, Skeleton skeleton) {
         this.name = name;
-        this.ticksPerSecond = rawAnimation.meta().fps() * 4;
+        this.ticksPerSecond = FPS_60 - 95;
         this.skeleton = skeleton;
         this.animationNodes = fillAnimationNodesGfb(rawAnimation);
         this.animationDuration = findLastKeyTime();
@@ -238,10 +238,6 @@ public class Animation {
 
             if (animationNodes[i].positionKeys.size() == 0) animationNodes[i].positionKeys.add(0, new Vector3f());
         }
-
-        System.out.println("Bone Compare: " + name);
-
-        nodeIdMap.entrySet().stream().sorted(Comparator.comparingInt(Map.Entry::getValue)).map(a -> new Pair<String, String>(a.getKey(), skeleton.getName(a.getValue()))).map(a -> a.a() + " " + a.b() + ": " + a.a().equals(a.b())).forEach(System.out::println);
 
         return animationNodes;
     }

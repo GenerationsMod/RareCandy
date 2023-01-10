@@ -1,6 +1,5 @@
 package com.pokemod.rarecandy.animation;
 
-import com.pokemod.Pair;
 import com.pokemod.miraidon.*;
 import com.pokemod.pokeutils.ModelNode;
 import de.javagl.jgltf.model.AnimationModel;
@@ -121,122 +120,27 @@ public class Animation {
             animationNodes[i] = new AnimationNode();
 
             switch (boneAnim.rotType()) {
-                case QuatTrack.DynamicQuatTrack -> {
-                    var rotate = (DynamicQuatTrack) boneAnim.rot(new DynamicQuatTrack());
-
-                    for (int j = 0; j < rotate.vecLength(); j++) {
-                        Vec3s vec = rotate.vec(j);
-                        animationNodes[i].rotationKeys.add(j, TranmUtil.packedToQuat(vec));
-                    }
-                }
-                case QuatTrack.FixedQuatTrack -> {
-                    var rotate = (FixedQuatTrack) boneAnim.rot(new FixedQuatTrack());
-                    var vec = rotate.vec();
-                    animationNodes[i].rotationKeys.add(0, TranmUtil.packedToQuat(vec));
-                }
-                case QuatTrack.Framed8QuatTrack -> {
-                    var rotate = (Framed8QuatTrack) boneAnim.rot(new Framed8QuatTrack());
-
-                    for (int j = 0; j < rotate.vecLength(); j++) {
-                        var vec = rotate.vec(j);
-                        int frame = j;
-
-                        if (j > rotate.framesLength()) frame = rotate.frames(j);
-                        animationNodes[i].rotationKeys.add(frame, TranmUtil.packedToQuat(vec));
-                    }
-                }
-                case QuatTrack.Framed16QuatTrack -> {
-                    var rotate = (Framed16QuatTrack) boneAnim.rot(new Framed16QuatTrack());
-
-                    for (int j = 0; j < rotate.vecLength(); j++) {
-                        var vec = rotate.vec(j);
-                        int frame = j;
-
-                        if (j > rotate.framesLength()) frame = rotate.frames(j);
-                        animationNodes[i].rotationKeys.add(frame, TranmUtil.packedToQuat(vec));
-                    }
-                }
-                default -> {
-                }
+                case QuatTrack.DynamicQuatTrack -> TranmUtil.processDynamicQuatTrack((DynamicQuatTrack) Objects.requireNonNull(boneAnim.rot(new DynamicQuatTrack())), animationNodes[i].rotationKeys);
+                case QuatTrack.FixedQuatTrack -> TranmUtil.processFixedQuatTrack((FixedQuatTrack) Objects.requireNonNull(boneAnim.rot(new FixedQuatTrack())), animationNodes[i].rotationKeys);
+                case QuatTrack.Framed8QuatTrack -> TranmUtil.processFramed8QuatTrack((Framed8QuatTrack) Objects.requireNonNull(boneAnim.rot(new Framed8QuatTrack())), animationNodes[i].rotationKeys);
+                case QuatTrack.Framed16QuatTrack -> TranmUtil.processFramed16QuatTrack((Framed16QuatTrack) Objects.requireNonNull(boneAnim.rot(new Framed16QuatTrack())), animationNodes[i].rotationKeys);
             }
 
             switch (boneAnim.scaleType()) {
-                case VectorTrack.DynamicVectorTrack -> {
-                    var dynamicTrack = (DynamicVectorTrack) boneAnim.scale(new DynamicVectorTrack());
-
-                    for (int j = 0; j < dynamicTrack.vecLength(); j++) {
-                        animationNodes[i].scaleKeys.add(j, new Vector3f(dynamicTrack.vec(j).x(), dynamicTrack.vec(j).y(), dynamicTrack.vec(j).z()));
-                    }
-                }
-                case VectorTrack.FixedVectorTrack -> {
-                    var scale = (FixedVectorTrack) boneAnim.scale(new FixedVectorTrack());
-                    animationNodes[i].scaleKeys.add(0, new Vector3f(scale.vec().x(), scale.vec().y(), scale.vec().z()));
-                }
-                case VectorTrack.Framed8VectorTrack -> {
-                    var scale = (Framed8VectorTrack) boneAnim.scale(new Framed8VectorTrack());
-
-                    for (int j = 0; j < scale.vecLength(); j++) {
-                        var vec = scale.vec(j);
-                        int frame = j;
-
-                        if (j > scale.framesLength()) frame = scale.frames(j);
-                        animationNodes[i].scaleKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
-                    }
-                }
-                case VectorTrack.Framed16VectorTrack -> {
-                    var scale = (Framed16VectorTrack) boneAnim.scale(new Framed16VectorTrack());
-
-                    for (int j = 0; j < scale.vecLength(); j++) {
-                        var vec = scale.vec(j);
-                        int frame = j;
-
-                        if (j > scale.framesLength()) frame = scale.frames(j);
-                        animationNodes[i].scaleKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
-                    }
-                }
-                default -> {
-                }
+                case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.scale(new DynamicVectorTrack())), animationNodes[i].scaleKeys);
+                case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.scale(new FixedVectorTrack())), animationNodes[i].scaleKeys);
+                case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.scale(new Framed8VectorTrack())), animationNodes[i].scaleKeys);
+                case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.scale(new Framed16VectorTrack())), animationNodes[i].scaleKeys);
             }
 
             switch (boneAnim.transType()) {
-                case VectorTrack.DynamicVectorTrack -> {
-                    var dynamicTrack = (DynamicVectorTrack) boneAnim.trans(new DynamicVectorTrack());
-
-                    for (int j = 0; j < dynamicTrack.vecLength(); j++) {
-                        animationNodes[i].positionKeys.add(j, new Vector3f(dynamicTrack.vec(j).x(), dynamicTrack.vec(j).y(), dynamicTrack.vec(j).z()));
-                    }
-                }
-                case VectorTrack.FixedVectorTrack -> {
-                    var trans = (FixedVectorTrack) boneAnim.trans(new FixedVectorTrack());
-                    animationNodes[i].positionKeys.add(0, new Vector3f(trans.vec().x(), trans.vec().y(), trans.vec().z()));
-                }
-                case VectorTrack.Framed8VectorTrack -> {
-                    var trans = (Framed8VectorTrack) boneAnim.trans(new Framed8VectorTrack());
-
-                    for (int j = 0; j < trans.vecLength(); j++) {
-                        var vec = trans.vec(j);
-                        int frame = j;
-
-                        if (j > trans.framesLength()) frame = trans.frames(j);
-                        animationNodes[i].positionKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
-                    }
-                }
-                case VectorTrack.Framed16VectorTrack -> {
-                    var trans = (Framed16VectorTrack) boneAnim.trans(new Framed16VectorTrack());
-
-                    for (int j = 0; j < trans.vecLength(); j++) {
-                        var vec = trans.vec(j);
-                        int frame = j;
-
-                        if (j > trans.framesLength()) frame = trans.frames(j);
-                        animationNodes[i].positionKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
-                    }
-                }
+                case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.trans(new DynamicVectorTrack())), animationNodes[i].positionKeys);
+                case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.trans(new FixedVectorTrack())), animationNodes[i].positionKeys);
+                case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed8VectorTrack())), animationNodes[i].positionKeys);
+                case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed16VectorTrack())), animationNodes[i].positionKeys);
                 default -> {
                 }
             }
-
-            if (animationNodes[i].positionKeys.size() == 0) animationNodes[i].positionKeys.add(0, new Vector3f());
         }
 
         return animationNodes;

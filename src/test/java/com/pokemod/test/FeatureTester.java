@@ -17,7 +17,7 @@ public class FeatureTester {
             new BlockTest()
     );
     private static final double startTime = System.currentTimeMillis();
-    public static final Window WINDOW = new Window("RareCandy Feature Test", 960, 540);
+    public static final Window WINDOW = new Window("RareCandy Feature Test", 960 * 2, 540 * 2);
     public static final Matrix4f PROJECTION_MATRIX = new Matrix4f().perspective((float) Math.toRadians(90), (float) WINDOW.width / WINDOW.height, 0.1f, 1000.0f);
     public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public final List<FeatureTest> activeFeatures;

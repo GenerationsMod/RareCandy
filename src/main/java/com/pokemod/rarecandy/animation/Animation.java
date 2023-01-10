@@ -1,5 +1,6 @@
 package com.pokemod.rarecandy.animation;
 
+import com.pokemod.Pair;
 import com.pokemod.miraidon.*;
 import com.pokemod.pokeutils.ModelNode;
 import de.javagl.jgltf.model.AnimationModel;
@@ -10,6 +11,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Animation {
     public static final int FPS_60 = 1000;
@@ -17,7 +19,7 @@ public class Animation {
     public static final int GLB_SPEED = FPS_60;
     public final String name;
     public final double animationDuration;
-    public final Map<String, Integer> nodeIdMap = new HashMap<>();
+    public Map<String, Integer> nodeIdMap = new HashMap<>();
     public final AnimationNode[] animationNodes;
     public float ticksPerSecond;
     protected final Skeleton skeleton;
@@ -36,6 +38,21 @@ public class Animation {
         this.skeleton = skeleton;
         this.animationNodes = fillAnimationNodesGfb(rawAnimation);
         this.animationDuration = findLastKeyTime();
+
+        Map<String, Integer> map = new HashMap<>();
+
+        for (Map.Entry<String, Integer> entry : nodeIdMap.entrySet()) {
+            map.put(skeleton.getName(entry.getValue()), entry.getValue());
+        }
+
+//        nodeIdMap = map;
+
+        System.out.println("Bone Compare: " + name);
+
+        nodeIdMap.entrySet().stream().sorted(Comparator.comparingInt(Map.Entry::getValue)).map(a -> new Pair<String, String>(a.getKey(), skeleton.getName(a.getValue()))).map(a -> a.a() + " " + a.b() + ": " + a.a().equals(a.b())).forEach(System.out::println);
+
+
+        System.out.println("Does this print?");
     }
 
     public Animation(String name, SkeletonBlock smdFile, Skeleton bones, int speed) {
@@ -125,13 +142,13 @@ public class Animation {
 
                     for (int j = 0; j < rotate.vecLength(); j++) {
                         Vec3s vec = rotate.vec(j);
-                        animationNodes[i].rotationKeys.add(j, new Quaternionf().rotateXYZ((float) Math.toRadians(vec.x()), (float) Math.toRadians(vec.y()), (float) Math.toRadians(vec.z())));
+                        animationNodes[i].rotationKeys.add(j, QuatUtil.packedToQuat(vec));
                     }
                 }
                 case QuatTrack.FixedQuatTrack -> {
                     var rotate = (FixedQuatTrack) boneAnim.rot(new FixedQuatTrack());
                     var vec = rotate.vec();
-                    animationNodes[i].rotationKeys.add(0, new Quaternionf().rotateXYZ((float) Math.toRadians(vec.x()), (float) Math.toRadians(vec.y()), (float) Math.toRadians(vec.z())));
+                    animationNodes[i].rotationKeys.add(0, QuatUtil.packedToQuat(vec));
                 }
                 case QuatTrack.Framed8QuatTrack -> {
                     var rotate = (Framed8QuatTrack) boneAnim.rot(new Framed8QuatTrack());
@@ -141,7 +158,7 @@ public class Animation {
                         int frame = j;
 
                         if (j > rotate.framesLength()) frame = rotate.frames(j);
-                        animationNodes[i].rotationKeys.add(frame, new Quaternionf().rotateXYZ((float) Math.toRadians(vec.x()), (float) Math.toRadians(vec.y()), (float) Math.toRadians(vec.z())));
+                        animationNodes[i].rotationKeys.add(frame, QuatUtil.packedToQuat(vec));
                     }
                 }
                 case QuatTrack.Framed16QuatTrack -> {
@@ -152,7 +169,7 @@ public class Animation {
                         int frame = j;
 
                         if (j > rotate.framesLength()) frame = rotate.frames(j);
-                        animationNodes[i].rotationKeys.add(frame, new Quaternionf().rotateXYZ((float) Math.toRadians(vec.x()), (float) Math.toRadians(vec.y()), (float) Math.toRadians(vec.z())));
+                        animationNodes[i].rotationKeys.add(frame, QuatUtil.packedToQuat(vec));
                     }
                 }
                 default -> {
@@ -238,9 +255,12 @@ public class Animation {
             if (animationNodes[i].positionKeys.size() == 0) animationNodes[i].positionKeys.add(0, new Vector3f());
         }
 
+        System.out.println("Bone Compare: " + name);
+
+        nodeIdMap.entrySet().stream().sorted(Comparator.comparingInt(Map.Entry::getValue)).map(a -> new Pair<String, String>(a.getKey(), skeleton.getName(a.getValue()))).map(a -> a.a() + " " + a.b() + ": " + a.a().equals(a.b())).forEach(System.out::println);
+
         return animationNodes;
     }
-
 
     private AnimationNode[] fillAnimationNodesSmdx(List<SkeletonBlock.Keyframe> keyframes) {
         var nodes = new HashMap<String, List<SmdBoneStateKey>>();

@@ -51,6 +51,8 @@ public class Animation {
 
         for (var value : this.animationNodes) {
             if (value != null) {
+                if (value.positionKeys.size() == 0)
+                    throw new RuntimeException("Animation needs at least 1 position keyframe");
                 var key = value.positionKeys.get(value.positionKeys.size() - 1);
                 duration = key.time() > duration ? key.time() : duration;
             }
@@ -159,35 +161,35 @@ public class Animation {
 
             switch (boneAnim.scaleType()) {
                 case VectorTrack.DynamicVectorTrack -> {
-                    var dynamicTrack = (DynamicVectorTrack) boneAnim.trans(new DynamicVectorTrack());
+                    var dynamicTrack = (DynamicVectorTrack) boneAnim.scale(new DynamicVectorTrack());
 
                     for (int j = 0; j < dynamicTrack.vecLength(); j++) {
                         animationNodes[i].scaleKeys.add(j, new Vector3f(dynamicTrack.vec(j).x(), dynamicTrack.vec(j).y(), dynamicTrack.vec(j).z()));
                     }
                 }
                 case VectorTrack.FixedVectorTrack -> {
-                    var trans = (FixedVectorTrack) boneAnim.trans(new FixedVectorTrack());
-                    animationNodes[i].scaleKeys.add(0, new Vector3f(trans.vec().x() + 1, trans.vec().y() + 1, trans.vec().z() + 1));
+                    var scale = (FixedVectorTrack) boneAnim.scale(new FixedVectorTrack());
+                    animationNodes[i].scaleKeys.add(0, new Vector3f(scale.vec().x() + 1, scale.vec().y() + 1, scale.vec().z() + 1));
                 }
                 case VectorTrack.Framed8VectorTrack -> {
-                    var trans = (Framed8VectorTrack) boneAnim.rot(new Framed8VectorTrack());
+                    var scale = (Framed8VectorTrack) boneAnim.scale(new Framed8VectorTrack());
 
-                    for (int j = 0; j < trans.vecLength(); j++) {
-                        var vec = trans.vec(j);
+                    for (int j = 0; j < scale.vecLength(); j++) {
+                        var vec = scale.vec(j);
                         int frame = j;
 
-                        if (j > trans.framesLength()) frame = trans.frames(j);
+                        if (j > scale.framesLength()) frame = scale.frames(j);
                         animationNodes[i].scaleKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
                     }
                 }
                 case VectorTrack.Framed16VectorTrack -> {
-                    var trans = (Framed16VectorTrack) boneAnim.rot(new Framed16VectorTrack());
+                    var scale = (Framed16VectorTrack) boneAnim.scale(new Framed16VectorTrack());
 
-                    for (int j = 0; j < trans.vecLength(); j++) {
-                        var vec = trans.vec(j);
+                    for (int j = 0; j < scale.vecLength(); j++) {
+                        var vec = scale.vec(j);
                         int frame = j;
 
-                        if (j > trans.framesLength()) frame = trans.frames(j);
+                        if (j > scale.framesLength()) frame = scale.frames(j);
                         animationNodes[i].scaleKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
                     }
                 }
@@ -208,7 +210,7 @@ public class Animation {
                     animationNodes[i].positionKeys.add(0, new Vector3f(trans.vec().x(), trans.vec().y(), trans.vec().z()));
                 }
                 case VectorTrack.Framed8VectorTrack -> {
-                    var trans = (Framed8VectorTrack) boneAnim.rot(new Framed8VectorTrack());
+                    var trans = (Framed8VectorTrack) boneAnim.trans(new Framed8VectorTrack());
 
                     for (int j = 0; j < trans.vecLength(); j++) {
                         var vec = trans.vec(j);
@@ -219,7 +221,7 @@ public class Animation {
                     }
                 }
                 case VectorTrack.Framed16VectorTrack -> {
-                    var trans = (Framed16VectorTrack) boneAnim.rot(new Framed16VectorTrack());
+                    var trans = (Framed16VectorTrack) boneAnim.trans(new Framed16VectorTrack());
 
                     for (int j = 0; j < trans.vecLength(); j++) {
                         var vec = trans.vec(j);
@@ -232,6 +234,8 @@ public class Animation {
                 default -> {
                 }
             }
+
+            if (animationNodes[i].positionKeys.size() == 0) animationNodes[i].positionKeys.add(0, new Vector3f());
         }
 
         return animationNodes;

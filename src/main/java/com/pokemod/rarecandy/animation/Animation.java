@@ -37,21 +37,6 @@ public class Animation {
         this.skeleton = skeleton;
         this.animationNodes = fillAnimationNodesGfb(rawAnimation);
         this.animationDuration = findLastKeyTime();
-
-        Map<String, Integer> map = new HashMap<>();
-
-        for (Map.Entry<String, Integer> entry : nodeIdMap.entrySet()) {
-            map.put(skeleton.getName(entry.getValue()), entry.getValue());
-        }
-
-//        nodeIdMap = map;
-
-        System.out.println("Bone Compare: " + name);
-
-        nodeIdMap.entrySet().stream().sorted(Comparator.comparingInt(Map.Entry::getValue)).map(a -> new Pair<String, String>(a.getKey(), skeleton.getName(a.getValue()))).map(a -> a.a() + " " + a.b() + ": " + a.a().equals(a.b())).forEach(System.out::println);
-
-
-        System.out.println("Does this print?");
     }
 
     public Animation(String name, SkeletonBlock smdFile, Skeleton bones, int speed) {
@@ -103,6 +88,8 @@ public class Animation {
                 var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
 
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
+
+                System.out.println("e");
             }
         }
 

@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RareCandy {
     private static final Logger LOGGER = LoggerFactory.getLogger(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
+    public static boolean DEBUG_THREADS = false;
     public final ObjectManager objectManager = new ObjectManager();
     private final ModelLoader loader;
     private static final Queue<Runnable> TASKS = new ConcurrentLinkedQueue<>();

@@ -15,6 +15,7 @@ import com.pokemod.rarecandy.model.GlCallSupplier;
 import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.model.MeshDrawCommand;
 import com.pokemod.rarecandy.pipeline.Pipeline;
+import com.pokemod.rarecandy.rendering.RareCandy;
 import de.javagl.jgltf.model.*;
 import de.javagl.jgltf.model.image.PixelDatas;
 import de.javagl.jgltf.model.io.GltfModelReader;
@@ -54,7 +55,14 @@ public class ModelLoader {
 
     public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
         var obj = new MultiRenderObject<T>();
-        modelLoadingPool.submit(ThreadSafety.wrapException(() -> {
+        var task = threadedCreateObject(obj, is, objectCreator, onFinish);
+        if (RareCandy.DEBUG_THREADS) task.run();
+        else modelLoadingPool.submit(task);
+        return obj;
+    }
+
+    private <T extends RenderObject> Runnable threadedCreateObject(MultiRenderObject<T> obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
+        return ThreadSafety.wrapException(() -> {
             var asset = is.get();
             var model = read(asset);
             var smdAnims = readSmdAnimations(asset);
@@ -65,13 +73,12 @@ public class ModelLoader {
                 obj.updateDimensions();
                 if (onFinish != null) onFinish.accept(obj);
             });
-        }));
-        return obj;
+        });
     }
 
     private Map<String, byte[]> readGfbAnimations(PixelAsset asset) {
         return asset.files.entrySet().stream()
-                .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm") || entry.getKey().endsWith(".trbanm"))
+                .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm") || entry.getKey().endsWith(".tranm"))
                 .collect(Collectors.toMap(stringEntry -> stringEntry.getKey().substring(0, stringEntry.getKey().lastIndexOf(".") == -1 ? stringEntry.getKey().length() : stringEntry.getKey().lastIndexOf(".")), Map.Entry::getValue));
     }
 

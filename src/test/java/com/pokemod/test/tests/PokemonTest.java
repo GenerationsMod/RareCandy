@@ -10,6 +10,9 @@ import com.pokemod.test.FeatureTest;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,13 +39,15 @@ public class PokemonTest extends FeatureTest {
     }
 
     private PixelAsset loadQuaquavalFromConverter() {
-        return new LoosePixelAsset(
-                Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/meowscarada"),
-                Paths.get("meowscarada.glb"),
-                Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/walk.pkx"),
-                Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/mouth.pkx"),
-                Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/wait.pkx")
-        );
+        try {
+            return new LoosePixelAsset(
+                    Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/meowscarada"),
+                    Paths.get("meowscarada.glb"),
+                    Files.list(Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/")).toArray(Path[]::new)
+            );
+        } catch (IOException e) {
+            throw new RuntimeException("Fuck", e);
+        }
     }
 
     @Override

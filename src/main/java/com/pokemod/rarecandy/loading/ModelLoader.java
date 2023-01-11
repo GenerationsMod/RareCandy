@@ -71,8 +71,8 @@ public class ModelLoader {
 
     private Map<String, byte[]> readGfbAnimations(PixelAsset asset) {
         return asset.files.entrySet().stream()
-                .filter(stringEntry -> stringEntry.getKey().endsWith(".pkx"))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm") || entry.getKey().endsWith(".trbanm"))
+                .collect(Collectors.toMap(stringEntry -> stringEntry.getKey().substring(0, stringEntry.getKey().lastIndexOf(".") == -1 ? stringEntry.getKey().length() : stringEntry.getKey().lastIndexOf(".")), Map.Entry::getValue));
     }
 
     private Map<String, SMDFile> readSmdAnimations(PixelAsset pixelAsset) {

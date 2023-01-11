@@ -10,7 +10,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Animation {
     public static final int FPS_60 = 1000;
@@ -92,15 +91,11 @@ public class Animation {
             var bone = skeleton.get(name);
 
             try {
-
                 var scale = bone.poseScale;
                 var rotation = bone.poseRotation;
                 var translation = bone.posePosition;
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
-            } catch (Exception e) {
-                System.out.println(name + " not in animation. what to do...");
-            }
-            // FIXME: @WaterPicker this is fine for glb but for pk the inversePoseMatrix is wrong i think
+            } catch (Exception ignored) {}
         }
 
         var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
@@ -153,16 +148,6 @@ public class Animation {
                 case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed16VectorTrack())), animationNodes[i].positionKeys);
             }
         }
-
-        System.out.println("Body Shape: Skeleton -> " + skeleton.boneMap.keySet().stream().filter(a -> a.contains("body_shape")).collect(Collectors.toList()));
-        System.out.println("Body Shape: NodId -> " + nodeIdMap.keySet().stream().filter(a -> a.contains("body_shape")).collect(Collectors.toList()));
-
-        var missingBones = skeleton.boneMap.entrySet().stream()
-                .filter(stringBoneEntry -> !nodeIdMap.containsKey(stringBoneEntry.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        System.out.println(name + ": anim");
-        System.out.println(missingBones);
 
         return animationNodes;
     }

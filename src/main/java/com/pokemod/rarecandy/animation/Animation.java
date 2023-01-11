@@ -10,6 +10,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Animation {
     public static final int FPS_60 = 1000;
@@ -52,7 +53,7 @@ public class Animation {
         for (var value : this.animationNodes) {
             if (value != null) {
                 if (value.positionKeys.size() == 0)
-                    throw new RuntimeException("Animation needs at least 1 position keyframe");
+                    continue;
                 var key = value.positionKeys.get(value.positionKeys.size() - 1);
                 duration = key.time() > duration ? key.time() : duration;
             }
@@ -85,9 +86,11 @@ public class Animation {
                 var scale = AnimationMath.calcInterpolatedScaling(animTime, animNode);
                 var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
                 var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
-
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
             }
+        } else {
+            System.out.println(name + " not in animation. what to do...");
+            // FIXME: @WaterPicker this is fine for glb but for pk the inversePoseMatrix is wrong i think
         }
 
         var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
@@ -112,7 +115,7 @@ public class Animation {
     }
 
     private AnimationNode[] fillAnimationNodesGfb(com.pokemod.miraidon.Animation rawAnimation) {
-        var animationNodes = new AnimationNode[rawAnimation.anim().bonesLength()]; // BoneGroup
+        var animationNodes = new AnimationNode[skeleton.boneMap.size()]; // BoneGroup
 
         for (int i = 0; i < rawAnimation.anim().bonesLength(); i++) {
             var boneAnim = rawAnimation.anim().bones(i);
@@ -138,10 +141,12 @@ public class Animation {
                 case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.trans(new FixedVectorTrack())), animationNodes[i].positionKeys);
                 case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed8VectorTrack())), animationNodes[i].positionKeys);
                 case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed16VectorTrack())), animationNodes[i].positionKeys);
-                default -> {
-                }
             }
         }
+
+        var missingBones = skeleton.boneMap.entrySet().stream()
+                .filter(stringBoneEntry -> !nodeIdMap.containsKey(stringBoneEntry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return animationNodes;
     }
@@ -177,9 +182,6 @@ public class Animation {
     }
 
     public record SmdBoneStateKey(int time, Vector3f pos, Quaternionf rot) {
-    }
-
-    public record PkxBoneStateKey(int time, Vector3f pos, Quaternionf rot, Vector3f scale) {
     }
 
     public static class AnimationNode {

@@ -5,17 +5,17 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 public class TranmUtil {
-    private static short UnpackS15(short u15) {
+    private static final int[][] QUATERNION_SWIZZLES = {
+            new int[]{0, 3, 2, 1}, new int[]{3, 0, 2, 1},
+            new int[]{3, 2, 0, 1}, new int[]{3, 2, 1, 0}
+    };
+
+    private static short unpackS15(short u15) {
         int sign = (u15 >> 14) & 1;
         u15 &= 0x3FFF;
         if (sign == 0) u15 -= 0x4000;
         return u15;
     }
-
-    static int[][] QUATERNION_SWIZZLES = {
-            new int[]{0, 3, 2, 1}, new int[]{3, 0, 2, 1},
-            new int[]{3, 2, 0, 1}, new int[]{3, 2, 1, 0}
-    };
 
     public static Quaternionf packedToQuat(short z, short y, short x) {
         int count = 15;
@@ -31,9 +31,9 @@ public class TranmUtil {
         short extra = (short) (cq & 0x7);
         long num = cq >> 3;
 
-        x = UnpackS15((short) ((num >> (count * 2)) & BASE));
-        y = UnpackS15((short) ((num >> (count * 1)) & BASE));
-        z = UnpackS15((short) ((num >> (count * 0)) & BASE));
+        x = unpackS15((short) ((num >> (count * 2)) & BASE));
+        y = unpackS15((short) ((num >> (count * 1)) & BASE));
+        z = unpackS15((short) ((num >> (count * 0)) & BASE));
 
         float fx = x * maxVal;
         float fy = y * maxVal;
@@ -66,21 +66,23 @@ public class TranmUtil {
     }
 
     public static void processFramed8QuatTrack(Framed8QuatTrack track, TransformStorage<Quaternionf> rotationKeys) {
+        var frames = track.framesVector();
         for (int i = 0; i < track.vecLength(); i++) {
             var vec = track.vec(i);
             int frame = i;
 
-            if (i < track.framesLength()) frame = track.frames(i);
+            if (i < frames.length()) frame = frames.get(i);
             rotationKeys.add(frame, TranmUtil.packedToQuat((short) vec.x(), (short) vec.y(), (short) vec.z()));
         }
     }
 
     public static void processFramed16QuatTrack(Framed16QuatTrack track, TransformStorage<Quaternionf> rotationKeys) {
+        var frames = track.framesVector();
         for (int i = 0; i < track.vecLength(); i++) {
             var vec = track.vec(i);
             int frame = i;
 
-            if (i < track.framesLength()) frame = track.frames(i);
+            if (i < frames.length()) frame = frames.get(i);
             rotationKeys.add(frame, TranmUtil.packedToQuat((short) vec.x(), (short) vec.y(), (short) vec.z()));
         }
     }

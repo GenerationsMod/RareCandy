@@ -89,7 +89,17 @@ public class Animation {
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
             }
         } else {
-            System.out.println(name + " not in animation. what to do...");
+            var bone = skeleton.get(name);
+
+            try {
+
+                var scale = bone.poseScale;
+                var rotation = bone.poseRotation;
+                var translation = bone.posePosition;
+                nodeTransform.identity().translationRotateScale(translation, rotation, scale);
+            } catch (Exception e) {
+                System.out.println(name + " not in animation. what to do...");
+            }
             // FIXME: @WaterPicker this is fine for glb but for pk the inversePoseMatrix is wrong i think
         }
 
@@ -119,7 +129,7 @@ public class Animation {
 
         for (int i = 0; i < rawAnimation.anim().bonesLength(); i++) {
             var boneAnim = rawAnimation.anim().bones(i);
-            nodeIdMap.put(boneAnim.name(), i);
+            nodeIdMap.put(boneAnim.name().replace(".trmdl", ""), i);
             animationNodes[i] = new AnimationNode();
 
             switch (boneAnim.rotType()) {
@@ -144,9 +154,15 @@ public class Animation {
             }
         }
 
+        System.out.println("Body Shape: Skeleton -> " + skeleton.boneMap.keySet().stream().filter(a -> a.contains("body_shape")).collect(Collectors.toList()));
+        System.out.println("Body Shape: NodId -> " + nodeIdMap.keySet().stream().filter(a -> a.contains("body_shape")).collect(Collectors.toList()));
+
         var missingBones = skeleton.boneMap.entrySet().stream()
                 .filter(stringBoneEntry -> !nodeIdMap.containsKey(stringBoneEntry.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        System.out.println(name + ": anim");
+        System.out.println(missingBones);
 
         return animationNodes;
     }

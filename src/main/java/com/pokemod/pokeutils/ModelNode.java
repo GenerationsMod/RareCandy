@@ -17,7 +17,7 @@ public class ModelNode {
     public final List<ModelNode> children = new ArrayList<>();
 
     public ModelNode(NodeModel rootNodeModel) {
-        this.name = rootNodeModel.getName();
+        this.name = rootNodeModel.getName().replace(".trmdl", "");
         this.transform = new Matrix4f().add(DataUtils.convert(rootNodeModel.getTranslation(), rootNodeModel.getRotation(), rootNodeModel.getScale()));
 
         for (var child : rootNodeModel.getChildren()) {

@@ -29,7 +29,7 @@ public class PixelmonArchiveBuilder {
             try (var xzWriter = new XZOutputStream(Files.newOutputStream(output), OPTIONS)) {
                 try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
                     for (var archiveFile : files) {
-                        var entry = new TarArchiveEntry(archiveFile, relativeFolder.relativize(archiveFile).toString());
+                        var entry = new TarArchiveEntry(archiveFile, processFileName(archiveFile, relativeFolder.resolve(output.getFileName().toString().substring(0, output.getFileName().toString().length() - 3))));
                         tarWriter.putArchiveEntry(entry);
                         if (Files.isRegularFile(archiveFile)) {
                             try (var is = new BufferedInputStream(Files.newInputStream(archiveFile))) {
@@ -43,6 +43,28 @@ public class PixelmonArchiveBuilder {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static String processFileName(Path archiveFile, Path relativeFolder) {
+        var fileName = relativeFolder.relativize(archiveFile).toString();
+        if (fileName.startsWith("pm")) {
+            var cleanName = fileName.substring("pmxxxx_xx_xx_xxxxx_".length()).replace(".tranm", "").replace(".gfbanm", "");
+
+            return switch (cleanName) {
+                case "defaultwait01_loop" -> "idle";
+                case "battlewait01_loop" -> "battle_idle";
+                case "walk01_loop" -> "walk";
+                case "rest01_start" -> "rest_start";
+                case "rest01_loop" -> "rest_loop";
+                case "rest01_end" -> "rest_end";
+                case "roar01" -> "roar";
+                case "attack02" -> "attack";
+                case "damage02" -> "damage";
+                case "down01_start" -> "faint";
+                default -> "invalid_" + cleanName;
+            } + ".tranm";
+        }
+        return fileName;
     }
 
     public static void main(String[] args) throws IOException {

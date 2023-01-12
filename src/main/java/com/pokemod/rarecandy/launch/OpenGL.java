@@ -12,7 +12,6 @@ public final class OpenGL {
 
     public OpenGL() {
         var caps = GL.createCapabilities();
-        System.out.println("Based");
         GL.setCapabilities(null);
         this.majorVersion = 4;
         this.minorVersion = 6;

@@ -18,6 +18,7 @@ public class PixelAsset {
 
     public final Map<String, byte[]> files = new HashMap<>();
     public String modelName;
+    public float modelScale = 1;
 
     public PixelAsset(String modelName, byte[] glbFile) {
         this.modelName = modelName;
@@ -29,14 +30,21 @@ public class PixelAsset {
             var tarFile = getTarFile(Objects.requireNonNull(is, "Input Stream is null"));
 
             for (var entry : tarFile.getEntries()) {
-                if (entry.getName().endsWith(".glb")) {
-                    this.modelName = entry.getName();
-                }
+                if (entry.getName().endsWith(".glb")) this.modelName = entry.getName();
 
                 files.put(entry.getName(), tarFile.getInputStream(entry).readAllBytes());
             }
         } catch (IOException | NullPointerException e) {
             throw new RuntimeException("Failed to load " + debugName, e);
+        }
+
+        updateSettings();
+    }
+
+    public void updateSettings() {
+        for (var entry : files.entrySet()) {
+            if (entry.getKey().equals("scale"))
+                this.modelScale = Float.parseFloat(new String(entry.getValue()));
         }
     }
 

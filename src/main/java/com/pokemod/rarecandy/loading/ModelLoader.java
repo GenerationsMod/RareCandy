@@ -64,6 +64,7 @@ public class ModelLoader {
     private <T extends RenderObject> Runnable threadedCreateObject(MultiRenderObject<T> obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
         return ThreadSafety.wrapException(() -> {
             var asset = is.get();
+            obj.scale = asset.modelScale;
             var model = read(asset);
             var smdAnims = readSmdAnimations(asset);
             var gfbAnims = readGfbAnimations(asset);
@@ -79,7 +80,14 @@ public class ModelLoader {
     private Map<String, byte[]> readGfbAnimations(PixelAsset asset) {
         return asset.files.entrySet().stream()
                 .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm") || entry.getKey().endsWith(".tranm"))
-                .collect(Collectors.toMap(stringEntry -> stringEntry.getKey().substring(0, stringEntry.getKey().lastIndexOf(".") == -1 ? stringEntry.getKey().length() : stringEntry.getKey().lastIndexOf(".")), Map.Entry::getValue));
+                .collect(Collectors.toMap(this::cleanAnimName, Map.Entry::getValue));
+    }
+
+    private String cleanAnimName(Map.Entry<String, byte[]> entry) {
+        var str = entry.getKey();
+        var substringEnd = str.lastIndexOf(".") == -1 ? str.length() : str.lastIndexOf(".");
+        var substringStart = str.lastIndexOf("/") == -1 ? 0 : str.lastIndexOf("/");
+        return str.substring(substringStart, substringEnd);
     }
 
     private Map<String, SMDFile> readSmdAnimations(PixelAsset pixelAsset) {

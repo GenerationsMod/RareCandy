@@ -40,10 +40,11 @@ public class PokemonTest extends FeatureTest {
 
     private PixelAsset loadQuaquavalFromConverter() {
         try {
+            Path root = Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/sprigatito");
             return new LoosePixelAsset(
-                    Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/meowscarada"),
-                    Paths.get("meowscarada.glb"),
-                    Files.list(Paths.get("P:/NewAttempt/ScarletViolet/Pokemon/genPokemon/meowscarada/pm1012_00_00/animations/")).toArray(Path[]::new)
+                    root,
+                    Paths.get("sprigatito.glb"),
+                    Files.list(root).toArray(Path[]::new)
             );
         } catch (IOException e) {
             throw new RuntimeException("Fuck", e);

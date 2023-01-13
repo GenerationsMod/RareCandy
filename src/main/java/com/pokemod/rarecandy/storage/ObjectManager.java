@@ -10,7 +10,7 @@ import org.joml.Matrix4f;
 import java.util.*;
 
 public class ObjectManager {
-    public static final Matrix4f[] NO_ANIMATION = new Matrix4f[200];
+    public static final Matrix4f[] NO_ANIMATION = new Matrix4f[256];
     private final Map<Animation, Integer> inUseAnimations = new HashMap<>();
     private final Map<Animation, Matrix4f[]> frameTransformMap = new HashMap<>();
     private final Map<RenderObject, List<ObjectInstance>> staticObjects = new HashMap<>();

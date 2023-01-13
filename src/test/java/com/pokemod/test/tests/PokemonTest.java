@@ -30,7 +30,7 @@ public class PokemonTest extends FeatureTest {
             for (String variant : variants) {
                 var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variant);
                 instance.transformationMatrix()
-                        .translate(new Vector3f(i * 4 - 2, -1f, 0))
+                        .translate(new Vector3f(i * 4 - 2, -1f, 2))
                         .rotate((float) Math.toRadians(-180), new Vector3f(0, 1, 0));
                 instances.add(scene.objectManager.add(model, instance));
                 i++;
@@ -40,10 +40,10 @@ public class PokemonTest extends FeatureTest {
 
     private PixelAsset loadQuaquavalFromConverter() {
         try {
-            Path root = Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/sprigatito");
+            Path root = Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/miraidon_riding");
             return new LoosePixelAsset(
                     root,
-                    Paths.get("sprigatito.glb"),
+                    Paths.get(root.getFileName().toString() + ".glb"),
                     Files.list(root).toArray(Path[]::new)
             );
         } catch (IOException e) {

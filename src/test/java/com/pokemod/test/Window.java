@@ -22,7 +22,7 @@ public class Window {
     public long handle;
 
     public Window(String title, int width, int height) {
-        System.load("C:/Program Files/RenderDoc/renderdoc.dll");
+        // System.load("C:/Program Files/RenderDoc/renderdoc.dll");
         this.title = title;
         this.width = width;
         this.height = height;

@@ -1,5 +1,5 @@
 #version 450
-#define MAX_BONES 256
+#define MAX_BONES 220
 
 layout(location = 0) in vec3 positions;
 layout(location = 1) in vec2 texcoords;

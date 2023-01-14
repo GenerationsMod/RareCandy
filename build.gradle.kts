@@ -23,6 +23,7 @@ sourceSets {
 
     main {
         this.compileClasspath += assetLoading.output + rendering.output;
+        this.runtimeClasspath += assetLoading.output + rendering.output;
     }
 }
 

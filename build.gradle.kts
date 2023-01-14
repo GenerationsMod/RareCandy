@@ -22,8 +22,8 @@ sourceSets {
     }
 
     main {
-        this.compileClasspath += assetLoading.output + rendering.output;
-        this.runtimeClasspath += assetLoading.output + rendering.output;
+        this.compileClasspath += assetLoading.output + rendering.output
+        this.runtimeClasspath += assetLoading.output + rendering.output
     }
 }
 
@@ -65,6 +65,9 @@ dependencies {
 tasks {
     named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
         archiveBaseName.set("RareCandyTools")
+        from(sourceSets.getByName("assetLoading").output.classesDirs)
+        from(sourceSets.getByName("renderer").output.classesDirs)
+        from(sourceSets.getByName("renderer").output.resourcesDir)
         manifest {
             attributes(mapOf("Main-Class" to "com.pokemod.rarecandy.tools.Main"))
         }
@@ -73,6 +76,11 @@ tasks {
 
     build {
         dependsOn(shadowJar)
+    }
+
+    processResources {
+        dependsOn("processAssetLoadingResources")
+        dependsOn("processRendererResources")
     }
 }
 

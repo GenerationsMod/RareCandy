@@ -1,9 +1,6 @@
-package com.pokemod.test;
+package com.pokemod.rarecandy.tools.tester;
 
 import com.pokemod.rarecandy.rendering.RareCandy;
-import com.pokemod.rarecandy.tools.tester.Pipelines;
-import com.pokemod.rarecandy.tools.tester.Window;
-import com.pokemod.test.tests.*;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
@@ -13,10 +10,6 @@ import java.util.List;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class FeatureTester {
-    public static final List<FeatureTest> FEATURE_TESTS = List.of(
-            new PokemonTest(),
-            new BlockTest()
-    );
     private static final double startTime = System.currentTimeMillis();
     public static final Window WINDOW = new Window("RareCandy Feature Test", 960 * 2, 540 * 2);
     public static final Matrix4f PROJECTION_MATRIX = new Matrix4f().perspective((float) Math.toRadians(90), (float) WINDOW.width / WINDOW.height, 0.1f, 1000.0f);
@@ -82,6 +75,6 @@ public class FeatureTester {
     }
 
     public static void main(String[] args) {
-        new FeatureTester(List.of(new PokemonTest()));
+        new FeatureTester(List.of(new PokemonTest(args)));
     }
 }

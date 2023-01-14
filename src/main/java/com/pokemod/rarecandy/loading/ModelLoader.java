@@ -140,7 +140,7 @@ public class ModelLoader {
             for (var entry : gfbFileMap.entrySet()) {
                 var name = entry.getKey();
                 var buffer = ByteBuffer.wrap(entry.getValue());
-                var gfbAnim = com.pokemod.miraidon.Animation.getRootAsAnimation(buffer);
+                var gfbAnim = com.pokemod.pokeutils.tranm.Animation.getRootAsAnimation(buffer);
                 animations.put(name, new Animation(name, gfbAnim, new Skeleton(skeleton)));
             }
 

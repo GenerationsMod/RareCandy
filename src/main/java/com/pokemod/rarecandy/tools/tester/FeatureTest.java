@@ -1,4 +1,4 @@
-package com.pokemod.test;
+package com.pokemod.rarecandy.tools.tester;
 
 import com.pokemod.pokeutils.GlbPixelAsset;
 import com.pokemod.pokeutils.PixelAsset;
@@ -8,7 +8,6 @@ import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.loading.ModelLoader;
 import com.pokemod.rarecandy.pipeline.Pipeline;
 import com.pokemod.rarecandy.rendering.RareCandy;
-import com.pokemod.rarecandy.tools.tester.Pipelines;
 import org.joml.Matrix4f;
 
 import java.io.IOException;

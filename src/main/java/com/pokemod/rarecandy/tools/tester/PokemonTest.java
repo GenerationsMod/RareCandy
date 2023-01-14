@@ -1,4 +1,4 @@
-package com.pokemod.test.tests;
+package com.pokemod.rarecandy.tools.tester;
 
 import com.pokemod.pokeutils.LoosePixelAsset;
 import com.pokemod.pokeutils.PixelAsset;
@@ -6,7 +6,6 @@ import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import com.pokemod.rarecandy.storage.AnimatedInstance;
-import com.pokemod.test.FeatureTest;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -19,6 +18,11 @@ import java.util.List;
 
 public class PokemonTest extends FeatureTest {
     private final List<AnimatedInstance> instances = new ArrayList<>();
+    private final Path path;
+
+    public PokemonTest(String[] args) {
+        this.path = Paths.get(args[0]);
+    }
 
     @Override
     public void init(RareCandy scene, Matrix4f viewMatrix) {
@@ -40,7 +44,7 @@ public class PokemonTest extends FeatureTest {
 
     private PixelAsset loadQuaquavalFromConverter() {
         try {
-            Path root = Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/koraidon_battle");
+            Path root = path; // Paths.get("D:/Projects/PixelmonGenerations/RareCandy/converter/in/koraidon_battle");
             return new LoosePixelAsset(
                     root,
                     Paths.get(root.getFileName().toString() + ".glb"),

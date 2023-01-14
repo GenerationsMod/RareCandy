@@ -1,7 +1,7 @@
 package com.pokemod.rarecandy.animation;
 
-import com.pokemod.miraidon.*;
 import com.pokemod.pokeutils.ModelNode;
+import com.pokemod.pokeutils.tranm.*;
 import de.javagl.jgltf.model.AnimationModel;
 import de.javagl.jgltf.model.NodeModel;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
@@ -30,7 +30,7 @@ public class Animation {
         this.animationDuration = findLastKeyTime();
     }
 
-    public Animation(String name, com.pokemod.miraidon.Animation rawAnimation, Skeleton skeleton) {
+    public Animation(String name, com.pokemod.pokeutils.tranm.Animation rawAnimation, Skeleton skeleton) {
         this.name = name;
         this.ticksPerSecond = FPS_60 - 95;
         this.skeleton = skeleton;
@@ -119,7 +119,7 @@ public class Animation {
         return animationNodes;
     }
 
-    private AnimationNode[] fillAnimationNodesGfb(com.pokemod.miraidon.Animation rawAnimation) {
+    private AnimationNode[] fillAnimationNodesGfb(com.pokemod.pokeutils.tranm.Animation rawAnimation) {
         var animationNodes = new AnimationNode[skeleton.boneMap.size()]; // BoneGroup
 
         for (int i = 0; i < rawAnimation.anim().bonesLength(); i++) {

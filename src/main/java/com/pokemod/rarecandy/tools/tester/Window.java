@@ -1,4 +1,4 @@
-package com.pokemod.test;
+package com.pokemod.rarecandy.tools.tester;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;

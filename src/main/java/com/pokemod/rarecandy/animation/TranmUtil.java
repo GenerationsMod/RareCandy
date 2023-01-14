@@ -1,6 +1,6 @@
 package com.pokemod.rarecandy.animation;
 
-import com.pokemod.miraidon.*;
+import com.pokemod.pokeutils.tranm.*;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 

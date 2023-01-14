@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     `maven-publish`
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "com.pixelmongenerations"
@@ -17,34 +18,48 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.jetbrains", "annotations", "23.1.0")
+    shadow(compileOnly("org.jetbrains", "annotations", "23.1.0"))
 
-    implementation("org.tukaani", "xz", "1.9")
-    implementation("org.apache.commons", "commons-compress", "1.22")
-    implementation("org.joml", "joml", "1.10.5")
-    implementation("de.javagl", "jgltf-model", "2.0.3")
+    shadow(implementation("org.tukaani", "xz", "1.9"))
+    shadow(implementation("org.apache.commons", "commons-compress", "1.22"))
+    shadow(implementation("org.joml", "joml", "1.10.5"))
+    shadow(implementation("de.javagl", "jgltf-model", "2.0.3"))
 
-    implementation(platform("org.lwjgl:lwjgl-bom:3.3.1"))
-    implementation("org.lwjgl", "lwjgl")
-    implementation("org.lwjgl", "lwjgl-glfw")
-    implementation("org.lwjgl", "lwjgl-opengl")
-    implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT")
+    shadow(implementation(platform("org.lwjgl:lwjgl-bom:3.3.1"))!!)
+    shadow(implementation("org.lwjgl", "lwjgl"))
+    shadow(implementation("org.lwjgl", "lwjgl-glfw"))
+    shadow(implementation("org.lwjgl", "lwjgl-opengl"))
+    shadow(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
 
-    runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-windows")
-    runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-windows")
-    runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-windows")
+    shadow(runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-windows"))
+    shadow(runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-windows"))
+    shadow(runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-windows"))
 
-    compileOnly("org.slf4j:slf4j-api:2.0.5")
-    testImplementation("org.slf4j:slf4j-jdk14:2.0.5")
+    shadow(implementation("org.slf4j:slf4j-jdk14:2.0.5")!!)
 
     // PokeUtils Libs
-    implementation("com.github.weisj:darklaf-core:3.0.2")
-    implementation("com.intellij:forms_rt:7.0.3")
-    implementation("org.lwjgl", "lwjgl-nfd")
-    runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows")
-    implementation("org.lwjglx", "lwjgl3-awt", "0.1.8")
+    shadow(implementation("com.github.weisj:darklaf-core:3.0.2")!!)
+    shadow(implementation("com.intellij:forms_rt:7.0.3")!!)
+    shadow(implementation("org.lwjgl", "lwjgl-nfd"))
+    shadow(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows"))
+    shadow(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
 
-    implementation("com.google.flatbuffers:flatbuffers-java:23.1.4")
+    shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.1.4")!!)
+}
+
+tasks {
+    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+        archiveBaseName.set("RareCandyTools")
+        manifest {
+            attributes(mapOf("Main-Class" to "com.pokemod.rarecandy.tools.Main"))
+        }
+    }
+}
+
+tasks {
+    build {
+        dependsOn(shadowJar)
+    }
 }
 
 publishing {

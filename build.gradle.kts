@@ -5,11 +5,25 @@ plugins {
 }
 
 group = "com.pixelmongenerations"
-version = "0.9.6"
+version = "1.0.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+}
+
+sourceSets {
+    val assetLoading = create("assetLoading") {
+        compileClasspath += main.get().compileClasspath
+    }
+
+    val rendering = create("renderer") {
+        compileClasspath += main.get().compileClasspath + assetLoading.output
+    }
+
+    main {
+        this.compileClasspath += assetLoading.output + rendering.output;
+    }
 }
 
 repositories {
@@ -53,10 +67,9 @@ tasks {
         manifest {
             attributes(mapOf("Main-Class" to "com.pokemod.rarecandy.tools.Main"))
         }
-    }
-}
 
-tasks {
+    }
+
     build {
         dependsOn(shadowJar)
     }

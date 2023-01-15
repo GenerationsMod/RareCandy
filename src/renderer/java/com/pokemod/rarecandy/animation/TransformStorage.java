@@ -36,7 +36,16 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
     }
 
     public TimeKey<T> get(int i) {
+        if (i > values().length) return null;
         return values()[i];
+    }
+
+    public TimeKey<T> getAtTime(int animationDuration) {
+        for (var value : values()) {
+            if (value.time() == animationDuration) return value;
+        }
+
+        return null;
     }
 
     public int indexOf(TimeKey<T> value) {

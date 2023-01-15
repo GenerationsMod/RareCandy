@@ -36,6 +36,17 @@ public class Animation {
         this.skeleton = skeleton;
         this.animationNodes = fillAnimationNodesGfb(rawAnimation);
         this.animationDuration = findLastKeyTime();
+
+        for (var animationNode : animationNodes) {
+            if (animationNode != null) {
+                if (animationNode.positionKeys.getAtTime((int) animationDuration - 10) == null)
+                    animationNode.positionKeys.add(animationDuration, animationNode.positionKeys.get(0).value());
+                if (animationNode.rotationKeys.getAtTime((int) animationDuration - 10) == null)
+                    animationNode.rotationKeys.add(animationDuration, animationNode.rotationKeys.get(0).value());
+                if (animationNode.scaleKeys.getAtTime((int) animationDuration - 10) == null)
+                    animationNode.scaleKeys.add(animationDuration, animationNode.scaleKeys.get(0).value());
+            }
+        }
     }
 
     public Animation(String name, SkeletonBlock smdFile, Skeleton bones, int speed) {
@@ -50,12 +61,8 @@ public class Animation {
         var duration = 0d;
 
         for (var value : this.animationNodes) {
-            if (value != null) {
-                if (value.positionKeys.size() == 0)
-                    continue;
-                var key = value.positionKeys.get(value.positionKeys.size() - 1);
-                duration = key.time() > duration ? key.time() : duration;
-            }
+            if (value != null)
+                for (var key : value.positionKeys) duration = key.time() > duration ? key.time() : duration;
         }
 
         return duration;
@@ -67,13 +74,13 @@ public class Animation {
         return (float) (ticksPassed % animationDuration);
     }
 
-    public Matrix4f[] getFrameTransform(double secondsPassed, Matrix4f[] lastFrameTransforms) {
+    public Matrix4f[] getFrameTransform(double secondsPassed) {
         var boneTransforms = new Matrix4f[this.skeleton.boneArray.length];
-        readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, new Matrix4f().identity(), boneTransforms, lastFrameTransforms);
+        readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
         return boneTransforms;
     }
 
-    protected void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms, Matrix4f[] lastFrameTransforms) {
+    protected void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
         var name = node.name;
         var nodeTransform = node.transform;
         if (node.id == -1) node.id = nodeIdMap.getOrDefault(name, -1);
@@ -87,7 +94,8 @@ public class Animation {
                 var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
                 var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
-                if (bone != null && !Float.isNaN(nodeTransform.m00())) bone.lastSuccessfulTransform = new Matrix4f(nodeTransform);
+                if (bone != null && !Float.isNaN(nodeTransform.m00()))
+                    bone.lastSuccessfulTransform = new Matrix4f(nodeTransform);
             }
         } else {
             if (bone != null) {
@@ -101,15 +109,14 @@ public class Animation {
         var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
         if (bone != null) {
             int transformId = skeleton.getId(bone);
-
-            if (Float.isNaN(globalTransform.m00()) && lastFrameTransforms != null && lastFrameTransforms[transformId] != null) {
+            if (Float.isNaN(globalTransform.m00()))
                 globalTransform = parentTransform.mul(bone.lastSuccessfulTransform, new Matrix4f());
-            }
+
             boneTransforms[transformId] = globalTransform.mul(bone.inversePoseMatrix, new Matrix4f());
         }
 
         for (var child : node.children)
-            readNodeHierarchy(animTime, child, globalTransform, boneTransforms, lastFrameTransforms);
+            readNodeHierarchy(animTime, child, globalTransform, boneTransforms);
     }
 
     private AnimationNode[] fillAnimationNodesGlb(List<AnimationModel.Channel> channels) {
@@ -128,7 +135,7 @@ public class Animation {
 
         for (int i = 0; i < rawAnimation.anim().bonesLength(); i++) {
             var boneAnim = rawAnimation.anim().bones(i);
-            nodeIdMap.put(boneAnim.name().replace(".trmdl", ""), i);
+            nodeIdMap.put(Objects.requireNonNull(boneAnim.name()).replace(".trmdl", ""), i);
             animationNodes[i] = new AnimationNode();
 
             switch (boneAnim.rotType()) {

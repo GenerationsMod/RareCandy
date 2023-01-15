@@ -18,8 +18,8 @@ public class ObjectManager {
 
     public void update(double secondsPassed) {
         for (var animation : inUseAnimations.keySet()) {
-            var lastFrameTransforms = frameTransformMap.remove(animation);
-            frameTransformMap.put(animation, animation.getFrameTransform(secondsPassed, lastFrameTransforms));
+            frameTransformMap.remove(animation);
+            frameTransformMap.put(animation, animation.getFrameTransform(secondsPassed));
         }
     }
 

@@ -68,10 +68,10 @@ public class TranmUtil {
     public static void processFramed8QuatTrack(Framed8QuatTrack track, TransformStorage<Quaternionf> rotationKeys) {
         var frames = track.framesVector();
         for (int i = 0; i < track.vecLength(); i++) {
-            var vec = track.vec(i);
             int frame = i;
+            var vec = track.vec(i);
 
-            if (i < frames.length()) frame = frames.get(i);
+            if (i < frames.length()) frame = frames.getAsUnsigned(i);
             rotationKeys.add(frame, TranmUtil.packedToQuat((short) vec.x(), (short) vec.y(), (short) vec.z()));
         }
     }
@@ -79,10 +79,10 @@ public class TranmUtil {
     public static void processFramed16QuatTrack(Framed16QuatTrack track, TransformStorage<Quaternionf> rotationKeys) {
         var frames = track.framesVector();
         for (int i = 0; i < track.vecLength(); i++) {
-            var vec = track.vec(i);
             int frame = i;
+            var vec = track.vec(i);
 
-            if (i < frames.length()) frame = frames.get(i);
+            if (i < frames.length()) frame = frames.getAsUnsigned(i);
             rotationKeys.add(frame, TranmUtil.packedToQuat((short) vec.x(), (short) vec.y(), (short) vec.z()));
         }
     }
@@ -101,8 +101,8 @@ public class TranmUtil {
 
     public static void processFramed8VecTrack(Framed8VectorTrack track, TransformStorage<Vector3f> vecKeys) {
         for (int i = 0; i < track.vecLength(); i++) {
-            var vec = track.vec(i);
             int frame = i;
+            var vec = track.vec(i);
 
             if (i < track.framesLength()) frame = track.frames(i);
             vecKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
@@ -111,8 +111,8 @@ public class TranmUtil {
 
     public static void processFramed16VecTrack(Framed16VectorTrack track, TransformStorage<Vector3f> vecKeys) {
         for (int i = 0; i < track.vecLength(); i++) {
-            var vec = track.vec(i);
             int frame = i;
+            var vec = track.vec(i);
 
             if (i < track.framesLength()) frame = track.frames(i);
             vecKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));

@@ -15,11 +15,12 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class FeatureTest {
-
     public RareCandy renderer;
+    public Pipelines pipelines;
 
-    public void init(RareCandy scene, Matrix4f viewMatrix) {
+    public void init(RareCandy scene, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         this.renderer = scene;
+        this.pipelines = new Pipelines(projectionMatrix);
     }
 
     public abstract void update(RareCandy scene, double deltaTime);
@@ -46,7 +47,7 @@ public abstract class FeatureTest {
     }
 
     private Pipeline getPokemonPipeline(String materialName) {
-        return Pipelines.ANIMATED;
+        return pipelines.animated;
     }
 
     public void rightTap() {}

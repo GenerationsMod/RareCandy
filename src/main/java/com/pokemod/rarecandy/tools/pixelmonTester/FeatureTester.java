@@ -6,16 +6,18 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
 
 public class FeatureTester {
-    private static final double startTime = System.currentTimeMillis();
-    public static final Window WINDOW = new Window("RareCandy Feature Test", 960, 540);
-    public static final Matrix4f PROJECTION_MATRIX = new Matrix4f().perspective((float) Math.toRadians(90), (float) WINDOW.width / WINDOW.height, 0.1f, 1000.0f);
+    private static final double START_TIME = System.currentTimeMillis();
+    public final Window window;
+    public final Matrix4f projectionMatrix;
     public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public final FeatureTest test;
 
-    public FeatureTester(FeatureTest test) {
+    public FeatureTester(FeatureTest test, int sizeMultiplier) {
         this.test = test;
+        this.window = new Window("RareCandy Feature Test", 960 * sizeMultiplier, 540 * sizeMultiplier);
+        this.projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) window.width / window.height, 0.1f, 1000.0f);
 
-        GLFW.glfwSetKeyCallback(WINDOW.handle, (window1, key, scancode, action, mods) -> {
+        GLFW.glfwSetKeyCallback(window.handle, (window1, key, scancode, action, mods) -> {
             if (key == GLFW.GLFW_KEY_Z) {
                 long maxMem = Runtime.getRuntime().maxMemory();
                 long totalMem = Runtime.getRuntime().totalMemory();
@@ -37,25 +39,24 @@ public class FeatureTester {
         GL11C.glEnable(GL11C.GL_CULL_FACE);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        Pipelines.onInitialize();
-        test.init(scene, this.viewMatrix);
+        test.init(scene, projectionMatrix, viewMatrix);
 
         var lastFrameTime = 0d;
-        while (!WINDOW.shouldClose()) {
-            WINDOW.pollEvents();
+        while (!window.shouldClose()) {
+            window.pollEvents();
             var frameTime = GLFW.glfwGetTime();
             test.update(scene, frameTime - lastFrameTime);
             GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-            scene.render(false, ((System.currentTimeMillis() - startTime) / 16000));
-            WINDOW.swapBuffers();
+            scene.render(false, ((System.currentTimeMillis() - START_TIME) / 16000));
+            window.swapBuffers();
             lastFrameTime = frameTime;
         }
 
-        WINDOW.destroy();
+        window.destroy();
         scene.close();
     }
 
     public static void main(String[] args) {
-        new FeatureTester(new PokemonTest(args));
+        new FeatureTester(new PokemonTest(args), args.length >= 2 ? Integer.parseInt(args[1]) : 1);
     }
 }

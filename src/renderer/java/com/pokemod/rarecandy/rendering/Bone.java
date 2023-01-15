@@ -11,6 +11,7 @@ public class Bone {
     public final Vector3f posePosition = new Vector3f();
     public final Quaternionf poseRotation = new Quaternionf();
     public final Vector3f poseScale = new Vector3f(1,1,1);
+    public Matrix4f lastSuccessfulTransform = new Matrix4f().identity();
 
     public Bone(NodeModel jointNode, Matrix4f inversePoseMatrix) {
         this.name = jointNode.getName();

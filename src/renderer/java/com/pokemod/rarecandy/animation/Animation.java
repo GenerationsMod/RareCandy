@@ -67,16 +67,17 @@ public class Animation {
         return (float) (ticksPassed % animationDuration);
     }
 
-    public Matrix4f[] getFrameTransform(double secondsPassed) {
+    public Matrix4f[] getFrameTransform(double secondsPassed, Matrix4f[] lastFrameTransforms) {
         var boneTransforms = new Matrix4f[this.skeleton.boneArray.length];
-        readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
+        readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, new Matrix4f().identity(), boneTransforms, lastFrameTransforms);
         return boneTransforms;
     }
 
-    protected void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
+    protected void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms, Matrix4f[] lastFrameTransforms) {
         var name = node.name;
         var nodeTransform = node.transform;
         if (node.id == -1) node.id = nodeIdMap.getOrDefault(name, -1);
+        var bone = skeleton.get(name);
 
         if (node.id != -1) {
             var animNode = animationNodes[node.id];
@@ -86,26 +87,29 @@ public class Animation {
                 var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
                 var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
+                if (bone != null && !Float.isNaN(nodeTransform.m00())) bone.lastSuccessfulTransform = new Matrix4f(nodeTransform);
             }
         } else {
-            var bone = skeleton.get(name);
-
-            try {
+            if (bone != null) {
                 var scale = bone.poseScale;
                 var rotation = bone.poseRotation;
                 var translation = bone.posePosition;
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
-            } catch (Exception ignored) {}
+            }
         }
 
         var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
-        var bone = skeleton.get(name);
-        if (bone != null)
-            boneTransforms[skeleton.getId(bone)] = globalTransform.mul(bone.inversePoseMatrix, new Matrix4f());
+        if (bone != null) {
+            int transformId = skeleton.getId(bone);
 
-        for (var child : node.children) {
-            readNodeHierarchy(animTime, child, globalTransform, boneTransforms);
+            if (Float.isNaN(globalTransform.m00()) && lastFrameTransforms != null && lastFrameTransforms[transformId] != null) {
+                globalTransform = parentTransform.mul(bone.lastSuccessfulTransform, new Matrix4f());
+            }
+            boneTransforms[transformId] = globalTransform.mul(bone.inversePoseMatrix, new Matrix4f());
         }
+
+        for (var child : node.children)
+            readNodeHierarchy(animTime, child, globalTransform, boneTransforms, lastFrameTransforms);
     }
 
     private AnimationNode[] fillAnimationNodesGlb(List<AnimationModel.Channel> channels) {
@@ -128,24 +132,36 @@ public class Animation {
             animationNodes[i] = new AnimationNode();
 
             switch (boneAnim.rotType()) {
-                case QuatTrack.DynamicQuatTrack -> TranmUtil.processDynamicQuatTrack((DynamicQuatTrack) Objects.requireNonNull(boneAnim.rot(new DynamicQuatTrack())), animationNodes[i].rotationKeys);
-                case QuatTrack.FixedQuatTrack -> TranmUtil.processFixedQuatTrack((FixedQuatTrack) Objects.requireNonNull(boneAnim.rot(new FixedQuatTrack())), animationNodes[i].rotationKeys);
-                case QuatTrack.Framed8QuatTrack -> TranmUtil.processFramed8QuatTrack((Framed8QuatTrack) Objects.requireNonNull(boneAnim.rot(new Framed8QuatTrack())), animationNodes[i].rotationKeys);
-                case QuatTrack.Framed16QuatTrack -> TranmUtil.processFramed16QuatTrack((Framed16QuatTrack) Objects.requireNonNull(boneAnim.rot(new Framed16QuatTrack())), animationNodes[i].rotationKeys);
+                case QuatTrack.DynamicQuatTrack ->
+                        TranmUtil.processDynamicQuatTrack((DynamicQuatTrack) Objects.requireNonNull(boneAnim.rot(new DynamicQuatTrack())), animationNodes[i].rotationKeys);
+                case QuatTrack.FixedQuatTrack ->
+                        TranmUtil.processFixedQuatTrack((FixedQuatTrack) Objects.requireNonNull(boneAnim.rot(new FixedQuatTrack())), animationNodes[i].rotationKeys);
+                case QuatTrack.Framed8QuatTrack ->
+                        TranmUtil.processFramed8QuatTrack((Framed8QuatTrack) Objects.requireNonNull(boneAnim.rot(new Framed8QuatTrack())), animationNodes[i].rotationKeys);
+                case QuatTrack.Framed16QuatTrack ->
+                        TranmUtil.processFramed16QuatTrack((Framed16QuatTrack) Objects.requireNonNull(boneAnim.rot(new Framed16QuatTrack())), animationNodes[i].rotationKeys);
             }
 
             switch (boneAnim.scaleType()) {
-                case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.scale(new DynamicVectorTrack())), animationNodes[i].scaleKeys);
-                case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.scale(new FixedVectorTrack())), animationNodes[i].scaleKeys);
-                case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.scale(new Framed8VectorTrack())), animationNodes[i].scaleKeys);
-                case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.scale(new Framed16VectorTrack())), animationNodes[i].scaleKeys);
+                case VectorTrack.DynamicVectorTrack ->
+                        TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.scale(new DynamicVectorTrack())), animationNodes[i].scaleKeys);
+                case VectorTrack.FixedVectorTrack ->
+                        TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.scale(new FixedVectorTrack())), animationNodes[i].scaleKeys);
+                case VectorTrack.Framed8VectorTrack ->
+                        TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.scale(new Framed8VectorTrack())), animationNodes[i].scaleKeys);
+                case VectorTrack.Framed16VectorTrack ->
+                        TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.scale(new Framed16VectorTrack())), animationNodes[i].scaleKeys);
             }
 
             switch (boneAnim.transType()) {
-                case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.trans(new DynamicVectorTrack())), animationNodes[i].positionKeys);
-                case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.trans(new FixedVectorTrack())), animationNodes[i].positionKeys);
-                case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed8VectorTrack())), animationNodes[i].positionKeys);
-                case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed16VectorTrack())), animationNodes[i].positionKeys);
+                case VectorTrack.DynamicVectorTrack ->
+                        TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.trans(new DynamicVectorTrack())), animationNodes[i].positionKeys);
+                case VectorTrack.FixedVectorTrack ->
+                        TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.trans(new FixedVectorTrack())), animationNodes[i].positionKeys);
+                case VectorTrack.Framed8VectorTrack ->
+                        TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed8VectorTrack())), animationNodes[i].positionKeys);
+                case VectorTrack.Framed16VectorTrack ->
+                        TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed16VectorTrack())), animationNodes[i].positionKeys);
             }
         }
 

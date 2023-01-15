@@ -19,7 +19,7 @@ public class Skeleton {
         this.raw = skeleton;
         this.boneArray = new Bone[boneCount];
         this.boneMap = new HashMap<>(boneCount);
-        this.rootNode = new ModelNode(skeleton.getJoints().get(0).getParent());
+        this.rootNode = new ModelNode(skeleton.getJoints().get(0).getParent(), null);
         var array = new float[16];
 
         for (var i = 0; i < skeleton.getJoints().size(); i++) {

@@ -1,7 +1,7 @@
 package com.pokemod.rarecandy.tools;
 
 import com.pokemod.rarecandy.tools.gui.PokeUtilsGui;
-import com.pokemod.rarecandy.tools.pixelmonTester.FeatureTester;
+import com.pokemod.rarecandy.tools.pixelmonTester.MinecraftSimulator;
 import com.pokemod.rarecandy.tools.pkcreator.PixelConverter;
 import com.pokemod.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 
@@ -26,7 +26,7 @@ public class Main {
     }
 
     private static void modelTester(String[] args) {
-        FeatureTester.main(args);
+        MinecraftSimulator.main(args);
     }
 
     private static void converter(String[] args) {

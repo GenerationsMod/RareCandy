@@ -55,4 +55,4 @@ jobs:
           prerelease: false
           title: "Latest Release"
           files: |
-            build/libs/RareCandyTools-1.0.0-all.jar
+            build/libs/RareCandyTools-1.0.1-all.jar

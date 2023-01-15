@@ -25,11 +25,13 @@ import java.util.function.Supplier;
 public class PokemonTest {
     private final List<AnimatedInstance> instances = new ArrayList<>();
     private final Path path;
+    private boolean rotate;
     public RareCandy renderer;
     public Pipelines pipelines;
 
     public PokemonTest(String[] args) {
         this.path = Paths.get(args[0]);
+        if (args.length == 3) this.rotate = Boolean.parseBoolean(args[2]);
     }
 
     public void init(RareCandy scene, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
@@ -44,15 +46,20 @@ public class PokemonTest {
                 instance.transformationMatrix()
                         .translate(new Vector3f(i * 4 - 2, -1f, 2))
                         .rotate((float) Math.toRadians(-180), new Vector3f(0, 1, 0));
-                        //.rotate((float) Math.toRadians(-90), new Vector3f(0, 1, 0));
+
+                if (rotate) instance.transformationMatrix()
+                        .rotate((float) Math.toRadians(-90), new Vector3f(0, 1, 0));
+
                 instances.add(scene.objectManager.add(model, instance));
             }
+
+            rightTap();
         });
     }
 
     private PixelAsset getAsset() {
         try {
-            try(var files = Files.list(path)) {
+            try (var files = Files.list(path)) {
                 return new LoosePixelAsset(
                         path,
                         Paths.get(path.getFileName().toString() + ".glb"),

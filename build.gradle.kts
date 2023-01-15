@@ -74,6 +74,12 @@ tasks {
 
     }
 
+    jar {
+        from(sourceSets.getByName("assetLoading").output.classesDirs)
+        from(sourceSets.getByName("renderer").output.classesDirs)
+        from(sourceSets.getByName("renderer").output.resourcesDir)
+    }
+
     build {
         dependsOn(shadowJar)
     }

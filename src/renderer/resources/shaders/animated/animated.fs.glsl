@@ -1,4 +1,5 @@
 #version 450 core
+#define ambientLight 0.6f
 
 in vec2 texCoord0;
 in vec3 normal;
@@ -9,15 +10,18 @@ out vec4 outColor;
 
 uniform sampler2D diffuse;
 
-uniform int LIGHT_color;
-uniform float LIGHT_shineDamper;
-uniform float LIGHT_reflectivity;
+uniform int intColor;
+uniform float shineDamper;
+uniform float reflectivity;
 
-const float AMBIENT_LIGHT = 0.6f;
+vec3 intToColor() {
+    return vec3((intColor >> 16 & 255) / 255.0, (intColor >> 8 & 255) / 255.0, (intColor & 255) / 255.0);
+}
 
 void main() {
     vec4 color = texture2D(diffuse, texCoord0);
 
+    vec3 lightColor = intToColor();
     vec3 unitNormal = normalize(normal);
     vec3 unitLightVector = normalize(toLightVector);
     vec3 lightDir = -unitLightVector;
@@ -25,15 +29,15 @@ void main() {
 
     // Diffuse Lighting
     float rawDiffuse = dot(unitNormal, unitLightVector);
-    float diffuse = max(rawDiffuse, AMBIENT_LIGHT);
-    vec3 coloredDiffuse = diffuse * LIGHT_color;
+    float diffuse = max(rawDiffuse, ambientLight);
+    vec3 coloredDiffuse = diffuse * lightColor;
 
     // Specular Lighting
     vec3 reflectedLightDir = reflect(lightDir, unitNormal);
     float rawSpecularFactor = dot(reflectedLightDir, unitToCameraVector);
     float specularFactor = max(rawSpecularFactor, 0.0f);
-    float dampedFactor = pow(specularFactor, LIGHT_shineDamper);
-    vec3 finalSpecular = dampedFactor * LIGHT_reflectivity * LIGHT_color;
+    float dampedFactor = pow(specularFactor, shineDamper);
+    vec3 finalSpecular = dampedFactor * reflectivity * lightColor;
 
     outColor = vec4(coloredDiffuse, 1.0f) * color + vec4(finalSpecular, 1.0f);
 }

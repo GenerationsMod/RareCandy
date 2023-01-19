@@ -3,6 +3,7 @@ package com.pokemod.rarecandy.tools.pixelmonTester;
 import com.pokemod.pokeutils.LoosePixelAsset;
 import com.pokemod.pokeutils.PixelAsset;
 import com.pokemod.rarecandy.animation.AnimationInstance;
+import com.pokemod.rarecandy.animation.ThreeStageAnimationInstance;
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
 import com.pokemod.rarecandy.components.MultiRenderObject;
@@ -40,7 +41,7 @@ public class PokemonTest {
         this.pipelines = new Pipelines(projectionMatrix);
 
         loadPokemonModel(scene, this::getAsset, model -> {
-            var variants = List.of("none-normal", "none-shiny");
+            var variants = List.of("none-normal");//, "none-shiny");
 
             for (int i = 0; i < variants.size(); i++) {
                 var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variants.get(i));
@@ -53,8 +54,6 @@ public class PokemonTest {
 
                 instances.add(scene.objectManager.add(model, instance));
             }
-
-            rightTap();
         });
     }
 
@@ -94,33 +93,20 @@ public class PokemonTest {
     }
 
     public void leftTap() {
-        var map = instances.get(0).getAnimationsIfAvailable().values().stream().toList();
+        var map = instances.get(0).getAnimationsIfAvailable();
 
         for (var instance : instances) {
-            if (instance.currentAnimation == null) {
-                instance.currentAnimation = new AnimationInstance(map.get(0), null);
-                continue;
-            }
-
-            var active = map.indexOf(instance.currentAnimation.animation);
-            var newAnimation = map.get(clamp(active - 1, map.size() - 1));
-            System.out.println(newAnimation.name);
+            if (instance.currentAnimation instanceof ThreeStageAnimationInstance threeStageAnimationInstance) {
+                threeStageAnimationInstance.finish(() -> instance.changeAnimation(new AnimationInstance(map.get("idle"))));
+            } else instance.changeAnimation(new AnimationInstance(map.get("idle")));
         }
     }
 
     public void rightTap() {
-        var map = instances.get(0).getAnimationsIfAvailable().values().stream().toList();
+        var map = instances.get(0).getAnimationsIfAvailable();
 
         for (var instance : instances) {
-            if (instance.currentAnimation == null) {
-                instance.currentAnimation = new AnimationInstance(map.get(0), null);
-                continue;
-            }
-
-            var active = map.indexOf(instance.currentAnimation.animation);
-            var newAnimation = map.get(clamp(active + 1, map.size() - 1));
-            System.out.println(newAnimation.name);
-            instance.changeAnimation(new AnimationInstance(newAnimation, null));
+            instance.changeAnimation(new ThreeStageAnimationInstance(map, "rest_start", "rest_loop", "rest_end", "idle", "walk"));
         }
     }
 

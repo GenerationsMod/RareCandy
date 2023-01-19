@@ -7,33 +7,33 @@ import org.joml.Matrix4f;
  */
 public class AnimationInstance {
 
-    public final Animation animation;
-    private final Runnable onLoop;
+    protected Animation animation;
     public double startTime = -1;
-    private float currentTime;
-    private double timeAtPause;
-    private double timeAtUnpause;
+    protected float currentTime;
+    protected double timeAtPause;
+    protected double timeAtUnpause;
     private boolean paused;
     private boolean unused;
     public Matrix4f[] matrixTransforms;
 
-    public AnimationInstance(Animation animation, Runnable onLoop) {
+    public AnimationInstance(Animation animation) {
         this.animation = animation;
-        this.onLoop = onLoop;
     }
 
     public void update(double secondsPassed) {
+        updateStart(secondsPassed);
+
         if (!paused) {
             if (timeAtUnpause == -1) timeAtUnpause = secondsPassed - timeAtPause;
             float prevTime = currentTime;
             currentTime = animation.getAnimationTime(secondsPassed - timeAtUnpause);
+            if (prevTime > currentTime) onLoop();
+        } else if (timeAtPause == -1) timeAtPause = secondsPassed;
+    }
 
-            if(prevTime > currentTime && onLoop != null) onLoop.run();
-        } else {
-            if (timeAtPause == -1) {
-                timeAtPause = secondsPassed;
-            }
-        }
+    public void updateStart(double secondsPassed) {
+        if (timeAtUnpause == 0) timeAtUnpause = secondsPassed;
+        if (startTime == -1) startTime = secondsPassed;
     }
 
     public void pause() {
@@ -44,6 +44,9 @@ public class AnimationInstance {
     public void unpause() {
         paused = false;
         timeAtUnpause = -1;
+    }
+
+    public void onLoop() {
     }
 
     public float getCurrentTime() {
@@ -60,5 +63,9 @@ public class AnimationInstance {
 
     public boolean shouldDestroy() {
         return unused;
+    }
+
+    public Animation getAnimation() {
+        return animation;
     }
 }

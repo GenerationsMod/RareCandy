@@ -37,6 +37,8 @@ public class ThreeStageAnimationInstance extends AnimationInstance {
 
     @Override
     public void onLoop() {
+        if (enterAnim == loopAnim || endAnim == loopAnim || enterAnim == endAnim)
+            return; // Don't do this logic if using fallback anims as they may be the same and crash
         if (animation == enterAnim) nextAnim = loopAnim;
         if (animation == endAnim) finish.run();
     }

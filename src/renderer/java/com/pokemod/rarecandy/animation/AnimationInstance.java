@@ -8,8 +8,8 @@ import org.joml.Matrix4f;
 public class AnimationInstance {
 
     public final Animation animation;
+    private final Runnable onLoop;
     public double startTime = -1;
-    private float prevTime;
     private float currentTime;
     private double timeAtPause;
     private double timeAtUnpause;
@@ -17,19 +17,18 @@ public class AnimationInstance {
     private boolean unused;
     public Matrix4f[] matrixTransforms;
 
-    public AnimationInstance(Animation animation) {
+    public AnimationInstance(Animation animation, Runnable onLoop) {
         this.animation = animation;
+        this.onLoop = onLoop;
     }
 
     public void update(double secondsPassed) {
         if (!paused) {
             if (timeAtUnpause == -1) timeAtUnpause = secondsPassed - timeAtPause;
-            prevTime = currentTime;
+            float prevTime = currentTime;
             currentTime = animation.getAnimationTime(secondsPassed - timeAtUnpause);
 
-            if(prevTime > currentTime) {
-                System.out.println("animation looped");
-            }
+            if(prevTime > currentTime && onLoop != null) onLoop.run();
         } else {
             if (timeAtPause == -1) {
                 timeAtPause = secondsPassed;

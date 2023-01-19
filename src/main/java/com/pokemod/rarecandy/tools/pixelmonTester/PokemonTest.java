@@ -98,7 +98,7 @@ public class PokemonTest {
 
         for (var instance : instances) {
             if (instance.currentAnimation == null) {
-                instance.currentAnimation = new AnimationInstance(map.get(0));
+                instance.currentAnimation = new AnimationInstance(map.get(0), null);
                 continue;
             }
 
@@ -113,14 +113,14 @@ public class PokemonTest {
 
         for (var instance : instances) {
             if (instance.currentAnimation == null) {
-                instance.currentAnimation = new AnimationInstance(map.get(0));
+                instance.currentAnimation = new AnimationInstance(map.get(0), null);
                 continue;
             }
 
             var active = map.indexOf(instance.currentAnimation.animation);
             var newAnimation = map.get(clamp(active + 1, map.size() - 1));
             System.out.println(newAnimation.name);
-            instance.changeAnimation(new AnimationInstance(newAnimation));
+            instance.changeAnimation(new AnimationInstance(newAnimation, null));
         }
     }
 
@@ -130,8 +130,8 @@ public class PokemonTest {
 
     public void space() {
         for (var instance : instances) {
-            if(instance.currentAnimation != null) {
-                if(instance.currentAnimation.isPaused()) instance.currentAnimation.unpause();
+            if (instance.currentAnimation != null) {
+                if (instance.currentAnimation.isPaused()) instance.currentAnimation.unpause();
                 else instance.currentAnimation.pause();
             }
         }

@@ -1,7 +1,7 @@
 package com.pokemod.rarecandy.tools.pixelmonTester;
 
 import com.pokemod.rarecandy.pipeline.Pipeline;
-import com.pokemod.rarecandy.storage.AnimatedInstance;
+import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -27,7 +27,7 @@ public class Pipelines {
 
         this.animated = new Pipeline.Builder(base)
                 .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated.fs.glsl"))
-                .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedInstance) ctx.instance()).transforms))
+                .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
                 .build();
     }
 

@@ -10,8 +10,10 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class Animation {
+    public static BiConsumer<Animation, String> animationModifier = (animation, s) -> {};
     public static final int FPS_60 = 1000;
     public static final int FPS_24 = 400;
     public static final int GLB_SPEED = FPS_60;
@@ -21,6 +23,7 @@ public class Animation {
     public final AnimationNode[] animationNodes;
     public float ticksPerSecond;
     protected final Skeleton skeleton;
+    public boolean ignoreInstancedTime = false;
 
     public Animation(AnimationModel rawAnimation, Skeleton skeleton, int speed) {
         this.name = rawAnimation.getName();
@@ -28,6 +31,7 @@ public class Animation {
         this.skeleton = skeleton;
         this.animationNodes = fillAnimationNodesGlb(rawAnimation.getChannels());
         this.animationDuration = findLastKeyTime();
+        animationModifier.accept(this, "glb");
     }
 
     public Animation(String name, com.pokemod.pokeutils.tranm.Animation rawAnimation, Skeleton skeleton) {
@@ -47,6 +51,8 @@ public class Animation {
                     animationNode.scaleKeys.add(animationDuration, animationNode.scaleKeys.get(0).value());
             }
         }
+
+        animationModifier.accept(this, "gfb");
     }
 
     public Animation(String name, SkeletonBlock smdFile, Skeleton bones, int speed) {
@@ -55,6 +61,8 @@ public class Animation {
         this.skeleton = bones;
         this.animationNodes = fillAnimationNodesSmdx(smdFile.keyframes);
         this.animationDuration = findLastKeyTime();
+
+        animationModifier.accept(this, "smd");
     }
 
     private double findLastKeyTime() {
@@ -69,9 +77,14 @@ public class Animation {
     }
 
     public float getAnimationTime(double secondsPassed) {
-        var tps = ticksPerSecond != 0 ? ticksPerSecond : 25.0f;
-        var ticksPassed = (float) secondsPassed * tps;
+        var ticksPassed = (float) secondsPassed * ticksPerSecond;
         return (float) (ticksPassed % animationDuration);
+    }
+
+    public Matrix4f[] getFrameTransform(AnimationInstance instance) {
+        var boneTransforms = new Matrix4f[this.skeleton.boneArray.length];
+        readNodeHierarchy(instance.getCurrentTime(), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
+        return boneTransforms;
     }
 
     public Matrix4f[] getFrameTransform(double secondsPassed) {

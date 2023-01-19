@@ -7,7 +7,7 @@ import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.loading.ModelLoader;
 import com.pokemod.rarecandy.pipeline.Pipeline;
 import com.pokemod.rarecandy.rendering.RareCandy;
-import com.pokemod.rarecandy.storage.AnimatedInstance;
+import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
@@ -29,7 +29,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public double startTime = System.currentTimeMillis();
     private RareCandy renderer;
-    public final List<AnimatedInstance> instances = new ArrayList<>();
+    public final List<AnimatedObjectInstance> instances = new ArrayList<>();
     private int scaleModifier = 0;
     public String currentAnimation = null;
 
@@ -61,7 +61,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
             var variants = List.of("none-normal", "none-shiny");
 
             for (String variant : variants) {
-                var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variant);
+                var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
                 instance.transformationMatrix().translate(new Vector3f(i * 8 - 4, -2f, 8)).scale(1).rotate((float) Math.toRadians(180), new Vector3f(0, 1, 0)).scale(0.3f);
                 instances.add(renderer.objectManager.add(model, instance));
                 i++;
@@ -96,9 +96,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
                     if(a.animations != null) {
                         var newAnimation = a.animations.get(currentAnimation);
 
-                        if(newAnimation != null) {
+                        /*if(newAnimation != null) {
                             renderer.objectManager.changeAnimation(instance, newAnimation);
-                        }
+                        }*/
                     }
                 }
             });

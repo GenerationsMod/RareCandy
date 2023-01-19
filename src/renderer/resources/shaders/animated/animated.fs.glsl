@@ -15,33 +15,25 @@ uniform float LIGHT_reflectivity;
 
 const float AMBIENT_LIGHT = 0.6f;
 
-vec3 intToColor() {
-    return vec3((LIGHT_color >> 16 & 255) / 255.0, (LIGHT_color >> 8 & 255) / 255.0, (LIGHT_color & 255) / 255.0);
-}
-
 void main() {
     vec4 color = texture2D(diffuse, texCoord0);
-    if(color.a < 0.1) {
-        discard;
-    }
 
     vec3 unitNormal = normalize(normal);
     vec3 unitLightVector = normalize(toLightVector);
     vec3 lightDir = -unitLightVector;
     vec3 unitToCameraVector = normalize(toCameraVector);
-    vec3 lightColor = vec3(1.0, 1.0, 1.0);
 
     // Diffuse Lighting
     float rawDiffuse = dot(unitNormal, unitLightVector);
     float diffuse = max(rawDiffuse, AMBIENT_LIGHT);
-    vec3 coloredDiffuse = diffuse * lightColor;
+    vec3 coloredDiffuse = diffuse * LIGHT_color;
 
     // Specular Lighting
     vec3 reflectedLightDir = reflect(lightDir, unitNormal);
     float rawSpecularFactor = dot(reflectedLightDir, unitToCameraVector);
     float specularFactor = max(rawSpecularFactor, 0.0f);
     float dampedFactor = pow(specularFactor, LIGHT_shineDamper);
-    vec3 finalSpecular = dampedFactor * LIGHT_reflectivity * lightColor;
+    vec3 finalSpecular = dampedFactor * LIGHT_reflectivity * LIGHT_color;
 
     outColor = vec4(coloredDiffuse, 1.0f) * color + vec4(finalSpecular, 1.0f);
 }

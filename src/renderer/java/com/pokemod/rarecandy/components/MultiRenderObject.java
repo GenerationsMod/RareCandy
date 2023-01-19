@@ -1,11 +1,14 @@
 package com.pokemod.rarecandy.components;
 
+import com.pokemod.rarecandy.animation.Animation;
 import com.pokemod.rarecandy.rendering.ObjectInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**

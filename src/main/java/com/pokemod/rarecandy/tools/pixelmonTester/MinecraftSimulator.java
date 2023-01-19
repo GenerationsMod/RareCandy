@@ -29,6 +29,7 @@ public class MinecraftSimulator {
             if (action == GLFW.GLFW_RELEASE) {
                 if (key == GLFW.GLFW_KEY_LEFT) test.leftTap();
                 if (key == GLFW.GLFW_KEY_RIGHT) test.rightTap();
+                if (key == GLFW.GLFW_KEY_SPACE) test.space();
             }
         });
 

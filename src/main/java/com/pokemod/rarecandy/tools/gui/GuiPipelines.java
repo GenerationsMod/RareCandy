@@ -1,7 +1,7 @@
 package com.pokemod.rarecandy.tools.gui;
 
 import com.pokemod.rarecandy.pipeline.Pipeline;
-import com.pokemod.rarecandy.storage.AnimatedInstance;
+import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
 import org.joml.Vector3f;
 
 import java.io.IOException;
@@ -26,12 +26,12 @@ public class GuiPipelines {
 
     public static final Pipeline ANIMATED = new Pipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated.fs.glsl"))
-            .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedInstance) ctx.instance()).transforms))
+            .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
             .build();
 
     public static final Pipeline POKEMON_EYES = new Pipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated_pokemon_eyes.fs.glsl"))
-            .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedInstance) ctx.instance()).transforms))
+            .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
             .build();
 
     public static void onInitialize() {}

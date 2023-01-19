@@ -2,13 +2,14 @@ package com.pokemod.rarecandy.tools.pixelmonTester;
 
 import com.pokemod.pokeutils.LoosePixelAsset;
 import com.pokemod.pokeutils.PixelAsset;
+import com.pokemod.rarecandy.animation.AnimationInstance;
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
 import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.loading.ModelLoader;
 import com.pokemod.rarecandy.pipeline.Pipeline;
 import com.pokemod.rarecandy.rendering.RareCandy;
-import com.pokemod.rarecandy.storage.AnimatedInstance;
+import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -23,7 +24,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class PokemonTest {
-    private final List<AnimatedInstance> instances = new ArrayList<>();
+    private final List<AnimatedObjectInstance> instances = new ArrayList<>();
     private final Path path;
     private boolean rotate;
     public RareCandy renderer;
@@ -42,7 +43,7 @@ public class PokemonTest {
             var variants = List.of("none-normal", "none-shiny");
 
             for (int i = 0; i < variants.size(); i++) {
-                var instance = new AnimatedInstance(new Matrix4f(), viewMatrix, variants.get(i));
+                var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variants.get(i));
                 instance.transformationMatrix()
                         .translate(new Vector3f(i * 4 - 2, -1f, 2))
                         .rotate((float) Math.toRadians(-180), new Vector3f(0, 1, 0));
@@ -93,30 +94,46 @@ public class PokemonTest {
     }
 
     public void leftTap() {
-        var a = instances.get(0).getAnimatedMesh();
+        var map = instances.get(0).getAnimationsIfAvailable().values().stream().toList();
 
         for (var instance : instances) {
-            var map = a.animations.values().stream().toList();
-            var active = map.indexOf(instance.currentAnimation);
+            if (instance.currentAnimation == null) {
+                instance.currentAnimation = new AnimationInstance(map.get(0));
+                continue;
+            }
+
+            var active = map.indexOf(instance.currentAnimation.animation);
             var newAnimation = map.get(clamp(active - 1, map.size() - 1));
             System.out.println(newAnimation.name);
-            renderer.objectManager.changeAnimation(instance, newAnimation);
         }
     }
 
     public void rightTap() {
-        var a = instances.get(0).getAnimatedMesh();
+        var map = instances.get(0).getAnimationsIfAvailable().values().stream().toList();
 
         for (var instance : instances) {
-            var map = a.animations.values().stream().toList();
-            var active = map.indexOf(instance.currentAnimation);
+            if (instance.currentAnimation == null) {
+                instance.currentAnimation = new AnimationInstance(map.get(0));
+                continue;
+            }
+
+            var active = map.indexOf(instance.currentAnimation.animation);
             var newAnimation = map.get(clamp(active + 1, map.size() - 1));
             System.out.println(newAnimation.name);
-            renderer.objectManager.changeAnimation(instance, newAnimation);
+            instance.changeAnimation(new AnimationInstance(newAnimation));
         }
     }
 
     private static int clamp(int value, int max) {
         return Math.min(Math.max(value, 0), max);
+    }
+
+    public void space() {
+        for (var instance : instances) {
+            if(instance.currentAnimation != null) {
+                if(instance.currentAnimation.isPaused()) instance.currentAnimation.unpause();
+                else instance.currentAnimation.pause();
+            }
+        }
     }
 }

@@ -17,6 +17,11 @@ public class AnimationController {
         instanceIgnoringAnimTransforms.clear();
 
         for (var playingInstance : playingInstances) {
+            if (playingInstance.animation == null) {
+                System.err.println("Animation instance has null animation");
+                continue;
+            }
+
             if (playingInstance.shouldDestroy()) instancesToRemove.add(playingInstance);
             if (playingInstance.animation.ignoreInstancedTime)
                 instanceIgnoringAnimTransforms.put(playingInstance.animation, playingInstance.animation.getFrameTransform(globalSecondsPassed));

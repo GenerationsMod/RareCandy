@@ -13,6 +13,7 @@ uniform sampler2D diffuse;
 uniform int intColor;
 uniform float shineDamper;
 uniform float reflectivity;
+uniform float diffuseColorMix;
 
 vec3 intToColor() {
     return vec3((intColor >> 16 & 255) / 255.0, (intColor >> 8 & 255) / 255.0, (intColor & 255) / 255.0);
@@ -22,6 +23,7 @@ void main() {
     vec4 color = texture2D(diffuse, texCoord0);
 
     vec3 lightColor = intToColor();
+    vec3 pixelmonColor = mix(lightColor, vec3(1.0, 1.0, 1.0), diffuseColorMix);
     vec3 unitNormal = normalize(normal);
     vec3 unitLightVector = normalize(toLightVector);
     vec3 lightDir = -unitLightVector;
@@ -30,7 +32,7 @@ void main() {
     // Diffuse Lighting
     float rawDiffuse = dot(unitNormal, unitLightVector);
     float diffuse = max(rawDiffuse, ambientLight);
-    vec3 coloredDiffuse = diffuse * lightColor;
+    vec3 coloredDiffuse = diffuse * pixelmonColor;
 
     // Specular Lighting
     vec3 reflectedLightDir = reflect(lightDir, unitNormal);

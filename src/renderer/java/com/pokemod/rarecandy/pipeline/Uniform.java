@@ -56,6 +56,10 @@ public class Uniform {
         GL20C.glUniform1i(getLocation(), value);
     }
 
+    public void uploadBoolean(boolean value) {
+        GL20C.glUniform1i(getLocation(), value ? 1 : 0);
+    }
+
     public void uploadFloat(float value) {
         GL20C.glUniform1f(getLocation(), value);
     }

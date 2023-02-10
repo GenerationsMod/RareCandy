@@ -2,6 +2,7 @@ package com.pokemod.rarecandy.tools.pixelmonTester;
 
 import com.pokemod.pokeutils.LoosePixelAsset;
 import com.pokemod.pokeutils.PixelAsset;
+import com.pokemod.rarecandy.animation.Animation;
 import com.pokemod.rarecandy.animation.AnimationInstance;
 import com.pokemod.rarecandy.animation.ThreeStageAnimationInstance;
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
@@ -25,6 +26,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class PokemonTest {
+
     private final List<AnimatedObjectInstance> instances = new ArrayList<>();
     private final Path path;
     private boolean rotate;
@@ -32,6 +34,9 @@ public class PokemonTest {
     public Pipelines pipelines;
 
     public PokemonTest(String[] args) {
+        Animation.animationModifier = (animation, s) -> {
+            animation.ticksPerSecond = 16;
+        };
         this.path = Paths.get(args[0]);
         if (args.length == 3) this.rotate = Boolean.parseBoolean(args[2]);
     }
@@ -47,7 +52,8 @@ public class PokemonTest {
                 var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variants.get(i));
                 instance.transformationMatrix()
                         .translate(new Vector3f(i * 4 - 2, -1f, 2))
-                        .rotate((float) Math.toRadians(-180), new Vector3f(0, 1, 0));
+                        .rotate((float) Math.toRadians(-180), new Vector3f(0, 1, 0))
+                        .scale(0.4f);
 
                 if (rotate) instance.transformationMatrix()
                         .rotate((float) Math.toRadians(-90), new Vector3f(0, 1, 0));
@@ -106,6 +112,7 @@ public class PokemonTest {
         var map = instances.get(0).getAnimationsIfAvailable();
 
         for (var instance : instances) {
+            //instance.changeAnimation(new AnimationInstance(map.get("walk")));
             instance.changeAnimation(new ThreeStageAnimationInstance(map, "rest_start", "rest_loop", "rest_end", "idle", "walk"));
         }
     }

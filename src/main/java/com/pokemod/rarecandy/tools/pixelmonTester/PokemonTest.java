@@ -46,7 +46,7 @@ public class PokemonTest {
         this.pipelines = new Pipelines(projectionMatrix);
 
         loadPokemonModel(scene, this::getAsset, model -> {
-            var variants = List.of("none-normal");//, "none-shiny");
+            var variants = List.of("normal", "shiny");
 
             for (int i = 0; i < variants.size(); i++) {
                 var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variants.get(i));

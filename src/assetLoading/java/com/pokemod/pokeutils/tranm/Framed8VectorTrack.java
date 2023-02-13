@@ -13,7 +13,7 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class Framed8VectorTrack extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_1_4(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_23_1_21(); }
   public static Framed8VectorTrack getRootAsFramed8VectorTrack(ByteBuffer _bb) { return getRootAsFramed8VectorTrack(_bb, new Framed8VectorTrack()); }
   public static Framed8VectorTrack getRootAsFramed8VectorTrack(ByteBuffer _bb, Framed8VectorTrack obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }

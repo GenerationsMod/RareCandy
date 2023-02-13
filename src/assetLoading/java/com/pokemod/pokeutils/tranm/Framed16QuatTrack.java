@@ -13,7 +13,7 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class Framed16QuatTrack extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_1_4(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_23_1_21(); }
   public static Framed16QuatTrack getRootAsFramed16QuatTrack(ByteBuffer _bb) { return getRootAsFramed16QuatTrack(_bb, new Framed16QuatTrack()); }
   public static Framed16QuatTrack getRootAsFramed16QuatTrack(ByteBuffer _bb, Framed16QuatTrack obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }

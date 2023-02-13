@@ -8,8 +8,9 @@ group = "com.pixelmongenerations"
 version = "1.1.2"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 sourceSets {
@@ -33,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    shadow(compileOnly("org.jetbrains", "annotations", "23.1.0"))
+    compileOnly("org.jetbrains:annotations:24.0.0")
 
     shadow(implementation("org.tukaani", "xz", "1.9"))
     shadow(implementation("org.apache.commons", "commons-compress", "1.22"))
@@ -50,7 +51,7 @@ dependencies {
     shadow(runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-windows"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-windows"))
 
-    shadow(implementation("org.slf4j:slf4j-jdk14:2.0.5")!!)
+    shadow(implementation("org.slf4j:slf4j-jdk14:2.0.6")!!)
 
     // PokeUtils Libs
     shadow(implementation("com.github.weisj:darklaf-core:3.0.2")!!)
@@ -59,7 +60,7 @@ dependencies {
     shadow(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows"))
     shadow(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
 
-    shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.1.4")!!)
+    shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.1.21")!!)
 }
 
 tasks {

@@ -34,9 +34,7 @@ public class PokemonTest {
     public Pipelines pipelines;
 
     public PokemonTest(String[] args) {
-        Animation.animationModifier = (animation, s) -> {
-            animation.ticksPerSecond = 16;
-        };
+        Animation.animationModifier = (animation, s) -> animation.ticksPerSecond = 16;
         this.path = Paths.get(args[0]);
         if (args.length == 3) this.rotate = Boolean.parseBoolean(args[2]);
     }

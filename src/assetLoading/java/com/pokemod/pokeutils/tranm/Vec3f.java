@@ -13,7 +13,7 @@ public final class Vec3f extends Struct {
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
   public Vec3f __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public float x() { return bb.getFloat(bb_pos + 0); }
+  public float x() { return bb.getFloat(bb_pos); }
   public float y() { return bb.getFloat(bb_pos + 4); }
   public float z() { return bb.getFloat(bb_pos + 8); }
 

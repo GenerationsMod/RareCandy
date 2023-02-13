@@ -13,7 +13,7 @@ public final class Vec4s extends Struct {
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
   public Vec4s __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public int x() { return bb.getShort(bb_pos + 0) & 0xFFFF; }
+  public int x() { return bb.getShort(bb_pos) & 0xFFFF; }
   public int y() { return bb.getShort(bb_pos + 2) & 0xFFFF; }
   public int z() { return bb.getShort(bb_pos + 4) & 0xFFFF; }
   public int w() { return bb.getShort(bb_pos + 6) & 0xFFFF; }

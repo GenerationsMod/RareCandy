@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     `maven-publish`
+    idea
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 

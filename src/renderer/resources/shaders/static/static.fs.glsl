@@ -16,7 +16,7 @@ uniform float LIGHT_reflectivity;
 const float AMBIENT_LIGHT = 0.6f;
 
 void main() {
-    vec4 color = texture2D(diffuse, texCoord0);
+    vec4 color = texture(diffuse, texCoord0);
     if (color.a < 0.1) discard;
     outColor = color;
 }

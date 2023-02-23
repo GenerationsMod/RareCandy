@@ -34,15 +34,16 @@ public class MinecraftSimulator {
         });
 
         var scene = new RareCandy();
-        GL11C.glClearColor(0.5f, 0.5f, 0.5f, 1);
+        GL11C.glClearColor(1f, 1f, 1f, 1);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);
-        GL11C.glEnable(GL11C.GL_CULL_FACE);
+        //GL11C.glEnable(GL11C.GL_CULL_FACE);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
         test.init(scene, projectionMatrix, viewMatrix);
 
         while (!window.shouldClose()) {
+            test.loop();
             window.pollEvents();
             GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
             scene.render(false, ((System.currentTimeMillis() - START_TIME) / 16000));

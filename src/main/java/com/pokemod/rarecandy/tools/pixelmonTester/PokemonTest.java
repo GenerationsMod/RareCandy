@@ -1,5 +1,6 @@
 package com.pokemod.rarecandy.tools.pixelmonTester;
 
+import com.pokemod.pokeutils.GlbPixelAsset;
 import com.pokemod.pokeutils.LoosePixelAsset;
 import com.pokemod.pokeutils.PixelAsset;
 import com.pokemod.rarecandy.animation.Animation;
@@ -10,6 +11,7 @@ import com.pokemod.rarecandy.components.MeshObject;
 import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.loading.ModelLoader;
 import com.pokemod.rarecandy.pipeline.Pipeline;
+import com.pokemod.rarecandy.rendering.ObjectInstance;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
 import org.joml.Matrix4f;
@@ -43,32 +45,51 @@ public class PokemonTest {
         this.renderer = scene;
         this.pipelines = new Pipelines(projectionMatrix);
 
-        loadPokemonModel(scene, this::getAsset, model -> {
-            var variants = List.of("normal", "shiny");
+        load(renderer, () -> {
+            try {
+                return new GlbPixelAsset("skybox", PokemonTest.class.getResourceAsStream("/skybox.glb").readAllBytes());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, s -> pipelines.pbrEmissive, model -> {
+            var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, "none");
+            instance.transformationMatrix().translate(0.1f, 0.1f, -2);
+            scene.objectManager.add(model, instance);
+        }, AnimatedMeshObject::new);
 
-            for (int i = 0; i < variants.size(); i++) {
-                var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variants.get(i));
+        loadPokemonModel(scene, this::getAsset, model -> {
+            var variants = List.of("normal");
+
+            for (var variant : variants) {
+                var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
                 instance.transformationMatrix()
-                        .translate(new Vector3f(i * 4 - 2, -1f, 2))
+                        .translate(new Vector3f(0, -0.5f, -1.5f))
                         .rotate((float) Math.toRadians(-180), new Vector3f(0, 1, 0))
                         .scale(0.4f);
-
-                if (rotate) instance.transformationMatrix()
-                        .rotate((float) Math.toRadians(-90), new Vector3f(0, 1, 0));
 
                 instances.add(scene.objectManager.add(model, instance));
             }
         });
     }
 
+    public void loop() {
+        for (ObjectInstance instance : instances) {
+            if (rotate) instance.transformationMatrix()
+                    .rotate((float) Math.toRadians(1f), new Vector3f(0, 1, 0));
+        }
+    }
+
     private PixelAsset getAsset() {
         try {
-            try (var files = Files.list(path)) {
-                return new LoosePixelAsset(
-                        path,
-                        Paths.get(path.getFileName().toString() + ".glb"),
-                        files.toArray(Path[]::new)
-                );
+            if (!Files.isDirectory(path)) return new PixelAsset(Files.newInputStream(path), "archive");
+            else {
+                try (var files = Files.list(path)) {
+                    return new LoosePixelAsset(
+                            path,
+                            Paths.get(path.getFileName().toString() + ".glb"),
+                            files.toArray(Path[]::new)
+                    );
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException("Fuck", e);
@@ -93,7 +114,7 @@ public class PokemonTest {
     }
 
     protected void loadPokemonModel(RareCandy renderer, Supplier<PixelAsset> assetSupplier, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
-        load(renderer, assetSupplier, s -> pipelines.animated, onFinish, AnimatedMeshObject::new);
+        load(renderer, assetSupplier, s -> (s.contains("glow") || s.contains("eyes")) ? pipelines.pbrEmissive : pipelines.pbrLight, onFinish, AnimatedMeshObject::new);
     }
 
     public void leftTap() {

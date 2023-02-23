@@ -21,7 +21,7 @@ public class GuiPipelines {
             });
 
     public static final Pipeline STATIC = new Pipeline.Builder(BASE)
-            .shader(builtin("static/static.vs.glsl"), builtin("static/static.fs.glsl"))
+            .shader(builtin("static/pbr.vs.glsl"), builtin("static/pbr.fs.glsl"))
             .build();
 
     public static final Pipeline ANIMATED = new Pipeline.Builder(BASE)

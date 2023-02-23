@@ -157,30 +157,23 @@ public class ModelLoader {
             }
         }
 
-        // gltfModel.getSceneModels().get(0).getNodeModels().get(0).getScale()
-        for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
-            var transform = new Matrix4f();
-            applyTransforms(transform, node);
-
-            if (node.getChildren().isEmpty()) {
-                // Model Loading Method #1
-                objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
-
-                for (var meshModel : node.getMeshModels()) {
-                    processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
-                }
-            } else {
-                // Model Loading Method #2
-                for (var child : node.getChildren()) {
-                    applyTransforms(transform, child);
-                    objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
-
-                    for (var meshModel : child.getMeshModels()) {
-                        processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
-                    }
-                }
-            }
+        //gltfModel.getSceneModels().get(0).getNodeModels().get(0).getChildren().get(0).getChildren().get(0).getChildren().get(0).getChildren()
+        for (var sceneModel : gltfModel.getSceneModels()) {
+            for (var nodeModel : sceneModel.getNodeModels())
+                readNode(nodeModel, materials, variants, objects, animations, glCalls, pipeline, supplier);
         }
+    }
+
+    private static <T extends MeshObject> void readNode(NodeModel nodeModel, List<Material> materials, List<String> variants, MultiRenderObject<T> objects, Map<String, Animation> animations, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
+        for (var child : nodeModel.getChildren())
+            readNode(child, materials, variants, objects, animations, glCalls, pipeline, supplier);
+
+        var transform = new Matrix4f();
+        applyTransforms(transform, nodeModel);
+        objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
+
+        for (var meshModel : nodeModel.getMeshModels())
+            processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
     }
 
     private static void applyTransforms(Matrix4f transform, NodeModel node) {
@@ -211,11 +204,9 @@ public class ModelLoader {
             var renderObject = objSupplier.get();
             var appliedPipeline = pipeline.apply(primitiveModel.getMaterialModel().getName());
 
-            if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
+            if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject)
                 animatedMeshObject.setup(materials, variants, glModel, appliedPipeline, animations);
-            } else {
-                renderObject.setup(materials, variants, glModel, appliedPipeline);
-            }
+            else renderObject.setup(materials, variants, glModel, appliedPipeline);
 
             objects.add(renderObject);
         }
@@ -318,7 +309,7 @@ public class ModelLoader {
         if (variantsList == null) {
             var materialId = primitiveModel.getMaterialModel().getName();
             return Collections.singletonMap("default", materials.stream().filter(a -> a.getMaterialName().equals(materialId)).findAny().get());
-        } else {
+        } else if (primitiveModel.getExtensions() != null) {
             var map = (Map<String, Object>) primitiveModel.getExtensions().get("KHR_materials_variants");
             var mappings = (List<Map<String, Object>>) map.get("mappings");
             var variantMap = new HashMap<String, Material>();
@@ -335,6 +326,6 @@ public class ModelLoader {
             }
 
             return variantMap;
-        }
+        } else return Map.of("none", materials.get(0));
     }
 }

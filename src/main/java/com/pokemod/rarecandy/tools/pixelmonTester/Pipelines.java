@@ -10,6 +10,8 @@ import java.io.IOException;
 public class Pipelines {
 
     public final Pipeline animated;
+    public final Pipeline pbrLight;
+    public final Pipeline pbrEmissive;
 
     public Pipelines(Matrix4f projectionMatrix) {
         var base = new Pipeline.Builder()
@@ -29,6 +31,42 @@ public class Pipelines {
         this.animated = new Pipeline.Builder(base)
                 .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated.fs.glsl"))
                 .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
+                .build();
+
+        var pbrBase = new Pipeline.Builder()
+                // Vertex Shader
+                .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
+                .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
+                .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
+                // Textures
+                .supplyUniform("diffuse", ctx -> {
+                    ctx.object().getMaterial(ctx.instance().materialId()).getDiffuseTexture().bind(0);
+                    ctx.uniform().uploadInt(0);
+                });
+
+        this.pbrEmissive = new Pipeline.Builder(pbrBase)
+                .shader(builtin("pbr/pbr.vs.glsl"), builtin("pbr/pbr.glow.fs.glsl"))
+                .build();
+
+        this.pbrLight = new Pipeline.Builder(pbrBase)
+                .shader(builtin("pbr/pbr.vs.glsl"), builtin("pbr/pbr.fs.glsl"))
+                // Fragment Shader
+                .supplyUniform("camPos", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0.1f, 0.01f, -2)))
+                .supplyUniform("metallic", ctx -> ctx.uniform().uploadFloat(0.5f))
+                .supplyUniform("roughness", ctx -> ctx.uniform().uploadFloat(0.4f))
+                .supplyUniform("ao", ctx -> ctx.uniform().uploadFloat(1.0f))
+                .supplyUniform("lightPositions", ctx -> ctx.uniform().uploadVec3fs(new Vector3f[]{
+                        new Vector3f(-10.0f, 10.0f, 10.0f),
+                        new Vector3f(10.0f, 10.0f, 10.0f),
+                        new Vector3f(-10.0f, -10.0f, 10.0f),
+                        new Vector3f(10.0f, -10.0f, 10.0f),
+                }))
+                .supplyUniform("lightColors", ctx -> ctx.uniform().uploadVec3fs(new Vector3f[]{
+                        new Vector3f(300.0f, 300.0f, 300.0f),
+                        new Vector3f(300.0f, 300.0f, 300.0f),
+                        new Vector3f(300.0f, 300.0f, 300.0f),
+                        new Vector3f(300.0f, 300.0f, 300.0f)
+                }))
                 .build();
     }
 

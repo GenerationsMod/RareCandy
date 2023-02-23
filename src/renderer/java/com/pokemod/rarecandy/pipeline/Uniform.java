@@ -38,12 +38,18 @@ public class Uniform {
 
     public void uploadMat4fs(Matrix4f[] values) {
         for (var i = 0; i < values.length; i++) {
-            if (values[i] == null) {
+            if (values[i] == null)
                 throw new RuntimeException("Matrix4f at index " + i + " is null. If you are passing an animation, Is it the right animation for this model?");
-            }
-
             values[i].get(MAT4_TRANSFER_BUFFER);
             GL20C.glUniformMatrix4fv(getArrayLocation(i), false, MAT4_TRANSFER_BUFFER);
+        }
+    }
+
+    public void uploadVec3fs(Vector3f[] values) {
+        for (var i = 0; i < values.length; i++) {
+            if (values[i] == null) throw new RuntimeException("Vector3f at index " + i + " is null.");
+            values[i].get(VEC3_TRANSFER_BUFFER);
+            GL20C.glUniform3fv(getArrayLocation(i), VEC3_TRANSFER_BUFFER);
         }
     }
 

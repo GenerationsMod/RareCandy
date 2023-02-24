@@ -1,4 +1,5 @@
-#version 450 core
+#version 330 core
+#pragma optionNV(strict on)
 
 in vec2 outTexCoords;
 

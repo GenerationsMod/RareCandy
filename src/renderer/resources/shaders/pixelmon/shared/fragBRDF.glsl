@@ -1,4 +1,5 @@
 #version 330 core
+#pragma optionNV(strict on)
 
 in vec2 outTexCoords;
 in vec3 outPos;
@@ -12,13 +13,12 @@ uniform float roughness;
 uniform float ao;
 
 // lights
+uniform vec3 camPos;
 uniform vec3 lightPositions[4];
 uniform vec3 lightColors[4];
 
 // textures
 uniform sampler2D diffuse;
-
-uniform vec3 camPos;
 
 const float PI = 3.14159265359;
 
@@ -58,8 +58,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-void main()
-{
+void main() {
     vec3 albedo = pow(texture(diffuse, outTexCoords).rgb, vec3(2.2));
 
     vec3 N = normalize(outNormal);
@@ -70,8 +69,7 @@ void main()
 
     // reflectance equation
     vec3 Lo = vec3(0.0);
-    for (int i = 0; i < 1; ++i)
-    {
+    for (int i = 0; i < 1; ++i) {
         // calculate per-light radiance
         vec3 L = normalize(lightPositions[i] - outPos);
         vec3 H = normalize(V + L);

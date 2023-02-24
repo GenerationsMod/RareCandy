@@ -1,6 +1,6 @@
 package com.pokemod.rarecandy.tools.pixelmonTester;
 
-import com.pokemod.rarecandy.pipeline.Pipeline;
+import com.pokemod.rarecandy.pipeline.ShaderPipeline;
 import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -9,12 +9,12 @@ import java.io.IOException;
 
 public class Pipelines {
 
-    public final Pipeline animated;
-    public final Pipeline pbrLight;
-    public final Pipeline pbrEmissive;
+    public final ShaderPipeline animated;
+    public final ShaderPipeline pbrLight;
+    public final ShaderPipeline pbrEmissive;
 
     public Pipelines(Matrix4f projectionMatrix) {
-        var base = new Pipeline.Builder()
+        var base = new ShaderPipeline.Builder()
                 .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
                 .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
                 .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
@@ -28,12 +28,12 @@ public class Pipelines {
                     ctx.uniform().uploadInt(0);
                 });
 
-        this.animated = new Pipeline.Builder(base)
+        this.animated = new ShaderPipeline.Builder(base)
                 .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated.fs.glsl"))
                 .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
                 .build();
 
-        var pbrBase = new Pipeline.Builder()
+        var pbrBase = new ShaderPipeline.Builder()
                 // Vertex Shader
                 .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
                 .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
@@ -44,11 +44,11 @@ public class Pipelines {
                     ctx.uniform().uploadInt(0);
                 });
 
-        this.pbrEmissive = new Pipeline.Builder(pbrBase)
+        this.pbrEmissive = new ShaderPipeline.Builder(pbrBase)
                 .shader(builtin("pbr/pbr.vs.glsl"), builtin("pbr/pbr.glow.fs.glsl"))
                 .build();
 
-        this.pbrLight = new Pipeline.Builder(pbrBase)
+        this.pbrLight = new ShaderPipeline.Builder(pbrBase)
                 .shader(builtin("pbr/pbr.vs.glsl"), builtin("pbr/pbr.fs.glsl"))
                 // Fragment Shader
                 .supplyUniform("camPos", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0.1f, 0.01f, -2)))
@@ -71,7 +71,7 @@ public class Pipelines {
     }
 
     private static String builtin(String name) {
-        try (var is = Pipeline.class.getResourceAsStream("/shaders/" + name)) {
+        try (var is = ShaderPipeline.class.getResourceAsStream("/shaders/" + name)) {
             assert is != null;
             return new String(is.readAllBytes());
         } catch (IOException e) {

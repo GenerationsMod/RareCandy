@@ -2,7 +2,7 @@ package com.pokemod.rarecandy.components;
 
 import com.pokemod.rarecandy.model.GLModel;
 import com.pokemod.rarecandy.model.Material;
-import com.pokemod.rarecandy.pipeline.Pipeline;
+import com.pokemod.rarecandy.pipeline.ShaderPipeline;
 import com.pokemod.rarecandy.rendering.ObjectInstance;
 
 import java.util.List;
@@ -11,23 +11,23 @@ import java.util.Map;
 public class MeshObject extends RenderObject {
     public GLModel model;
 
-    public void setup(List<Material> glMaterials, Map<String, Material> variants, GLModel model, Pipeline pipeline) {
+    public void setup(List<Material> glMaterials, Map<String, Material> variants, GLModel model, ShaderPipeline shaderPipeline) {
         this.materials = glMaterials;
         this.variants = variants;
         this.model = model;
-        this.pipeline = pipeline;
+        this.shaderPipeline = shaderPipeline;
         this.ready = true;
     }
 
     public void render(List<ObjectInstance> instances) {
-        pipeline.bind();
+        shaderPipeline.bind();
 
         for (var instance : instances) {
-            pipeline.updateOtherUniforms(instance, this);
-            pipeline.updateTexUniforms(instance, this);
+            shaderPipeline.updateOtherUniforms(instance, this);
+            shaderPipeline.updateTexUniforms(instance, this);
             model.runDrawCalls();
         }
 
-        pipeline.unbind();
+        shaderPipeline.unbind();
     }
 }

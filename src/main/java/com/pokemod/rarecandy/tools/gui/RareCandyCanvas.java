@@ -5,7 +5,7 @@ import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
 import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.loading.ModelLoader;
-import com.pokemod.rarecandy.pipeline.Pipeline;
+import com.pokemod.rarecandy.pipeline.ShaderPipeline;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
 import org.joml.Matrix4f;
@@ -116,7 +116,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         load(renderer, is, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
     }
 
-    protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Function<String, ShaderPipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
         loader.createObject(
                 () -> is,
@@ -129,7 +129,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         );
     }
 
-    private Pipeline getPokemonPipeline(String materialName) {
+    private ShaderPipeline getPokemonPipeline(String materialName) {
         return materialName.contains("Eyes") ? GuiPipelines.POKEMON_EYES : GuiPipelines.ANIMATED;
     }
 

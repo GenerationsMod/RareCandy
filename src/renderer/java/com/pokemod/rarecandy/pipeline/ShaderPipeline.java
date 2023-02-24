@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms, Runnable preDrawBatch, Runnable postDrawBatch, int program) {
+public record ShaderPipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms, Runnable preDrawBatch, Runnable postDrawBatch, int program) {
 
     public void bind() {
         GL20C.glUseProgram(program);
@@ -116,10 +116,10 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
             return this;
         }
 
-        public Pipeline build() {
+        public ShaderPipeline build() {
             if (this.program == 0) throw new RuntimeException("Shader not created");
 
-            return new Pipeline(uniformSuppliers, uniforms, preDrawBatch, postDrawRunBatch, program);
+            return new ShaderPipeline(uniformSuppliers, uniforms, preDrawBatch, postDrawRunBatch, program);
         }
     }
 }

@@ -10,7 +10,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RareCandy {
-    private static final Logger LOGGER = LoggerFactory.getLogger(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
+    private static final Logger LOGGER = LoggerFactory.getLogger("Rare Candy");
     public static boolean DEBUG_THREADS = false;
     public final ObjectManager objectManager = new ObjectManager();
     private final ModelLoader loader;

@@ -74,29 +74,29 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     @Override
     public void render(List<ObjectInstance> instances) {
         if (dirty) {
-            pipeline = null;
+            shaderPipeline = null;
             smartRender = true;
             for (T object : objects) {
-                if (pipeline == null) pipeline = object.pipeline;
-                else if (pipeline != object.pipeline) smartRender = false;
+                if (shaderPipeline == null) shaderPipeline = object.shaderPipeline;
+                else if (shaderPipeline != object.shaderPipeline) smartRender = false;
             }
         }
 
         if (smartRender && isReady()) {
-            pipeline.bind();
+            shaderPipeline.bind();
 
             for (var instance : instances) {
-                pipeline.updateOtherUniforms(instance, objects.get(0));
+                shaderPipeline.updateOtherUniforms(instance, objects.get(0));
 
                 for (T object : objects) {
                     if (object instanceof MeshObject meshObject) {
-                        pipeline.updateTexUniforms(instance, object);
+                        shaderPipeline.updateTexUniforms(instance, object);
                         meshObject.model.runDrawCalls();
                     }
                 }
             }
 
-            pipeline.unbind();
+            shaderPipeline.unbind();
         } else {
             for (T object : this.objects) {
                 object.render(instances);

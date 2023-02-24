@@ -14,7 +14,7 @@ import com.pokemod.rarecandy.model.GLModel;
 import com.pokemod.rarecandy.model.GlCallSupplier;
 import com.pokemod.rarecandy.model.Material;
 import com.pokemod.rarecandy.model.MeshDrawCommand;
-import com.pokemod.rarecandy.pipeline.Pipeline;
+import com.pokemod.rarecandy.pipeline.ShaderPipeline;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import de.javagl.jgltf.model.*;
 import de.javagl.jgltf.model.image.PixelDatas;
@@ -115,11 +115,11 @@ public class ModelLoader {
         }
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, List<Runnable> glCalls, Function<String, ShaderPipeline> pipeline, Supplier<T> supplier) {
         create2(objects, gltfModel, smdFileMap, gfbFileMap, glCalls, pipeline, supplier, Animation.GLB_SPEED);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier, int animationSpeed) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, List<Runnable> glCalls, Function<String, ShaderPipeline> pipeline, Supplier<T> supplier, int animationSpeed) {
         checkForRootTransformation(objects, gltfModel);
         if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
 
@@ -164,7 +164,7 @@ public class ModelLoader {
         }
     }
 
-    private static <T extends MeshObject> void readNode(NodeModel nodeModel, List<Material> materials, List<String> variants, MultiRenderObject<T> objects, Map<String, Animation> animations, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
+    private static <T extends MeshObject> void readNode(NodeModel nodeModel, List<Material> materials, List<String> variants, MultiRenderObject<T> objects, Map<String, Animation> animations, List<Runnable> glCalls, Function<String, ShaderPipeline> pipeline, Supplier<T> supplier) {
         for (var child : nodeModel.getChildren())
             readNode(child, materials, variants, objects, animations, glCalls, pipeline, supplier);
 
@@ -197,7 +197,7 @@ public class ModelLoader {
         }
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Map<String, Animation> animations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Function<String, ShaderPipeline> pipeline, List<Runnable> glCalls, @Nullable Map<String, Animation> animations) {
         for (var primitiveModel : model.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
             var glModel = processPrimitiveModel(primitiveModel, glCalls);

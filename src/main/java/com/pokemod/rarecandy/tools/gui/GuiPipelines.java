@@ -1,13 +1,13 @@
 package com.pokemod.rarecandy.tools.gui;
 
-import com.pokemod.rarecandy.pipeline.Pipeline;
+import com.pokemod.rarecandy.pipeline.ShaderPipeline;
 import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
 import org.joml.Vector3f;
 
 import java.io.IOException;
 
 public class GuiPipelines {
-    private static final Pipeline.Builder BASE = new Pipeline.Builder()
+    private static final ShaderPipeline.Builder BASE = new ShaderPipeline.Builder()
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(RareCandyCanvas.projectionMatrix))
@@ -20,16 +20,16 @@ public class GuiPipelines {
                 ctx.uniform().uploadInt(0);
             });
 
-    public static final Pipeline STATIC = new Pipeline.Builder(BASE)
+    public static final ShaderPipeline STATIC = new ShaderPipeline.Builder(BASE)
             .shader(builtin("static/pbr.vs.glsl"), builtin("static/pbr.fs.glsl"))
             .build();
 
-    public static final Pipeline ANIMATED = new Pipeline.Builder(BASE)
+    public static final ShaderPipeline ANIMATED = new ShaderPipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated.fs.glsl"))
             .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
             .build();
 
-    public static final Pipeline POKEMON_EYES = new Pipeline.Builder(BASE)
+    public static final ShaderPipeline POKEMON_EYES = new ShaderPipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated_pokemon_eyes.fs.glsl"))
             .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
             .build();
@@ -37,7 +37,7 @@ public class GuiPipelines {
     public static void onInitialize() {}
 
     private static String builtin(String name) {
-        try (var is = Pipeline.class.getResourceAsStream("/shaders/" + name)) {
+        try (var is = ShaderPipeline.class.getResourceAsStream("/shaders/" + name)) {
             assert is != null;
             return new String(is.readAllBytes());
         } catch (IOException e) {

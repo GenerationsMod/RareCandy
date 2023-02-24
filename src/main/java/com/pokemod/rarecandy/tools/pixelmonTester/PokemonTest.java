@@ -10,7 +10,7 @@ import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
 import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.loading.ModelLoader;
-import com.pokemod.rarecandy.pipeline.Pipeline;
+import com.pokemod.rarecandy.pipeline.ShaderPipeline;
 import com.pokemod.rarecandy.rendering.ObjectInstance;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
@@ -96,7 +96,7 @@ public class PokemonTest {
         }
     }
 
-    protected <T extends MeshObject> void load(RareCandy renderer, Supplier<PixelAsset> asset, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected <T extends MeshObject> void load(RareCandy renderer, Supplier<PixelAsset> asset, Function<String, ShaderPipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
         loader.createObject(
                 asset,
@@ -134,10 +134,6 @@ public class PokemonTest {
             //instance.changeAnimation(new AnimationInstance(map.get("walk")));
             instance.changeAnimation(new ThreeStageAnimationInstance(map, "rest_start", "rest_loop", "rest_end", "idle", "walk"));
         }
-    }
-
-    private static int clamp(int value, int max) {
-        return Math.min(Math.max(value, 0), max);
     }
 
     public void space() {

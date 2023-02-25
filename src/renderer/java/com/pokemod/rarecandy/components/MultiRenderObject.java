@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
     public float scale;
+    public final List<T> hiddenObjects = new ArrayList<>();
     public final List<T> objects = new ArrayList<>();
     private final List<Consumer<T>> queue = new ArrayList<>();
     private boolean dirty = true;
@@ -34,9 +35,15 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
         queue.add(consumer);
     }
 
-    public void add(T obj) {
-        this.objects.add(obj);
+    public void add(T obj, boolean hidden) {
+        if(hidden) hiddenObjects.add(obj);
+        else objects.add(obj);
         dirty = true;
+    }
+
+    public void unhideAll() {
+        objects.addAll(hiddenObjects);
+        hiddenObjects.clear();;
     }
 
     public void setRootTransformation(Matrix4f rootTransformation) {

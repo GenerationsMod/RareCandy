@@ -168,12 +168,13 @@ public class ModelLoader {
         for (var child : nodeModel.getChildren())
             readNode(child, materials, variants, objects, animations, glCalls, pipeline, supplier);
 
+        var hideByDefault = nodeModel.getName().contains("hidden");
         var transform = new Matrix4f();
         applyTransforms(transform, nodeModel);
         objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
 
         for (var meshModel : nodeModel.getMeshModels())
-            processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
+            processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations, hideByDefault);
     }
 
     private static void applyTransforms(Matrix4f transform, NodeModel node) {
@@ -197,7 +198,7 @@ public class ModelLoader {
         }
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Function<String, ShaderPipeline> pipeline, List<Runnable> glCalls, @Nullable Map<String, Animation> animations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Function<String, ShaderPipeline> pipeline, List<Runnable> glCalls, @Nullable Map<String, Animation> animations, boolean hideByDefault) {
         for (var primitiveModel : model.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
             var glModel = processPrimitiveModel(primitiveModel, glCalls);
@@ -208,7 +209,7 @@ public class ModelLoader {
                 animatedMeshObject.setup(materials, variants, glModel, appliedPipeline, animations);
             else renderObject.setup(materials, variants, glModel, appliedPipeline);
 
-            objects.add(renderObject);
+            objects.add(renderObject, hideByDefault);
         }
     }
 

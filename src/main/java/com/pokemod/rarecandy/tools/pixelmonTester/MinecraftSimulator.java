@@ -8,7 +8,7 @@ import org.lwjgl.opengl.GL11C;
 public class MinecraftSimulator {
     public final Window window;
     public final Matrix4f projectionMatrix;
-    public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, 0, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.0f, -1, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public final PokemonTest test;
 
     public MinecraftSimulator(PokemonTest test, int sizeMultiplier) {

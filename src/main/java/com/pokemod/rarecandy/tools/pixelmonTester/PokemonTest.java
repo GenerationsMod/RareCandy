@@ -29,6 +29,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class PokemonTest {
+    public static PokemonTest INSTANCE;
     private static final double START_TIME = System.currentTimeMillis();
     private final List<AnimatedObjectInstance> instances = new ArrayList<>();
     private final Path path;
@@ -41,6 +42,7 @@ public class PokemonTest {
         Animation.animationModifier = (animation, s) -> animation.ticksPerSecond = 16;
         this.path = Paths.get(args[0]);
         if (args.length == 3) this.rotate = Boolean.parseBoolean(args[2]);
+        INSTANCE = this;
     }
 
     public void init(RareCandy scene, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
@@ -57,7 +59,7 @@ public class PokemonTest {
                 var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
                 instance.transformationMatrix()
                         .rotate((float) Math.toRadians(90), new Vector3f(0, 1, 0))
-                        .translate(new Vector3f(0, -0.5f, -0.5f))
+                        .translate(new Vector3f(0f, -0.5f, 0))
                         .scale(0.4f);
 
                 instances.add(scene.objectManager.add(model, instance));
@@ -114,10 +116,10 @@ public class PokemonTest {
         var lightingSettings = Pipelines.LightingType.PBR;
 
         if (materialName.contains("eyes")) lightingSettings = Pipelines.LightingType.EMISSIVE;
-        else if (materialName.contains("glow")) lightingSettings = Pipelines.LightingType.EMISSIVE;
+        else if (materialName.contains("glow")) lightingSettings = Pipelines.LightingType.GLOSSY_EXPERIMENTAL;
         else if (materialName.contains("emi")) lightingSettings = Pipelines.LightingType.EMISSIVE;
         else if (materialName.contains("fast")) lightingSettings = Pipelines.LightingType.BASIC_FAST;
-        return pipelines.getPipeline(lightingSettings, true);
+        return pipelines.cachePipeline(lightingSettings, true);
     }
 
     public void leftTap() {

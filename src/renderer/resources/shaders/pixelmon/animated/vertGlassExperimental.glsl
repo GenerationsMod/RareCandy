@@ -12,6 +12,7 @@ out vec3 outReflection;
 out vec3 outRefraction;
 out float outFresnel;
 out vec2 outTexCoords;
+out vec4 outStarCoords;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
@@ -28,6 +29,13 @@ const float Eta = Air / Glass;
 
 // see http://en.wikipedia.org/wiki/Refractive_index Reflectivity
 const float R0 = ((Air - Glass) * (Air - Glass)) / ((Air + Glass) * (Air + Glass));
+
+vec4 projectionFromPos(vec4 position) {
+    vec4 projection = position * 14;
+    projection.xy = vec2(projection.x + projection.w, projection.y + projection.w);
+    projection.zw = position.zw;
+    return projection;
+}
 
 mat4 getBoneTransform() {
     mat4 boneTransform =
@@ -52,4 +60,5 @@ void main() {
 
     outTexCoords = texcoords;
     gl_Position = projectionMatrix * viewMatrix * outPos;
+    outStarCoords = projectionFromPos(gl_Position);
 }

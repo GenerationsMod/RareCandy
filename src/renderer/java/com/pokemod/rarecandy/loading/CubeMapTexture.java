@@ -53,10 +53,12 @@ public class CubeMapTexture {
     }
 
     public static ByteBuffer readResource(Path path) throws IOException {
-        var bytes = Files.readAllBytes(path);
+        return readResource(Files.readAllBytes(path));
+    }
+
+    public static ByteBuffer readResource(byte[] bytes) {
         var nativeBuffer = MemoryUtil.memAlloc(bytes.length);
         nativeBuffer.put(bytes);
-
         return nativeBuffer.rewind();
     }
 }

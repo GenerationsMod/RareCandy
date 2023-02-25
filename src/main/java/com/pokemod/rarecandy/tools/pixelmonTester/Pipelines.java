@@ -104,6 +104,10 @@ public class Pipelines {
                 case GLOSSY_EXPERIMENTAL -> builder
                         .supplyUniform("camPos", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0f, 0f, -1)))
                         .supplyUniform("underlyingTexCoordMix", ctx -> ctx.uniform().uploadFloat(0.8f))
+                        .supplyUniform("stars", ctx -> {
+                            PokemonTest.INSTANCE.starsTexture.bind(2);
+                            ctx.uniform().uploadInt(2);
+                        })
                         .supplyUniform("cubemap", ctx -> {
                             GL13C.glActiveTexture(GL13C.GL_TEXTURE1);
                             GL11C.glBindTexture(GL20C.GL_TEXTURE_CUBE_MAP, PokemonTest.INSTANCE.cubeMap.id);

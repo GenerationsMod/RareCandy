@@ -11,6 +11,7 @@ import com.pokemod.rarecandy.components.MultiRenderObject;
 import com.pokemod.rarecandy.components.SkyboxRenderObject;
 import com.pokemod.rarecandy.loading.CubeMapTexture;
 import com.pokemod.rarecandy.loading.ModelLoader;
+import com.pokemod.rarecandy.loading.Texture;
 import com.pokemod.rarecandy.pipeline.ShaderPipeline;
 import com.pokemod.rarecandy.rendering.ObjectInstance;
 import com.pokemod.rarecandy.rendering.RareCandy;
@@ -37,6 +38,7 @@ public class PokemonTest {
     public RareCandy renderer;
     public Pipelines pipelines;
     public CubeMapTexture cubeMap;
+    public Texture starsTexture;
 
     public PokemonTest(String[] args) {
         Animation.animationModifier = (animation, s) -> animation.ticksPerSecond = 16;
@@ -46,11 +48,16 @@ public class PokemonTest {
     }
 
     public void init(RareCandy scene, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
-        this.renderer = scene;
-        this.pipelines = new Pipelines(() -> projectionMatrix);
-        var skybox = new SkyboxRenderObject(pipelines.skybox);
-        scene.objectManager.add(skybox, new ObjectInstance(new Matrix4f(), viewMatrix, ""));
-        this.cubeMap = skybox.texture;
+        try {
+            this.renderer = scene;
+            this.pipelines = new Pipelines(() -> projectionMatrix);
+            var skybox = new SkyboxRenderObject(pipelines.skybox);
+            scene.objectManager.add(skybox, new ObjectInstance(new Matrix4f(), viewMatrix, ""));
+            this.cubeMap = skybox.texture;
+            this.starsTexture = new Texture(PokemonTest.class.getResourceAsStream("/shared/stars.png").readAllBytes(), "stars.png");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         loadPokemonModel(scene, this::getAsset, model -> {
             var variants = List.of("normal");

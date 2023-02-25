@@ -1,6 +1,5 @@
 package com.pokemod.rarecandy.tools.pixelmonTester;
 
-import com.pokemod.pokeutils.GlbPixelAsset;
 import com.pokemod.pokeutils.LoosePixelAsset;
 import com.pokemod.pokeutils.PixelAsset;
 import com.pokemod.rarecandy.animation.Animation;
@@ -9,6 +8,8 @@ import com.pokemod.rarecandy.animation.ThreeStageAnimationInstance;
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
 import com.pokemod.rarecandy.components.MeshObject;
 import com.pokemod.rarecandy.components.MultiRenderObject;
+import com.pokemod.rarecandy.components.SkyboxRenderObject;
+import com.pokemod.rarecandy.loading.CubeMapTexture;
 import com.pokemod.rarecandy.loading.ModelLoader;
 import com.pokemod.rarecandy.pipeline.ShaderPipeline;
 import com.pokemod.rarecandy.rendering.ObjectInstance;
@@ -28,12 +29,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class PokemonTest {
-
+    private static final double START_TIME = System.currentTimeMillis();
     private final List<AnimatedObjectInstance> instances = new ArrayList<>();
     private final Path path;
     private boolean rotate;
     public RareCandy renderer;
     public Pipelines pipelines;
+    public CubeMapTexture cubeMap;
 
     public PokemonTest(String[] args) {
         Animation.animationModifier = (animation, s) -> animation.ticksPerSecond = 16;
@@ -43,19 +45,10 @@ public class PokemonTest {
 
     public void init(RareCandy scene, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         this.renderer = scene;
-        this.pipelines = new Pipelines(projectionMatrix);
-
-        load(renderer, () -> {
-            try {
-                return new GlbPixelAsset("skybox", PokemonTest.class.getResourceAsStream("/skybox.glb").readAllBytes());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }, s -> pipelines.pbrEmissive, model -> {
-            var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, "none");
-            instance.transformationMatrix().translate(0.1f, 0.1f, -2);
-            scene.objectManager.add(model, instance);
-        }, AnimatedMeshObject::new);
+        this.pipelines = new Pipelines(() -> projectionMatrix);
+        var skybox = new SkyboxRenderObject(pipelines.skybox);
+        scene.objectManager.add(skybox, new ObjectInstance(new Matrix4f(), viewMatrix, ""));
+        this.cubeMap = skybox.texture;
 
         loadPokemonModel(scene, this::getAsset, model -> {
             var variants = List.of("normal");
@@ -63,8 +56,8 @@ public class PokemonTest {
             for (var variant : variants) {
                 var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
                 instance.transformationMatrix()
-                        .translate(new Vector3f(0, -0.5f, -1.5f))
-                        .rotate((float) Math.toRadians(-180), new Vector3f(0, 1, 0))
+                        .rotate((float) Math.toRadians(90), new Vector3f(0, 1, 0))
+                        .translate(new Vector3f(0, -0.5f, -0.5f))
                         .scale(0.4f);
 
                 instances.add(scene.objectManager.add(model, instance));
@@ -101,20 +94,30 @@ public class PokemonTest {
         loader.createObject(
                 asset,
                 (gltfModel, smdFileMap, gfbFileMap, object) -> {
-                    var glCalls = new ArrayList<Runnable>();
                     try {
+                        var glCalls = new ArrayList<Runnable>();
                         ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, glCalls, pipelineFactory, supplier);
+                        return glCalls;
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to interpret data", e);
                     }
-                    return glCalls;
                 },
                 onFinish
         );
     }
 
     protected void loadPokemonModel(RareCandy renderer, Supplier<PixelAsset> assetSupplier, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
-        load(renderer, assetSupplier, s -> (s.contains("glow") || s.contains("eyes")) ? pipelines.pbrEmissive : pipelines.pbrLight, onFinish, AnimatedMeshObject::new);
+        load(renderer, assetSupplier, this::getPipeline, onFinish, AnimatedMeshObject::new);
+    }
+
+    private ShaderPipeline getPipeline(String materialName) {
+        var lightingSettings = Pipelines.LightingType.PBR;
+
+        if (materialName.contains("eyes")) lightingSettings = Pipelines.LightingType.EMISSIVE;
+        else if (materialName.contains("glow")) lightingSettings = Pipelines.LightingType.EMISSIVE;
+        else if (materialName.contains("emi")) lightingSettings = Pipelines.LightingType.EMISSIVE;
+        else if (materialName.contains("fast")) lightingSettings = Pipelines.LightingType.BASIC_FAST;
+        return pipelines.getPipeline(lightingSettings, true);
     }
 
     public void leftTap() {
@@ -143,5 +146,9 @@ public class PokemonTest {
                 else instance.currentAnimation.pause();
             }
         }
+    }
+
+    public static double getTimePassed() {
+        return (System.currentTimeMillis() - START_TIME) / 200;
     }
 }

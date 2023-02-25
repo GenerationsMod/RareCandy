@@ -88,7 +88,7 @@ public record ShaderPipeline(Map<String, Consumer<UniformUploadContext>> uniform
         }
 
         public Builder shader(@NotNull String vs, @NotNull String fs) {
-            program = GL20C.glCreateProgram();
+            this.program = GL20C.glCreateProgram();
             addShader(vs, GL20C.GL_VERTEX_SHADER, program);
             addShader(fs, GL20C.GL_FRAGMENT_SHADER, program);
             compileShader(program);

@@ -36,7 +36,7 @@ public class Animation {
 
     public Animation(String name, com.pokemod.pokeutils.tranm.Animation rawAnimation, Skeleton skeleton) {
         this.name = name;
-        this.ticksPerSecond = FPS_60 - 95;
+        this.ticksPerSecond = 60_000;
         this.skeleton = skeleton;
         this.animationNodes = fillAnimationNodesGfb(rawAnimation);
         this.animationDuration = findLastKeyTime();

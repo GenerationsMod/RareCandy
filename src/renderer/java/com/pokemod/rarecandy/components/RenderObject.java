@@ -17,6 +17,7 @@ public abstract class RenderObject {
     protected Map<String, Material> variants;
     protected boolean ready = false;
     protected Matrix4f matrixOffset = new Matrix4f().identity();
+    protected boolean disableBackfaceCull = false;
 
     public abstract void render(List<ObjectInstance> instances);
 

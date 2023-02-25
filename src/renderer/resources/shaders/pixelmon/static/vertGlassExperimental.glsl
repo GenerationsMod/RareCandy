@@ -27,7 +27,7 @@ const float Eta = Air / Glass;
 const float R0 = ((Air - Glass) * (Air - Glass)) / ((Air + Glass) * (Air + Glass));
 
 vec4 projectionFromPos(vec4 position) {
-    vec4 projection = position * 14;
+    vec4 projection = position * 2;
     projection.xy = vec2(projection.x + projection.w, projection.y + projection.w);
     projection.zw = position.zw;
     return projection;

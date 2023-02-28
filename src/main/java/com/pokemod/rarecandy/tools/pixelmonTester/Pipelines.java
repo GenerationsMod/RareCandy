@@ -113,6 +113,23 @@ public class Pipelines {
                             GL11C.glBindTexture(GL20C.GL_TEXTURE_CUBE_MAP, PokemonTest.INSTANCE.cubeMap.id);
                             ctx.uniform().uploadInt(1);
                         });
+
+                case TERASTALLIZE -> builder
+                        .supplyUniform("camPos", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0f, 0f, -1)))
+                        .supplyUniform("underlyingTexCoordMix", ctx -> ctx.uniform().uploadFloat(0.4f))
+                        .supplyUniform("stars", ctx -> {
+                            PokemonTest.INSTANCE.starsTexture.bind(2);
+                            ctx.uniform().uploadInt(2);
+                        })
+                        .supplyUniform("normalMap", ctx -> {
+                            PokemonTest.INSTANCE.normalMap.bind(3);
+                            ctx.uniform().uploadInt(3);
+                        })
+                        .supplyUniform("cubemap", ctx -> {
+                            GL13C.glActiveTexture(GL13C.GL_TEXTURE1);
+                            GL11C.glBindTexture(GL20C.GL_TEXTURE_CUBE_MAP, PokemonTest.INSTANCE.cubeMap.id);
+                            ctx.uniform().uploadInt(1);
+                        });
             }
 
             return builder.build();
@@ -124,7 +141,8 @@ public class Pipelines {
         BASIC_FAST("Fast"),
         PBR("BRDF"),
         GLOSSY("GlassFast"),
-        GLOSSY_EXPERIMENTAL("GlassExperimental");
+        GLOSSY_EXPERIMENTAL("GlassExperimental"),
+        TERASTALLIZE("TerastallizeCrystal");
 
         public final String suffix;
 

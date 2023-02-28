@@ -39,6 +39,7 @@ public class PokemonTest {
     public Pipelines pipelines;
     public CubeMapTexture cubeMap;
     public Texture starsTexture;
+    public Texture normalMap;
 
     public PokemonTest(String[] args) {
         Animation.animationModifier = (animation, s) -> animation.ticksPerSecond = 16;
@@ -55,6 +56,7 @@ public class PokemonTest {
             scene.objectManager.add(skybox, new ObjectInstance(new Matrix4f(), viewMatrix, ""));
             this.cubeMap = skybox.texture;
             this.starsTexture = new Texture(PokemonTest.class.getResourceAsStream("/shared/stars.png").readAllBytes(), "stars.png");
+            this.normalMap = new Texture(PokemonTest.class.getResourceAsStream("/shared/normalMap.png").readAllBytes(), "normalMap.png");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -120,7 +122,7 @@ public class PokemonTest {
     }
 
     private ShaderPipeline getPipeline(String materialName) {
-        var lightingSettings = Pipelines.LightingType.PBR;
+        var lightingSettings = Pipelines.LightingType.TERASTALLIZE;
 
         if (materialName.contains("eyes")) lightingSettings = Pipelines.LightingType.EMISSIVE;
         else if (materialName.contains("glow")) lightingSettings = Pipelines.LightingType.GLOSSY_EXPERIMENTAL;

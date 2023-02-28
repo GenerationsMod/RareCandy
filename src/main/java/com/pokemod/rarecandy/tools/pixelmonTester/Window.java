@@ -57,7 +57,6 @@ public class Window {
 
         // Set the OpenGL context
         GLFW.glfwMakeContextCurrent(this.handle);
-        GLFW.glfwSwapInterval(1);
 
         this.gl = GL.createCapabilities(true);
 

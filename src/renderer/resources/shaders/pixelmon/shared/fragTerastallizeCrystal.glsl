@@ -47,8 +47,8 @@ void main() {
 
     vec4 underlyingColor = texture(diffuse, outTexCoords);
 
-    vec4 refractionColor = texture(cubemap, normalize(outRefraction)) * 1.2;
-    vec4 reflectionColor = texture(cubemap, normalize(outReflection)) * 5;
+    vec4 refractionColor = texture(cubemap, normalize(outRefraction));
+    vec4 reflectionColor = texture(cubemap, normalize(outReflection));
 
     outColor = mix(mix(refractionColor, reflectionColor, outFresnel), underlyingColor, underlyingTexCoordMix);
 }

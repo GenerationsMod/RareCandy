@@ -116,7 +116,7 @@ public class Pipelines {
 
                 case TERASTALLIZE -> builder
                         .supplyUniform("camPos", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0f, 0f, -1)))
-                        .supplyUniform("underlyingTexCoordMix", ctx -> ctx.uniform().uploadFloat(0.4f))
+                        .supplyUniform("underlyingTexCoordMix", ctx -> ctx.uniform().uploadFloat(0.6f))
                         .supplyUniform("stars", ctx -> {
                             PokemonTest.INSTANCE.starsTexture.bind(2);
                             ctx.uniform().uploadInt(2);
@@ -127,7 +127,7 @@ public class Pipelines {
                         })
                         .supplyUniform("cubemap", ctx -> {
                             GL13C.glActiveTexture(GL13C.GL_TEXTURE1);
-                            GL11C.glBindTexture(GL20C.GL_TEXTURE_CUBE_MAP, PokemonTest.INSTANCE.cubeMap.id);
+                            GL11C.glBindTexture(GL20C.GL_TEXTURE_CUBE_MAP, PokemonTest.INSTANCE.terastallizeCubeMap.id);
                             ctx.uniform().uploadInt(1);
                         });
             }

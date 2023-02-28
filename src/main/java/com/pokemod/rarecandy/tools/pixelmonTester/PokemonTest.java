@@ -38,6 +38,7 @@ public class PokemonTest {
     public RareCandy renderer;
     public Pipelines pipelines;
     public CubeMapTexture cubeMap;
+    public CubeMapTexture terastallizeCubeMap;
     public Texture starsTexture;
     public Texture normalMap;
 
@@ -55,6 +56,7 @@ public class PokemonTest {
             var skybox = new SkyboxRenderObject(pipelines.skybox);
             scene.objectManager.add(skybox, new ObjectInstance(new Matrix4f(), viewMatrix, ""));
             this.cubeMap = skybox.texture;
+            this.terastallizeCubeMap = new CubeMapTexture("D:\\Projects\\PixelmonGenerations\\RareCandy\\src\\renderer\\resources\\cubemap\\terastallize\\panorama_");
             this.starsTexture = new Texture(PokemonTest.class.getResourceAsStream("/shared/stars.png").readAllBytes(), "stars.png");
             this.normalMap = new Texture(PokemonTest.class.getResourceAsStream("/shared/normalMap.png").readAllBytes(), "normalMap.png");
         } catch (IOException e) {

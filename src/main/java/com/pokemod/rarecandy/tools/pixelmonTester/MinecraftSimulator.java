@@ -33,7 +33,7 @@ public class MinecraftSimulator {
         });
 
         var scene = new RareCandy();
-        GL11C.glClearColor(1f, 1f, 1f, 1);
+        GL11C.glClearColor(0f, 0f, 0f, 1);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);
         //GL11C.glEnable(GL11C.GL_CULL_FACE);

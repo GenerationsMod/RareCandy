@@ -3,14 +3,16 @@ package com.pokemod.rarecandy.shader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RcMethod {
+public class RCSLMethod {
 
-    public final Type type;
-    public final List<RcParameter> params = new ArrayList<>();
+    public final Type methodType;
+    public final String returnType;
+    public final List<RCSLParam> params = new ArrayList<>();
     public String methodBody;
 
-    public RcMethod(Type type) {
-        this.type = type;
+    public RCSLMethod(Type methodType, String returnType) {
+        this.methodType = methodType;
+        this.returnType = returnType;
     }
 
     public static Type getType(String methodName) {

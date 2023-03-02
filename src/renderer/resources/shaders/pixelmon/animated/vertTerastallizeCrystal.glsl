@@ -20,7 +20,6 @@ out vec3 incident;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
-uniform vec3 camPos;
 uniform mat4 boneTransforms[MAX_BONES];
 
 vec4 projectionFromPos(vec4 position) {
@@ -43,7 +42,10 @@ void main() {
     mat4 transformedModelMatrix = modelMatrix * getBoneTransform();
     outPos = (transformedModelMatrix * vec4(inPos, 1.0)).xyz;
     vec3 normal = (mat3(transformedModelMatrix) * inNormal);
-    incident = normalize(vec3(outPos - camPos));
+
+    vec3 camPos = vec3(inverse(viewMatrix)[3]);
+    vec3 cameraForward = vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]);
+    incident = normalize(outPos - camPos - cameraForward);
 
     outTexCoords = texcoords;
     outNormal = mat3(transformedModelMatrix) * inNormal;

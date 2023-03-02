@@ -6,7 +6,7 @@ import org.joml.Matrix4f;
 public class ObjectInstance {
     private final Matrix4f transformationMatrix;
     private final Matrix4f viewMatrix;
-    private final String materialId;
+    private String materialId;
     private RenderObject object;
 
     public ObjectInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId) {
@@ -34,5 +34,9 @@ public class ObjectInstance {
 
     public RenderObject object() {
         return object;
+    }
+
+    public void setVariant(String materialId) {
+        this.materialId = materialId;
     }
 }

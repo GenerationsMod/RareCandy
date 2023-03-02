@@ -14,7 +14,6 @@ out vec4 outStarCoords;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
-uniform vec3 camPos;
 
 // Indices of refraction
 const float Air = 1.0;
@@ -35,7 +34,11 @@ vec4 projectionFromPos(vec4 position) {
 
 void main() {
     vec4 outPos = modelMatrix * vec4(inPos, 1.0);
-    vec3 incident = normalize(vec3(outPos - vec4(camPos, 1.0)));
+
+    vec3 camPos = vec3(inverse(viewMatrix)[3]);
+    vec3 cameraForward = vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]);
+    vec3 incident = normalize(outPos.xyz - camPos - cameraForward);
+
     vec3 normal = (mat3(modelMatrix) * inNormal);
 
     outRefraction = refract(incident, normal, Eta);

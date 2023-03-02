@@ -54,7 +54,7 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
 
     public TimeKey<T> getBefore(TimeKey<T> valueAhead) {
         var index = indexOf(valueAhead);
-        return get(index - 1);
+        return get(Math.max(0, index - 1));
     }
 
     public TimeKey<T>[] values() {

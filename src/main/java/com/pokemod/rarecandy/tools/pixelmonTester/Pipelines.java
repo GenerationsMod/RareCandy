@@ -102,7 +102,6 @@ public class Pipelines {
                         .supplyUniform("diffuseColorMix", ctx -> ctx.uniform().uploadFloat(0.5f));
 
                 case GLOSSY_EXPERIMENTAL -> builder
-                        .supplyUniform("camPos", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0f, 0f, -1)))
                         .supplyUniform("underlyingTexCoordMix", ctx -> ctx.uniform().uploadFloat(0.8f))
                         .supplyUniform("stars", ctx -> {
                             PokemonTest.INSTANCE.starsTexture.bind(2);
@@ -115,7 +114,6 @@ public class Pipelines {
                         });
 
                 case TERASTALLIZE -> builder
-                        .supplyUniform("camPos", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0f, 0f, -1)))
                         .supplyUniform("underlyingTexCoordMix", ctx -> ctx.uniform().uploadFloat(0.6f))
                         .supplyUniform("stars", ctx -> {
                             PokemonTest.INSTANCE.starsTexture.bind(2);

@@ -38,7 +38,7 @@ public class GuiHandler implements KeyListener {
         frame.setVisible(true);
         frame.pack();
         frame.transferFocus();
-        gui.canvasPanel.addMouseWheelListener(e -> getCanvas().onMouseScroll(e));
+        getCanvas().attachArcBall();
     }
 
     public RareCandyCanvas getCanvas() {

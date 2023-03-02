@@ -29,7 +29,10 @@ vec4 projectionFromPos(vec4 position) {
 void main() {
     outPos = (modelMatrix * vec4(inPos, 1.0)).xyz;
     vec3 normal = (mat3(modelMatrix) * inNormal);
-    incident = normalize(vec3(outPos - camPos));
+
+    vec3 camPos = vec3(inverse(viewMatrix)[3]);
+    vec3 cameraForward = vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]);
+    incident = normalize(outPos - camPos - cameraForward);
 
     outTexCoords = texcoords;
     outNormal = mat3(modelMatrix) * inNormal;

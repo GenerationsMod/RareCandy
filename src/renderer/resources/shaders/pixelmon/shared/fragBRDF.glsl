@@ -1,9 +1,11 @@
 #version 330 core
 #pragma optionNV(strict on)
 
-in vec2 outTexCoords;
-in vec3 outPos;
-in vec3 outNormal;
+in VS_OUT {
+    vec2 texCoords;
+    vec3 pos;
+    vec3 normal;
+} fsIn;
 
 out vec4 outColor;
 
@@ -59,10 +61,10 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 }
 
 void main() {
-    vec3 albedo = pow(texture(diffuse, outTexCoords).rgb, vec3(2.2));
+    vec3 albedo = pow(texture(diffuse, fsIn.texCoords).rgb, vec3(2.2));
 
-    vec3 N = normalize(outNormal);
-    vec3 V = normalize(camPos - outPos);
+    vec3 N = normalize(fsIn.normal);
+    vec3 V = normalize(camPos - fsIn.pos);
 
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, albedo, metallic);
@@ -71,9 +73,9 @@ void main() {
     vec3 Lo = vec3(0.0);
     for (int i = 0; i < 1; ++i) {
         // calculate per-light radiance
-        vec3 L = normalize(lightPositions[i] - outPos);
+        vec3 L = normalize(lightPositions[i] - fsIn.pos);
         vec3 H = normalize(V + L);
-        float distance = length(lightPositions[i] - outPos);
+        float distance = length(lightPositions[i] - fsIn.pos);
         float attenuation = 1.0 / (distance * distance);
         vec3 radiance = lightColors[i] * attenuation;
 

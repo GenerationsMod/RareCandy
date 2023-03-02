@@ -26,10 +26,8 @@ public class Pipelines {
 
     public Pipelines(Supplier<Matrix4f> projectionMatrix) {
         for (var lightingType : LightingType.values()) {
-            LOGGER.info("Caching " + lightingType + " with animated = " + true);
+            LOGGER.info("Loading " + lightingType);
             cachePipeline(lightingType, true, projectionMatrix);
-            LOGGER.info("Caching " + lightingType + " with animated = " + false);
-            cachePipeline(lightingType, false, projectionMatrix);
         }
 
         this.skybox = new ShaderPipeline.Builder()

@@ -3,14 +3,16 @@
 #define MAX_BONES 220
 
 layout (location = 0) in vec3 inPos;
-layout (location = 1) in vec2 texcoords;
+layout (location = 1) in vec2 inCoords;
 layout (location = 2) in vec3 inNormal;
 layout (location = 3) in vec4 inJoints;
 layout (location = 4) in vec4 inWeights;
 
-out vec2 outTexCoords;
-out vec3 outPos;
-out vec3 outNormal;
+out VS_OUT {
+    out vec2 texCoords;
+    out vec3 pos;
+    out vec3 normal;
+} vsOut;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
@@ -29,9 +31,9 @@ mat4 getBoneTransform() {
 void main() {
     mat4 transformedModelMatrix = modelMatrix * getBoneTransform();
 
-    outTexCoords = texcoords;
-    outPos = vec3(transformedModelMatrix * vec4(inPos, 1.0));
-    outNormal = mat3(transformedModelMatrix) * inNormal;
+    vsOut.texCoords = inCoords;
+    vsOut.pos = vec3(transformedModelMatrix * vec4(inPos, 1.0));
+    vsOut.normal = mat3(transformedModelMatrix) * inNormal;
 
-    gl_Position = projectionMatrix * viewMatrix * vec4(outPos, 1.0);
+    gl_Position = projectionMatrix * viewMatrix * vec4(vsOut.pos, 1.0);
 }

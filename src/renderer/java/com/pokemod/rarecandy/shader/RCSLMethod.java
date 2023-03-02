@@ -8,7 +8,7 @@ public class RCSLMethod {
     public final Type methodType;
     public final String returnType;
     public final List<RCSLParam> params = new ArrayList<>();
-    public String methodBody;
+    public String body;
 
     public RCSLMethod(Type methodType, String returnType) {
         this.methodType = methodType;

@@ -22,7 +22,7 @@ public class TokenIterator {
             if (code.length() > index + 1) { // check tokens with double chars
                 var token = TokenType.bySymbol(code.substring(index, index + 2));
 
-                if (token != null) {
+                if (token != null && TokenType.bySymbol(code.substring(index + 3, index + 4)) != null) {
                     index += 2;
                     return new Token(token, getPosition());
                 }

@@ -3,6 +3,8 @@ package com.pokemod.rarecandy.shader.tokenizer;
 public enum TokenType {
     IN("in"),
     OUT("out"),
+    UNIFORM("uniform"),
+    CONST("const"),
     CURLY_BRACKET_LEFT("{"),
     CURLY_BRACKET_RIGHT("}"),
     BRACKET_LEFT("("),

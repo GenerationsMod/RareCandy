@@ -10,6 +10,7 @@ public enum TokenType {
     COMMA(","),
     RETURN("return"),
     SEMICOLON(";"),
+    EQUALS("="),
     NAME(""),
     EOF("");
 

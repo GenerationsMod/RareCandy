@@ -52,10 +52,41 @@ public class RCSLParser {
                 var type = readToken().text();
                 var name = readToken().text();
                 method.params.add(new RCSLParam(source, type, name));
-            } while (!matchToken(TokenType.BRACKET_RIGHT));
+            } while (!matchToken(TokenType.BRACKET_RIGHT, false));
+
+            int leftBrackets = 0;
+            int rightBrackets = 0;
+            var tokens = new ArrayList<Token>();
+
+            do {
+                var token = readToken();
+                switch (token.type()) {
+                    case CURLY_BRACKET_LEFT -> leftBrackets++;
+                    case CURLY_BRACKET_RIGHT -> rightBrackets++;
+                }
+                tokens.add(token);
+            } while (leftBrackets != rightBrackets);
+
+            var body = new StringBuilder();
+            for (var token : tokens) {
+                var prefix = switch (token.type()) {
+                    case SEMICOLON, COMMA -> "";
+                    default -> " ";
+                };
+
+                var suffix = switch (token.type()) {
+                    case SEMICOLON, COMMA, CURLY_BRACKET_LEFT -> "\n";
+                    default -> "";
+                };
 
 
-            System.out.println("e");
+                body.append(prefix)
+                        .append(token.text())
+                        .append(suffix);
+            }
+
+            System.out.println("ok");
+
         } while (!matchToken(TokenType.EOF, false));
 
         System.out.println("ok");
@@ -65,10 +96,6 @@ public class RCSLParser {
         var next = tokenIterator.next();
         readTokens.add(next);
         return next;
-    }
-
-    public boolean matchToken(TokenType expectedType) {
-        return matchToken(expectedType, true);
     }
 
     public boolean matchToken(TokenType expectedType, boolean consume) {

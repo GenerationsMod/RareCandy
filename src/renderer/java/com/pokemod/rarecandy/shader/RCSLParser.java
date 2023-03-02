@@ -13,14 +13,17 @@ import java.util.List;
 public class RCSLParser {
 
     private final List<Token> readTokens = new ArrayList<>();
+    private final String shaderName;
+    private Token tokenToConsume;
     private final TokenIterator tokenIterator;
 
-    public RCSLParser(String code) {
+    public RCSLParser(String name, String code) {
+        this.shaderName = name;
         this.tokenIterator = new TokenIterator(code.replaceAll("//.+\n", ""));
     }
 
     public static void main(String[] args) {
-        new RCSLParser("""
+        var shader = new RCSLParser("TestShader", """
                 vec4 vertMain(
                     in vec4 InPosition,
                     in vec2 InUV,
@@ -38,13 +41,17 @@ public class RCSLParser {
                 }
                                 
                 """).parse();
+
+        System.out.println("e");
     }
 
-    private void parse() {
+    private RCSLShader parse() {
+        var methods = new ArrayList<RCSLMethod>();
+
         do {
             var methodType = readToken().text();
             var methodName = readToken().text();
-            matchToken(TokenType.BRACKET_LEFT, false);
+            matchToken(TokenType.BRACKET_LEFT, true);
             var method = new RCSLMethod(RCSLMethod.getType(methodName), methodType);
 
             do {
@@ -52,7 +59,7 @@ public class RCSLParser {
                 var type = readToken().text();
                 var name = readToken().text();
                 method.params.add(new RCSLParam(source, type, name));
-            } while (!matchToken(TokenType.BRACKET_RIGHT, false));
+            } while (!matchToken(TokenType.BRACKET_RIGHT, true));
 
             int leftBrackets = 0;
             int rightBrackets = 0;
@@ -75,24 +82,46 @@ public class RCSLParser {
                 };
 
                 var suffix = switch (token.type()) {
-                    case SEMICOLON, COMMA, CURLY_BRACKET_LEFT -> "\n";
+                    case SEMICOLON, CURLY_BRACKET_LEFT -> "\n";
                     default -> "";
                 };
-
 
                 body.append(prefix)
                         .append(token.text())
                         .append(suffix);
+
+                method.methodBody = body.toString();
             }
 
-            System.out.println("ok");
-
+            methods.add(method);
         } while (!matchToken(TokenType.EOF, false));
 
-        System.out.println("ok");
+        var vertexCandidates = methods.stream()
+                .filter(rcslMethod -> rcslMethod.methodType == RCSLMethod.Type.VERTEX)
+                .toList();
+
+        var fragmentCandidates = methods.stream()
+                .filter(rcslMethod -> rcslMethod.methodType == RCSLMethod.Type.FRAGMENT)
+                .toList();
+
+        if (vertexCandidates.size() > 1)
+            throw new RuntimeException("More than 1 vertex shader method exists");
+
+        if (fragmentCandidates.size() > 1)
+            throw new RuntimeException("More than 1 fragment shader method exists");
+
+        methods.remove(vertexCandidates.get(0));
+        methods.remove(fragmentCandidates.get(0));
+
+        return new RCSLShader(shaderName, vertexCandidates.get(0), fragmentCandidates.get(0), methods);
     }
 
     private Token readToken() {
+        if (tokenToConsume != null) {
+            var token = tokenToConsume;
+            tokenToConsume = null;
+            return token;
+        }
         var next = tokenIterator.next();
         readTokens.add(next);
         return next;
@@ -100,12 +129,7 @@ public class RCSLParser {
 
     public boolean matchToken(TokenType expectedType, boolean consume) {
         var token = readToken();
-
-        if (token == null || !token.type().equals(expectedType)) {
-            return false;
-        } else {
-            if (consume) readToken();
-            return true;
-        }
+        if (!consume) tokenToConsume = token;
+        return token != null && token.type().equals(expectedType);
     }
 }

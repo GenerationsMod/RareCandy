@@ -1,6 +1,5 @@
 package com.pokemod.rarecandy.shader;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class RCSLShader {
@@ -8,10 +7,21 @@ public class RCSLShader {
     public final List<RCSLMethod> methods;
     public final RCSLMethod vertexMethod;
     public final RCSLMethod fragmentMethod;
+    private final String name;
 
-    public RCSLShader(RCSLMethod vertexMethod, RCSLMethod fragmentMethod) {
+    public RCSLShader(String shaderName, RCSLMethod vertexMethod, RCSLMethod fragmentMethod, List<RCSLMethod> methods) {
+        this.name = shaderName;
         this.vertexMethod = vertexMethod;
         this.fragmentMethod = fragmentMethod;
-        this.methods = new ArrayList<>();
+        this.methods = methods;
+    }
+
+    @Override
+    public String toString() {
+        return "\"" + name + "\" RCSLShader{" +
+                "methods=" + methods +
+                ", vertexMethod=" + vertexMethod +
+                ", fragmentMethod=" + fragmentMethod +
+                '}';
     }
 }

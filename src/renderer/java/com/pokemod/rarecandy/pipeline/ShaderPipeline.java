@@ -6,11 +6,13 @@ import com.pokemod.rarecandy.rendering.RareCandy;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
+import org.lwjgl.opengl.GL33C;
 import org.lwjgl.system.MemoryStack;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public record ShaderPipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms, Runnable preDrawBatch, Runnable postDrawBatch, int program) {
 
@@ -26,7 +28,7 @@ public record ShaderPipeline(Map<String, Consumer<UniformUploadContext>> uniform
     public void updateOtherUniforms(ObjectInstance instance, RenderObject renderObject) {
         for (var name : uniforms.keySet()) {
             var uniform = uniforms.get(name);
-            if (!uniformSuppliers.containsKey(name)) RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
+            if (!uniformSuppliers.containsKey(name)) continue; // FIXME: issue introduced with new block system.
             if (uniform.type != GL20C.GL_SAMPLER_2D) uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
         }
     }
@@ -34,7 +36,6 @@ public record ShaderPipeline(Map<String, Consumer<UniformUploadContext>> uniform
     public void updateTexUniforms(ObjectInstance instance, RenderObject renderObject) {
         for (var name : uniforms.keySet()) {
             var uniform = uniforms.get(name);
-            if (!uniformSuppliers.containsKey(name)) RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
             if (uniform.type == GL20C.GL_SAMPLER_2D) uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
         }
     }
@@ -82,6 +83,13 @@ public record ShaderPipeline(Map<String, Consumer<UniformUploadContext>> uniform
             return this;
         }
 
+        public Builder uniform(UniformBlockReference blockName) {
+            var index = GL33C.glGetUniformBlockIndex(program, blockName.name());
+            GL33C.glUniformBlockBinding(program, index, blockName.binding());
+            return this;
+        }
+
+        @Deprecated(forRemoval = true)
         public Builder supplyUniform(String name, Consumer<UniformUploadContext> provider) {
             uniformSuppliers.put(name, provider);
             return this;
@@ -93,6 +101,7 @@ public record ShaderPipeline(Map<String, Consumer<UniformUploadContext>> uniform
             addShader(fs, GL20C.GL_FRAGMENT_SHADER, program);
             compileShader(program);
 
+            // Load legacy uniforms
             try (var stack = MemoryStack.stackPush()) {
                 var pUniformCount = stack.ints(1);
                 GL20C.glGetProgramiv(program, GL20C.GL_ACTIVE_UNIFORMS, pUniformCount);
@@ -113,12 +122,12 @@ public record ShaderPipeline(Map<String, Consumer<UniformUploadContext>> uniform
                     this.uniforms.put(name, new Uniform(program, name, pType.get(0), pSize.get(0)));
                 }
             }
+
             return this;
         }
 
         public ShaderPipeline build() {
             if (this.program == 0) throw new RuntimeException("Shader not created");
-
             return new ShaderPipeline(uniformSuppliers, uniforms, preDrawBatch, postDrawRunBatch, program);
         }
     }

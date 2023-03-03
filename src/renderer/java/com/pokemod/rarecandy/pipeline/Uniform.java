@@ -9,6 +9,10 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 
+/**
+ * @deprecated The use of block uniforms is recommended. This will be removed at a later date.
+ */
+@Deprecated
 public class Uniform {
     private static final FloatBuffer MAT4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(16);
     private static final FloatBuffer VEC3_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(3);

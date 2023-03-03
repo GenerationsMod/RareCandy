@@ -17,10 +17,15 @@ out vec3 outNormal;
 out vec3 outPos;
 out vec3 incident;
 
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
-uniform mat4 boneTransforms[MAX_BONES];
+layout (std140) uniform SharedInfo {
+    mat4 projectionMatrix;
+    mat4 viewMatrix;
+};
+
+layout (std140) uniform InstanceInfo {
+    mat4 modelMatrix;
+    mat4 boneTransforms[220];
+};
 
 vec4 projectionFromPos(vec4 position) {
     vec4 projection = position * 2;

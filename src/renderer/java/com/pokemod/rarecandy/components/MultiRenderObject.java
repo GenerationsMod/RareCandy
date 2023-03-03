@@ -93,6 +93,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
             shaderPipeline.bind();
 
             for (var instance : instances) {
+                instance.update();
                 shaderPipeline.updateOtherUniforms(instance, objects.get(0));
 
                 for (T object : objects) {

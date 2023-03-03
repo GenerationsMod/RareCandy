@@ -14,10 +14,15 @@ out float outFresnel;
 out vec2 outTexCoords;
 out vec4 outStarCoords;
 
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
-uniform mat4 boneTransforms[MAX_BONES];
+layout (std140) uniform SharedInfo {
+    mat4 projectionMatrix;
+    mat4 viewMatrix;
+};
+
+layout (std140) uniform InstanceInfo {
+    mat4 modelMatrix;
+    mat4 boneTransforms[220];
+};
 
 // Indices of refraction
 const float Air = 1.0;

@@ -1,6 +1,5 @@
 #version 330 core
 #pragma optionNV(strict on)
-#define MAX_BONES 220
 
 layout (location = 0) in vec3 inPos;
 layout (location = 1) in vec2 inCoords;
@@ -14,10 +13,15 @@ out VS_OUT {
     out vec3 normal;
 } vsOut;
 
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
-uniform mat4 boneTransforms[MAX_BONES];
+layout (std140) uniform SharedInfo {
+    mat4 projectionMatrix;
+    mat4 viewMatrix;
+};
+
+layout (std140) uniform InstanceInfo {
+    mat4 modelMatrix;
+    mat4 boneTransforms[220];
+};
 
 mat4 getBoneTransform() {
     mat4 boneTransform =

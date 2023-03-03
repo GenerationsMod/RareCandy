@@ -13,11 +13,13 @@ import com.pokemod.rarecandy.loading.CubeMapTexture;
 import com.pokemod.rarecandy.loading.ModelLoader;
 import com.pokemod.rarecandy.loading.Texture;
 import com.pokemod.rarecandy.pipeline.ShaderPipeline;
+import com.pokemod.rarecandy.pipeline.UniformBlockUploader;
 import com.pokemod.rarecandy.rendering.ObjectInstance;
 import com.pokemod.rarecandy.rendering.RareCandy;
 import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.lwjgl.system.MemoryStack;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,7 +31,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class PokemonTest {
+public class PokemonTest extends UniformBlockUploader {
     public static PokemonTest INSTANCE;
     private static final double START_TIME = System.currentTimeMillis();
     private final List<AnimatedObjectInstance> instances = new ArrayList<>();
@@ -43,6 +45,7 @@ public class PokemonTest {
     public Texture normalMap;
 
     public PokemonTest(String[] args) {
+        super(MAT4F_SIZE * 2, 0);
         Animation.animationModifier = (animation, s) -> animation.ticksPerSecond = 16;
         this.path = Paths.get(args[0]);
         if (args.length == 3) this.rotate = Boolean.parseBoolean(args[2]);
@@ -54,7 +57,7 @@ public class PokemonTest {
             this.renderer = scene;
             this.pipelines = new Pipelines(() -> projectionMatrix);
             var skybox = new SkyboxRenderObject(pipelines.skybox);
-            scene.objectManager.add(skybox, new ObjectInstance(new Matrix4f(), viewMatrix, ""));
+            scene.objectManager.add(skybox, new ObjectInstance(new Matrix4f(), ""));
             this.cubeMap = skybox.texture;
             this.terastallizeCubeMap = new CubeMapTexture("D:\\Projects\\PixelmonGenerations\\RareCandy\\src\\renderer\\resources\\cubemap\\terastallize\\panorama_");
             this.starsTexture = new Texture(PokemonTest.class.getResourceAsStream("/shared/stars.png").readAllBytes(), "stars.png");
@@ -67,7 +70,7 @@ public class PokemonTest {
             var variants = List.of("normal");
 
             for (var variant : variants) {
-                var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
+                var instance = new AnimatedObjectInstance(new Matrix4f(), variant);
                 instance.transformationMatrix()
                         .rotate((float) Math.toRadians(90), new Vector3f(0, 1, 0))
                         .translate(new Vector3f(0f, -0.5f, 0))
@@ -163,5 +166,14 @@ public class PokemonTest {
 
     public static double getTimePassed() {
         return (System.currentTimeMillis() - START_TIME) / 200;
+    }
+
+    public void update() {
+        try (var stack = MemoryStack.stackPush()) {
+            var sharedInfo = stack.nmalloc(MAT4F_SIZE * 2);
+            MinecraftSimulator.INSTANCE.projectionMatrix.getToAddress(sharedInfo);
+            MinecraftSimulator.INSTANCE.viewMatrix.getToAddress(sharedInfo + MAT4F_SIZE);
+            upload(0, MAT4F_SIZE * 2, sharedInfo);
+        }
     }
 }

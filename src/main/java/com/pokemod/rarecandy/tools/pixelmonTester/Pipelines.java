@@ -2,7 +2,7 @@ package com.pokemod.rarecandy.tools.pixelmonTester;
 
 import com.pokemod.rarecandy.components.SkyboxRenderObject;
 import com.pokemod.rarecandy.pipeline.ShaderPipeline;
-import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
+import com.pokemod.rarecandy.pipeline.UniformBlockReference;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11C;
@@ -32,8 +32,7 @@ public class Pipelines {
 
         this.skybox = new ShaderPipeline.Builder()
                 .shader(builtin("skybox/vert.glsl"), builtin("skybox/frag.glsl"))
-                .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
-                .supplyUniform("projectionMatrix", ctx -> ctx.uniform().uploadMat4f(projectionMatrix.get()))
+                .uniform(new UniformBlockReference("SharedInfo", 0))
                 .supplyUniform("cubemap", ctx -> {
                     GL13C.glActiveTexture(GL13C.GL_TEXTURE0);
                     GL11C.glBindTexture(GL20C.GL_TEXTURE_CUBE_MAP, ((SkyboxRenderObject) ctx.object()).texture.id);
@@ -55,16 +54,12 @@ public class Pipelines {
 
             var builder = new ShaderPipeline.Builder()
                     .shader(vertexShader, fragmentShader)
-                    .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
-                    .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
-                    .supplyUniform("projectionMatrix", ctx -> ctx.uniform().uploadMat4f(projectionMatrix.get()))
+                    .uniform(new UniformBlockReference("SharedInfo", 0))
+                    .uniform(new UniformBlockReference("InstanceInfo", 1))
                     .supplyUniform("diffuse", ctx -> {
                         ctx.object().getMaterial(ctx.instance().materialId()).getDiffuseTexture().bind(0);
                         ctx.uniform().uploadInt(0);
                     });
-
-            if (animated)
-                builder.supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()));
 
             switch (lightingType) {
                 case PBR -> builder

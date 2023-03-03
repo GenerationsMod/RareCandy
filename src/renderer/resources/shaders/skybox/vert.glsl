@@ -5,8 +5,10 @@ layout (location = 0) in vec3 inPos;
 
 out vec3 outTextureDir;
 
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
+layout (std140) uniform SharedInfo {
+    mat4 projectionMatrix;
+    mat4 viewMatrix;
+};
 
 void main() {
     outTextureDir = inPos;

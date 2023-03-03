@@ -47,7 +47,7 @@ public class Window {
         this.handle = GLFW.glfwCreateWindow(this.width, this.height, title, MemoryUtil.NULL, MemoryUtil.NULL);
 
         if (this.handle == 0) {
-            // We failed to create a window. Hope its because they installed drivers & need to restart
+            // We failed to create a window. Hope It's because they installed drivers & need to restart
             throw new RuntimeException("Failed to create GLFW Window! Do you need to restart?");
         }
 
@@ -85,7 +85,7 @@ public class Window {
     }
 
     private void onGlError(int glSource, int glType, int id, int severity, int length, long pMessage, long userParam) {
-        String source = switch (glSource) {
+        var source = switch (glSource) {
             case GL43C.GL_DEBUG_SOURCE_API -> "api";
             case GL43C.GL_DEBUG_SOURCE_WINDOW_SYSTEM -> "window system";
             case GL43C.GL_SHADER_COMPILER -> "shader compiler";
@@ -95,7 +95,7 @@ public class Window {
             default -> throw new IllegalStateException("Unexpected value: " + glSource);
         };
 
-        String type = switch (glType) {
+        var type = switch (glType) {
             case GL43C.GL_DEBUG_TYPE_ERROR -> "error";
             case GL43C.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR -> "deprecated behaviour";
             case GL43C.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR -> "undefined behaviour";
@@ -106,9 +106,7 @@ public class Window {
             default -> throw new IllegalStateException("Unexpected value: " + glType);
         };
 
-        if(!type.equals("'other'")) {
-            System.out.println("[OpenGL " + source + " " + type + "] Message: " + MemoryUtil.memUTF8(pMessage));
-        }
+        System.out.println("[OpenGL " + source + " " + type + "] Message: " + MemoryUtil.memUTF8(pMessage));
     }
 
     private void onGlfwError(int error, long pDescription) {

@@ -2,7 +2,6 @@ package com.pokemod.rarecandy.tools.gui;
 
 import com.pokemod.pokeutils.GlbPixelAsset;
 import com.pokemod.pokeutils.PixelAsset;
-import com.pokemod.pokeutils.tranm.Vec3f;
 import com.pokemod.rarecandy.animation.Animation;
 import com.pokemod.rarecandy.animation.AnimationInstance;
 import com.pokemod.rarecandy.components.AnimatedMeshObject;
@@ -87,14 +86,14 @@ public class RareCandyCanvas extends AWTGLCanvas {
         currentAnimation = null;
         this.pkFile = pkFile;
         renderer.objectManager.clearObjects();
-        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), null));
 //        renderer.objectManager.add(skybox, new ObjectInstance(new Matrix4f(), viewMatrix, ""));
         loadPokemonModel(renderer, pkFile, model -> {
             var i = 0;
 
             loadedModel = model;
             var variant = model.objects.get(0).availableVariants().iterator().next();
-            var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
+            var instance = new AnimatedObjectInstance(new Matrix4f(), variant);
             instance.transformationMatrix().scale(0.3f);
             loadedModelInstance = renderer.objectManager.add(model, instance);
 
@@ -128,7 +127,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
             assert is != null;
             load(renderer, new GlbPixelAsset("plane", is.readAllBytes()), s -> pipelines.cachePipeline(GuiPipelines.LightingType.BASIC_FAST, false), model -> {
                 plane = model;
-                renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+                renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), null));
             }, MeshObject::new);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -43,7 +43,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
     public void unhideAll() {
         objects.addAll(hiddenObjects);
-        hiddenObjects.clear();;
+        hiddenObjects.clear();
     }
 
     public void setRootTransformation(Matrix4f rootTransformation) {

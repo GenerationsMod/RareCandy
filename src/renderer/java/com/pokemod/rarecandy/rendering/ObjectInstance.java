@@ -4,7 +4,6 @@ import com.pokemod.rarecandy.components.RenderObject;
 import com.pokemod.rarecandy.pipeline.UniformBlockUploader;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 
 public class ObjectInstance extends UniformBlockUploader {
     private final Matrix4f transformationMatrix;

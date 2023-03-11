@@ -2,11 +2,11 @@ plugins {
     `java-library`
     `maven-publish`
     idea
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.0"
 }
 
 group = "com.pixelmongenerations"
-version = "1.2.0"
+version = "1.2.1"
 
 java {
     toolchain {
@@ -35,7 +35,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.jetbrains:annotations:24.0.0")
+    compileOnly("org.jetbrains:annotations:24.0.1")
 
     shadow(implementation("org.tukaani", "xz", "1.9"))
     shadow(implementation("org.apache.commons", "commons-compress", "1.22"))
@@ -63,11 +63,11 @@ dependencies {
     shadow(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows"))
     shadow(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
 
-    shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.1.21")!!)
+    shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.3.3")!!)
 }
 
 tasks {
-    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+    shadowJar {
         archiveBaseName.set("RareCandyTools")
         from(sourceSets.getByName("assetLoading").output.classesDirs)
         from(sourceSets.getByName("renderer").output.classesDirs)
@@ -75,7 +75,6 @@ tasks {
         manifest {
             attributes(mapOf("Main-Class" to "com.pokemod.rarecandy.tools.Main"))
         }
-
     }
 
     jar {
@@ -103,9 +102,9 @@ publishing {
     repositories {
         mavenLocal()
         maven {
-            //val releasesRepoUrl = "https://maven.pixelmongenerations.com/repository/maven-releases/"
-            //val snapshotsRepoUrl = "https://maven.pixelmongenerations.com/repository/maven-snapshots/"
-            //url = uri(if (version.toString().endsWith("SNAPSHOT") || version.toString().startsWith("0")) snapshotsRepoUrl else releasesRepoUrl)
+            /*val releasesRepoUrl = "https://maven.pixelmongenerations.com/repository/maven-releases/"
+            val snapshotsRepoUrl = "https://maven.pixelmongenerations.com/repository/maven-snapshots/"
+            url = uri(if (version.toString().endsWith("SNAPSHOT") || version.toString().startsWith("0")) snapshotsRepoUrl else releasesRepoUrl)*/
             name = "PokeModRepo"
             url = uri("https://maven.pixelmongenerations.com/repository/maven-private/")
             credentials {

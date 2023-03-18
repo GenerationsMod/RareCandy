@@ -1,12 +1,8 @@
 package com.pokemod.rarecandy.tools.gui;
 
 import com.pokemod.rarecandy.components.SkyboxRenderObject;
-import com.pokemod.rarecandy.loading.CubeMapTexture;
-import com.pokemod.rarecandy.loading.Texture;
 import com.pokemod.rarecandy.pipeline.ShaderPipeline;
-import com.pokemod.rarecandy.storage.AnimatedObjectInstance;
 import com.pokemod.rarecandy.tools.pixelmonTester.MinecraftSimulator;
-import com.pokemod.rarecandy.tools.pixelmonTester.PokemonTest;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11C;

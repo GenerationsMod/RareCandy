@@ -1,11 +1,8 @@
 package com.pokemod.rarecandy.tools.gui;
 
 import com.pokemod.pokeutils.PixelAsset;
-import de.javagl.jgltf.impl.v1.GlTF;
-import de.javagl.jgltf.impl.v2.GlTFChildOfRootProperty;
 import de.javagl.jgltf.model.NamedModelElement;
 import de.javagl.jgltf.model.io.GltfModelReader;
-import de.javagl.jgltf.model.io.v2.GltfReaderV2;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -20,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class PixelAssetTree extends JTree {
 
@@ -37,7 +33,7 @@ public class PixelAssetTree extends JTree {
             public void mouseReleased(MouseEvent e) {
                 var path = getClosestPathForLocation(e.getPoint().x, e.getPoint().y);
 
-                if(path == null) return;;
+                if(path == null) return;
 
                 if (e.isPopupTrigger()) {
                     if (path.getLastPathComponent().toString().equals("animations")) return;
@@ -89,7 +85,7 @@ public class PixelAssetTree extends JTree {
                         glbNode.add(modelAnimationsNode);
                     }
 
-                } catch (IOException e) {
+                } catch (IOException ignored) {
                 }
                 tree.add(glbNode);
             }

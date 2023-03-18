@@ -2,14 +2,10 @@ package com.pokemod.rarecandy.loading;
 
 import com.pokemod.pokeutils.reader.TextureReference;
 import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.GL12C;
 import org.lwjgl.opengl.GL13C;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
-
-import java.io.IOException;
-import java.nio.file.Paths;
 
 public class Texture {
 

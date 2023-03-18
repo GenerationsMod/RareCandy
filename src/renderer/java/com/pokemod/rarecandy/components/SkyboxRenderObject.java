@@ -6,7 +6,6 @@ import com.pokemod.rarecandy.rendering.ObjectInstance;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryStack;
 
-import java.nio.file.Paths;
 import java.util.List;
 
 public class SkyboxRenderObject extends RenderObject {

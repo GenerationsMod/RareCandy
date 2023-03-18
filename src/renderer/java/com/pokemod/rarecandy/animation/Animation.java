@@ -306,10 +306,10 @@ public class Animation {
     }
 
     private static Vector3f convertArrayToVector3f(float[] array) {
-        return new Vector3f().set(array);
+        return new Vector3f(array);
     }
 
     private static Quaternionf convertArrayToQuaterionf(float[] array) {
-        return new Quaternionf().set(array[0], array[1], array[2], array[3]);
+        return new Quaternionf(array[0], array[1], array[2], array[3]);
     }
 }

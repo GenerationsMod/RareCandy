@@ -16,12 +16,12 @@ public class ModelNode {
     public final Matrix4f transform;
     public final List<ModelNode> children = new ArrayList<>();
 
-    public ModelNode(NodeModel rootNodeModel, ModelNode parent) {
+    public ModelNode(NodeModel node, ModelNode parent) {
         this.parent = parent;
-        this.name = rootNodeModel.getName().replace(".trmdl", "");
-        this.transform = new Matrix4f().add(DataUtils.convert(rootNodeModel.getTranslation(), rootNodeModel.getRotation(), rootNodeModel.getScale()));
+        this.name = node.getName().replace(".trmdl", "");
+        this.transform = new Matrix4f().add(DataUtils.convert(node.getTranslation(), node.getRotation(), node.getScale()));
 
-        for (var child : rootNodeModel.getChildren()) {
+        for (var child : node.getChildren()) {
             children.add(new ModelNode(child, this));
         }
     }

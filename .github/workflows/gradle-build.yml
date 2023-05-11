@@ -7,10 +7,7 @@
 
 name: Build Gradle
 
-on:
-  push:
-    branches:
-      - active-generations
+on: push
 
 jobs:
   gradle:

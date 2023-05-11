@@ -7,10 +7,7 @@
 
 name: Gradle Publish to Maven
 
-on:
-  push:
-    branches:
-      - active-generations
+on: push
 
 jobs:
   gradle:

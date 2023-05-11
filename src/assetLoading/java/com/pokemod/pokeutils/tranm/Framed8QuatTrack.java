@@ -13,13 +13,13 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class Framed8QuatTrack extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_1_4(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_23_3_3(); }
   public static Framed8QuatTrack getRootAsFramed8QuatTrack(ByteBuffer _bb) { return getRootAsFramed8QuatTrack(_bb, new Framed8QuatTrack()); }
   public static Framed8QuatTrack getRootAsFramed8QuatTrack(ByteBuffer _bb, Framed8QuatTrack obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
   public Framed8QuatTrack __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public int frames(int j) { int o = __offset(4); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
+  public int frames(int j) { int o = __offset(4); return o != 0 ? bb.get(__vector(o) + j) & 0xFF : 0; }
   public int framesLength() { int o = __offset(4); return o != 0 ? __vector_len(o) : 0; }
   public ByteVector framesVector() { return framesVector(new ByteVector()); }
   public ByteVector framesVector(ByteVector obj) { int o = __offset(4); return o != 0 ? obj.__assign(__vector(o), bb) : null; }

@@ -12,7 +12,7 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class FixedQuatTrack extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_1_4(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_23_3_3(); }
   public static FixedQuatTrack getRootAsFixedQuatTrack(ByteBuffer _bb) { return getRootAsFixedQuatTrack(_bb, new FixedQuatTrack()); }
   public static FixedQuatTrack getRootAsFixedQuatTrack(ByteBuffer _bb, FixedQuatTrack obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }

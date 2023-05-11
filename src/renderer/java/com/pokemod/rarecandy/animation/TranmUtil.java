@@ -72,8 +72,8 @@ public class TranmUtil {
         long num = cq >> 3;
 
         x = unpackS15((short) ((num >> (count * 2)) & BASE));
-        y = unpackS15((short) ((num >> (count * 1)) & BASE));
-        z = unpackS15((short) ((num >> (count * 0)) & BASE));
+        y = unpackS15((short) ((num >> (count)) & BASE));
+        z = unpackS15((short) ((num >> (0)) & BASE));
 
         float fx = x * maxVal;
         float fy = y * maxVal;

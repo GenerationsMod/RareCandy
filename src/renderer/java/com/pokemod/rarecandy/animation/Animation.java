@@ -70,7 +70,7 @@ public class Animation {
 
         for (var value : this.animationNodes) {
             if (value != null)
-                for (var key : value.positionKeys) duration = key.time() > duration ? key.time() : duration;
+                for (var key : value.positionKeys) duration = Math.max(key.time(), duration);
         }
 
         return duration;

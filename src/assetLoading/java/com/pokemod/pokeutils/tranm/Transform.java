@@ -14,7 +14,7 @@ public final class Transform extends Struct {
   public Transform __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public Vec3f scale() { return scale(new Vec3f()); }
-  public Vec3f scale(Vec3f obj) { return obj.__assign(bb_pos + 0, bb); }
+  public Vec3f scale(Vec3f obj) { return obj.__assign(bb_pos, bb); }
   public Vec4f rotate() { return rotate(new Vec4f()); }
   public Vec4f rotate(Vec4f obj) { return obj.__assign(bb_pos + 12, bb); }
   public Vec3f translate() { return translate(new Vec3f()); }

@@ -10,10 +10,8 @@ public class DialogueUtils {
 
     public static Path saveFile(String filterList) {
         var outPath = MemoryUtil.memAllocPointer(1);
-        var result = NativeFileDialog.NFD_SaveDialog(filterList, null, outPath);
-        if (result == NativeFileDialog.NFD_OKAY) {
-            return Paths.get(outPath.getStringUTF8(0));
-        }
+        var result = NativeFileDialog.NFD_SaveDialog(outPath, null, filterList, null);
+        if (result == NativeFileDialog.NFD_OKAY) return Paths.get(outPath.getStringUTF8(0));
 
         MemoryUtil.memFree(outPath);
         return null;
@@ -21,10 +19,8 @@ public class DialogueUtils {
 
     public static Path chooseFile(String filterList) {
         var outPath = MemoryUtil.memAllocPointer(1);
-        var result = NativeFileDialog.NFD_OpenDialog(filterList, null, outPath);
-        if (result == NativeFileDialog.NFD_OKAY) {
-            return Paths.get(outPath.getStringUTF8(0));
-        }
+        var result = NativeFileDialog.NFD_OpenDialog(outPath, null, filterList);
+        if (result == NativeFileDialog.NFD_OKAY) return Paths.get(outPath.getStringUTF8(0));
 
         MemoryUtil.memFree(outPath);
         return null;

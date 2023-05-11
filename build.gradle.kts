@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.pixelmongenerations"
-version = "1.2.1"
+version = "1.2.2-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 

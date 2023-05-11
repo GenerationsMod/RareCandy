@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.pixelmongenerations"
-version = "1.2.0"
+version = "1.2.2-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -42,11 +42,13 @@ dependencies {
     shadow(implementation("org.lwjgl", "lwjgl"))
     shadow(implementation("org.lwjgl", "lwjgl-glfw"))
     shadow(implementation("org.lwjgl", "lwjgl-opengl"))
+    shadow(implementation("org.lwjgl", "lwjgl-stb"))
     shadow(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
 
     shadow(runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-windows"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-windows"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-windows"))
+    shadow(runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = "natives-windows"))
 
     shadow(implementation("org.slf4j:slf4j-jdk14:2.0.7")!!)
 
@@ -61,7 +63,7 @@ dependencies {
 }
 
 tasks {
-    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+    shadowJar {
         archiveBaseName.set("RareCandyTools")
         from(sourceSets.getByName("assetLoading").output.classesDirs)
         from(sourceSets.getByName("renderer").output.classesDirs)
@@ -69,7 +71,6 @@ tasks {
         manifest {
             attributes(mapOf("Main-Class" to "com.pokemod.rarecandy.tools.Main"))
         }
-
     }
 
     jar {

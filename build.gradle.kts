@@ -98,11 +98,11 @@ publishing {
     repositories {
         mavenLocal()
         maven {
-            /*val releasesRepoUrl = "https://maven.pixelmongenerations.com/repository/maven-releases/"
-            val snapshotsRepoUrl = "https://maven.pixelmongenerations.com/repository/maven-snapshots/"
-            url = uri(if (version.toString().endsWith("SNAPSHOT") || version.toString().startsWith("0")) snapshotsRepoUrl else releasesRepoUrl)*/
-            name = "PokeModRepo"
-            url = uri("https://maven.pixelmongenerations.com/repository/maven-private/")
+            val releasesRepoUrl = "https://maven.generations.gg/releases"
+            val snapshotsRepoUrl = "https://maven.generations.gg/snapshots"
+            url = uri(if (version.toString().endsWith("SNAPSHOT") || version.toString().startsWith("0")) snapshotsRepoUrl else releasesRepoUrl)
+            name = "Generations-Repo"
+            //url = uri("https://maven.generations.gg")
             credentials {
                 username = project.properties["repoLogin"]?.toString() ?: findProperty("REPO_LOGIN").toString()
                 password = project.properties["repoPassword"]?.toString() ?: findProperty("REPO_PASSWORD").toString()

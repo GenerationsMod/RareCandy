@@ -133,9 +133,11 @@ public class ModelLoader {
         var variants = getVariants(gltfModel);
         Map<String, Animation> animations = null;
 
+        Skeleton skeleton;
+
         if (!gltfModel.getSkinModels().isEmpty()) {
-            var skeleton = new Skeleton(gltfModel.getSkinModels().get(0));
-            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, new Skeleton(skeleton), animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+            skeleton = new Skeleton(gltfModel.getSkinModels().get(0));
+            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, skeleton, animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
             for (var entry : gfbFileMap.entrySet()) {
                 var name = entry.getKey();
@@ -155,6 +157,8 @@ public class ModelLoader {
                     }
                 }
             }
+        } else {
+            skeleton = null;
         }
 
         // gltfModel.getSceneModels().get(0).getNodeModels().get(0).getScale()
@@ -167,7 +171,7 @@ public class ModelLoader {
                 objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
 
                 for (var meshModel : node.getMeshModels()) {
-                    processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
+                    processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, skeleton, animations);
                 }
             } else {
                 // Model Loading Method #2
@@ -176,7 +180,7 @@ public class ModelLoader {
                     objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
 
                     for (var meshModel : child.getMeshModels()) {
-                        processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, animations);
+                        processPrimitiveModels(objects, supplier, meshModel, materials, variants, pipeline, glCalls, skeleton, animations);
                     }
                 }
             }
@@ -204,7 +208,7 @@ public class ModelLoader {
         }
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Map<String, Animation> animations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations) {
         for (var primitiveModel : model.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
             var glModel = processPrimitiveModel(primitiveModel, glCalls);
@@ -212,7 +216,7 @@ public class ModelLoader {
             var appliedPipeline = pipeline.apply(primitiveModel.getMaterialModel().getName());
 
             if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-                animatedMeshObject.setup(materials, variants, glModel, appliedPipeline, animations);
+                animatedMeshObject.setup(materials, variants, glModel, appliedPipeline, skeleton, animations);
             } else {
                 renderObject.setup(materials, variants, glModel, appliedPipeline);
             }

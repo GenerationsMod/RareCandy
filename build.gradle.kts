@@ -5,8 +5,8 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
-group = "com.pixelmongenerations"
-version = "1.2.2-SNAPSHOT"
+group = "gg.generations"
+version = "2.0.0-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 

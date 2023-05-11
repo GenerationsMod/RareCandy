@@ -1,7 +1,7 @@
 # RareCandy
-Pixelmon's Fast, Efficient, Renderer. Sadly limited to support macos
+Generation's Fast, Efficient, Renderer.
 
-RareCandy is Pixelmon Generations Rendering System for 1.19 
+RareCandy is Generations Rendering System for 1.19 
 Is used to render Pokemon, along with animated blocks in game using OpenGL and Java
 
 

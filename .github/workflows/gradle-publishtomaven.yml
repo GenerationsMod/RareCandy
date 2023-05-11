@@ -31,7 +31,7 @@ jobs:
         run: |
           mkdir -p ~/.gradle/
           echo "GRADLE_USER_HOME=${HOME}/.gradle" >> $GITHUB_ENV
-          echo "${REPO_LOGIN}" > ~/.gradle/gradle.properties
+          echo "${MAVEN_REPO_PROPERTIES}" > ~/.gradle/gradle.properties
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
@@ -39,5 +39,5 @@ jobs:
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
 
-      - name: Execute Gradle build
+      - name: Execute Gradle build and Publish to Maven
         run: ./gradlew publish publishAllPublicationsToGenerations-RepoRepository

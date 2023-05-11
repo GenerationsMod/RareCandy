@@ -24,15 +24,6 @@ jobs:
           java-version: 19
           cache: gradle
 
-      - name: Store gradle.properties secrets
-        env:
-          MAVEN_REPO_PROPERTIES: ${{ secrets.MAVEN_REPO_PROPERTIES }}
-        shell: bash
-        run: |
-          mkdir -p ~/.gradle/
-          echo "GRADLE_USER_HOME=${HOME}/.gradle" >> $GITHUB_ENV
-          echo "${MAVEN_REPO_PROPERTIES}" > ~/.gradle/gradle.properties
-
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
@@ -40,4 +31,4 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Execute Gradle build
-        run: ./gradlew build
+        run: ./gradlew build  --scan

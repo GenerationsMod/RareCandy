@@ -105,8 +105,8 @@ publishing {
             name = "Generations-Repo"
             //url = uri("https://maven.generations.gg")
             credentials {
-                username = project.properties["repoLogin"]?.toString() ?: findProperty("REPO_LOGIN").toString()
-                password = project.properties["repoPassword"]?.toString() ?: findProperty("REPO_PASSWORD").toString()
+                username = project.properties["repoLogin"]?.toString()
+                password = project.properties["repoPassword"]?.toString()
             }
         }
 

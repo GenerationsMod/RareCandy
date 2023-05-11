@@ -2,17 +2,13 @@ plugins {
     `java-library`
     `maven-publish`
     idea
-    id("com.github.johnrengelman.shadow") version "8.1.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "com.pixelmongenerations"
 version = "1.2.0"
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-}
+java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
 sourceSets {
     val assetLoading = create("assetLoading") {
@@ -38,11 +34,11 @@ dependencies {
     compileOnly("org.jetbrains:annotations:24.0.1")
 
     shadow(implementation("org.tukaani", "xz", "1.9"))
-    shadow(implementation("org.apache.commons", "commons-compress", "1.22"))
+    shadow(implementation("org.apache.commons", "commons-compress", "1.23.0"))
     shadow(implementation("org.joml", "joml", "1.10.5"))
     shadow(implementation("de.javagl", "jgltf-model", "2.0.3"))
 
-    shadow(implementation(platform("org.lwjgl:lwjgl-bom:3.3.1"))!!)
+    shadow(implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))!!)
     shadow(implementation("org.lwjgl", "lwjgl"))
     shadow(implementation("org.lwjgl", "lwjgl-glfw"))
     shadow(implementation("org.lwjgl", "lwjgl-opengl"))
@@ -52,7 +48,7 @@ dependencies {
     shadow(runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-windows"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-windows"))
 
-    shadow(implementation("org.slf4j:slf4j-jdk14:2.0.6")!!)
+    shadow(implementation("org.slf4j:slf4j-jdk14:2.0.7")!!)
 
     // PokeUtils Libs
     shadow(implementation("com.github.weisj:darklaf-core:3.0.2")!!)

@@ -23,6 +23,7 @@ import de.javagl.jgltf.model.v2.MaterialModelV2;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
+import gg.generations.rarecandy.model.Material;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;

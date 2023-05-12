@@ -26,11 +26,6 @@ public class PokeUtilsGui extends JPanel {
             if (chosenFile != null) handler.convertGlb(chosenFile);
         });
 
-        createArchive.addActionListener(e -> {
-            var chosenFile = DialogueUtils.saveFile("pk");
-            if (chosenFile != null) handler.convertGlb(chosenFile);
-        });
-
         save.addActionListener(e -> handler.save());
 
         saveAs.addActionListener(e -> {

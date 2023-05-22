@@ -37,7 +37,16 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
 
     public TimeKey<T> get(int i) {
         if (i > values().length) return null;
-        return values()[i];
+
+        return values()[wraparoundIndex(values, i)];
+    }
+
+    public static <T> int wraparoundIndex(T[] arr, int index) {
+        if (arr.length == 0) {
+            return -1; // Or any other suitable value indicating an error condition
+        }
+
+        return (index % arr.length + arr.length) % arr.length;
     }
 
     public TimeKey<T> getAtTime(int animationDuration) {

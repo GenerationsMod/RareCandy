@@ -1,8 +1,12 @@
 package gg.generations.rarecandy.tools.pkcreator;
 
+import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
+import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
+import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
+import org.msgpack.core.MessagePack;
 import org.tukaani.xz.LZMA2Options;
 import org.tukaani.xz.XZOutputStream;
 
@@ -48,9 +52,17 @@ public class PixelConverter {
         Files.walk(inFolder).forEach(path -> {
             if (!Files.isDirectory(path) && !path.equals(inFolder)) {
                 var relativePath = inFolder.relativize(path);
-                var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".glb", ".pk"));
-                convertToPk(path, outputPath);
+                var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".smdx", ".smd"));
+                convertToSmd(path, outputPath);
             }
         });
+    }
+
+    private static void convertToSmd(Path path, Path outputPath) {
+        try {
+            Files.writeString(outputPath, new SMDTextWriter().write(new SMDBinaryReader().read(MessagePack.newDefaultUnpacker(Files.newInputStream(path)))));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

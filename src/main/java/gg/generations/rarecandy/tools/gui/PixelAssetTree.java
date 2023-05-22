@@ -41,8 +41,11 @@ public class PixelAssetTree extends JTree {
                 if(path == null) return;;
 
                 if (e.isPopupTrigger()) {
-                    if (path.getLastPathComponent().toString().equals("animations")) return;
-                    new TreeNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
+                    if (path.getLastPathComponent().toString().equals("animations")) {
+                        new AnimationNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
+                    } else {
+                        new TreeNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
+                    }
                 } else {
                     if (path.getParentPath() != null)
                         if (path.getParentPath().getLastPathComponent().toString().equals("animations")) {
@@ -97,7 +100,7 @@ public class PixelAssetTree extends JTree {
             else tree.add(node(s));
         }
 
-        if (animationsNode.children().hasMoreElements()) tree.add(animationsNode);
+        tree.add(animationsNode);
         setModel(new DefaultTreeModel(tree));
     }
 

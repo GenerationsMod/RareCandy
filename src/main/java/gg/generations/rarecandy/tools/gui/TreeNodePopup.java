@@ -78,6 +78,18 @@ public class TreeNodePopup extends JPopupMenu {
         }
     }
 
+    public void importAnimation(TreePath pathNode) {
+        try {
+            var fileName = pathNode.getLastPathComponent().toString();
+            var exportFileType = getExportFileType(fileName);
+            var exportBytes = getExportBytes(gui.asset.files.get(fileName));
+            var outputPath = DialogueUtils.saveFile(exportFileType);
+            if (outputPath != null) Files.write(outputPath, exportBytes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void exportNode(TreePath pathNode) {
         try {
             var fileName = pathNode.getLastPathComponent().toString();

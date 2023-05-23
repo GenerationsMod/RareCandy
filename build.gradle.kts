@@ -60,7 +60,7 @@ dependencies {
     shadow(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows"))
     shadow(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
 
-    shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.3.3")!!)
+    shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.5.9")!!)
 }
 
 tasks {
@@ -69,9 +69,7 @@ tasks {
         from(sourceSets.getByName("assetLoading").output.classesDirs)
         from(sourceSets.getByName("renderer").output.classesDirs)
         from(sourceSets.getByName("renderer").output.resourcesDir)
-        manifest {
-            attributes(mapOf("Main-Class" to "com.pokemod.rarecandy.tools.Main"))
-        }
+        manifest.attributes(mapOf("Main-Class" to "com.pokemod.rarecandy.tools.Main"))
     }
 
     jar {
@@ -80,9 +78,7 @@ tasks {
         from(sourceSets.getByName("renderer").output.resourcesDir)
     }
 
-    build {
-        dependsOn(shadowJar)
-    }
+    build.get().dependsOn(shadowJar)
 
     processResources {
         dependsOn("processAssetLoadingResources")
@@ -103,13 +99,11 @@ publishing {
             val snapshotsRepoUrl = "https://maven.generations.gg/snapshots"
             url = uri(if (version.toString().endsWith("SNAPSHOT") || version.toString().startsWith("0")) snapshotsRepoUrl else releasesRepoUrl)
             name = "Generations-Repo"
-            //url = uri("https://maven.generations.gg")
             credentials {
                 username = project.properties["repoLogin"]?.toString()
                 password = project.properties["repoPassword"]?.toString()
             }
         }
-
     }
 }
 

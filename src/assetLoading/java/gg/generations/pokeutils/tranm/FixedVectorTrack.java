@@ -12,7 +12,7 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class FixedVectorTrack extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_3_3(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_23_5_9(); }
   public static FixedVectorTrack getRootAsFixedVectorTrack(ByteBuffer _bb) { return getRootAsFixedVectorTrack(_bb, new FixedVectorTrack()); }
   public static FixedVectorTrack getRootAsFixedVectorTrack(ByteBuffer _bb, FixedVectorTrack obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }

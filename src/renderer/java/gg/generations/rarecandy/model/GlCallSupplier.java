@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.model;
 
+import gg.generations.pokeutils.ModelConfig;
 import gg.generations.rarecandy.components.MultiRenderObject;
 import gg.generations.rarecandy.components.RenderObject;
 import de.javagl.jgltf.model.GltfModel;
@@ -11,5 +12,5 @@ import java.util.Map;
 @FunctionalInterface
 public interface GlCallSupplier<T extends RenderObject> {
 
-    List<Runnable> getCalls(GltfModel model, Map<String, SMDFile> smdFiles, Map<String, byte[]> gfbFiles, MultiRenderObject<T> mro);
+    List<Runnable> getCalls(GltfModel model, Map<String, SMDFile> smdFiles, Map<String, byte[]> gfbFiles, ModelConfig config, MultiRenderObject<T> mro);
 }

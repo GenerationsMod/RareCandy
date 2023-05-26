@@ -61,6 +61,9 @@ dependencies {
     shadow(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
 
     shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.3.3")!!)
+
+    //TODO: JT need some funky gradle logic that lets us build a version does and doesn't include gson for the viewer and generations respectively
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 tasks {

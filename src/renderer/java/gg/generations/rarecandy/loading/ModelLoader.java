@@ -1,8 +1,10 @@
 package gg.generations.rarecandy.loading;
 
+import com.google.gson.Gson;
 import gg.generations.pokeutils.PixelAsset;
 import gg.generations.pokeutils.reader.TextureReference;
 import gg.generations.pokeutils.DataUtils;
+import gg.generations.pokeutils.ModelConfig;
 import gg.generations.rarecandy.ThreadSafety;
 import gg.generations.rarecandy.animation.Animation;
 import gg.generations.rarecandy.animation.Skeleton;
@@ -23,7 +25,6 @@ import de.javagl.jgltf.model.v2.MaterialModelV2;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
-import gg.generations.rarecandy.model.Material;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -34,8 +35,7 @@ import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -65,17 +65,23 @@ public class ModelLoader {
     private <T extends RenderObject> Runnable threadedCreateObject(MultiRenderObject<T> obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
         return ThreadSafety.wrapException(() -> {
             var asset = is.get();
-            obj.scale = asset.modelScale;
+            var config = readConfig(asset.getConfig());
+
+            if(config != null) obj.scale = config.scale;
             var model = read(asset);
             var smdAnims = readSmdAnimations(asset);
             var gfbAnims = readGfbAnimations(asset);
-            var glCalls = objectCreator.getCalls(model, smdAnims, gfbAnims, obj);
+            var glCalls = objectCreator.getCalls(model, smdAnims, gfbAnims, config, obj);
             ThreadSafety.runOnContextThread(() -> {
                 glCalls.forEach(Runnable::run);
                 obj.updateDimensions();
                 if (onFinish != null) onFinish.accept(obj);
             });
         });
+    }
+
+    private ModelConfig readConfig(byte[] config) {
+        return config != null ? new Gson().fromJson(new InputStreamReader(new ByteArrayInputStream(config)), ModelConfig.class) : null;
     }
 
     private Map<String, byte[]> readGfbAnimations(PixelAsset asset) {
@@ -116,11 +122,11 @@ public class ModelLoader {
         }
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
-        create2(objects, gltfModel, smdFileMap, gfbFileMap, glCalls, pipeline, supplier, Animation.GLB_SPEED);
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, ModelConfig config, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
+        create2(objects, gltfModel, smdFileMap, gfbFileMap, config, glCalls, pipeline, supplier, Animation.GLB_SPEED);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier, int animationSpeed) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, ModelConfig config, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier, int animationSpeed) {
         checkForRootTransformation(objects, gltfModel);
         if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
 

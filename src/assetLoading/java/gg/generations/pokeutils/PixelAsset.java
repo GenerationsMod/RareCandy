@@ -6,10 +6,7 @@ import org.tukaani.xz.XZInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Pixelmon Asset (.pk) file.
@@ -18,7 +15,6 @@ public class PixelAsset {
 
     public final Map<String, byte[]> files = new HashMap<>();
     public String modelName;
-    public float modelScale = 1;
 
     public PixelAsset(String modelName, byte[] glbFile) {
         this.modelName = modelName;
@@ -42,10 +38,6 @@ public class PixelAsset {
     }
 
     public void updateSettings() {
-        for (var entry : files.entrySet()) {
-            if (entry.getKey().equals("scale"))
-                this.modelScale = Float.parseFloat(new String(entry.getValue()));
-        }
     }
 
     private TarFile getTarFile(InputStream inputStream) {
@@ -63,5 +55,9 @@ public class PixelAsset {
 
     public List<Map.Entry<String, byte[]>> getAnimationFiles() {
         return files.entrySet().stream().filter(a -> a.getKey().endsWith("smd")).toList();
+    }
+
+    public byte[] getConfig() {
+        return files.entrySet().stream().filter(a -> a.getKey().endsWith("config.json")).map(Map.Entry::getValue).findFirst().orElse(null);
     }
 }

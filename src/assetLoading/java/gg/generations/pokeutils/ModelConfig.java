@@ -7,5 +7,5 @@ import java.util.Map;
 public class ModelConfig {
     public float scale = 1.0f;
 
-    public Map<String, Material>
+//    public Map<String, Material>
 }

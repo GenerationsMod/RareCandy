@@ -79,10 +79,10 @@ public class PokemonTest {
         var loader = renderer.getLoader();
         loader.createObject(
                 asset,
-                (gltfModel, smdFileMap, gfbFileMap, object) -> {
+                (gltfModel, smdFileMap, gfbFileMap, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     try {
-                        ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, glCalls, pipelineFactory, supplier);
+                        ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, config, glCalls, pipelineFactory, supplier);
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to interpret data", e);
                     }

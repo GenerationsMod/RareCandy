@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.0.0-SNAPSHOT"
+version = "2.0.0b-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -87,11 +87,7 @@ tasks {
 }
 
 publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
-    }
+    publications.create<MavenPublication>("maven").from(components["java"])
     repositories {
         mavenLocal()
         maven {

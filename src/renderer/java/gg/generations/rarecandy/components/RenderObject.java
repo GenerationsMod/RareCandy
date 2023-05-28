@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.components;
 
 import gg.generations.rarecandy.model.Material;
+import gg.generations.rarecandy.model.Variant;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
@@ -13,8 +14,9 @@ import java.util.Set;
 
 public abstract class RenderObject {
     protected Pipeline pipeline;
-    protected List<Material> materials = new ArrayList<>();
-    protected Map<String, Material> variants;
+    protected Map<String, Variant> variants;
+
+    protected Variant defaultVariant;
     protected boolean ready = false;
     protected Matrix4f matrixOffset = new Matrix4f().identity();
 
@@ -39,7 +41,7 @@ public abstract class RenderObject {
     }
 
     public Material getMaterial(@Nullable String materialId) {
-        return variants.getOrDefault(materialId, materials.get(0));
+        return variants.getOrDefault(materialId, defaultVariant).material();
     }
 }
 

@@ -14,7 +14,7 @@ import java.nio.file.Path;
 
 public class TextureTest {
     public static void main(String[] args) throws IOException {
-        var path = Path.of("");
+        var path = Path.of("C:\\Users\\water\\Desktop\\blep.jxl");
 
         if(path != null) displayImage(TextureReference.read(Files.readAllBytes(path), path.getFileName().toString()));
     }

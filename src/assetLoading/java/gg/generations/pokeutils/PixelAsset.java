@@ -57,6 +57,15 @@ public class PixelAsset {
         return files.entrySet().stream().filter(a -> a.getKey().endsWith("smd")).toList();
     }
 
+    public List<Map.Entry<String, byte[]>> getImageFiles() {
+        return files.entrySet().stream().filter(a -> {
+            var key = a.getKey();
+
+            return key.endsWith("jxl") || key.endsWith("jpg") || key.endsWith("png");
+        }).toList();
+    }
+
+
     public byte[] getConfig() {
         return files.entrySet().stream().filter(a -> a.getKey().endsWith("config.json")).map(Map.Entry::getValue).findFirst().orElse(null);
     }

@@ -1,10 +1,8 @@
 package gg.generations.rarecandy.loading;
 
 import com.google.gson.Gson;
-import gg.generations.pokeutils.PixelAsset;
+import gg.generations.pokeutils.*;
 import gg.generations.pokeutils.reader.TextureReference;
-import gg.generations.pokeutils.DataUtils;
-import gg.generations.pokeutils.ModelConfig;
 import gg.generations.rarecandy.ThreadSafety;
 import gg.generations.rarecandy.animation.Animation;
 import gg.generations.rarecandy.animation.Skeleton;
@@ -12,10 +10,7 @@ import gg.generations.rarecandy.components.AnimatedMeshObject;
 import gg.generations.rarecandy.components.MeshObject;
 import gg.generations.rarecandy.components.MultiRenderObject;
 import gg.generations.rarecandy.components.RenderObject;
-import gg.generations.rarecandy.model.GLModel;
-import gg.generations.rarecandy.model.GlCallSupplier;
-import gg.generations.rarecandy.model.Material;
-import gg.generations.rarecandy.model.MeshDrawCommand;
+import gg.generations.rarecandy.model.*;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.RareCandy;
 import de.javagl.jgltf.model.*;
@@ -71,13 +66,30 @@ public class ModelLoader {
             var model = read(asset);
             var smdAnims = readSmdAnimations(asset);
             var gfbAnims = readGfbAnimations(asset);
-            var glCalls = objectCreator.getCalls(model, smdAnims, gfbAnims, config, obj);
+            var images = readImages(asset);
+            var glCalls = objectCreator.getCalls(model, smdAnims, gfbAnims, images, config, obj);
             ThreadSafety.runOnContextThread(() -> {
                 glCalls.forEach(Runnable::run);
                 obj.updateDimensions();
                 if (onFinish != null) onFinish.accept(obj);
             });
         });
+    }
+
+    private Map<String, TextureReference> readImages(PixelAsset asset) {
+        var images = asset.getImageFiles();
+        var map = new HashMap<String, TextureReference>();
+        for (var entry : images) {
+            var key = entry.getKey();
+
+            try {
+                map.put(key, TextureReference.read(entry.getValue(), key));
+            } catch (IOException e) {
+                System.out.println("Error couldn't load: " + key);
+            }
+        }
+
+        return map;
     }
 
     private ModelConfig readConfig(byte[] config) {
@@ -122,22 +134,14 @@ public class ModelLoader {
         }
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, ModelConfig config, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
-        create2(objects, gltfModel, smdFileMap, gfbFileMap, config, glCalls, pipeline, supplier, Animation.GLB_SPEED);
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, TextureReference> images, ModelConfig config, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
+        create2(objects, gltfModel, smdFileMap, gfbFileMap, images, config, glCalls, pipeline, supplier, Animation.GLB_SPEED);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, ModelConfig config, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier, int animationSpeed) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, TextureReference> images, ModelConfig config, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier, int animationSpeed) {
         checkForRootTransformation(objects, gltfModel);
         if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
 
-        var textures = gltfModel.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
-        var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
-            var textureName = raw.getBaseColorTexture().getImageModel().getName();
-            int textureIndex = IntStream.range(0, textures.size()).filter(a -> textures.get(a).name().equals(textureName)).findFirst().orElse(-1);
-            var textureReference = textures.get(textureIndex);
-            return new Material(raw.getName(), textureReference);
-        }).toList();
-        var variants = getVariants(gltfModel);
         Map<String, Animation> animations = null;
 
         Skeleton skeleton;
@@ -167,6 +171,58 @@ public class ModelLoader {
         } else {
             skeleton = null;
         }
+
+        if(config != null) {
+            var materials = config.materials.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> new Material(a.getKey(), images.get(a.getValue()))));
+
+            var defaultVariant = config.defaultVariant.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> new Variant(materials.get(a.getValue().material()), a.getValue().hide())));
+
+            var variants = new HashMap<String, Map<String, Variant>>();
+
+            for (var variantName : config.variants.keySet()) {
+                var map = variants.computeIfAbsent(variantName, a -> new HashMap<>());
+                for (var entry : config.variants.get(variantName).entrySet()) {
+                    map.computeIfAbsent(entry.getKey(), a -> new Variant(materials.get(entry.getValue().material()), entry.getValue().hide()));
+                }
+
+                defaultVariant.forEach(map::putIfAbsent);
+            }
+
+            for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
+                var transform = new Matrix4f();
+                applyTransforms(transform, node);
+
+                if (node.getChildren().isEmpty()) {
+                    // Model Loading Method #1
+                    objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
+
+                    for (var meshModel : node.getMeshModels()) {
+                        processPrimitiveModels(objects, supplier, meshModel, defaultVariant, variants, pipeline, glCalls, skeleton, animations);
+                    }
+                } else {
+                    // Model Loading Method #2
+                    for (var child : node.getChildren()) {
+                        applyTransforms(transform, child);
+                        objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
+
+                        for (var meshModel : child.getMeshModels()) {
+                            processPrimitiveModels(objects, supplier, meshModel, defaultVariant, variants, pipeline, glCalls, skeleton, animations);
+                        }
+                    }
+                }
+            }
+        }
+
+        //Original model loading code
+
+        var textures = gltfModel.getTextureModels().stream().map(raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())).toList();
+        var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
+            var textureName = raw.getBaseColorTexture().getImageModel().getName();
+            int textureIndex = IntStream.range(0, textures.size()).filter(a -> textures.get(a).name().equals(textureName)).findFirst().orElse(-1);
+            var textureReference = textures.get(textureIndex);
+            return new Material(raw.getName(), textureReference);
+        }).map(Variant::new).toList();
+        var variants = getVariants(gltfModel);
 
         // gltfModel.getSceneModels().get(0).getNodeModels().get(0).getScale()
         for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
@@ -215,7 +271,7 @@ public class ModelLoader {
         }
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Variant> materials, List<String> variantsList, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations) {
         for (var primitiveModel : model.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
             var glModel = processPrimitiveModel(primitiveModel, glCalls);
@@ -223,14 +279,36 @@ public class ModelLoader {
             var appliedPipeline = pipeline.apply(primitiveModel.getMaterialModel().getName());
 
             if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-                animatedMeshObject.setup(materials, variants, glModel, appliedPipeline, skeleton, animations);
+                animatedMeshObject.setup(materials.get(0), variants, glModel, appliedPipeline, skeleton, animations);
             } else {
-                renderObject.setup(materials, variants, glModel, appliedPipeline);
+                renderObject.setup(materials.get(0), variants, glModel, appliedPipeline);
             }
 
             objects.add(renderObject);
         }
     }
+
+
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, Map<String, Variant> defaultVariants, Map<String, Map<String, Variant>> variants, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations) {
+        for (var primitiveModel : model.getMeshPrimitiveModels()) {
+            var glModel = processPrimitiveModel(primitiveModel, glCalls);
+            var renderObject = objSupplier.get();
+            var name = primitiveModel.getMaterialModel().getName();
+            var appliedPipeline = pipeline.apply(name);
+
+            var defaultvariant = defaultVariants.get(name);
+            var variantMap = variants.get(name);
+
+            if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
+                animatedMeshObject.setup(defaultvariant, variantMap, glModel, appliedPipeline, skeleton, animations);
+            } else {
+                renderObject.setup(defaultvariant, variantMap, glModel, appliedPipeline);
+            }
+
+            objects.add(renderObject);
+        }
+    }
+
 
     private static GLModel processPrimitiveModel(MeshPrimitiveModel primitiveModel, List<Runnable> glCalls) {
         var model = new GLModel();
@@ -325,14 +403,14 @@ public class ModelLoader {
         }
     }
 
-    private static Map<String, Material> createMeshVariantMap(MeshPrimitiveModel primitiveModel, List<Material> materials, List<String> variantsList) {
+    private static Map<String, Variant> createMeshVariantMap(MeshPrimitiveModel primitiveModel, List<Variant> materials, List<String> variantsList) {
         if (variantsList == null) {
             var materialId = primitiveModel.getMaterialModel().getName();
-            return Collections.singletonMap("default", materials.stream().filter(a -> a.getMaterialName().equals(materialId)).findAny().get());
+            return Collections.singletonMap("default", materials.stream().filter(a -> a.material().getMaterialName().equals(materialId)).findAny().get());
         } else {
             var map = (Map<String, Object>) primitiveModel.getExtensions().get("KHR_materials_variants");
             var mappings = (List<Map<String, Object>>) map.get("mappings");
-            var variantMap = new HashMap<String, Material>();
+            var variantMap = new HashMap<String, Variant>();
 
             for (var mapping : mappings) {
                 if (!mapping.containsKey("material")) continue;

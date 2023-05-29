@@ -7,7 +7,7 @@ import java.util.List;
 public class GuiObject extends RenderObject {
 
     @Override
-    public void render(List<ObjectInstance> instances) {
+    protected <T extends RenderObject> void render(List<ObjectInstance> instances, T object) {
 
     }
 }

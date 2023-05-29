@@ -68,12 +68,12 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public void openFile(PixelAsset pkFile) {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
-        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+//        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
         loadPokemonModel(renderer, pkFile, model -> {
             var i = 0;
 
             loadedModel = model;
-            var variant = model.objects.get(0).availableVariants().iterator().next();
+            var variant = model.availableVariants().iterator().next();
             var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
             instance.transformationMatrix().scale(0.3f);
             loadedModelInstance = renderer.objectManager.add(model, instance);

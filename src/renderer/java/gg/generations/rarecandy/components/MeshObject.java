@@ -6,13 +6,19 @@ import gg.generations.rarecandy.model.Variant;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.ObjectInstance;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class MeshObject extends RenderObject {
     public GLModel model;
+    public String name;
 
-    public void setup(Variant defaultVariant, Map<String, Variant> variants, GLModel model, Pipeline pipeline) {
+    public void setup(Variant defaultVariant, Map<String, Variant> variants, GLModel model, Function<String, Pipeline> pipeline, String name) {
+        this.name = name;
         this.defaultVariant = defaultVariant;
         this.variants = variants;
         this.model = model;
@@ -20,17 +26,31 @@ public class MeshObject extends RenderObject {
         this.ready = true;
     }
 
-    public void render(List<ObjectInstance> instances) {
-        pipeline.bind();
+    public <T extends RenderObject> void render(List<ObjectInstance> instances, T object) {
+        Map<String, List<Consumer<Pipeline>>> map = new HashMap<>();
 
         for (var instance : instances) {
-            if(variants.get(instance.materialId()).hide()) continue;
+            System.out.print("Testing " + ((MeshObject) object).name + " with instance (" + instance.variant() + "): ");
+            if(object.getVariant(instance.materialId()).hide()) {
+                System.out.println("false");
+                continue;
+            }
+//            System.out.println("true -> " + object.getVariant(instance.materialId()).material().diffuseTextureReference.name());
 
-            pipeline.updateOtherUniforms(instance, this);
-            pipeline.updateTexUniforms(instance, this);
-            model.runDrawCalls();
+            var material = object.getMaterial(instance.variant()).getType();
+
+            map.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
+                pipeline.updateOtherUniforms(instance, object);
+                pipeline.updateTexUniforms(instance, object);
+                model.runDrawCalls();
+            });
         }
 
-        pipeline.unbind();
+        map.forEach((k, v) -> {
+            var pl = pipeline.apply(k);
+            pl.bind();
+            v.forEach(a -> a.accept(pl));
+            pl.unbind();
+        });
     }
 }

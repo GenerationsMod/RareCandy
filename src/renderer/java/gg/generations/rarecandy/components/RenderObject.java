@@ -7,20 +7,20 @@ import gg.generations.rarecandy.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 
 public abstract class RenderObject {
-    protected Pipeline pipeline;
-    protected Map<String, Variant> variants;
+    protected Function<String, Pipeline> pipeline;
+    protected Map<String, Variant> variants = new HashMap<>();
 
     protected Variant defaultVariant;
     protected boolean ready = false;
     protected Matrix4f matrixOffset = new Matrix4f().identity();
 
-    public abstract void render(List<ObjectInstance> instances);
+    public void render(List<ObjectInstance> instances) {
+        render(instances, this);
+    }
 
     public void update() {}
 
@@ -41,7 +41,13 @@ public abstract class RenderObject {
     }
 
     public Material getMaterial(@Nullable String materialId) {
-        return variants.getOrDefault(materialId, defaultVariant).material();
+        return getVariant(materialId).material();
     }
+
+    public Variant getVariant(@Nullable String materialId) {
+        return variants.getOrDefault(materialId, defaultVariant);
+    }
+
+    protected abstract <T extends RenderObject> void render(List<ObjectInstance> instances, T object);
 }
 

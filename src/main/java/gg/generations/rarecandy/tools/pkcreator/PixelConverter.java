@@ -50,10 +50,14 @@ public class PixelConverter {
 
 
         Files.walk(inFolder).forEach(path -> {
-            if (!Files.isDirectory(path) && !path.equals(inFolder)) {
-                var relativePath = inFolder.relativize(path);
-                var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".smdx", ".smd"));
-                convertToSmd(path, outputPath);
+            if(path.toString().endsWith("smdx")) {
+                System.out.println("derp");
+
+                if (!Files.isDirectory(path) && !path.equals(inFolder)) {
+                    var relativePath = inFolder.relativize(path);
+                    var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".smdx", ".smd"));
+                    convertToSmd(path, outputPath);
+                }
             }
         });
     }

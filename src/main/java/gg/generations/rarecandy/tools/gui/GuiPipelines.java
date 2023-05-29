@@ -19,7 +19,12 @@ public class GuiPipelines {
             .supplyUniform("intColor", ctx -> ctx.uniform().uploadInt(0xFFFFFF))
             .supplyUniform("diffuseColorMix", ctx -> ctx.uniform().uploadFloat(0.7f))
             .supplyUniform("diffuse", ctx -> {
-                ctx.object().getMaterial(ctx.instance().variant()).getDiffuseTexture().bind(0);
+                var variant = ctx.instance().variant();
+                var object = ctx.object();
+                var objectVariant = object.getVariant(variant);
+                var material = objectVariant.material();
+                var texture = material.getDiffuseTexture();
+                texture.bind(0);
                 ctx.uniform().uploadInt(0);
             });
 

@@ -71,6 +71,8 @@ public class PixelAssetTree extends JTree {
         var tree = node(assetPath.getFileName().toString());
         var animationsNode = node("animations");
 
+        List<String> variants = asset.getConfig() != null ? List.copyOf(asset.getConfig().variants.keySet()) : null;
+
         for (var s : asset.files.keySet()) {
             if (s.endsWith("tranm")) animationsNode.add(node(s));
             else if(s.endsWith("glb")) {
@@ -78,7 +80,7 @@ public class PixelAssetTree extends JTree {
                 try {
 
                     var gltf = new GltfModelReader().readWithoutReferences(new ByteArrayInputStream(asset.files.get(s)));
-                    var variants = gltf.getExtensions() != null && gltf.getExtensions().containsKey("KHR_materials_variants") ? ((List<Map<String, String>>) (((Map<String, Object>) gltf.getExtensions().get("KHR_materials_variants")).get("variants"))).stream().map(a -> a.get("name")).toList() : List.<String>of();
+                    if(variants == null) variants = gltf.getExtensions() != null && gltf.getExtensions().containsKey("KHR_materials_variants") ? ((List<Map<String, String>>) (((Map<String, Object>) gltf.getExtensions().get("KHR_materials_variants")).get("variants"))).stream().map(a -> a.get("name")).toList() : List.<String>of();
                     var animations = gltf.getAnimationModels().stream().map(NamedModelElement::getName).toList();
 
                     if(!animations.isEmpty()) {

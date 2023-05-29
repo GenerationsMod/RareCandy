@@ -1,11 +1,14 @@
 package gg.generations.pokeutils;
 
+import com.google.gson.Gson;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.jetbrains.annotations.Nullable;
 import org.tukaani.xz.XZInputStream;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 
 /**
@@ -14,6 +17,7 @@ import java.util.*;
 public class PixelAsset {
 
     public final Map<String, byte[]> files = new HashMap<>();
+    private ModelConfig config;
     public String modelName;
 
     public PixelAsset(String modelName, byte[] glbFile) {
@@ -27,8 +31,15 @@ public class PixelAsset {
 
             for (var entry : tarFile.getEntries()) {
                 if (entry.getName().endsWith(".glb")) this.modelName = entry.getName();
+                if (entry.getName().equals("config.json")) {
+
+                }
 
                 files.put(entry.getName(), tarFile.getInputStream(entry).readAllBytes());
+            }
+
+            if(files.containsKey("config.json")) {
+                config = new Gson().fromJson(new InputStreamReader(new ByteArrayInputStream(files.get("config.json"))), ModelConfig.class);
             }
         } catch (IOException | NullPointerException e) {
             throw new RuntimeException("Failed to load " + debugName, e);
@@ -66,7 +77,7 @@ public class PixelAsset {
     }
 
 
-    public byte[] getConfig() {
-        return files.entrySet().stream().filter(a -> a.getKey().endsWith("config.json")).map(Map.Entry::getValue).findFirst().orElse(null);
+    public ModelConfig getConfig() {
+        return config;
     }
 }

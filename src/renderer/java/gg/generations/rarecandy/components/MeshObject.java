@@ -30,12 +30,9 @@ public class MeshObject extends RenderObject {
         Map<String, List<Consumer<Pipeline>>> map = new HashMap<>();
 
         for (var instance : instances) {
-            System.out.print("Testing " + ((MeshObject) object).name + " with instance (" + instance.variant() + "): ");
             if(object.getVariant(instance.materialId()).hide()) {
-                System.out.println("false");
                 continue;
             }
-//            System.out.println("true -> " + object.getVariant(instance.materialId()).material().diffuseTextureReference.name());
 
             var material = object.getMaterial(instance.variant()).getType();
 

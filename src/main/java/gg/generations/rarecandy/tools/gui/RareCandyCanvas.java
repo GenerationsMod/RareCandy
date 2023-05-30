@@ -68,7 +68,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public void openFile(PixelAsset pkFile) {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
-//        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
         loadPokemonModel(renderer, pkFile, model -> {
             var i = 0;
 
@@ -90,9 +90,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
         this.renderer = new RareCandy();
 
         GL11C.glClearColor(60 / 255f, 63 / 255f, 65 / 255f, 1);
-//        GL11C.glFrontFace(GL11C.GL_CW);
-//        GL11C.glCullFace(GL11C.GL_FRONT);
-//        GL11C.glEnable(GL11C.GL_CULL_FACE);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
         try(var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {

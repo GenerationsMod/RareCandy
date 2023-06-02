@@ -1,15 +1,15 @@
 package gg.generations.pokeutils;
 
+import com.google.gson.Gson;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.jetbrains.annotations.Nullable;
 import org.tukaani.xz.XZInputStream;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.io.InputStreamReader;
+import java.util.*;
 
 /**
  * Pixelmon Asset (.pk) file.
@@ -17,8 +17,8 @@ import java.util.Objects;
 public class PixelAsset {
 
     public final Map<String, byte[]> files = new HashMap<>();
+    private ModelConfig config;
     public String modelName;
-    public float modelScale = 1;
 
     public PixelAsset(String modelName, byte[] glbFile) {
         this.modelName = modelName;
@@ -31,8 +31,15 @@ public class PixelAsset {
 
             for (var entry : tarFile.getEntries()) {
                 if (entry.getName().endsWith(".glb")) this.modelName = entry.getName();
+                if (entry.getName().equals("config.json")) {
+
+                }
 
                 files.put(entry.getName(), tarFile.getInputStream(entry).readAllBytes());
+            }
+
+            if(files.containsKey("config.json")) {
+                config = new Gson().fromJson(new InputStreamReader(new ByteArrayInputStream(files.get("config.json"))), ModelConfig.class);
             }
         } catch (IOException | NullPointerException e) {
             throw new RuntimeException("Failed to load " + debugName, e);
@@ -42,10 +49,6 @@ public class PixelAsset {
     }
 
     public void updateSettings() {
-        for (var entry : files.entrySet()) {
-            if (entry.getKey().equals("scale"))
-                this.modelScale = Float.parseFloat(new String(entry.getValue()));
-        }
     }
 
     private TarFile getTarFile(InputStream inputStream) {
@@ -63,5 +66,18 @@ public class PixelAsset {
 
     public List<Map.Entry<String, byte[]>> getAnimationFiles() {
         return files.entrySet().stream().filter(a -> a.getKey().endsWith("smd")).toList();
+    }
+
+    public List<Map.Entry<String, byte[]>> getImageFiles() {
+        return files.entrySet().stream().filter(a -> {
+            var key = a.getKey();
+
+            return key.endsWith("jxl") || key.endsWith("jpg") || key.endsWith("png");
+        }).toList();
+    }
+
+
+    public ModelConfig getConfig() {
+        return config;
     }
 }

@@ -13,6 +13,7 @@ public class Texture {
         this.name = reference.name();
         this.id = GL11C.glGenTextures();
 
+        GL13C.glActiveTexture(GL13C.GL_TEXTURE0);
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, this.id);
         GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, reference.data().getWidth(), reference.data().getHeight(), 0, GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, reference.data().getPixelsRGBA());
 

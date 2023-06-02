@@ -1,9 +1,8 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.components.AnimatedMeshObject;
-import gg.generations.rarecandy.components.MultiRenderObject;
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
+import gg.generations.rarecandy.tools.gui.GuiHandler;
 import org.msgpack.core.MessagePack;
 
 import javax.swing.*;
@@ -14,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 public class TreeNodePopup extends JPopupMenu {
     private final GuiHandler gui;
@@ -62,15 +62,12 @@ public class TreeNodePopup extends JPopupMenu {
             if (fileBytes == null) throw new RuntimeException("Removed non-existing file");
             gui.asset.files.put(newName, fileBytes);
 
-            for (var instance : gui.getCanvas().instances) {
-                var mro = ((MultiRenderObject<AnimatedMeshObject>) instance.object());
-                mro.onUpdate(obj -> {
-                    if (obj.animations.containsKey(target.toString())) {
-                        obj.animations.put(newName, obj.animations.get(target.toString()));
-                        obj.animations.remove(target.toString());
-                    }
-                });
-            }
+            gui.getCanvas().updateLoadedModel(obj -> {
+                if (obj.animations.containsKey(target.toString())) {
+                    obj.animations.put(newName, obj.animations.get(target.toString()));
+                    obj.animations.remove(target.toString());
+                }
+            });
 
             var parent = (MutableTreeNode) pathNode.getParentPath().getLastPathComponent();
             parent.insert(new DefaultMutableTreeNode(newName), model.getIndexOfChild(parent, target));
@@ -78,6 +75,18 @@ public class TreeNodePopup extends JPopupMenu {
             model.reload(parent);
             gui.markDirty();
             System.out.println("Rename  " + pathNode);
+        }
+    }
+
+    public void importAnimation(TreePath pathNode) {
+        try {
+            var fileName = pathNode.getLastPathComponent().toString();
+            var exportFileType = getExportFileType(fileName);
+            var exportBytes = getExportBytes(gui.asset.files.get(fileName));
+            var outputPath = DialogueUtils.saveFile(exportFileType);
+            if (outputPath != null) Files.write(outputPath, exportBytes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

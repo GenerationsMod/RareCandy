@@ -6,17 +6,25 @@ import org.joml.Vector3f;
 
 import java.io.IOException;
 
+import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
+
 public class GuiPipelines {
     private static final Pipeline.Builder BASE = new Pipeline.Builder()
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
-            .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(RareCandyCanvas.projectionMatrix))
+            .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
             .supplyUniform("lightPosition", ctx -> ctx.uniform().uploadVec3f(new Vector3f(0, 2, 0)))
-            .supplyUniform("LIGHT_reflectivity", ctx -> ctx.uniform().uploadFloat(0.001f))
-            .supplyUniform("LIGHT_shineDamper", ctx -> ctx.uniform().uploadFloat(0.1f))
-            .supplyUniform("LIGHT_color", ctx -> ctx.uniform().uploadVec3f(new Vector3f(1, 1, 1)))
+            .supplyUniform("reflectivity", ctx -> ctx.uniform().uploadFloat(0.3f))
+            .supplyUniform("shineDamper", ctx -> ctx.uniform().uploadFloat(0.3f))
+            .supplyUniform("intColor", ctx -> ctx.uniform().uploadInt(0xFFFFFF))
+            .supplyUniform("diffuseColorMix", ctx -> ctx.uniform().uploadFloat(0.7f))
             .supplyUniform("diffuse", ctx -> {
-                ctx.object().getMaterial(ctx.instance().materialId()).getDiffuseTexture().bind(0);
+                var variant = ctx.instance().variant();
+                var object = ctx.object();
+                var objectVariant = object.getVariant(variant);
+                var material = objectVariant.material();
+                var texture = material.getDiffuseTexture();
+                texture.bind(0);
                 ctx.uniform().uploadInt(0);
             });
 
@@ -30,7 +38,7 @@ public class GuiPipelines {
             .build();
 
     public static final Pipeline POKEMON_EYES = new Pipeline.Builder(BASE)
-            .shader(builtin("animated/animated.vs.glsl"), builtin("animated_pokemon_eyes.fs.glsl"))
+            .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated.fs.glsl"))
             .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
             .build();
 

@@ -2,11 +2,13 @@ package gg.generations.rarecandy.tools.gui;
 
 import com.github.weisj.darklaf.LafManager;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
+import org.lwjgl.util.nfd.NFDFilterItem;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class PokeUtilsGui extends JPanel {
+
 
     public GuiHandler handler;
     private AWTGLCanvas renderingWindow;
@@ -18,23 +20,18 @@ public class PokeUtilsGui extends JPanel {
         fileViewer.setFocusable(true);
         canvasPanel.setFocusable(true);
         openArchive.addActionListener(e -> {
-            var chosenFile = DialogueUtils.chooseFile("pk");
+            var chosenFile = DialogueUtils.chooseFile("PK;pk");
             if (chosenFile != null) handler.openAsset(chosenFile);
         });
         createArchive.addActionListener(e -> {
-            var chosenFile = DialogueUtils.chooseFile("glb");
-            if (chosenFile != null) handler.convertGlb(chosenFile);
-        });
-
-        createArchive.addActionListener(e -> {
-            var chosenFile = DialogueUtils.saveFile("pk");
+            var chosenFile = DialogueUtils.chooseFile("GLB;glb");
             if (chosenFile != null) handler.convertGlb(chosenFile);
         });
 
         save.addActionListener(e -> handler.save());
 
         saveAs.addActionListener(e -> {
-            var chosenFile = DialogueUtils.saveFile("pk");
+            var chosenFile = DialogueUtils.saveFile("PK;pk");
             if (chosenFile != null) {
                 handler.markDirty();
                 handler.save(chosenFile);
@@ -70,7 +67,7 @@ public class PokeUtilsGui extends JPanel {
     }
 
     private void createUIComponents() {
-        System.load("C:/Program Files/RenderDoc/renderdoc.dll");
+//        System.load("C:/Program Files/RenderDoc/renderdoc.dll");
         this.fileViewer = new PixelAssetTree(this);
         this.renderingWindow = new RareCandyCanvas();
     }

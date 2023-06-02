@@ -6,13 +6,13 @@ import org.joml.Matrix4f;
 public class ObjectInstance {
     private final Matrix4f transformationMatrix;
     private final Matrix4f viewMatrix;
-    private final String materialId;
+    private String variant;
     private RenderObject object;
 
-    public ObjectInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId) {
+    public ObjectInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String variant) {
         this.transformationMatrix = transformationMatrix;
         this.viewMatrix = viewMatrix;
-        this.materialId = materialId;
+        this.variant = variant;
     }
 
     public void link(RenderObject object) {
@@ -29,10 +29,18 @@ public class ObjectInstance {
     }
 
     public String materialId() {
-        return materialId;
+        return variant;
     }
 
     public RenderObject object() {
         return object;
+    }
+
+    public String variant() {
+        return variant;
+    }
+
+    public void setVariant(String variant) {
+        this.variant = variant;
     }
 }

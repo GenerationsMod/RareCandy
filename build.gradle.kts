@@ -29,6 +29,7 @@ sourceSets {
 repositories {
     mavenCentral()
     maven("https://jitpack.io")
+    maven("https://maven.thepokecraftmod.com/releases")
 }
 
 dependencies {
@@ -61,6 +62,11 @@ dependencies {
     shadow(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
 
     shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.5.9")!!)
+
+    //TODO: JT need some funky gradle logic that lets us build a version does and doesn't include gson for the viewer and generations respectively
+    shadow(implementation("com.google.code.gson:gson:2.10.1")!!)
+
+    shadow(implementation("com.thebombzen:jxlatte:1.1.0")!!)
 }
 
 tasks {
@@ -69,7 +75,7 @@ tasks {
         from(sourceSets.getByName("assetLoading").output.classesDirs)
         from(sourceSets.getByName("renderer").output.classesDirs)
         from(sourceSets.getByName("renderer").output.resourcesDir)
-        manifest.attributes(mapOf("Main-Class" to "com.pokemod.rarecandy.tools.Main"))
+        manifest.attributes(mapOf("Main-Class" to "gg.generations.rarecandy.tools.Main"))
     }
 
     jar {

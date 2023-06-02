@@ -1,11 +1,13 @@
 package gg.generations.rarecandy.components;
 
+import gg.generations.rarecandy.model.Variant;
+import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.ObjectInstance;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -22,6 +24,10 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     private boolean smartRender = false;
     private Matrix4f rootTransformation = new Matrix4f();
     private final Vector3f dimensions = new Vector3f();
+
+    public MultiRenderObject() {
+        variants = new HashMap<>();
+    }
 
     @Override
     public boolean isReady() {
@@ -72,37 +78,50 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public void render(List<ObjectInstance> instances) {
-        if (dirty) {
-            pipeline = null;
-            smartRender = true;
-            for (T object : objects) {
-                if (pipeline == null) pipeline = object.pipeline;
-                else if (pipeline != object.pipeline) smartRender = false;
-            }
-        }
-
-        if (smartRender && isReady()) {
-            pipeline.bind();
-
-            for (var instance : instances) {
-                pipeline.updateOtherUniforms(instance, objects.get(0));
-
-                for (T object : objects) {
-                    if (object instanceof MeshObject meshObject) {
-                        pipeline.updateTexUniforms(instance, object);
-                        meshObject.model.runDrawCalls();
-                    }
-                }
-            }
-
-            pipeline.unbind();
-        } else {
+    public <V extends RenderObject> void render(List<ObjectInstance> instances, V obj) {
+//        if (dirty) {
+//            pipeline = null;
+//            smartRender = true;
+//            for (T object : objects) {
+//                if (pipeline == null) pipeline = object..pipeline;
+//                else if (pipeline != object.pipeline) smartRender = false;
+//            }
+//        }
+//
+//        if (smartRender && isReady()) {
+//            Map<String, List<Consumer<Pipeline>>> map = new HashMap<>();
+//
+//            for (var instance : instances) {
+//                var material = objects.get(0).getMaterial(instance.variant()).getType();
+//
+//                var entry = map.computeIfAbsent(material, a -> new ArrayList<>());
+//
+//                entry.add(pipeline -> {
+//                    pipeline.updateOtherUniforms(instance, this);
+//
+//                    for (T object : objects) {
+//                        if (object instanceof MeshObject meshObject) {
+//                            if (meshObject.getVariant(instance.materialId()).hide()) continue;
+//                            pipeline.updateTexUniforms(instance, meshObject);
+//                            meshObject.model.runDrawCalls();
+//                        }
+//                    }
+//                });
+//            }
+//
+//            map.forEach((k, v) -> {
+//                var pl = pipeline.apply(k);
+//                pl.bind();
+//                v.forEach(a -> a.accept(pl));
+//                pl.unbind();
+//            });
+//        } else {
             for (T object : this.objects) {
-                object.render(instances);
+                object.render(instances, object);
             }
-        }
+//        }
     }
+
 
     public void updateDimensions() {
         for (RenderObject object : objects) {
@@ -110,5 +129,15 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
                 dimensions.max(mesh.model.dimensions);
             }
         }
+    }
+
+    @Override
+    public Set<String> availableVariants() {
+        return objects.get(0).availableVariants();
+    }
+
+    @Override
+    public Variant getVariant(@Nullable String materialId) {
+        return objects.get(0).getVariant(materialId);
     }
 }

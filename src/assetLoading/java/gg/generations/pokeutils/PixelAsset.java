@@ -2,13 +2,7 @@ package gg.generations.pokeutils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
-import com.google.gson.TypeAdapterFactory;
-import com.google.gson.reflect.TypeToken;
 import gg.generations.pokeutils.ModelConfig.MaterialReference.MaterialReferenceTypeAdapter;
-import gg.generations.pokeutils.ModelConfig.MaterialReference.SolidMaterialReference;
-import gg.generations.pokeutils.ModelConfig.MaterialReference.TransparentMaterialReference;
-import gg.generations.pokeutils.util.RuntimeTypeAdapterFactory;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.jetbrains.annotations.Nullable;
 import org.tukaani.xz.XZInputStream;
@@ -17,7 +11,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Pixelmon Asset (.pk) file.

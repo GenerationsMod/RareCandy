@@ -49,6 +49,10 @@ public class Uniform {
         }
     }
 
+    public void upload2i(int x, int y) {
+        GL20C.glUniform2i(getLocation(), x, y);
+    }
+
     public void upload2f(float x, float y) {
         GL20C.glUniform2f(getLocation(), x, y);
     }

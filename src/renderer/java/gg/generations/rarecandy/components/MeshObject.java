@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.components;
 
 import gg.generations.rarecandy.model.GLModel;
-import gg.generations.rarecandy.model.Material;
 import gg.generations.rarecandy.model.Variant;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.ObjectInstance;
@@ -20,7 +19,7 @@ public class MeshObject extends RenderObject {
     public void setup(Variant defaultVariant, Map<String, Variant> variants, GLModel model, Function<String, Pipeline> pipeline, String name) {
         this.name = name;
         this.defaultVariant = defaultVariant;
-        this.variants = variants;
+        this.variants = variants == null ? new HashMap<>() : variants;
         this.model = model;
         this.pipeline = pipeline;
         this.ready = true;

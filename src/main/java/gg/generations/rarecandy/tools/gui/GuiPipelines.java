@@ -1,8 +1,11 @@
 package gg.generations.rarecandy.tools.gui;
 
+import gg.generations.rarecandy.model.material.TransparentMaterial;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.storage.AnimatedObjectInstance;
 import org.joml.Vector3f;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 
 import java.io.IOException;
 
@@ -19,12 +22,7 @@ public class GuiPipelines {
             .supplyUniform("intColor", ctx -> ctx.uniform().uploadInt(0xFFFFFF))
             .supplyUniform("diffuseColorMix", ctx -> ctx.uniform().uploadFloat(0.7f))
             .supplyUniform("diffuse", ctx -> {
-                var variant = ctx.instance().variant();
-                var object = ctx.object();
-                var objectVariant = object.getVariant(variant);
-                var material = objectVariant.material();
-                var texture = material.getDiffuseTexture();
-                texture.bind(0);
+                ctx.object().getVariant(ctx.instance().variant()).material().getDiffuseTexture().bind(0);
                 ctx.uniform().uploadInt(0);
             });
 
@@ -35,6 +33,18 @@ public class GuiPipelines {
     public static final Pipeline ANIMATED = new Pipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated.fs.glsl"))
             .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
+            .build();
+
+    public static final Pipeline TRANSPARENT = new Pipeline.Builder(BASE)
+            .shader(builtin("animated/animated.vs.glsl"), builtin("animated/transparent.fs.glsl"))
+            .prePostDraw(() -> {
+                GL11.glEnable(GL11.GL_BLEND);
+                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            }, () -> {
+                GL11.glDisable(GL11.GL_BLEND);
+            })
+            .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
+            .supplyUniform("alpha", ctx -> ctx.uniform().uploadFloat(((TransparentMaterial) ctx.object().getVariant(ctx.instance().variant()).material()).alpha))
             .build();
 
     public static final Pipeline POKEMON_EYES = new Pipeline.Builder(BASE)

@@ -73,7 +73,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
             var i = 0;
 
             loadedModel = model;
-            var variant = model.availableVariants().iterator().next();
+            var variants = model.availableVariants();
+
+            var variant = !variants.isEmpty() ? variants.iterator().next() : null;
             var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
             instance.transformationMatrix().scale(0.3f);
             loadedModelInstance = renderer.objectManager.add(model, instance);
@@ -149,7 +151,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     private Pipeline getPokemonPipeline(String materialName) {
-        return materialName.contains("Eyes") ? GuiPipelines.POKEMON_EYES : GuiPipelines.ANIMATED;
+        if(materialName.equals("transparent")) {
+            return GuiPipelines.TRANSPARENT;
+        } else {
+            return GuiPipelines.ANIMATED;
+        }
     }
 
     public void setAnimation(@NotNull String animation) {

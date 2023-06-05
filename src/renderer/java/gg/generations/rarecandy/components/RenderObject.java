@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.components;
 
-import gg.generations.rarecandy.model.Material;
+import gg.generations.rarecandy.model.material.Material;
 import gg.generations.rarecandy.model.Variant;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.ObjectInstance;

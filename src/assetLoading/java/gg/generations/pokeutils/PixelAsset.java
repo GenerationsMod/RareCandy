@@ -1,6 +1,14 @@
 package gg.generations.pokeutils;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
+import com.google.gson.reflect.TypeToken;
+import gg.generations.pokeutils.ModelConfig.MaterialReference.MaterialReferenceTypeAdapter;
+import gg.generations.pokeutils.ModelConfig.MaterialReference.SolidMaterialReference;
+import gg.generations.pokeutils.ModelConfig.MaterialReference.TransparentMaterialReference;
+import gg.generations.pokeutils.util.RuntimeTypeAdapterFactory;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.jetbrains.annotations.Nullable;
 import org.tukaani.xz.XZInputStream;
@@ -15,6 +23,8 @@ import java.util.*;
  * Pixelmon Asset (.pk) file.
  */
 public class PixelAsset {
+    public static final Gson GSON = new GsonBuilder().registerTypeAdapter(ModelConfig.MaterialReference.class, new MaterialReferenceTypeAdapter())
+            .create();
 
     public final Map<String, byte[]> files = new HashMap<>();
     private ModelConfig config;
@@ -31,16 +41,14 @@ public class PixelAsset {
 
             for (var entry : tarFile.getEntries()) {
                 if (entry.getName().endsWith(".glb")) this.modelName = entry.getName();
-                if (entry.getName().equals("config.json")) {
-
-                }
 
                 files.put(entry.getName(), tarFile.getInputStream(entry).readAllBytes());
             }
 
             if(files.containsKey("config.json")) {
-                config = new Gson().fromJson(new InputStreamReader(new ByteArrayInputStream(files.get("config.json"))), ModelConfig.class);
+                config = GSON.fromJson(new InputStreamReader(new ByteArrayInputStream(files.get("config.json"))), ModelConfig.class);
             }
+
         } catch (IOException | NullPointerException e) {
             throw new RuntimeException("Failed to load " + debugName, e);
         }

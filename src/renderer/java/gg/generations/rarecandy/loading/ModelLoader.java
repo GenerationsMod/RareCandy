@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.loading;
 
-import com.google.gson.Gson;
 import gg.generations.pokeutils.*;
 import gg.generations.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.ThreadSafety;
@@ -11,6 +10,9 @@ import gg.generations.rarecandy.components.MeshObject;
 import gg.generations.rarecandy.components.MultiRenderObject;
 import gg.generations.rarecandy.components.RenderObject;
 import gg.generations.rarecandy.model.*;
+import gg.generations.rarecandy.model.material.Material;
+import gg.generations.rarecandy.model.material.SolidMaterial;
+import gg.generations.rarecandy.model.material.TransparentMaterial;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.RareCandy;
 import de.javagl.jgltf.model.*;
@@ -169,7 +171,13 @@ public class ModelLoader {
         }
 
         if(config != null) {
-            var materials = config.materials.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> new Material("", a.getValue().type(), images.get(a.getValue().texture()))));
+            var materials = config.materials.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> {
+                if(a.getValue() instanceof ModelConfig.MaterialReference.TransparentMaterialReference transparentMaterialReference) {
+                    return new TransparentMaterial(images.get(transparentMaterialReference.texture), transparentMaterialReference.alpha);
+                } else {
+                    return new SolidMaterial(images.get(a.getValue().texture));
+                }
+            }));
             var variantPair = new HashMap<VariantReference, Variant>();
             var defaultVariant = config.defaultVariant.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> variantPair.computeIfAbsent(a.getValue().fillIn(), b -> new Variant(materials.get(b.material()), b.hide()))));
 
@@ -177,7 +185,6 @@ public class ModelLoader {
 
             for (var variantName : config.variants.keySet()) {
                 for (var entry : config.variants.get(variantName).entrySet()) {
-
                     variants.computeIfAbsent(variantName, a -> new HashMap<>()).put(entry.getKey(), variantPair.computeIfAbsent(entry.getValue().fillIn(config.defaultVariant.get(entry.getKey())), b -> new Variant(materials.get(b.material()), b.hide())));
                 }
 
@@ -192,6 +199,8 @@ public class ModelLoader {
             }
 
             variants = switchKeys(variants);
+
+            if(variants == null) variants = new HashMap<>();
 
             for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
                 var transform = new Matrix4f();
@@ -225,7 +234,7 @@ public class ModelLoader {
                 var textureName = raw.getBaseColorTexture().getImageModel().getName();
                 int textureIndex = IntStream.range(0, textures.size()).filter(a -> textures.get(a).name().equals(textureName)).findFirst().orElse(-1);
                 var textureReference = textures.get(textureIndex);
-                return new Material(raw.getName(), textureReference);
+                return new SolidMaterial(raw.getName(), textureReference);
             }).map(Variant::new).toList();
             var variants = getVariants(gltfModel);
 
@@ -301,7 +310,6 @@ public class ModelLoader {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
             var glModel = processPrimitiveModel(primitiveModel, glCalls);
             var renderObject = objSupplier.get();
-            var appliedPipeline = pipeline.apply(primitiveModel.getMaterialModel().getName());
 
             if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
                 animatedMeshObject.setup(materials.get(0), variants, glModel, pipeline, model.getName(), skeleton, animations);
@@ -432,7 +440,7 @@ public class ModelLoader {
     private static Map<String, Variant> createMeshVariantMap(MeshPrimitiveModel primitiveModel, List<Variant> materials, List<String> variantsList) {
         if (variantsList == null) {
             var materialId = primitiveModel.getMaterialModel().getName();
-            return Collections.singletonMap("default", materials.stream().filter(a -> a.material().getMaterialName().equals(materialId)).findAny().get());
+            return Collections.singletonMap("default", materials.stream().filter(a -> ((SolidMaterial) a.material()).getMaterialName().equals(materialId)).findAny().get());
         } else {
             var map = (Map<String, Object>) primitiveModel.getExtensions().get("KHR_materials_variants");
             var mappings = (List<Map<String, Object>>) map.get("mappings");

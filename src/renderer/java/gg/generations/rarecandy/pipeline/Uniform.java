@@ -2,6 +2,7 @@ package gg.generations.rarecandy.pipeline;
 
 import gg.generations.rarecandy.loading.Texture;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL20C;
@@ -11,6 +12,7 @@ import java.nio.FloatBuffer;
 
 public class Uniform {
     private static final FloatBuffer MAT4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(16);
+    private static final FloatBuffer VEC2_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(2);
     private static final FloatBuffer VEC3_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(3);
     private static final FloatBuffer VEC4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(4);
     public final int type;
@@ -47,9 +49,32 @@ public class Uniform {
         }
     }
 
+    public void upload2f(float x, float y) {
+        GL20C.glUniform2f(getLocation(), x, y);
+    }
+
+    public void uploadVec2f(Vector2f value) {
+        value.get(VEC2_TRANSFER_BUFFER);
+        GL20C.glUniform2fv(getLocation(), VEC2_TRANSFER_BUFFER);
+    }
+
+    public void upload3f(float x, float y, float z) {
+        GL20C.glUniform3f(getLocation(), x, y, z);
+    }
+
     public void uploadVec3f(Vector3f value) {
         value.get(VEC3_TRANSFER_BUFFER);
         GL20C.glUniform3fv(getLocation(), VEC3_TRANSFER_BUFFER);
+    }
+
+    public void upload4f(float x, float y, float z, float w) {
+        GL20C.glUniform4f(getLocation(), x, y, z, w);
+    }
+
+
+    public void uploadVec4f(Vector4f value) {
+        value.get(VEC4_TRANSFER_BUFFER);
+        GL20C.glUniform4fv(getLocation(), VEC4_TRANSFER_BUFFER);
     }
 
     public void uploadInt(int value) {
@@ -83,10 +108,5 @@ public class Uniform {
     public void uploadTexture(Texture texture, int slot) {
         texture.bind(slot);
         uploadInt(slot);
-    }
-
-    public void uploadVec4f(Vector4f value) {
-        value.get(VEC4_TRANSFER_BUFFER);
-        GL20C.glUniform4fv(getLocation(), VEC4_TRANSFER_BUFFER);
     }
 }

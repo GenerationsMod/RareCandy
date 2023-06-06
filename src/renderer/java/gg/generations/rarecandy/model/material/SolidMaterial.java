@@ -10,13 +10,8 @@ public class SolidMaterial extends Material {
     }
 
     public SolidMaterial(String materialName, TextureReference diffuseTexture) {
-        super(diffuseTexture);
+        super("solid", diffuseTexture);
         this.materialName = materialName;
-    }
-
-    @Override
-    public String getType() {
-        return "solid";
     }
 
     public String getMaterialName() {

@@ -1,11 +1,9 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.model.material.TransparentMaterial;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.storage.AnimatedObjectInstance;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 
 import java.io.IOException;
 
@@ -39,12 +37,13 @@ public class GuiPipelines {
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/transparent.fs.glsl"))
             .prePostDraw(() -> {
                 GL11.glEnable(GL11.GL_BLEND);
+                GL11.glEnable(GL11.GL_DEPTH_TEST);
                 GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             }, () -> {
+                GL11.glDisable(GL11.GL_DEPTH_TEST);
                 GL11.glDisable(GL11.GL_BLEND);
             })
             .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
-            .supplyUniform("alpha", ctx -> ctx.uniform().uploadFloat(((TransparentMaterial) ctx.object().getVariant(ctx.instance().variant()).material()).alpha))
             .build();
 
     public static final Pipeline POKEMON_EYES = new Pipeline.Builder(BASE)

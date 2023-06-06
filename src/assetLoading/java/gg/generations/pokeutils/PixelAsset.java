@@ -2,7 +2,6 @@ package gg.generations.pokeutils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gg.generations.pokeutils.ModelConfig.MaterialReference.MaterialReferenceTypeAdapter;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.jetbrains.annotations.Nullable;
 import org.tukaani.xz.XZInputStream;
@@ -20,7 +19,7 @@ import java.util.Objects;
  * Pixelmon Asset (.pk) file.
  */
 public class PixelAsset {
-    public static final Gson GSON = new GsonBuilder().registerTypeAdapter(ModelConfig.MaterialReference.class, new MaterialReferenceTypeAdapter())
+    public static final Gson GSON = new GsonBuilder()
             .create();
 
     public final Map<String, byte[]> files = new HashMap<>();

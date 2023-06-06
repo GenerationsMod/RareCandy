@@ -1,6 +1,16 @@
 package gg.generations.rarecandy.loading;
 
-import gg.generations.pokeutils.*;
+import de.javagl.jgltf.model.*;
+import de.javagl.jgltf.model.image.PixelDatas;
+import de.javagl.jgltf.model.io.GltfModelReader;
+import de.javagl.jgltf.model.v2.MaterialModelV2;
+import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
+import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
+import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
+import gg.generations.pokeutils.DataUtils;
+import gg.generations.pokeutils.ModelConfig;
+import gg.generations.pokeutils.PixelAsset;
+import gg.generations.pokeutils.VariantReference;
 import gg.generations.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.ThreadSafety;
 import gg.generations.rarecandy.animation.Animation;
@@ -9,19 +19,14 @@ import gg.generations.rarecandy.components.AnimatedMeshObject;
 import gg.generations.rarecandy.components.MeshObject;
 import gg.generations.rarecandy.components.MultiRenderObject;
 import gg.generations.rarecandy.components.RenderObject;
-import gg.generations.rarecandy.model.*;
+import gg.generations.rarecandy.model.GLModel;
+import gg.generations.rarecandy.model.GlCallSupplier;
+import gg.generations.rarecandy.model.MeshDrawCommand;
+import gg.generations.rarecandy.model.Variant;
 import gg.generations.rarecandy.model.material.Material;
 import gg.generations.rarecandy.model.material.SolidMaterial;
-import gg.generations.rarecandy.model.material.TransparentMaterial;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.RareCandy;
-import de.javagl.jgltf.model.*;
-import de.javagl.jgltf.model.image.PixelDatas;
-import de.javagl.jgltf.model.io.GltfModelReader;
-import de.javagl.jgltf.model.v2.MaterialModelV2;
-import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
-import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
-import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -32,7 +37,8 @@ import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -171,13 +177,7 @@ public class ModelLoader {
         }
 
         if(config != null) {
-            var materials = config.materials.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> {
-                if(a.getValue() instanceof ModelConfig.MaterialReference.TransparentMaterialReference transparentMaterialReference) {
-                    return new TransparentMaterial(images.get(transparentMaterialReference.texture), transparentMaterialReference.alpha);
-                } else {
-                    return new SolidMaterial(images.get(a.getValue().texture));
-                }
-            }));
+            var materials = config.materials.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> new Material(a.getValue(), images)));
             var variantPair = new HashMap<VariantReference, Variant>();
             var defaultVariant = config.defaultVariant.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> variantPair.computeIfAbsent(a.getValue().fillIn(), b -> new Variant(materials.get(b.material()), b.hide()))));
 

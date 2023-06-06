@@ -42,8 +42,6 @@ void main() {
     float dampedFactor = pow(specularFactor, shineDamper);
     vec3 finalSpecular = dampedFactor * reflectivity * lightColor;
 
-    if (color.a < 0.01) discard;
-
     outColor = vec4(coloredDiffuse, 1.0f) * color + vec4(finalSpecular, 1.0f);
-    outColor.a = alpha;
+    outColor.a = color.a;
 }

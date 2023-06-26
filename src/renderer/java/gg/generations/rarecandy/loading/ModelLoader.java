@@ -200,8 +200,6 @@ public class ModelLoader {
 
             variants = switchKeys(variants);
 
-            if(variants == null) variants = new HashMap<>();
-
             for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
                 var transform = new Matrix4f();
                 applyTransforms(transform, node);

@@ -17,7 +17,7 @@ import java.util.function.Consumer;
  */
 public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
-    public float scale;
+    public float scale = 1.0f;
     public final List<T> objects = new ArrayList<>();
     private final List<Consumer<T>> queue = new ArrayList<>();
     private boolean dirty = true;

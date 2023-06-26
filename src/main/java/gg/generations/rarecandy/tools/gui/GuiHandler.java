@@ -75,19 +75,23 @@ public class GuiHandler implements KeyListener {
                 new Thread(() -> {
                     try (var xzWriter = new XZOutputStream(Files.newOutputStream(assetPath), OPTIONS)) {
                         try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
-
+                            System.out.println(tarWriter.getBytesWritten());
                             for (var file : asset.files.entrySet()) {
                                 var entry = new TarArchiveEntry(file.getKey());
                                 entry.setSize(file.getValue().length);
                                 tarWriter.putArchiveEntry(entry);
+//                                tarWriter.write(file.getValue());
                                 IOUtils.copy(new BufferedInputStream(new ByteArrayInputStream(file.getValue())), tarWriter);
                                 tarWriter.closeArchiveEntry();
                                 SwingUtilities.invokeLater(() -> progressBar.setValue(progressBar.getValue() + fileChunk));
                             }
+
+                            System.out.println(tarWriter.getBytesWritten());
                         }
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
+
 
                     SwingUtilities.invokeLater(() -> saveBox.setVisible(false));
                     frame.setTitle(currentTitle.substring(0, currentTitle.length() - 1));

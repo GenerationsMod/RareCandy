@@ -50,7 +50,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(45), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
+                projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
             }
         });
     }
@@ -77,7 +77,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
             var variant = !variants.isEmpty() ? variants.iterator().next() : null;
             var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
-            instance.transformationMatrix().scale(0.3f);
+            instance.transformationMatrix().scale(loadedModel.scale);
             loadedModelInstance = renderer.objectManager.add(model, instance);
 
             model.updateDimensions();

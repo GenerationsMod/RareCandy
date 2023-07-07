@@ -23,26 +23,27 @@ import java.nio.file.Path;
 public record TextureReference(PixelData data, String name) {
     public static TextureReference read(byte[] imageBytes, String name) throws IOException {
         BufferedImage pixelData;
+        BufferedImage temp;
 
 
         if (name.endsWith("jxl")) {
             var options = new JXLOptions();
             options.hdr = JXLOptions.HDR_OFF;
             options.threads = 2;
-            var temp = new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage();
-            var width = temp.getWidth();
-            var height = temp.getHeight();
-
-            pixelData = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    int p = temp.getRGB(x, y);
-                    pixelData.setRGB(x, y, p);
-                }
-            }
+            temp = new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage();
         } else {
-            pixelData = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            temp = ImageIO.read(new ByteArrayInputStream(imageBytes));
+        }
+
+        var width = temp.getWidth();
+        var height = temp.getHeight();
+        pixelData = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int p = temp.getRGB(x, y);
+                pixelData.setRGB(x, y, p);
+            }
         }
 
         return new TextureReference(read(pixelData), name);

@@ -366,12 +366,12 @@ public class ModelLoader {
                 var xPoint = buf.getFloat(i);
                 var yPoint = buf.getFloat(i + 4);
                 var zPoint = buf.getFloat(i + 8);
-                if (smallestVertexX > xPoint) smallestVertexX = xPoint;
-                if (smallestVertexY > xPoint) smallestVertexY = yPoint;
-                if (smallestVertexZ > xPoint) smallestVertexZ = zPoint;
-                if (largestVertexX < xPoint) largestVertexX = xPoint;
-                if (largestVertexY < yPoint) largestVertexY = yPoint;
-                if (largestVertexZ < zPoint) largestVertexZ = zPoint;
+                smallestVertexX = Math.min(smallestVertexX, xPoint);
+                smallestVertexY = Math.min(smallestVertexY, yPoint);
+                smallestVertexZ = Math.min(smallestVertexZ, zPoint);
+                largestVertexX = Math.max(largestVertexX, xPoint);
+                largestVertexY = Math.max(largestVertexY, yPoint);
+                largestVertexZ = Math.max(largestVertexZ, zPoint);
             }
             model.dimensions = new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ);
 

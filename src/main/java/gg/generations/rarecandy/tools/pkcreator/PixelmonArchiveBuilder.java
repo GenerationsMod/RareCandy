@@ -46,7 +46,7 @@ public class PixelmonArchiveBuilder {
     }
 
     private static String processFileName(Path archiveFile, Path relativeFolder) {
-        var fileName = relativeFolder.relativize(archiveFile).toString();
+        var fileName = relativeFolder.relativize(archiveFile).getFileName().toString();
         if (fileName.startsWith("pm")) {
             var cleanName = fileName.substring("pmxxxx_xx_xx_xxxxx_".length()).replace(".tranm", "").replace(".gfbanm", "");
 
@@ -74,12 +74,19 @@ public class PixelmonArchiveBuilder {
         Files.createDirectories(inFolder);
         Files.createDirectories(outFolder);
 
+        System.out.println(Files.list(inFolder).toList());
+
         Files.list(inFolder).forEach(path -> {
-            if (Files.isDirectory(path) && !path.equals(inFolder)) {
+            if ((Files.isDirectory(path) || path.toString().endsWith(".glb"))) {
                 try {
                     var relativePath = inFolder.relativize(path);
-                    var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString() + ".pk");
-                    convertToPk(inFolder, Files.walk(path).toList(), outputPath);
+                    var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".glb", "") + ".pk");
+
+                    if(path.toString().endsWith(".glb")) {
+                        convertToPk(inFolder, List.of(path), outputPath);
+                    } else {
+                        convertToPk(inFolder, Files.walk(path).toList(), outputPath);
+                    }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

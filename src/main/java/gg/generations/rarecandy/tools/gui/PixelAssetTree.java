@@ -106,6 +106,7 @@ public class PixelAssetTree extends JTree {
                 try {
 
                     var gltf = new GltfModelReader().readWithoutReferences(new ByteArrayInputStream(asset.files.get(s)));
+
                     if(variants.isEmpty()) variants = gltf.getExtensions() != null && gltf.getExtensions().containsKey("KHR_materials_variants") ? ((List<Map<String, String>>) (((Map<String, Object>) gltf.getExtensions().get("KHR_materials_variants")).get("variants"))).stream().map(a -> a.get("name")).toList() : List.<String>of();
                     var animations = gltf.getAnimationModels().stream().map(NamedModelElement::getName).toList();
 

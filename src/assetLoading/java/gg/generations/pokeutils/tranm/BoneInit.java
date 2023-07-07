@@ -12,7 +12,7 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class BoneInit extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_5_9(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_23_5_26(); }
   public static BoneInit getRootAsBoneInit(ByteBuffer _bb) { return getRootAsBoneInit(_bb, new BoneInit()); }
   public static BoneInit getRootAsBoneInit(ByteBuffer _bb, BoneInit obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }

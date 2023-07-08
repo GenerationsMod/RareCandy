@@ -74,8 +74,6 @@ public class PixelmonArchiveBuilder {
         Files.createDirectories(inFolder);
         Files.createDirectories(outFolder);
 
-        System.out.println(Files.list(inFolder).toList());
-
         Files.list(inFolder).forEach(path -> {
             if ((Files.isDirectory(path) || path.toString().endsWith(".glb"))) {
                 try {

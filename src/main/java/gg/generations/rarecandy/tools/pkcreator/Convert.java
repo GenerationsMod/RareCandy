@@ -57,16 +57,19 @@ public class Convert {
         return gson.toJson(json);
     }
 
-    public static void main(String[] args) {
-        Path inputPath = Paths.get("D:\\Git\\ModelsRepo");
-        Path outputPath = Paths.get("D:\\Git\\models1");
+    public static void main(String[] args) throws IOException {
+        var inFolder = Paths.get("converter/in");
+        var outFolder = Paths.get("converter/out");
 
-        readSubfolders(inputPath);
+        Files.createDirectories(inFolder);
+        Files.createDirectories(outFolder);
+
+        readSubfolders(inFolder, outFolder);
     }
 
     private static final GltfModelReader reader = new GltfModelReader();
 
-    public static void readSubfolders(Path inputPath) {
+    public static void readSubfolders(Path inputPath, Path outPath) {
         try {
 //            Files.createDirectories(outputPath);
 
@@ -121,7 +124,7 @@ public class Convert {
 
                             generateAndWriteJson(scale, pngNames, configFile);
 
-                            PixelmonArchiveBuilder.convertToPk(inputPath, Files.walk(newSubfolder).filter(a -> !a.toString().endsWith("model.smd")).toList(), inputPath.resolve(subfolder.getFileName().toString() + ".pk"));
+                            PixelmonArchiveBuilder.convertToPk(inputPath, Files.walk(newSubfolder).filter(a -> !a.toString().endsWith("model.smd")).toList(), outPath.resolve(subfolder.getFileName().toString() + ".pk"));
 
                             System.out.println("Completed: " + folderName);
                         }

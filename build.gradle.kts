@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.2.3-SNAPSHOT"
+version = "2.2.4-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 

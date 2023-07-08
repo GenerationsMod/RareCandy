@@ -2,6 +2,7 @@ package gg.generations.rarecandy.tools;
 
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
+import gg.generations.rarecandy.tools.pkcreator.Convert;
 import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 
@@ -14,7 +15,7 @@ public class Main {
             new Command("archiveExplorer", "Opens a AWT Gui allowing you to view the structure of a PK file", Main::archiveExplorer),
             new Command("converter", "Lets you convert individual files inside of converter/in into their opposite. eg: pk -> glb, glb -> pk, smd -> smdx, etc", Main::converter),
             new Command("pixelmonArchiveBuilder", "Allows you to build an entire pokemon. each pokemon should match their folder name eg: converter/in/koraidon should have a glb called koraidon.glb and all the anims", Main::pixelmonArchiveBuilder),
-            new Command("modelTester", "<folder_path> <window_size=1 for default> <view_side> Lets you view what a model will probably look like in game. All you need to do is supply the folder with the glb file inside being named the same as the folder name and anims in the same folder", Main::modelTester)
+            new Command("regimentedBuilder", "Allow for a more limited but streamlined method of .pk creation ", Main::regimented)
     );
 
     private static void pixelmonArchiveBuilder(String[] args) {
@@ -32,6 +33,14 @@ public class Main {
     private static void converter(String[] args) {
         try {
             PixelConverter.main(args);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void regimented(String[] args) {
+        try {
+            Convert.main(args);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

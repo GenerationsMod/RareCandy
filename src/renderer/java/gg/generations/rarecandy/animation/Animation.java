@@ -41,6 +41,7 @@ public class Animation {
         this.animationNodes = fillAnimationNodesGfb(rawAnimation);
         this.animationDuration = findLastKeyTime();
 
+
         for (var animationNode : animationNodes) {
             if (animationNode != null) {
                 if (animationNode.positionKeys.getAtTime((int) animationDuration - 10) == null)

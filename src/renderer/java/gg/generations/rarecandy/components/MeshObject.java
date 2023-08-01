@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.components;
 
 import gg.generations.rarecandy.model.GLModel;
-import gg.generations.rarecandy.model.Variant;
+import gg.generations.rarecandy.model.material.Material;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.ObjectInstance;
 
@@ -16,10 +16,10 @@ public class MeshObject extends RenderObject {
     public GLModel model;
     public String name;
 
-    public void setup(Variant defaultVariant, Map<String, Variant> variants, GLModel model, Function<String, Pipeline> pipeline, String name) {
+    public void setup(Map<String, Material> variants, List<String> shouldRender, GLModel model, Function<String, Pipeline> pipeline, String name) {
         this.name = name;
-        this.defaultVariant = defaultVariant;
-        this.variants = variants == null ? new HashMap<>() : variants;
+        this.variants = variants;
+        this.shouldRenderList = shouldRender;
         this.model = model;
         this.pipeline = pipeline;
         this.ready = true;
@@ -29,13 +29,15 @@ public class MeshObject extends RenderObject {
         Map<String, List<Consumer<Pipeline>>> map = new HashMap<>();
 
         for (var instance : instances) {
-            if(object.getVariant(instance.materialId()).hide()) {
+            if(!object.shouldRender(instance.materialId())) {
                 continue;
             }
 
-            var material = object.getMaterial(instance.variant()).getType();
+            var material = object.getMaterial(instance.variant());
 
-            map.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
+            var type = material.getType();
+
+            map.computeIfAbsent(type, a -> new ArrayList<>()).add(pipeline -> {
                 pipeline.updateOtherUniforms(instance, object);
                 pipeline.updateTexUniforms(instance, object);
                 model.runDrawCalls();

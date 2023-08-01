@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Utility for writing and reading Pixelmon: Generation's model format.
@@ -29,14 +30,21 @@ public class PixelmonArchiveBuilder {
             try (var xzWriter = new XZOutputStream(Files.newOutputStream(output), OPTIONS)) {
                 try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
                     for (var archiveFile : files) {
-                        var entry = new TarArchiveEntry(archiveFile, processFileName(archiveFile, relativeFolder.resolve(output.getFileName().toString().substring(0, output.getFileName().toString().length() - 3))));
-                        tarWriter.putArchiveEntry(entry);
-                        if (Files.isRegularFile(archiveFile)) {
-                            try (var is = new BufferedInputStream(Files.newInputStream(archiveFile))) {
-                                IOUtils.copy(is, tarWriter);
+                        processFileName(archiveFile, relativeFolder.resolve(output.getFileName().toString().substring(0, output.getFileName().toString().length() - 3))).ifPresent(name -> {
+                            try {
+                                var entry = new TarArchiveEntry(archiveFile, name);
+                                tarWriter.putArchiveEntry(entry);
+                                if (Files.isRegularFile(archiveFile)) {
+                                    try (var is = new BufferedInputStream(Files.newInputStream(archiveFile))) {
+                                        IOUtils.copy(is, tarWriter);
+                                    }
+                                }
+
+                                tarWriter.closeArchiveEntry();
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
-                        }
-                        tarWriter.closeArchiveEntry();
+                        });
                     }
                 }
             }
@@ -45,12 +53,13 @@ public class PixelmonArchiveBuilder {
         }
     }
 
-    private static String processFileName(Path archiveFile, Path relativeFolder) {
+    //TODO: Add more animations
+    private static Optional<String> processFileName(Path archiveFile, Path relativeFolder) {
         var fileName = relativeFolder.relativize(archiveFile).getFileName().toString();
         if (fileName.startsWith("pm")) {
             var cleanName = fileName.substring("pmxxxx_xx_xx_xxxxx_".length()).replace(".tranm", "").replace(".gfbanm", "");
 
-            return switch (cleanName) {
+            return Optional.of(switch (cleanName) {
                 case "defaultwait01_loop" -> "idle";
                 case "battlewait01_loop" -> "battle_idle";
                 case "walk01_loop" -> "walk";
@@ -60,11 +69,13 @@ public class PixelmonArchiveBuilder {
                 case "roar01" -> "roar";
                 case "attack02" -> "attack";
                 case "damage02" -> "damage";
+                case "sleep01_loop" -> "sleep";
                 case "down01_start" -> "faint";
+
                 default -> "invalid_" + cleanName;
-            } + ".tranm";
+            } + ".tranm").filter(a -> !a.startsWith("invalid"));
         }
-        return fileName;
+        return Optional.of(fileName);
     }
 
     public static void main(String[] args) throws IOException {

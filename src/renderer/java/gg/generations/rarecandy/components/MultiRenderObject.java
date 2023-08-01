@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.components;
 
 import gg.generations.rarecandy.model.Variant;
+import gg.generations.rarecandy.model.material.Material;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
@@ -137,7 +138,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public Variant getVariant(@Nullable String materialId) {
+    public Material getVariant(@Nullable String materialId) {
         return objects.get(0).getVariant(materialId);
     }
 }

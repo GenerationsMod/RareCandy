@@ -108,7 +108,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
     @Override
     public void paintGL() {
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-        renderer.render(false, ((System.currentTimeMillis() - startTime) / 16000));
+        if(loadedModelInstance != null) {
+            loadedModelInstance.transformationMatrix().identity().scale(loadedModel.scale);
+        }
+        renderer.render(false, (System.currentTimeMillis() - startTime) / 16000);
         swapBuffers();
 
 //        if (instances.size() > 1) {

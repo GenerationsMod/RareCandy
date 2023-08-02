@@ -50,7 +50,7 @@ public abstract class RenderObject {
     protected abstract <T extends RenderObject> void render(List<ObjectInstance> instances, T object);
 
     protected boolean shouldRender(String variant) {
-        return shouldRenderList != null ? shouldRenderList.contains(variant != null ? variant : "default") : true; //TODO: check if correct.
+        return shouldRenderList == null || shouldRenderList.contains(variant != null ? variant : "default"); //TODO: check if correct.
     }
 }
 

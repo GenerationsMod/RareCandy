@@ -1,16 +1,12 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
 import gg.generations.pokeutils.reader.TextureReference;
-import gg.generations.rarecandy.tools.gui.DialogueUtils;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -18,7 +14,7 @@ public class TextureTest {
     public static void main(String[] args) throws IOException {
         var path = Path.of("D:\\Git Repos\\RareCandy\\run\\converter\\in\\alcremie\\toppings.png");
 
-        if(path != null) displayImage(TextureReference.read(Files.readAllBytes(path), path.getFileName().toString()));
+        displayImage(TextureReference.read(Files.readAllBytes(path), path.getFileName().toString()));
     }
 
     public static void displayImage(TextureReference reference) {

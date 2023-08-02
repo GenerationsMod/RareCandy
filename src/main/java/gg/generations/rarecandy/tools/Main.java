@@ -7,7 +7,6 @@ import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 public class Main {

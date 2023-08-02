@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools.gui;
 
 import com.github.weisj.darklaf.LafManager;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
-import org.lwjgl.util.nfd.NFDFilterItem;
 
 import javax.swing.*;
 import java.awt.*;

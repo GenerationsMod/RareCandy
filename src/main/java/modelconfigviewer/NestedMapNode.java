@@ -1,11 +1,8 @@
 package modelconfigviewer;
 
-import gg.generations.rarecandy.loading.ModelLoader;
-
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class NestedMapNode<V> extends DefaultMutableTreeNode {
     public NestedMapNode(String name, Map<String, Map<String, V>> map, BiFunction<String, V, ModelConfigTree.ComponentProvider> providerFunction) {

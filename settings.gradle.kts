@@ -1,12 +1,10 @@
 rootProject.name = "RareCandy"
 
 plugins {
-    id("com.gradle.enterprise") version "3.13.4"
+    id("com.gradle.enterprise") version "3.14.1"
 }
 
-gradleEnterprise {
-    buildScan {
-        termsOfServiceUrl = "https://gradle.com/terms-of-service"
-        termsOfServiceAgree = "yes"
-    }
+gradleEnterprise.buildScan {
+    termsOfServiceUrl = "https://gradle.com/terms-of-service"
+    termsOfServiceAgree = "yes"
 }

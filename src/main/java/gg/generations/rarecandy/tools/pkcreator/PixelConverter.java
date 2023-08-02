@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.tools.pkcreator;
 
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
-import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -12,7 +11,9 @@ import org.tukaani.xz.LZMA2Options;
 import org.tukaani.xz.XZInputStream;
 import org.tukaani.xz.XZOutputStream;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

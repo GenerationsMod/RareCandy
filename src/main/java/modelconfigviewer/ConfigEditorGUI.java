@@ -33,32 +33,26 @@ public class ConfigEditorGUI extends JFrame {
 
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Materials");
 
-        if (materials != null) {
-            for (String key : materials.keySet()) {
-                ModelConfig.MaterialReference materialReference = materials.get(key);
-                DefaultMutableTreeNode materialNode = new DefaultMutableTreeNode(key);
+        for (String key : materials.keySet()) {
+            ModelConfig.MaterialReference materialReference = materials.get(key);
+            DefaultMutableTreeNode materialNode = new DefaultMutableTreeNode(key);
 
-                JPanel panel = new JPanel(new GridLayout(2, 2));
-                JTextField textureTextField = new JTextField(materialReference.texture(), 10);
-                JTextField typeTextField = new JTextField(materialReference.type(), 10);
+            JPanel panel = new JPanel(new GridLayout(2, 2));
+            JTextField textureTextField = new JTextField(materialReference.texture(), 10);
+            JTextField typeTextField = new JTextField(materialReference.type(), 10);
 
-                textureTextField.addActionListener(e -> {
-                    materialReference.setTexture(textureTextField.getText());
-                });
+            textureTextField.addActionListener(e -> materialReference.setTexture(textureTextField.getText()));
 
-                typeTextField.addActionListener(e -> {
-                    materialReference.setType(typeTextField.getText());
-                });
+            typeTextField.addActionListener(e -> materialReference.setType(typeTextField.getText()));
 
-                panel.add(new JLabel("Texture:"));
-                panel.add(textureTextField);
-                panel.add(new JLabel("Type:"));
-                panel.add(typeTextField);
+            panel.add(new JLabel("Texture:"));
+            panel.add(textureTextField);
+            panel.add(new JLabel("Type:"));
+            panel.add(typeTextField);
 
-                DefaultMutableTreeNode panelNode = new DefaultMutableTreeNode(panel);
-                materialNode.add(panelNode);
-                rootNode.add(materialNode);
-            }
+            DefaultMutableTreeNode panelNode = new DefaultMutableTreeNode(panel);
+            materialNode.add(panelNode);
+            rootNode.add(materialNode);
         }
 
         materialsTree = new JTree(rootNode);
@@ -80,11 +74,9 @@ public class ConfigEditorGUI extends JFrame {
         public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded,
                                                       boolean leaf, int row, boolean hasFocus) {
             Component renderer = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-            if (value instanceof DefaultMutableTreeNode) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+            if (value instanceof DefaultMutableTreeNode node) {
                 Object userObject = node.getUserObject();
-                if (userObject instanceof JPanel) {
-                    JPanel panel = (JPanel) userObject;
+                if (userObject instanceof JPanel panel) {
                     if (selected) {
                         panel.setBackground(getBackgroundSelectionColor());
                         panel.setForeground(getTextSelectionColor());

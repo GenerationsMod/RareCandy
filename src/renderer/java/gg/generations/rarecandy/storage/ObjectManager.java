@@ -15,19 +15,14 @@ public class ObjectManager {
     private final Map<RenderObject, List<ObjectInstance>> objects = new HashMap<>();
 
     public void update(double secondsPassed) {
-        for (var objects : objects.values()) {
-            if (objects.size() > 0) {
-                for (var objectInstance : objects) {
-                    if (objectInstance instanceof AnimatedObjectInstance animatedObjectInstance) {
-                        if (animatedObjectInstance.currentAnimation != null) {
-                            if (!animationController.playingInstances.contains((animatedObjectInstance.currentAnimation))) {
+        for (var objects : objects.values())
+            if (!objects.isEmpty())
+                for (var objectInstance : objects)
+                    if (objectInstance instanceof AnimatedObjectInstance animatedObjectInstance)
+                        if (animatedObjectInstance.currentAnimation != null)
+                            if (!animationController.playingInstances.contains((animatedObjectInstance.currentAnimation)))
                                 animationController.playingInstances.add(animatedObjectInstance.currentAnimation);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+
 
         animationController.render(secondsPassed);
     }

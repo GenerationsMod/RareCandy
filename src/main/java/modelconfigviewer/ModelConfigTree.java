@@ -3,19 +3,11 @@ package modelconfigviewer;
 import gg.generations.pokeutils.ModelConfig;
 
 import javax.swing.*;
-import javax.swing.text.NumberFormatter;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeCellEditor;
-import javax.swing.tree.TreeCellEditor;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.KeyEvent;
-import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public class ModelConfigTree {
@@ -60,7 +52,7 @@ public class ModelConfigTree {
     }
 
     public interface ComponentProvider {
-        public Component getComponent();
+        Component getComponent();
     }
 
     public static class FloatProvider extends JPanel implements ComponentProvider {

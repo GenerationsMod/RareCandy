@@ -151,6 +151,10 @@ public class EyeTexture {
             return fileName.substring(0, fileName.length() - 5);
         } else if (fileName.endsWith("-eye")) {
             return fileName.substring(0, fileName.length() - 4);
+        } else if (fileName.equals("iris")) {
+            return "";
+        } else if (fileName.equals("eye")) {
+            return "";
         }
 
         return fileName;

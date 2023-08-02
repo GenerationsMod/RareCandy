@@ -100,7 +100,7 @@ public class PixelAssetTree extends JTree {
         List<String> variants = asset.getConfig() != null ? List.copyOf(asset.getConfig().variants.keySet()) : new ArrayList<>();
 
         for (var s : asset.files.keySet()) {
-            if (s.endsWith("tranm") || s.endsWith("smd")) animationsNode.add(node(s));
+            if (s.endsWith("tranm") || s.endsWith("gfbanm") || s.endsWith("smd")) animationsNode.add(node(s));
             else if(s.endsWith("glb")) {
                 var glbNode = node(s);
                 try {

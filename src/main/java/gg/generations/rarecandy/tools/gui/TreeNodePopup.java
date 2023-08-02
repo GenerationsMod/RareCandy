@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools.gui;
 
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
-import gg.generations.rarecandy.tools.gui.GuiHandler;
 import org.msgpack.core.MessagePack;
 
 import javax.swing.*;
@@ -13,7 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.function.Consumer;
 
 public class TreeNodePopup extends JPopupMenu {
     private final GuiHandler gui;

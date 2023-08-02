@@ -6,7 +6,6 @@ import org.lwjgl.util.nfd.NFDFilterItem;
 import org.lwjgl.util.nfd.NFDPathSetEnum;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
-import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -23,10 +22,9 @@ public class DialogueUtils {
             filters.get(0).name(stack.UTF8(array[0])).spec(stack.UTF8(array[1]));
 
             var outPath = MemoryUtil.memAllocPointer(1);
-            var result = NativeFileDialog.NFD_SaveDialog(outPath, filters, (CharSequence) null, (CharSequence) null);
-            if (result == NativeFileDialog.NFD_OKAY) {
+            var result = NativeFileDialog.NFD_SaveDialog(outPath, filters, null, (CharSequence) null);
+            if (result == NativeFileDialog.NFD_OKAY)
                 return Paths.get(outPath.getStringUTF8(0));
-            }
         }
 
         return null;

@@ -9,7 +9,6 @@ import gg.generations.rarecandy.tools.swsh.EyeTexture;
 import gg.generations.rarecandy.tools.swsh.LongBoi;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 public class Main {

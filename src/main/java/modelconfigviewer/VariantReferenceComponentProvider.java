@@ -1,6 +1,5 @@
 package modelconfigviewer;
 
-import gg.generations.pokeutils.ModelConfig;
 import gg.generations.pokeutils.VariantReference;
 
 import javax.swing.*;

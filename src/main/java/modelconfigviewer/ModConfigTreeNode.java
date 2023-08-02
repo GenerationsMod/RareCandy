@@ -1,12 +1,10 @@
 package modelconfigviewer;
 
 import gg.generations.pokeutils.ModelConfig;
-import gg.generations.pokeutils.VariantReference;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
-import java.util.function.Function;
 
 public class ModConfigTreeNode extends DefaultMutableTreeNode {
     public ModConfigTreeNode(ModelConfig config) {

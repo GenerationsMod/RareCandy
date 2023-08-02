@@ -1,17 +1,12 @@
 package gg.generations.rarecandy.tools.gui;
 
 import com.thebombzen.jxlatte.JXLDecoder;
-import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
-import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
 import modelconfigviewer.ImageViewer;
-import org.msgpack.core.MessagePack;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -59,24 +54,22 @@ public class ImageNodePopup extends JPopupMenu {
         var target = (DefaultMutableTreeNode) pathNode.getLastPathComponent();
 
         var path = DialogueUtils.chooseFile("Images;jxl");
+        assert path != null;
         var name = path.getFileName().toString();
 
-        if (path != null) {
-            byte[] fileBytes = null;
+        byte[] fileBytes;
 
-            try(var stream = Files.newInputStream(path)) {
-                fileBytes = stream.readAllBytes();
+        try(var stream = Files.newInputStream(path)) {
+            fileBytes = stream.readAllBytes();
 
-                if (fileBytes == null) throw new RuntimeException("Removed non-existing file");
-                gui.asset.files.put(path.getFileName().toString(), fileBytes);
+            if (fileBytes == null) throw new RuntimeException("Removed non-existing file");
+            gui.asset.files.put(path.getFileName().toString(), fileBytes);
 
-                target.add(new DefaultMutableTreeNode(name));
-                model.reload(target);
-                gui.markDirty();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
+            target.add(new DefaultMutableTreeNode(name));
+            model.reload(target);
+            gui.markDirty();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

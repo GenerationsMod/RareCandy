@@ -1,14 +1,15 @@
 package gg.generations.rarecandy.components;
 
-import gg.generations.rarecandy.model.Variant;
 import gg.generations.rarecandy.model.material.Material;
-import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**

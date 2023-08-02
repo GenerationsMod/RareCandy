@@ -37,6 +37,7 @@ import org.lwjgl.opengl.GL30;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -235,6 +236,8 @@ public class ModelLoader {
             }).toList();
             var variants = getVariants(gltfModel);
 
+            objects.scale = calculateScale(gltfModel); //TODO: DO this properly
+
             // gltfModel.getSceneModels().get(0).getNodeModels().get(0).getScale()
             for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
                 var transform = new Matrix4f();
@@ -263,6 +266,33 @@ public class ModelLoader {
                 }
             }
         }
+    }
+
+    private static float calculateScale(GltfModel model) {
+        var scale = 1.0f;
+
+            var buf = model.getMeshModels().get(0).getMeshPrimitiveModels().get(0).getAttributes().get("POSITION").getBufferViewModel().getBufferViewData();
+
+            var smallestVertexX = 0f;
+            var smallestVertexY = 0f;
+            var smallestVertexZ = 0f;
+            var largestVertexX = 0f;
+            var largestVertexY = 0f;
+            var largestVertexZ = 0f;
+            for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
+                var xPoint = buf.getFloat(i);
+                var yPoint = buf.getFloat(i + 4);
+                var zPoint = buf.getFloat(i + 8);
+                smallestVertexX = Math.min(smallestVertexX, xPoint);
+                smallestVertexY = Math.min(smallestVertexY, yPoint);
+                smallestVertexZ = Math.min(smallestVertexZ, zPoint);
+                largestVertexX = Math.max(largestVertexX, xPoint);
+                largestVertexY = Math.max(largestVertexY, yPoint);
+                largestVertexZ = Math.max(largestVertexZ, zPoint);
+            }
+
+            scale = 1/new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ).y;
+            return scale;
     }
 
     private static List<String> collectShownVariants(MeshModel meshModel, List<String> variantsList) {

@@ -91,7 +91,7 @@ public class ModelLoader {
             try {
                 map.put(key, TextureReference.read(entry.getValue(), key));
             } catch (IOException e) {
-                System.out.println("Error couldn't load: " + key);
+                System.out.print("Error couldn't load: " + key); //TODO: Logger solution.
             }
         }
 

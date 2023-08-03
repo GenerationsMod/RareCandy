@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
 import com.thebombzen.jxlatte.JXLDecoder;
+import gg.generations.rarecandy.tools.Main;
 import modelconfigviewer.ImageViewer;
 
 import javax.swing.*;
@@ -12,6 +13,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+
+import static gg.generations.rarecandy.LoggerUtil.printError;
 
 public class ImageNodePopup extends JPopupMenu {
 
@@ -39,7 +42,7 @@ public class ImageNodePopup extends JPopupMenu {
                     new ImageViewer(imagePair.getKey(), image);
                     setVisible(true);
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    printError(ex);
                 }
             });
             add(export);
@@ -69,7 +72,7 @@ public class ImageNodePopup extends JPopupMenu {
             model.reload(target);
             gui.markDirty();
         } catch (IOException e) {
-            e.printStackTrace();
+            printError(e);
         }
     }
 }

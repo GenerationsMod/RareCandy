@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
+import gg.generations.rarecandy.tools.Main;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
@@ -10,6 +11,9 @@ import org.lwjgl.system.Configuration;
 import org.lwjgl.system.MemoryUtil;
 
 import java.util.Objects;
+
+import static gg.generations.rarecandy.LoggerUtil.print;
+import static gg.generations.rarecandy.LoggerUtil.printError;
 
 /**
  * New modern window handling, so I don't cringe looking at this codebase as much.
@@ -108,12 +112,12 @@ public class Window {
         };
 
         if(!type.equals("'other'")) {
-            System.out.println("[OpenGL " + source + " " + type + "] Message: " + MemoryUtil.memUTF8(pMessage));
+            print("[OpenGL " + source + " " + type + "] Message: " + MemoryUtil.memUTF8(pMessage));
         }
     }
 
     private void onGlfwError(int error, long pDescription) {
         String description = MemoryUtil.memUTF8(pDescription);
-        System.err.printf("An Error has Occurred! (%d%n) Description: %s%n", error, description);
+        printError("An Error has Occurred! (%d%n) Description: %s%n".formatted(error, description));
     }
 }

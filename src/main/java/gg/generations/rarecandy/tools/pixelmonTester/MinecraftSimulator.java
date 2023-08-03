@@ -1,9 +1,12 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
 import gg.generations.rarecandy.rendering.RareCandy;
+import gg.generations.rarecandy.tools.Main;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
+
+import static gg.generations.rarecandy.LoggerUtil.printError;
 
 public class MinecraftSimulator {
     private static final double START_TIME = System.currentTimeMillis();
@@ -23,7 +26,7 @@ public class MinecraftSimulator {
                 long totalMem = Runtime.getRuntime().totalMemory();
                 long freeMem = Runtime.getRuntime().freeMemory();
                 long usedMem = totalMem - freeMem;
-                System.out.printf("Mem: % 2d%% %03d/%03dMB%n", usedMem * 100L / maxMem, usedMem / 1000000, maxMem / 1000000);
+                printError("Mem: % 2d%% %03d/%03dMB%n".formatted(usedMem * 100L / maxMem, usedMem / 1000000, maxMem / 1000000));
             }
 
             if (action == GLFW.GLFW_RELEASE) {

@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.pokeutils.PixelAsset;
+import gg.generations.rarecandy.tools.Main;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
@@ -17,6 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import static gg.generations.rarecandy.LoggerUtil.print;
 
 public class GuiHandler implements KeyListener {
     private static final LZMA2Options OPTIONS = new LZMA2Options();
@@ -75,7 +78,7 @@ public class GuiHandler implements KeyListener {
                 new Thread(() -> {
                     try (var xzWriter = new XZOutputStream(Files.newOutputStream(assetPath), OPTIONS)) {
                         try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
-                            System.out.println(tarWriter.getBytesWritten());
+                            print(tarWriter.getBytesWritten());
                             for (var file : asset.files.entrySet()) {
                                 var entry = new TarArchiveEntry(file.getKey());
                                 entry.setSize(file.getValue().length);
@@ -86,7 +89,7 @@ public class GuiHandler implements KeyListener {
                                 SwingUtilities.invokeLater(() -> progressBar.setValue(progressBar.getValue() + fileChunk));
                             }
 
-                            System.out.println(tarWriter.getBytesWritten());
+                            print(tarWriter.getBytesWritten());
                         }
                     } catch (IOException e) {
                         throw new RuntimeException(e);

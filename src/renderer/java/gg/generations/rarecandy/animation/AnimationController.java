@@ -18,7 +18,7 @@ public class AnimationController {
 
         for (var playingInstance : playingInstances) {
             if (playingInstance.animation == null) {
-                System.err.println("Animation instance has null animation");
+                System.err.println("Animation instance has null animation"); //TODO: Hook into a logger
                 continue;
             }
 

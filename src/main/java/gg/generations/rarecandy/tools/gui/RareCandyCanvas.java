@@ -2,6 +2,7 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.pokeutils.GlbPixelAsset;
 import gg.generations.pokeutils.PixelAsset;
+import gg.generations.rarecandy.LoggerUtil;
 import gg.generations.rarecandy.animation.AnimationInstance;
 import gg.generations.rarecandy.components.AnimatedMeshObject;
 import gg.generations.rarecandy.components.MeshObject;
@@ -11,6 +12,7 @@ import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.ObjectInstance;
 import gg.generations.rarecandy.rendering.RareCandy;
 import gg.generations.rarecandy.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.tools.Main;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL;
@@ -165,7 +167,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         var object = loadedModel.objects.get(0);
 
         if (object.animations != null)
-            System.out.println(animation);
+            LoggerUtil.print(animation);
         if (Objects.requireNonNull(object.animations).containsKey(animation)) {
             loadedModelInstance.changeAnimation(new AnimationInstance(object.animations.get(animation)));
         }

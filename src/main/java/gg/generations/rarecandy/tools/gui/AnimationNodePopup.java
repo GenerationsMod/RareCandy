@@ -2,6 +2,7 @@ package gg.generations.rarecandy.tools.gui;
 
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
+import gg.generations.rarecandy.tools.Main;
 import org.msgpack.core.MessagePack;
 
 import javax.swing.*;
@@ -11,6 +12,8 @@ import javax.swing.tree.TreePath;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.nio.file.Files;
+
+import static gg.generations.rarecandy.LoggerUtil.printError;
 
 public class AnimationNodePopup extends JPopupMenu {
 
@@ -45,7 +48,7 @@ public class AnimationNodePopup extends JPopupMenu {
                 fileBytes = new SMDTextWriter().write(new SMDBinaryReader().read(MessagePack.newDefaultUnpacker(stream))).getBytes();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            printError(e);
             return;
         }
 

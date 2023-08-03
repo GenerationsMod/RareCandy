@@ -2,6 +2,7 @@ package gg.generations.rarecandy.tools.pkcreator;
 
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
+import gg.generations.rarecandy.tools.Main;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -17,6 +18,8 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import static gg.generations.rarecandy.LoggerUtil.printError;
 
 /**
  * Utility for writing and reading Pixelmon: Generation's model format.
@@ -39,7 +42,7 @@ public class PixelConverter {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            printError(e);
         }
     }
 
@@ -74,7 +77,7 @@ public class PixelConverter {
                 extractTarArchive(tarReader, outputPath);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            printError(e);
         }
     }
 
@@ -105,7 +108,7 @@ public class PixelConverter {
         try {
             Files.writeString(outputPath, new SMDTextWriter().write(new SMDBinaryReader().read(MessagePack.newDefaultUnpacker(Files.newInputStream(path)))));
         } catch (IOException e) {
-            e.printStackTrace();
+            printError(e);
         }
     }
 }

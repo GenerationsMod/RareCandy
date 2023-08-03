@@ -23,7 +23,10 @@ public class ThreadSafety {
             try {
                 r.run();
             } catch (Exception e) {
-                RareCandy.runLater(() -> {throw e;});
+                LoggerUtil.printError(e);
+                RareCandy.runLater(() -> {
+                    throw e;
+                });
                 throw new RuntimeException("Stopping Thread due to Error");
             }
         };
@@ -33,6 +36,7 @@ public class ThreadSafety {
         try {
             RareCandy.runLater(r);
         } catch (Exception e) {
+            LoggerUtil.printError(e);
             RareCandy.runLater(() -> {throw e;});
             throw new RuntimeException("Stopping Thread due to Error");
         }

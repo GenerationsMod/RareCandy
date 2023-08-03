@@ -2,6 +2,8 @@ package gg.generations.rarecandy.tools.gui;
 
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
+import gg.generations.rarecandy.LoggerUtil;
+import gg.generations.rarecandy.tools.Main;
 import org.msgpack.core.MessagePack;
 
 import javax.swing.*;
@@ -72,7 +74,7 @@ public class TreeNodePopup extends JPopupMenu {
             model.removeNodeFromParent(target);
             model.reload(parent);
             gui.markDirty();
-            System.out.println("Rename  " + pathNode);
+            LoggerUtil.print("Rename  " + pathNode);
         }
     }
 

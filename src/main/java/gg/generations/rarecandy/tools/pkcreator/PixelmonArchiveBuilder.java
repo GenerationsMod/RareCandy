@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools.pkcreator;
 
+import gg.generations.rarecandy.tools.Main;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
@@ -14,6 +15,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
+import static gg.generations.rarecandy.LoggerUtil.printError;
+
 /**
  * Utility for writing and reading Pixelmon: Generation's model format.
  */
@@ -26,6 +29,8 @@ public class PixelmonArchiveBuilder {
                 Files.createDirectories(output.getParent());
                 Files.createFile(output);
             }
+
+            files = files.stream().filter(path -> !(path.toString().endsWith("fbx") || path.toString().endsWith("dae"))).toList();
 
             try (var xzWriter = new XZOutputStream(Files.newOutputStream(output), OPTIONS)) {
                 try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
@@ -42,14 +47,14 @@ public class PixelmonArchiveBuilder {
 
                                 tarWriter.closeArchiveEntry();
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                printError(e);
                             }
                         });
                     }
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            printError(e);
         }
     }
 

@@ -26,7 +26,7 @@ public class LongBoi {
             mirrored.getGraphics().drawImage(input, 0, 0, null);
             mirrored.getGraphics().drawImage(EyeTexture.horizontalFlip(input), input.getWidth(), 0, null);
 
-            ImageIO.write(mirrored, "PNG", path.getParent().resolve(path.getFileName().toString().replace(".png", "-mirrored.png")).toFile());
+            ImageIO.write(mirrored, "PNG", path.toFile());
         }
     }
 }

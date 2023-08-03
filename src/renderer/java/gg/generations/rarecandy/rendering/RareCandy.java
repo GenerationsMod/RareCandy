@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.rendering;
 
+import gg.generations.rarecandy.LoggerUtil;
 import gg.generations.rarecandy.ThreadSafety;
 import gg.generations.rarecandy.loading.ModelLoader;
 import gg.generations.rarecandy.storage.ObjectManager;
@@ -10,7 +11,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RareCandy {
-    private static final Logger LOGGER = LoggerFactory.getLogger(StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).getCallerClass());
     public static boolean DEBUG_THREADS = false;
     public final ObjectManager objectManager = new ObjectManager();
     private final ModelLoader loader;
@@ -20,7 +20,7 @@ public class RareCandy {
         ThreadSafety.initContextThread();
         var startLoad = System.currentTimeMillis();
         this.loader = new ModelLoader();
-        LOGGER.info("RareCandy Startup took " + (System.currentTimeMillis() - startLoad) + "ms");
+        LoggerUtil.print("RareCandy Startup took " + (System.currentTimeMillis() - startLoad) + "ms");
     }
 
     public void render(boolean clearInstances, double secondsPassed) {

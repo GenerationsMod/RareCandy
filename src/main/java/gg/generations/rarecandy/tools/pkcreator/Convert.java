@@ -8,6 +8,7 @@ import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFileBlock;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
+import gg.generations.rarecandy.tools.Main;
 import org.joml.Vector3f;
 
 import java.io.ByteArrayInputStream;
@@ -17,6 +18,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static gg.generations.rarecandy.LoggerUtil.print;
+import static gg.generations.rarecandy.LoggerUtil.printError;
 
 public class Convert {
     public static Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -119,14 +123,14 @@ public class Convert {
                                 scale = 1/new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ).y;
 
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                printError(e);
                             }
 
                             generateAndWriteJson(scale, pngNames, configFile);
 
                             PixelmonArchiveBuilder.convertToPk(inputPath, Files.walk(newSubfolder).filter(a -> !a.toString().endsWith("model.smd")).toList(), outPath.resolve(subfolder.getFileName().toString() + ".pk"));
 
-                            System.out.println("Completed: " + folderName);
+                            print("Completed: " + folderName);
                         }
                     }
                 }
@@ -148,7 +152,7 @@ public class Convert {
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 if(file.toString().endsWith("model.smd")) {
                     List<String> string = List.of("blender.exe", "-noaudio", "--python", "C:\\Users\\water\\Documents\\Converter13.py", "--background", "--", file.toString(), destination.resolve("model.glb").toString());
-//                    System.out.println("Blep1: " + string);
+//                    Main.print("Blep1: " + string);
                     ProcessBuilder processBuilder = new ProcessBuilder(string);
 //                    processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 //                    processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
@@ -156,7 +160,7 @@ public class Convert {
 
                     try {
                         process.waitFor();
-//                        System.out.println("Blep: " + process.waitFor());
+//                        Main.print("Blep: " + process.waitFor());
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -189,7 +193,7 @@ public class Convert {
                     Files.writeString(destination.resolve(file.getFileName().toString()), new SMDTextWriter().write(smdFile));
 
 //                    List<String> string = List.of("blender.exe", "-noaudio", "--python", "C:\\Users\\water\\Documents\\Converter_Anim.py", "--background", "--", file.toString(), destination.resolve(file.getFileName().toString()).toString());
-//                    System.out.println("Blep1: " + string);
+//                    Main.print("Blep1: " + string);
 //                    ProcessBuilder processBuilder = new ProcessBuilder(string);
 //                    processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 //                    processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
@@ -197,7 +201,7 @@ public class Convert {
 
 //                    try {
 //                        process.waitFor();
-////                        System.out.println("Blep: " + process.waitFor());
+////                        Main.print("Blep: " + process.waitFor());
 //                    } catch (InterruptedException e) {
 //                        throw new RuntimeException(e);
 //                    }

@@ -1,5 +1,8 @@
 package gg.generations.rarecandy.tools.swsh;
 
+import gg.generations.pokeutils.Pair;
+import gg.generations.rarecandy.LoggerUtil;
+import gg.generations.rarecandy.tools.Main;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
@@ -11,8 +14,11 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static gg.generations.rarecandy.LoggerUtil.print;
 
 public class EyeTexture {
 
@@ -21,18 +27,18 @@ public class EyeTexture {
         var chosenFile = DialogueUtils.chooseFolder();
 
         if(chosenFile == null) {
-            System.out.println("Didn't select a folder");
+            print("Didn't select a folder");
             return;
         }
 
-        for (TexturePair texturePair : findFilePairs(chosenFile)) {
-            BufferedImage expandedTextureA = processEye(texturePair.eyeTexture);
-            BufferedImage textureB = processIris(texturePair.irisTexture);
+        for (Map.Entry<String, Pair<Path, Path>> texturePair : findFilePairs(chosenFile).entrySet()) {
+            BufferedImage expandedTextureA = processEye(texturePair.getValue().b());
+            BufferedImage textureB = processIris(texturePair.getValue().a());
             textureB.getGraphics().drawImage(expandedTextureA, 0, 0, null);
 
-            var path = chosenFile.resolve((texturePair.type.isEmpty() ? "" : texturePair.type + "-") + "eyes.png");
+//            var path = chosenFile.resolve((texturePair.getKey().isEmpty() ? "" : texturePair.getKey() + "-") + "eyes.png");
 
-            ImageIO.write(textureB, "PNG", path.toFile());
+            ImageIO.write(textureB, "PNG", texturePair.getValue().b().toFile());
         }
     }
 
@@ -62,7 +68,7 @@ public class EyeTexture {
         }
     }
 
-    private static BufferedImage processEye(Path eyePath) {
+    protected static BufferedImage processEye(Path eyePath) {
         try {
             BufferedImage eyeTexture = ImageIO.read(eyePath.toFile());
             int width = eyeTexture.getWidth();
@@ -86,7 +92,7 @@ public class EyeTexture {
 
             return expandedTexture;
         } catch (IOException e) {
-            e.printStackTrace();
+            LoggerUtil.printError(e);
             return null;
         }
     }
@@ -111,31 +117,40 @@ public class EyeTexture {
     public static record TexturePair(String type, Path irisTexture, Path eyeTexture) {
     }
 
-    private static List<TexturePair> findFilePairs(Path folderPath) throws IOException {
-        List<Path> irisPaths = new ArrayList<>();
-        List<Path> eyePaths = new ArrayList<>();
+    private static Map<String, Pair<Path, Path>> findFilePairs(Path folderPath) throws IOException {
+//        List<Path> irisPaths = new ArrayList<>();
+//        List<Path> eyePaths = new ArrayList<>();
+
+        Map<String, Pair<Path, Path>> filePairs = new HashMap<>();
+        filePairs.put("shiny", new Pair<>(null, null));
+        filePairs.put("", new Pair<>(null, null));
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(folderPath)) {
             for (Path file : stream) {
                 String fileName = file.getFileName().toString();
-                if (fileName.endsWith("iris.png")) {
-                    irisPaths.add(file);
-                    System.out.println(fileName);
-                } else if (fileName.endsWith("eye.png")) {
-                    eyePaths.add(file);
-                    System.out.println(fileName);
+                var pair = filePairs.get(fileName.contains("rare") ? "shiny": "");
+
+                if (fileName.contains("_Iris_lyc")) { //iris.png")) {
+                    pair.a(file);
+
+//                    irisPaths.add(file);
+                    print(fileName);
+                } else if (fileName.contains("_Eye_col")) { //.endsWith("eye.png")) {
+//                    eyePaths.add(file);
+                    pair.b(file);
+                    print(fileName);
                 }
             }
         }
 
-        List<TexturePair> filePairs = new ArrayList<>();
-        for (Path irisPath : irisPaths) {
-            String baseName = getBaseName(irisPath.getFileName().toString());
-            Path eyePath = findMatchingEyePath(eyePaths, baseName);
-            if (eyePath != null) {
-                filePairs.add(new TexturePair(baseName, irisPath, eyePath));
-            }
-        }
+//        List<TexturePair> filePairs = new ArrayList<>();
+//        for (Path irisPath : irisPaths) {
+//            String baseName = getBaseName(irisPath.getFileName().toString());
+//            Path eyePath = findMatchingEyePath(eyePaths, baseName);
+//            if (eyePath != null) {
+//                filePairs.add(new TexturePair(baseName, irisPath, eyePath));
+//            }
+//        }
 
         return filePairs;
     }

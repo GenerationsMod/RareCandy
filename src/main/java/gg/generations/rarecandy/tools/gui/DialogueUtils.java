@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
+import gg.generations.rarecandy.tools.Main;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.util.nfd.NFDFilterItem;
@@ -11,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static gg.generations.rarecandy.LoggerUtil.print;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.util.nfd.NativeFileDialog.*;
 
@@ -85,7 +87,7 @@ public class DialogueUtils {
             if (result == NativeFileDialog.NFD_OKAY) {
                 return Paths.get(outPath.getStringUTF8(0));
             } else if (result == NativeFileDialog.NFD_ERROR) {
-                System.out.println(NativeFileDialog.NFD_GetError());
+                print(NativeFileDialog.NFD_GetError());
             }
         } finally {
             MemoryUtil.memFree(outPath);

@@ -298,7 +298,7 @@ public class ModelLoader {
     private static List<String> collectShownVariants(MeshModel meshModel, List<String> variantsList) {
         if (variantsList == null) {
             return Collections.singletonList("default");
-        } else {
+        } else if((meshModel.getExtensions() != null && !meshModel.getExtensions().containsKey("KHR_materials_variants"))){
             var map = (Map<String, Object>) meshModel.getExtensions().get("KHR_materials_variants");
             var variants = (List<Integer>) map.get("variants");
             var variantList = new ArrayList<String>();
@@ -309,6 +309,8 @@ public class ModelLoader {
             }
 
             return variantList;
+        } else {
+            return variantsList;
         }
     }
 

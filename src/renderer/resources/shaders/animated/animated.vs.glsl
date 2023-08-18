@@ -1,4 +1,4 @@
-#version 450
+#version 330
 #define MAX_BONES 220
 
 layout(location = 0) in vec3 positions;

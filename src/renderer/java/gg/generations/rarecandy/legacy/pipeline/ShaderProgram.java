@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.legacy.pipeline;
 
+import de.javagl.jgltf.model.gl.ShaderModel;
 import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.arceus.util.RareCandyException;
@@ -13,7 +14,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public record ShaderProgram(
-        Map<String, Consumer<UniformUploadContext>> uniformSuppliers,
+        Map<String, Consumer<UniformUploadContext>> sharedUniformSuppliers,
+        Map<String, Consumer<UniformUploadContext>> instanceUniformSuppliers,
         Map<String, Uniform> uniforms,
         Runnable preDrawBatch,
         Runnable postDrawBatch,
@@ -30,37 +32,40 @@ public record ShaderProgram(
 
     public void updateSharedUniforms() {
         for (var name : uniforms.keySet()) {
-            var uniform = uniforms.get(name);
-            if (!uniformSuppliers.containsKey(name))
-                throw new RareCandyException("No handler for uniform with name \"" + name + "\"");
-            if (uniform.type != GL20C.GL_SAMPLER_2D)
-                uniformSuppliers.get(name).accept(new UniformUploadContext(null, null, uniform));
+            if (sharedUniformSuppliers.containsKey(name)) {
+                var uniform = uniforms.get(name);
+                sharedUniformSuppliers.get(name).accept(new UniformUploadContext(null, null, uniform));
+            }
         }
     }
 
     public void updateInstanceUniforms(RenderingInstance instance, Model renderObject) {
         for (var name : uniforms.keySet()) {
-            var uniform = uniforms.get(name);
-            if (!uniformSuppliers.containsKey(name))
-                throw new RareCandyException("No handler for uniform with name \"" + name + "\"");
-            if (uniform.type == GL20C.GL_SAMPLER_2D)
-                uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
+            if (instanceUniformSuppliers.containsKey(name)) {
+                var uniform = uniforms.get(name);
+                instanceUniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
+            }
         }
     }
 
     public static class Builder {
+        public enum UniformType {
+            SHARED, INSTANCE, MODEL;
+        }
 
         public Map<String, Uniform> uniforms = new HashMap<>();
         public Runnable preDrawBatch = () -> {};
         public Runnable postDrawRunBatch = () -> {};
-        private Map<String, Consumer<UniformUploadContext>> uniformSuppliers = new HashMap<>();
+        private Map<String, Consumer<UniformUploadContext>> sharedUniformSuppliers = new HashMap<>();
+        private Map<String, Consumer<UniformUploadContext>> instanceUniformSuppliers = new HashMap<>();
         private int program;
 
         public Builder() {
         }
 
         public Builder(Builder base) {
-            this.uniformSuppliers = new HashMap<>(base.uniformSuppliers);
+            this.sharedUniformSuppliers = new HashMap<>(base.sharedUniformSuppliers);
+            this.instanceUniformSuppliers = new HashMap<>(base.instanceUniformSuppliers);
             this.program = base.program;
             this.uniforms = new HashMap<>(base.uniforms);
             this.preDrawBatch = base.preDrawBatch;
@@ -92,8 +97,11 @@ public record ShaderProgram(
             return this;
         }
 
-        public Builder supplyUniform(String name, Consumer<UniformUploadContext> provider) {
-            uniformSuppliers.put(name, provider);
+        public Builder supplyUniform(UniformType type, String name, Consumer<UniformUploadContext> provider) {
+            switch (type) {
+                case SHARED -> sharedUniformSuppliers.put(name, provider);
+                case INSTANCE -> instanceUniformSuppliers.put(name, provider);
+            }
             return this;
         }
 
@@ -129,7 +137,7 @@ public record ShaderProgram(
         public ShaderProgram build() {
             if (this.program == 0) throw new RuntimeException("Shader not created");
 
-            return new ShaderProgram(uniformSuppliers, uniforms, preDrawBatch, postDrawRunBatch, program);
+            return new ShaderProgram(sharedUniformSuppliers, instanceUniformSuppliers, uniforms, preDrawBatch, postDrawRunBatch, program);
         }
     }
 }

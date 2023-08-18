@@ -1,4 +1,4 @@
-#version 450 core
+#version 330 core
 #define ambientLight 0.6f
 
 in vec2 texCoord0;

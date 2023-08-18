@@ -1,5 +1,7 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
+import gg.generations.rarecandy.arceus.core.DefaultRenderGraph;
+import gg.generations.rarecandy.arceus.core.RareCandyScene;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
@@ -10,7 +12,7 @@ public class MinecraftSimulator {
     private static final double START_TIME = System.currentTimeMillis();
     public final Window window;
     public final Matrix4f projectionMatrix;
-    public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    public final Matrix4f viewMatrix = new Matrix4f().lookAt(0f, 3f, 0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public final PokemonTest test;
 
     public MinecraftSimulator(PokemonTest test, int sizeMultiplier) {
@@ -28,13 +30,16 @@ public class MinecraftSimulator {
             }
 
             if (action == GLFW.GLFW_RELEASE) {
-                if (key == GLFW.GLFW_KEY_LEFT) test.leftTap();
-                if (key == GLFW.GLFW_KEY_RIGHT) test.rightTap();
-                if (key == GLFW.GLFW_KEY_SPACE) test.space();
+//                if (key == GLFW.GLFW_KEY_LEFT) test.leftTap();
+//                if (key == GLFW.GLFW_KEY_RIGHT) test.rightTap();
+//                if (key == GLFW.GLFW_KEY_SPACE) test.space();
             }
         });
 
-        var scene = new RareCandy();
+        var scene = new RareCandyScene();
+        var defaultScene = new DefaultRenderGraph(scene);
+
+
         GL11C.glClearColor(0.5f, 0.5f, 0.5f, 1);
         GL11C.glFrontFace(GL11C.GL_CW);
         GL11C.glCullFace(GL11C.GL_FRONT);
@@ -43,18 +48,26 @@ public class MinecraftSimulator {
 
         test.init(scene, projectionMatrix, viewMatrix);
 
-        while (!window.shouldClose()) {
+        boolean failGracefully = true;
+
+        while (!window.shouldClose() && failGracefully) {
             window.pollEvents();
             GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-            scene.render(false, ((System.currentTimeMillis() - START_TIME) / 16000));
+            try {
+                defaultScene.render();
+            } catch (Exception e) {
+                e.printStackTrace();
+                failGracefully = false;
+            }
             window.swapBuffers();
         }
 
         window.destroy();
-        scene.close();
+//        scene.close();
     }
 
     public static void main(String[] args) {
+        System.loadLibrary("renderdoc");
         new MinecraftSimulator(new PokemonTest(args), args.length >= 2 ? Integer.parseInt(args[1]) : 1);
     }
 }

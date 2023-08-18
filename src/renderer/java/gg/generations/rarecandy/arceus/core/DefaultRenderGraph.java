@@ -43,7 +43,7 @@ public class DefaultRenderGraph {
                     var model = modelEntry.getKey();
                     var data = model.data();
                     data.bind();
-                    // program.updateModelUniforms(null, null); // TODO: add this
+//                     program.updateModelUniforms(null, null); // TODO: add this
 
                     for (var instance : modelEntry.getValue()) {
                         program.updateInstanceUniforms(instance, model); // FIXME: here too...

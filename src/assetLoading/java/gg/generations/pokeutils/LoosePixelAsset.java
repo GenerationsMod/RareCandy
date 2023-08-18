@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 
 public class LoosePixelAsset extends PixelAsset {
 
-    public LoosePixelAsset(Path root, Path glbFile, Path... animations) {
-        super(root.resolve(glbFile).getFileName().toString(), readPath(root.resolve(glbFile)));
-        files.putAll(Arrays.stream(animations).collect(Collectors.toMap(path -> root.resolve(path).getFileName().toString(), o -> readPath(root.resolve(o)))));
+    public LoosePixelAsset(Path glbFile) {
+        super(glbFile.getFileName().toString(), readPath(glbFile));
+//        files.putAll(Arrays.stream(animations).collect(Collectors.toMap(path -> root.resolve(path).getFileName().toString(), o -> readPath(root.resolve(o)))));
         updateSettings();
     }
 

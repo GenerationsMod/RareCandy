@@ -15,7 +15,7 @@ public class RareCandyScene {
     public List<RenderingInstance> removedInstances = new ArrayList<>();
 
     public void addInstance(RenderingInstance instance) {
-        addedInstances.add(null);
+        addedInstances.add(instance);
         this.dirty = true;
     }
 

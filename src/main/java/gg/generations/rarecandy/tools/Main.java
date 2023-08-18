@@ -82,7 +82,7 @@ public class Main {
     }
 
     private static void archiveExplorer(String[] args) {
-        PokeUtilsGui.main(args);
+//        PokeUtilsGui.main(args);
     }
 
     public static void main(String[] args) throws IOException {

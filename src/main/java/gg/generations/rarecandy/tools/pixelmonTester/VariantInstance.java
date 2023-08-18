@@ -1,0 +1,23 @@
+package gg.generations.rarecandy.tools.pixelmonTester;
+
+import gg.generations.rarecandy.arceus.model.Model;
+import gg.generations.rarecandy.arceus.model.RenderingInstance;
+import gg.generations.rarecandy.legacy.model.misc.Material;
+import org.joml.Matrix4f;
+
+public class VariantInstance implements RenderingInstance {
+    @Override
+    public Model getModel() {
+        return null;
+    }
+
+    @Override
+    public Material getMaterial() {
+        return null;
+    }
+
+    @Override
+    public Matrix4f getTransform() {
+        return null;
+    }
+}

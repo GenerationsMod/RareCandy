@@ -12,8 +12,10 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferFloat;
 import java.awt.image.DataBufferInt;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 
 public record TextureReference(PixelData data, String name) {
     public static TextureReference read(byte[] imageBytes, String name) throws IOException {
@@ -43,6 +45,27 @@ public record TextureReference(PixelData data, String name) {
 
         return new TextureReference(read(pixelData), name);
     }
+
+    public static TextureReference read(Path path) throws IOException {
+        BufferedImage pixelData;
+        BufferedImage temp;
+
+        temp = ImageIO.read(path.toFile());
+
+        var width = temp.getWidth();
+        var height = temp.getHeight();
+        pixelData = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int p = temp.getRGB(x, y);
+                pixelData.setRGB(x, y, p);
+            }
+        }
+
+        return new TextureReference(read(pixelData), path.getFileName().toString());
+    }
+
 
     public static PixelData read(BufferedImage image) {
         if (image == null) {

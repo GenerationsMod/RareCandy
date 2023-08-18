@@ -1,4 +1,4 @@
-package modelconfigviewer;
+package gg.generations.modelconfigviewer;
 
 import javax.swing.*;
 import java.awt.*;

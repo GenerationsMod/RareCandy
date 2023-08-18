@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
 import com.thebombzen.jxlatte.JXLDecoder;
-import modelconfigviewer.ImageViewer;
+import gg.generations.modelconfigviewer.ImageViewer;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;

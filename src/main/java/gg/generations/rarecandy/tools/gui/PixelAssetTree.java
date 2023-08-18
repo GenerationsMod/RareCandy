@@ -3,8 +3,8 @@ package gg.generations.rarecandy.tools.gui;
 import de.javagl.jgltf.model.NamedModelElement;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import gg.generations.pokeutils.PixelAsset;
-import modelconfigviewer.ComponentProviderEditor;
-import modelconfigviewer.ModelConfigTree;
+import gg.generations.modelconfigviewer.ComponentProviderEditor;
+import gg.generations.modelconfigviewer.ModelConfigTree;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;

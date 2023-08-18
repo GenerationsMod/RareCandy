@@ -7,14 +7,14 @@ import org.joml.Matrix4f;
  */
 public class AnimationInstance {
 
-    protected Animation animation;
     public double startTime = -1;
+    public Matrix4f[] matrixTransforms;
+    protected Animation animation;
     protected float currentTime;
     protected double timeAtPause;
     protected double timeAtUnpause;
     private boolean paused;
     private boolean unused;
-    public Matrix4f[] matrixTransforms;
 
     public AnimationInstance(Animation animation) {
         this.animation = animation;

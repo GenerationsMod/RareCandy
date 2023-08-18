@@ -27,6 +27,10 @@ public class ConfigEditorGUI extends JFrame {
         setVisible(true);
     }
 
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(ConfigEditorGUI::new);
+    }
+
     private void createMaterialsTree() {
         // Sample data for the materials tree
         Map<String, ModelConfig.MaterialReference> materials = createSampleMaterials();
@@ -89,9 +93,5 @@ public class ConfigEditorGUI extends JFrame {
             }
             return renderer;
         }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(ConfigEditorGUI::new);
     }
 }

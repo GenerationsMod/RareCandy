@@ -8,7 +8,6 @@ import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFileBlock;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
-import gg.generations.rarecandy.tools.Main;
 import org.joml.Vector3f;
 
 import java.io.ByteArrayInputStream;
@@ -23,6 +22,7 @@ import static gg.generations.rarecandy.LoggerUtil.print;
 import static gg.generations.rarecandy.LoggerUtil.printError;
 
 public class Convert {
+    private static final GltfModelReader reader = new GltfModelReader();
     public static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public static String generateJson(float scale, List<String> images) {
@@ -48,7 +48,7 @@ public class Convert {
         JsonObject variants = new JsonObject();
         for (String image : images) {
             JsonObject variant = new JsonObject();
-            if(!defaultVariant.get("model").getAsJsonObject().get("material").getAsString().equals(image)) {
+            if (!defaultVariant.get("model").getAsJsonObject().get("material").getAsString().equals(image)) {
                 JsonObject variantModel = new JsonObject();
                 variantModel.addProperty("material", image);
                 variant.add("model", variantModel);
@@ -71,8 +71,6 @@ public class Convert {
         readSubfolders(inFolder, outFolder);
     }
 
-    private static final GltfModelReader reader = new GltfModelReader();
-
     public static void readSubfolders(Path inputPath, Path outPath) {
         try {
 //            Files.createDirectories(outputPath);
@@ -82,7 +80,7 @@ public class Convert {
                 if (Files.isDirectory(subfolder)) {
                     String folderName = subfolder.getFileName().toString();
 //                    if (folderNames.stream().anyMatch(folderName::contains)) {
-                    if(Files.exists(subfolder.resolve("model.glb"))) {
+                    if (Files.exists(subfolder.resolve("model.glb"))) {
                         // Copy contents to new subfolder
                         Path newSubfolder = inputPath.resolve(folderName);
                         if (!Files.notExists(newSubfolder)) {
@@ -120,7 +118,7 @@ public class Convert {
                                     largestVertexZ = Math.max(largestVertexZ, zPoint);
                                 }
 
-                                scale = 1/new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ).y;
+                                scale = 1 / new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ).y;
 
                             } catch (Exception e) {
                                 printError(e);
@@ -150,7 +148,7 @@ public class Convert {
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                if(file.toString().endsWith("model.smd")) {
+                if (file.toString().endsWith("model.smd")) {
                     List<String> string = List.of("blender.exe", "-noaudio", "--python", "C:\\Users\\water\\Documents\\Converter13.py", "--background", "--", file.toString(), destination.resolve("model.glb").toString());
 //                    Main.print("Blep1: " + string);
                     ProcessBuilder processBuilder = new ProcessBuilder(string);
@@ -165,7 +163,7 @@ public class Convert {
                         throw new RuntimeException(e);
                     }
 
-                } else if(file.toString().endsWith(".smd")) {
+                } else if (file.toString().endsWith(".smd")) {
                     var smdFile = new SMDTextReader().read(Files.readAllLines(file).stream().collect(Collectors.joining("\n")));
 
                     for (SMDFileBlock a : smdFile.blocks) {

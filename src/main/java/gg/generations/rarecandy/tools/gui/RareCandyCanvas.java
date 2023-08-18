@@ -12,7 +12,6 @@ import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.ObjectInstance;
 import gg.generations.rarecandy.rendering.RareCandy;
 import gg.generations.rarecandy.storage.AnimatedObjectInstance;
-import gg.generations.rarecandy.tools.Main;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL;
@@ -35,12 +34,11 @@ import static gg.generations.rarecandy.tools.gui.GuiPipelines.STATIC;
 public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
     public final Matrix4f viewMatrix = new Matrix4f();
-    public double startTime = System.currentTimeMillis();
-    private RareCandy renderer;
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
-    private int scaleModifier = 0;
+    private final int scaleModifier = 0;
+    public double startTime = System.currentTimeMillis();
     public String currentAnimation = null;
-
+    private RareCandy renderer;
     private MultiRenderObject<MeshObject> plane;
 
     private MultiRenderObject<AnimatedMeshObject> loadedModel;
@@ -96,7 +94,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClearColor(60 / 255f, 63 / 255f, 65 / 255f, 1);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        try(var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {
+        try (var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {
             assert is != null;
             load(renderer, new GlbPixelAsset("plane", is.readAllBytes()), s -> STATIC, model -> {
                 plane = model;
@@ -110,7 +108,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     @Override
     public void paintGL() {
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-        if(loadedModelInstance != null) {
+        if (loadedModelInstance != null) {
             loadedModelInstance.transformationMatrix().identity().scale(loadedModel.scale);
         }
         renderer.render(false, (System.currentTimeMillis() - startTime) / 16000);
@@ -156,7 +154,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     private Pipeline getPokemonPipeline(String materialName) {
-        if(materialName.equals("transparent")) {
+        if (materialName.equals("transparent")) {
             return GuiPipelines.TRANSPARENT;
         } else {
             return GuiPipelines.ANIMATED;
@@ -230,6 +228,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
         }
 
         @Override
+        public void mouseClicked(MouseEvent e) {
+        }
+
+        @Override
         public void mousePressed(MouseEvent e) {
             offsetX = 0;
             offsetY = 0;
@@ -251,12 +253,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
         }
 
         @Override
-        public void mouseClicked(MouseEvent e) {}
+        public void mouseEntered(MouseEvent e) {
+        }
 
         @Override
-        public void mouseEntered(MouseEvent e) {}
-
-        @Override
-        public void mouseExited(MouseEvent e) {}
+        public void mouseExited(MouseEvent e) {
+        }
     }
 }

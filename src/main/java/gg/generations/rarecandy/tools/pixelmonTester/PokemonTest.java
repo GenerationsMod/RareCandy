@@ -29,14 +29,18 @@ public class PokemonTest {
 
     private final List<AnimatedObjectInstance> instances = new ArrayList<>();
     private final Path path;
-    private boolean rotate;
     public RareCandy renderer;
     public Pipelines pipelines;
+    private boolean rotate;
 
     public PokemonTest(String[] args) {
         Animation.animationModifier = (animation, s) -> animation.ticksPerSecond = 16;
         this.path = Paths.get(args[0]);
         if (args.length == 3) this.rotate = Boolean.parseBoolean(args[2]);
+    }
+
+    private static int clamp(int value, int max) {
+        return Math.min(Math.max(value, 0), max);
     }
 
     public void init(RareCandy scene, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
@@ -113,10 +117,6 @@ public class PokemonTest {
             //instance.changeAnimation(new AnimationInstance(map.get("walk")));
             instance.changeAnimation(new ThreeStageAnimationInstance(map, "rest_start", "rest_loop", "rest_end", "idle", "walk"));
         }
-    }
-
-    private static int clamp(int value, int max) {
-        return Math.min(Math.max(value, 0), max);
     }
 
     public void space() {

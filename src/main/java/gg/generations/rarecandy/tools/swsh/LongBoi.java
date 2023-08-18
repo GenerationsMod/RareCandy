@@ -5,7 +5,6 @@ import org.lwjgl.util.nfd.NativeFileDialog;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -15,7 +14,7 @@ public class LongBoi {
         var paths = DialogueUtils.chooseMultipleFiles("PNG;png");
         NativeFileDialog.NFD_Quit();
 
-        if(paths == null) {
+        if (paths == null) {
             return;
         }
 

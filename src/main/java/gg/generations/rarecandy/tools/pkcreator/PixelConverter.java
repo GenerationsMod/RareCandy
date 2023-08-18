@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools.pkcreator;
 
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
-import gg.generations.rarecandy.tools.Main;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -55,13 +54,13 @@ public class PixelConverter {
 
 
         Files.walk(inFolder).forEach(path -> {
-            if(path.toString().endsWith("smdx")) {
+            if (path.toString().endsWith("smdx")) {
                 if (!Files.isDirectory(path) && !path.equals(inFolder)) {
                     var relativePath = inFolder.relativize(path);
                     var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".smdx", ".smd"));
                     convertToSmd(path, outputPath);
                 }
-            } else if(path.toString().endsWith(".pk")) {
+            } else if (path.toString().endsWith(".pk")) {
                 if (!Files.isDirectory(path) && !path.equals(inFolder)) {
                     var relativePath = inFolder.relativize(path);
                     var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".pk", ""));

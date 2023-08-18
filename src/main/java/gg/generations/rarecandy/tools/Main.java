@@ -12,17 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Set;
 
-import static gg.generations.rarecandy.LoggerUtil.*;
+import static gg.generations.rarecandy.LoggerUtil.printError;
 
 public class Main {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
-
     public static final List<Command> ARGUMENTS = List.of(
             new Command("archiveExplorer", "Opens a AWT Gui allowing you to view the structure of a PK file", Main::archiveExplorer),
             new Command("converter", "Lets you convert individual files inside of converter/in into their opposite. eg: pk -> glb, glb -> pk, smd -> smdx, etc", Main::converter),
@@ -32,6 +26,7 @@ public class Main {
             new Command("longBoi (swsh)", "Used to convert all selected non eye related textures into a long boi (mirrored version of itself) that makes setting up Sword and Shield pokemon models easier the format used in Sword and Shield pokemon model eyes.", Main::longBoi)
 
     );
+    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static DualOutputStream outStream;
 
     private static void mouthFixer(String[] strings) {

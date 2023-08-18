@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.pokeutils.PixelAsset;
-import gg.generations.rarecandy.tools.Main;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
@@ -10,7 +9,8 @@ import org.tukaani.xz.XZOutputStream;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,12 +25,12 @@ public class GuiHandler implements KeyListener {
     private static final LZMA2Options OPTIONS = new LZMA2Options();
     private static final String BASE_TITLE = "Pk Explorer";
     private final PokeUtilsGui gui;
-    private String currentTitle = BASE_TITLE;
-    private boolean dirty = false;
-    public PixelAsset asset;
-    public Path assetPath;
     private final JFrame frame;
     private final List<Integer> pressedKeys = new ArrayList<>();
+    public PixelAsset asset;
+    public Path assetPath;
+    private String currentTitle = BASE_TITLE;
+    private boolean dirty = false;
 
     public GuiHandler(JFrame frame, PokeUtilsGui gui) {
         this.frame = frame;

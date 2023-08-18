@@ -35,17 +35,17 @@ public final class OpenGL {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(majorVersion, minorVersion);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
         if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (OpenGL) obj;
         return this.majorVersion == that.majorVersion &&
-                this.minorVersion == that.minorVersion;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(majorVersion, minorVersion);
+               this.minorVersion == that.minorVersion;
     }
 
     @Override

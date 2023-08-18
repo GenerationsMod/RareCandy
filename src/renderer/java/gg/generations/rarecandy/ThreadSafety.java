@@ -13,7 +13,7 @@ public class ThreadSafety {
     }
 
     public static void assertContextThread() {
-        if(Thread.currentThread() != contextThread) {
+        if (Thread.currentThread() != contextThread) {
             throw new RuntimeException("Code run on wrong thread.");
         }
     }
@@ -37,7 +37,9 @@ public class ThreadSafety {
             RareCandy.runLater(r);
         } catch (Exception e) {
             LoggerUtil.printError(e);
-            RareCandy.runLater(() -> {throw e;});
+            RareCandy.runLater(() -> {
+                throw e;
+            });
             throw new RuntimeException("Stopping Thread due to Error");
         }
     }

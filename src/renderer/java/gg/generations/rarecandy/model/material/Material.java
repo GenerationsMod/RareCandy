@@ -8,8 +8,8 @@ import java.util.Map;
 
 public class Material {
 
-    private final String type;
     public final TextureReference diffuseTextureReference;
+    private final String type;
     private Texture diffuseTexture;
 
     public Material(String type, TextureReference diffuseTexture) {
@@ -22,7 +22,7 @@ public class Material {
     }
 
     public Texture getDiffuseTexture() {
-        if(diffuseTexture == null) this.diffuseTexture = new Texture(diffuseTextureReference);
+        if (diffuseTexture == null) this.diffuseTexture = new Texture(diffuseTextureReference);
         return diffuseTexture;
     }
 

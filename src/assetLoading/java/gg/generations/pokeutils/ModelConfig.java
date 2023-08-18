@@ -36,25 +36,24 @@ public class ModelConfig {
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (obj == this) return true;
-            if (obj == null || obj.getClass() != this.getClass()) return false;
-            var that = (MaterialReference) obj;
-            return Objects.equals(this.texture, that.texture) &&
-                    Objects.equals(this.type, that.type);
-        }
-
-        @Override
         public int hashCode() {
             return Objects.hash(texture, type);
         }
 
         @Override
-        public String toString() {
-            return "MaterialReference[" +
-                    "texture=" + texture + ", " +
-                    "type=" + type + ']';
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (MaterialReference) obj;
+            return Objects.equals(this.texture, that.texture) &&
+                   Objects.equals(this.type, that.type);
         }
 
+        @Override
+        public String toString() {
+            return "MaterialReference[" +
+                   "texture=" + texture + ", " +
+                   "type=" + type + ']';
         }
+    }
 }

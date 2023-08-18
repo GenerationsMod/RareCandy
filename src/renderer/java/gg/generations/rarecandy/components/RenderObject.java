@@ -6,7 +6,10 @@ import gg.generations.rarecandy.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public abstract class RenderObject {
@@ -21,7 +24,8 @@ public abstract class RenderObject {
         render(instances, this);
     }
 
-    public void update() {}
+    public void update() {
+    }
 
     public boolean isReady() {
         return ready;

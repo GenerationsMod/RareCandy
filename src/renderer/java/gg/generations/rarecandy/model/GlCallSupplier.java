@@ -1,11 +1,11 @@
 package gg.generations.rarecandy.model;
 
+import de.javagl.jgltf.model.GltfModel;
+import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import gg.generations.pokeutils.ModelConfig;
 import gg.generations.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.components.MultiRenderObject;
 import gg.generations.rarecandy.components.RenderObject;
-import de.javagl.jgltf.model.GltfModel;
-import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 
 import java.util.List;
 import java.util.Map;

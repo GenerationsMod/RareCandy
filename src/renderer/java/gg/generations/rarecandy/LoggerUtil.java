@@ -39,7 +39,7 @@ public class LoggerUtil {
     }
 
     private static void checkLogger() {
-        if(LOGGER == null) {
+        if (LOGGER == null) {
             LOGGER = Logger.getLogger(LoggerUtil.class.getName());
             configureLogging();
         }

@@ -53,21 +53,23 @@ public class PixelAssetTree extends JTree {
             public void mouseReleased(MouseEvent e) {
                 var path = getClosestPathForLocation(e.getPoint().x, e.getPoint().y);
 
-                if(path == null) return;
+                if (path == null) return;
 
                 if (e.isPopupTrigger())
-                    switch(path.getLastPathComponent().toString()) {
-                        case "animations" -> new AnimationNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
-                        case "images" -> new ImageNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
-                        default ->  new TreeNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
+                    switch (path.getLastPathComponent().toString()) {
+                        case "animations" ->
+                                new AnimationNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
+                        case "images" ->
+                                new ImageNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
+                        default ->
+                                new TreeNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
                     }
-                else
-                    if (path.getParentPath() != null)
-                        if (path.getParentPath().getLastPathComponent().toString().equals("animations")) {
-                            PixelAssetTree.this.gui.handler.getCanvas().setAnimation(path.getLastPathComponent().toString().replace(".tranm", ""));
-                        } else if (path.getParentPath().getLastPathComponent().toString().equals("variants")) {
-                            PixelAssetTree.this.gui.handler.getCanvas().setVariant(path.getLastPathComponent().toString());
-                        }
+                else if (path.getParentPath() != null)
+                    if (path.getParentPath().getLastPathComponent().toString().equals("animations")) {
+                        PixelAssetTree.this.gui.handler.getCanvas().setAnimation(path.getLastPathComponent().toString().replace(".tranm", ""));
+                    } else if (path.getParentPath().getLastPathComponent().toString().equals("variants")) {
+                        PixelAssetTree.this.gui.handler.getCanvas().setVariant(path.getLastPathComponent().toString());
+                    }
             }
         });
 
@@ -90,16 +92,17 @@ public class PixelAssetTree extends JTree {
 
         for (var s : asset.files.keySet()) {
             if (s.endsWith("tranm") || s.endsWith("gfbanm") || s.endsWith("smd")) animationsNode.add(node(s));
-            else if(s.endsWith("glb")) {
+            else if (s.endsWith("glb")) {
                 var glbNode = node(s);
                 try {
 
                     var gltf = new GltfModelReader().readWithoutReferences(new ByteArrayInputStream(asset.files.get(s)));
 
-                    if(variants.isEmpty()) variants = gltf.getExtensions() != null && gltf.getExtensions().containsKey("KHR_materials_variants") ? ((List<Map<String, String>>) (((Map<String, Object>) gltf.getExtensions().get("KHR_materials_variants")).get("variants"))).stream().map(a -> a.get("name")).toList() : List.of();
+                    if (variants.isEmpty())
+                        variants = gltf.getExtensions() != null && gltf.getExtensions().containsKey("KHR_materials_variants") ? ((List<Map<String, String>>) (((Map<String, Object>) gltf.getExtensions().get("KHR_materials_variants")).get("variants"))).stream().map(a -> a.get("name")).toList() : List.of();
                     var animations = gltf.getAnimationModels().stream().map(NamedModelElement::getName).toList();
 
-                    if(!animations.isEmpty()) {
+                    if (!animations.isEmpty()) {
                         var modelAnimationsNode = node("animations");
                         for (var name : animations) modelAnimationsNode.add(node(name));
                         glbNode.add(modelAnimationsNode);
@@ -108,17 +111,17 @@ public class PixelAssetTree extends JTree {
                 } catch (IOException ignored) {
                 }
                 tree.add(glbNode);
-            } else if(s.endsWith("jxl")) {
+            } else if (s.endsWith("jxl")) {
                 imagesNode.add(node(s));
             }/* else if(s.equals("config.json")) {
                 tree.add(new ModConfigTreeNode(asset.getConfig()));
             }*/ else tree.add(node(s));
         }
 
-        if(animationsNode.getChildCount() > 0) tree.add(animationsNode);
-        if(imagesNode.getChildCount() > 0) tree.add(imagesNode);
+        if (animationsNode.getChildCount() > 0) tree.add(animationsNode);
+        if (imagesNode.getChildCount() > 0) tree.add(imagesNode);
 
-        if(!variants.isEmpty()) {
+        if (!variants.isEmpty()) {
             var modelAnimationsNode = node("variants");
             for (var name : variants) modelAnimationsNode.add(node(name));
             tree.add(modelAnimationsNode);

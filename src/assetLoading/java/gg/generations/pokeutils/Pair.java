@@ -28,23 +28,23 @@ public final class Pair<A, B> {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (Pair) obj;
-        return Objects.equals(this.a, that.a) &&
-                Objects.equals(this.b, that.b);
-    }
-
-    @Override
     public int hashCode() {
         return Objects.hash(a, b);
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (Pair) obj;
+        return Objects.equals(this.a, that.a) &&
+               Objects.equals(this.b, that.b);
+    }
+
+    @Override
     public String toString() {
         return "Pair[" +
-                "a=" + a + ", " +
-                "b=" + b + ']';
+               "a=" + a + ", " +
+               "b=" + b + ']';
     }
 }

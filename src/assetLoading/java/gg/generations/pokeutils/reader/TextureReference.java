@@ -4,12 +4,9 @@ import com.thebombzen.jxlatte.JXLDecoder;
 import com.thebombzen.jxlatte.JXLOptions;
 import de.javagl.jgltf.model.image.PixelData;
 import gg.generations.pokeutils.util.DefaultPixelData;
-import gg.generations.pokeutils.util.ImageUtils;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferFloat;
@@ -17,8 +14,6 @@ import java.awt.image.DataBufferInt;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.file.Path;
 
 public record TextureReference(PixelData data, String name) {
     public static TextureReference read(byte[] imageBytes, String name) throws IOException {
@@ -87,7 +82,7 @@ public record TextureReference(PixelData data, String name) {
             }
 
             readyData.flip();
-        } else if(buffer instanceof DataBufferByte dataBufferByte) {
+        } else if (buffer instanceof DataBufferByte dataBufferByte) {
             var rawData = dataBufferByte.getData();
             readyData = MemoryUtil.memAlloc(rawData.length);
             width = image.getWidth();
@@ -101,6 +96,6 @@ public record TextureReference(PixelData data, String name) {
     }
 
     private static int hdrToRgb(float hdr) {
-        return (int) Math.min(Math.max(Math.pow(hdr, 1.0/2.2) * 255, 0), 255);
+        return (int) Math.min(Math.max(Math.pow(hdr, 1.0 / 2.2) * 255, 0), 255);
     }
 }

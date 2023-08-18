@@ -8,7 +8,7 @@ layout(location = 3) in vec4 joints;
 layout(location = 4) in vec4 weights;
 
 out vec2 texCoord0;
-out vec3 toLightVector; // TODO: take mc's light direction uniforms and normalise and inverse them to create this
+out vec3 toLightVector;// TODO: take mc's light direction uniforms and normalise and inverse them to create this
 out vec3 toCameraVector;
 out vec3 normal;
 
@@ -21,10 +21,10 @@ uniform mat4 boneTransforms[MAX_BONES];
 
 mat4 getBoneTransform() {
     mat4 boneTransform =
-    boneTransforms[uint(joints.x)] * weights.x + // Bone 1 Transform (Bone Transform * Weight)
-    boneTransforms[uint(joints.y)] * weights.y + // Bone 2 Transform (Bone Transform * Weight)
-    boneTransforms[uint(joints.z)] * weights.z + // Bone 3 Transform (Bone Transform * Weight)
-    boneTransforms[uint(joints.w)] * weights.w ; // Bone 4 Transform (Bone Transform * Weight)
+    boneTransforms[uint(joints.x)] * weights.x +// Bone 1 Transform (Bone Transform * Weight)
+    boneTransforms[uint(joints.y)] * weights.y +// Bone 2 Transform (Bone Transform * Weight)
+    boneTransforms[uint(joints.z)] * weights.z +// Bone 3 Transform (Bone Transform * Weight)
+    boneTransforms[uint(joints.w)] * weights.w;// Bone 4 Transform (Bone Transform * Weight)
     return boneTransform;
 }
 

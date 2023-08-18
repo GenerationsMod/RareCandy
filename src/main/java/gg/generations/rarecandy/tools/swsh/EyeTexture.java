@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools.swsh;
 
 import gg.generations.pokeutils.Pair;
 import gg.generations.rarecandy.LoggerUtil;
-import gg.generations.rarecandy.tools.Main;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
@@ -26,7 +25,7 @@ public class EyeTexture {
         NativeFileDialog.NFD_Init();
         var chosenFile = DialogueUtils.chooseFolder();
 
-        if(chosenFile == null) {
+        if (chosenFile == null) {
             print("Didn't select a folder");
             return;
         }
@@ -114,9 +113,6 @@ public class EyeTexture {
         return flippedImage;
     }
 
-    public static record TexturePair(String type, Path irisTexture, Path eyeTexture) {
-    }
-
     private static Map<String, Pair<Path, Path>> findFilePairs(Path folderPath) throws IOException {
 //        List<Path> irisPaths = new ArrayList<>();
 //        List<Path> eyePaths = new ArrayList<>();
@@ -128,7 +124,7 @@ public class EyeTexture {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(folderPath)) {
             for (Path file : stream) {
                 String fileName = file.getFileName().toString();
-                var pair = filePairs.get(fileName.contains("rare") ? "shiny": "");
+                var pair = filePairs.get(fileName.contains("rare") ? "shiny" : "");
 
                 if (fileName.contains("_Iris_lyc")) { //iris.png")) {
                     pair.a(file);
@@ -191,5 +187,8 @@ public class EyeTexture {
             }
         }
         return null;
+    }
+
+    public record TexturePair(String type, Path irisTexture, Path eyeTexture) {
     }
 }

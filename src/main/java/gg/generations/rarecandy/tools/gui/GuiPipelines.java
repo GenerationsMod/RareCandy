@@ -51,7 +51,8 @@ public class GuiPipelines {
             .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
             .build();
 
-    public static void onInitialize() {}
+    public static void onInitialize() {
+    }
 
     private static String builtin(String name) {
         try (var is = Pipeline.class.getResourceAsStream("/shaders/" + name)) {

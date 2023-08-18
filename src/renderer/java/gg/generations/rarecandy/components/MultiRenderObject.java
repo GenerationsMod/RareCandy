@@ -19,23 +19,16 @@ import java.util.function.Consumer;
  */
 public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
-    public float scale = 1.0f;
     public final List<T> objects = new ArrayList<>();
     private final List<Consumer<T>> queue = new ArrayList<>();
-    private boolean dirty = true;
-    private boolean smartRender = false;
-    private Matrix4f rootTransformation = new Matrix4f();
+    private final boolean smartRender = false;
     private final Vector3f dimensions = new Vector3f();
+    public float scale = 1.0f;
+    private boolean dirty = true;
+    private Matrix4f rootTransformation = new Matrix4f();
 
     public MultiRenderObject() {
         variants = new HashMap<>();
-    }
-
-    @Override
-    public boolean isReady() {
-        if (objects.isEmpty()) return false;
-        for (T object : objects) if (!object.isReady()) return false;
-        return true;
     }
 
     public void onUpdate(Consumer<T> consumer) {
@@ -47,12 +40,12 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
         dirty = true;
     }
 
-    public void setRootTransformation(Matrix4f rootTransformation) {
-        this.rootTransformation = rootTransformation;
-    }
-
     public Matrix4f getRootTransformation() {
         return rootTransformation;
+    }
+
+    public void setRootTransformation(Matrix4f rootTransformation) {
+        this.rootTransformation = rootTransformation;
     }
 
     public void applyRootTransformation(ObjectInstance state) {
@@ -77,6 +70,23 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
         queue.clear();
         super.update();
+    }
+
+    @Override
+    public boolean isReady() {
+        if (objects.isEmpty()) return false;
+        for (T object : objects) if (!object.isReady()) return false;
+        return true;
+    }
+
+    @Override
+    public Set<String> availableVariants() {
+        return objects.get(0).availableVariants();
+    }
+
+    @Override
+    public Material getVariant(@Nullable String materialId) {
+        return objects.get(0).getVariant(materialId);
     }
 
     @Override
@@ -118,12 +128,11 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 //                pl.unbind();
 //            });
 //        } else {
-            for (T object : this.objects) {
-                object.render(instances, object);
-            }
+        for (T object : this.objects) {
+            object.render(instances, object);
+        }
 //        }
     }
-
 
     public void updateDimensions() {
         for (RenderObject object : objects) {
@@ -131,15 +140,5 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
                 dimensions.max(mesh.model.dimensions);
             }
         }
-    }
-
-    @Override
-    public Set<String> availableVariants() {
-        return objects.get(0).availableVariants();
-    }
-
-    @Override
-    public Material getVariant(@Nullable String materialId) {
-        return objects.get(0).getVariant(materialId);
     }
 }

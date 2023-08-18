@@ -1,8 +1,8 @@
 package modelconfigviewer;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import javax.swing.*;
 
 public class ImageViewer extends JFrame {
 
@@ -16,7 +16,7 @@ public class ImageViewer extends JFrame {
 
         JScrollPane scrollPane = new JScrollPane(imageLabel);
         scrollPane.setPreferredSize(new Dimension(400, 300));
-        
+
         getContentPane().add(scrollPane);
     }
 

@@ -56,8 +56,8 @@ public class ModelConfigTree {
     }
 
     public static class FloatProvider extends JPanel implements ComponentProvider {
-        private JLabel label;
-        private FloatTextField textField;
+        private final JLabel label;
+        private final FloatTextField textField;
 
         public FloatProvider(String labelText, float value, Consumer<Float> updater) {
             setLayout(new BorderLayout());

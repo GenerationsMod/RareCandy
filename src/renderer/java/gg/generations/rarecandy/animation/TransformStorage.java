@@ -10,6 +10,14 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
     public final TreeMap<Double, TimeKey<T>> keys = new TreeMap<>();
     public TimeKey<T>[] values = new TimeKey[0];
 
+    public static <T> int wraparoundIndex(T[] arr, int index) {
+        if (arr.length == 0) {
+            return -1; // Or any other suitable value indicating an error condition
+        }
+
+        return (index % arr.length + arr.length) % arr.length;
+    }
+
     @NotNull
     @Override
     public Iterator<TimeKey<T>> iterator() {
@@ -39,14 +47,6 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
         if (i > values().length) return null;
 
         return values()[wraparoundIndex(values, i)];
-    }
-
-    public static <T> int wraparoundIndex(T[] arr, int index) {
-        if (arr.length == 0) {
-            return -1; // Or any other suitable value indicating an error condition
-        }
-
-        return (index % arr.length + arr.length) % arr.length;
     }
 
     public TimeKey<T> getAtTime(int animationDuration) {

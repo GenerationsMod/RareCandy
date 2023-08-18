@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class CommandGUI extends Frame {
-    private List<Command> commands;
+    private final List<Command> commands;
     private final String[] args;
 
     public CommandGUI(List<Command> commands, String[] args) {
@@ -52,14 +52,14 @@ public class CommandGUI extends Frame {
     }
 
     private class CommandButtonListener implements ActionListener {
-        private Consumer<String[]> consumer;
+        private final Consumer<String[]> consumer;
 
         public CommandButtonListener(Consumer<String[]> consumer) {
             this.consumer = consumer;
         }
 
         public void actionPerformed(ActionEvent event) {
-            String[] args = new String[] {}; // You can replace this with actual command arguments
+            String[] args = new String[]{}; // You can replace this with actual command arguments
             consumer.accept(args);
             dispose();
         }

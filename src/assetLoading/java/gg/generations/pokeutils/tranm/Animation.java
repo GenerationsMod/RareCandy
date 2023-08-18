@@ -12,40 +12,92 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class Animation extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_5_26(); }
-  public static Animation getRootAsAnimation(ByteBuffer _bb) { return getRootAsAnimation(_bb, new Animation()); }
-  public static Animation getRootAsAnimation(ByteBuffer _bb, Animation obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
-  public Animation __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+    public static void ValidateVersion() {
+        Constants.FLATBUFFERS_23_5_26();
+    }
 
-  public Metadata meta() { return meta(new Metadata()); }
-  public Metadata meta(Metadata obj) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
-  public SkelAnim anim() { return anim(new SkelAnim()); }
-  public SkelAnim anim(SkelAnim obj) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
+    public static Animation getRootAsAnimation(ByteBuffer _bb) {
+        return getRootAsAnimation(_bb, new Animation());
+    }
 
-  public static int createAnimation(FlatBufferBuilder builder,
-      int metaOffset,
-      int animOffset) {
-    builder.startTable(2);
-    Animation.addAnim(builder, animOffset);
-    Animation.addMeta(builder, metaOffset);
-    return Animation.endAnimation(builder);
-  }
+    public static Animation getRootAsAnimation(ByteBuffer _bb, Animation obj) {
+        _bb.order(ByteOrder.LITTLE_ENDIAN);
+        return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb));
+    }
 
-  public static void startAnimation(FlatBufferBuilder builder) { builder.startTable(2); }
-  public static void addMeta(FlatBufferBuilder builder, int metaOffset) { builder.addOffset(0, metaOffset, 0); }
-  public static void addAnim(FlatBufferBuilder builder, int animOffset) { builder.addOffset(1, animOffset, 0); }
-  public static int endAnimation(FlatBufferBuilder builder) {
-    return builder.endTable();
-  }
-  public static void finishAnimationBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset); }
-  public static void finishSizePrefixedAnimationBuffer(FlatBufferBuilder builder, int offset) { builder.finishSizePrefixed(offset); }
+    public static int createAnimation(FlatBufferBuilder builder,
+                                      int metaOffset,
+                                      int animOffset) {
+        builder.startTable(2);
+        Animation.addAnim(builder, animOffset);
+        Animation.addMeta(builder, metaOffset);
+        return Animation.endAnimation(builder);
+    }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+    public static void startAnimation(FlatBufferBuilder builder) {
+        builder.startTable(2);
+    }
 
-    public Animation get(int j) { return get(new Animation(), j); }
-    public Animation get(Animation obj, int j) {  return obj.__assign(Table.__indirect(__element(j), bb), bb); }
-  }
+    public static void addMeta(FlatBufferBuilder builder, int metaOffset) {
+        builder.addOffset(0, metaOffset, 0);
+    }
+
+    public static void addAnim(FlatBufferBuilder builder, int animOffset) {
+        builder.addOffset(1, animOffset, 0);
+    }
+
+    public static int endAnimation(FlatBufferBuilder builder) {
+        return builder.endTable();
+    }
+
+    public static void finishAnimationBuffer(FlatBufferBuilder builder, int offset) {
+        builder.finish(offset);
+    }
+
+    public static void finishSizePrefixedAnimationBuffer(FlatBufferBuilder builder, int offset) {
+        builder.finishSizePrefixed(offset);
+    }
+
+    public void __init(int _i, ByteBuffer _bb) {
+        __reset(_i, _bb);
+    }
+
+    public Animation __assign(int _i, ByteBuffer _bb) {
+        __init(_i, _bb);
+        return this;
+    }
+
+    public Metadata meta() {
+        return meta(new Metadata());
+    }
+
+    public Metadata meta(Metadata obj) {
+        int o = __offset(4);
+        return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null;
+    }
+
+    public SkelAnim anim() {
+        return anim(new SkelAnim());
+    }
+
+    public SkelAnim anim(SkelAnim obj) {
+        int o = __offset(6);
+        return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null;
+    }
+
+    public static final class Vector extends BaseVector {
+        public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) {
+            __reset(_vector, _element_size, _bb);
+            return this;
+        }
+
+        public Animation get(int j) {
+            return get(new Animation(), j);
+        }
+
+        public Animation get(Animation obj, int j) {
+            return obj.__assign(Table.__indirect(__element(j), bb), bb);
+        }
+    }
 }
 

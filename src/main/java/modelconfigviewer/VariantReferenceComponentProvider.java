@@ -6,8 +6,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class VariantReferenceComponentProvider implements ModelConfigTree.ComponentProvider {
-    private JTextField textureField;
-    private Checkbox typeField;
+    private final JTextField textureField;
+    private final Checkbox typeField;
 
     public VariantReferenceComponentProvider(VariantReference materialReference) {
         textureField = new JTextField(materialReference.material());

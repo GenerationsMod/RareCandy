@@ -7,7 +7,10 @@ import de.javagl.jgltf.model.v2.MaterialModelV2;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
-import gg.generations.pokeutils.*;
+import gg.generations.pokeutils.DataUtils;
+import gg.generations.pokeutils.ModelConfig;
+import gg.generations.pokeutils.PixelAsset;
+import gg.generations.pokeutils.VariantReference;
 import gg.generations.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.ThreadSafety;
 import gg.generations.rarecandy.animation.Animation;
@@ -37,7 +40,6 @@ import org.lwjgl.opengl.GL30;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,87 +55,6 @@ public class ModelLoader {
 
     public ModelLoader() {
         this.modelLoadingPool = Executors.newFixedThreadPool(2);
-    }
-
-    public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
-        var obj = new MultiRenderObject<T>();
-        var task = threadedCreateObject(obj, is, objectCreator, onFinish);
-        if (RareCandy.DEBUG_THREADS) task.run();
-        else modelLoadingPool.submit(task);
-        return obj;
-    }
-
-    private <T extends RenderObject> Runnable threadedCreateObject(MultiRenderObject<T> obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
-        return ThreadSafety.wrapException(() -> {
-            var asset = is.get();
-            var config = asset.getConfig();
-
-            if(config != null) obj.scale = config.scale;
-            var model = read(asset);
-            var smdAnims = readSmdAnimations(asset);
-            var gfbAnims = readGfbAnimations(asset);
-            var images = readImages(asset);
-            var glCalls = objectCreator.getCalls(model, smdAnims, gfbAnims, images, config, obj);
-            ThreadSafety.runOnContextThread(() -> {
-                glCalls.forEach(Runnable::run);
-                obj.updateDimensions();
-                if (onFinish != null) onFinish.accept(obj);
-            });
-        });
-    }
-
-    private Map<String, TextureReference> readImages(PixelAsset asset) {
-        var images = asset.getImageFiles();
-        var map = new HashMap<String, TextureReference>();
-        for (var entry : images) {
-            var key = entry.getKey();
-
-            try {
-                map.put(key, TextureReference.read(entry.getValue(), key));
-            } catch (IOException e) {
-                System.out.print("Error couldn't load: " + key); //TODO: Logger solution.
-            }
-        }
-
-        return map;
-    }
-
-    private Map<String, byte[]> readGfbAnimations(PixelAsset asset) {
-        return asset.files.entrySet().stream()
-                .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm") || entry.getKey().endsWith(".tranm"))
-                .collect(Collectors.toMap(this::cleanAnimName, Map.Entry::getValue));
-    }
-
-    private String cleanAnimName(Map.Entry<String, byte[]> entry) {
-        var str = entry.getKey();
-        var substringEnd = str.lastIndexOf(".") == -1 ? str.length() : str.lastIndexOf(".");
-        var substringStart = str.lastIndexOf("/") == -1 ? 0 : str.lastIndexOf("/");
-        return str.substring(substringStart, substringEnd);
-    }
-
-    private Map<String, SMDFile> readSmdAnimations(PixelAsset pixelAsset) {
-        var files = pixelAsset.getAnimationFiles();
-        var map = new HashMap<String, SMDFile>();
-        var reader = new SMDTextReader();
-
-        for (var entry : files) {
-            var smdFile = reader.read(new String(entry.getValue()));
-            map.put(entry.getKey(), smdFile);
-        }
-
-        return map;
-    }
-
-    public void close() {
-        modelLoadingPool.shutdown();
-    }
-
-    public GltfModel read(PixelAsset asset) {
-        try {
-            return reader.readWithoutReferences(new ByteArrayInputStream(asset.getModelFile()));
-        } catch (IOException e) {
-            throw new RuntimeException("Issue reading GLTF Model", e);
-        }
     }
 
     public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, TextureReference> images, ModelConfig config, List<Runnable> glCalls, Function<String, Pipeline> pipeline, Supplier<T> supplier) {
@@ -174,7 +95,7 @@ public class ModelLoader {
             skeleton = null;
         }
 
-        if(config != null) {
+        if (config != null) {
             var materials = config.materials.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> new Material(a.getValue(), images)));
             var variantPair = new HashMap<VariantReference, Variant>();
 
@@ -182,21 +103,21 @@ public class ModelLoader {
             var variantHideMap = new HashMap<String, List<String>>();
 
 
-            config.defaultVariant.forEach((k, v) ->  {
+            config.defaultVariant.forEach((k, v) -> {
                 var pair = variantPair.computeIfAbsent(v.fillIn(), b -> new Variant(materials.get(b.material()), b.hide()));
                 variantMaterialMap.computeIfAbsent(k, a -> new HashMap<>()).put("default", pair.material());
-                if(!pair.hide()) variantHideMap.computeIfAbsent(k, a -> new ArrayList<>()).add("default");
+                if (!pair.hide()) variantHideMap.computeIfAbsent(k, a -> new ArrayList<>()).add("default");
             });
 
             for (var variantName : config.variants.keySet()) {
                 var entryset = config.variants.get(variantName);
-                if(entryset.isEmpty()) entryset = config.defaultVariant;
+                if (entryset.isEmpty()) entryset = config.defaultVariant;
                 for (var entry : entryset.entrySet()) {
                     var model = entry.getKey();
                     var variant = variantPair.computeIfAbsent(entry.getValue().fillIn(config.defaultVariant.get(entry.getKey())), b -> new Variant(materials.get(b.material()), b.hide()));
 
                     variantMaterialMap.computeIfAbsent(model, a -> new HashMap<>()).put(variantName, variant.material());
-                    if(!variant.hide()) variantHideMap.computeIfAbsent(model, a -> new ArrayList<>()).add(variantName);
+                    if (!variant.hide()) variantHideMap.computeIfAbsent(model, a -> new ArrayList<>()).add(variantName);
                 }
             }
 
@@ -260,7 +181,7 @@ public class ModelLoader {
 
                         for (var meshModel : child.getMeshModels()) {
                             var showList = collectShownVariants(meshModel, variants);
-                            processPrimitiveModels(objects, supplier, meshModel, materials, variants, showList , pipeline, glCalls, skeleton, animations);
+                            processPrimitiveModels(objects, supplier, meshModel, materials, variants, showList, pipeline, glCalls, skeleton, animations);
                         }
                     }
                 }
@@ -271,34 +192,34 @@ public class ModelLoader {
     private static float calculateScale(GltfModel model) {
         var scale = 1.0f;
 
-            var buf = model.getMeshModels().get(0).getMeshPrimitiveModels().get(0).getAttributes().get("POSITION").getBufferViewModel().getBufferViewData();
+        var buf = model.getMeshModels().get(0).getMeshPrimitiveModels().get(0).getAttributes().get("POSITION").getBufferViewModel().getBufferViewData();
 
-            var smallestVertexX = 0f;
-            var smallestVertexY = 0f;
-            var smallestVertexZ = 0f;
-            var largestVertexX = 0f;
-            var largestVertexY = 0f;
-            var largestVertexZ = 0f;
-            for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
-                var xPoint = buf.getFloat(i);
-                var yPoint = buf.getFloat(i + 4);
-                var zPoint = buf.getFloat(i + 8);
-                smallestVertexX = Math.min(smallestVertexX, xPoint);
-                smallestVertexY = Math.min(smallestVertexY, yPoint);
-                smallestVertexZ = Math.min(smallestVertexZ, zPoint);
-                largestVertexX = Math.max(largestVertexX, xPoint);
-                largestVertexY = Math.max(largestVertexY, yPoint);
-                largestVertexZ = Math.max(largestVertexZ, zPoint);
-            }
+        var smallestVertexX = 0f;
+        var smallestVertexY = 0f;
+        var smallestVertexZ = 0f;
+        var largestVertexX = 0f;
+        var largestVertexY = 0f;
+        var largestVertexZ = 0f;
+        for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
+            var xPoint = buf.getFloat(i);
+            var yPoint = buf.getFloat(i + 4);
+            var zPoint = buf.getFloat(i + 8);
+            smallestVertexX = Math.min(smallestVertexX, xPoint);
+            smallestVertexY = Math.min(smallestVertexY, yPoint);
+            smallestVertexZ = Math.min(smallestVertexZ, zPoint);
+            largestVertexX = Math.max(largestVertexX, xPoint);
+            largestVertexY = Math.max(largestVertexY, yPoint);
+            largestVertexZ = Math.max(largestVertexZ, zPoint);
+        }
 
-            scale = 1/new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ).y;
-            return scale;
+        scale = 1 / new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ).y;
+        return scale;
     }
 
     private static List<String> collectShownVariants(MeshModel meshModel, List<String> variantsList) {
         if (variantsList == null) {
             return Collections.singletonList("default");
-        } else if((meshModel.getExtensions() != null && !meshModel.getExtensions().containsKey("KHR_materials_variants"))){
+        } else if ((meshModel.getExtensions() != null && !meshModel.getExtensions().containsKey("KHR_materials_variants"))) {
             var map = (Map<String, Object>) meshModel.getExtensions().get("KHR_materials_variants");
             var variants = (List<Integer>) map.get("variants");
             var variantList = new ArrayList<String>();
@@ -370,7 +291,6 @@ public class ModelLoader {
         }
     }
 
-
     private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations) {
         var name = model.getName();
 
@@ -391,7 +311,6 @@ public class ModelLoader {
             objects.add(renderObject);
         }
     }
-
 
     private static GLModel processPrimitiveModel(MeshPrimitiveModel primitiveModel, List<Runnable> glCalls) {
         var model = new GLModel();
@@ -507,6 +426,87 @@ public class ModelLoader {
             }
 
             return variantMap;
+        }
+    }
+
+    public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
+        var obj = new MultiRenderObject<T>();
+        var task = threadedCreateObject(obj, is, objectCreator, onFinish);
+        if (RareCandy.DEBUG_THREADS) task.run();
+        else modelLoadingPool.submit(task);
+        return obj;
+    }
+
+    private <T extends RenderObject> Runnable threadedCreateObject(MultiRenderObject<T> obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
+        return ThreadSafety.wrapException(() -> {
+            var asset = is.get();
+            var config = asset.getConfig();
+
+            if (config != null) obj.scale = config.scale;
+            var model = read(asset);
+            var smdAnims = readSmdAnimations(asset);
+            var gfbAnims = readGfbAnimations(asset);
+            var images = readImages(asset);
+            var glCalls = objectCreator.getCalls(model, smdAnims, gfbAnims, images, config, obj);
+            ThreadSafety.runOnContextThread(() -> {
+                glCalls.forEach(Runnable::run);
+                obj.updateDimensions();
+                if (onFinish != null) onFinish.accept(obj);
+            });
+        });
+    }
+
+    private Map<String, TextureReference> readImages(PixelAsset asset) {
+        var images = asset.getImageFiles();
+        var map = new HashMap<String, TextureReference>();
+        for (var entry : images) {
+            var key = entry.getKey();
+
+            try {
+                map.put(key, TextureReference.read(entry.getValue(), key));
+            } catch (IOException e) {
+                System.out.print("Error couldn't load: " + key); //TODO: Logger solution.
+            }
+        }
+
+        return map;
+    }
+
+    private Map<String, byte[]> readGfbAnimations(PixelAsset asset) {
+        return asset.files.entrySet().stream()
+                .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm") || entry.getKey().endsWith(".tranm"))
+                .collect(Collectors.toMap(this::cleanAnimName, Map.Entry::getValue));
+    }
+
+    private String cleanAnimName(Map.Entry<String, byte[]> entry) {
+        var str = entry.getKey();
+        var substringEnd = str.lastIndexOf(".") == -1 ? str.length() : str.lastIndexOf(".");
+        var substringStart = str.lastIndexOf("/") == -1 ? 0 : str.lastIndexOf("/");
+        return str.substring(substringStart, substringEnd);
+    }
+
+    private Map<String, SMDFile> readSmdAnimations(PixelAsset pixelAsset) {
+        var files = pixelAsset.getAnimationFiles();
+        var map = new HashMap<String, SMDFile>();
+        var reader = new SMDTextReader();
+
+        for (var entry : files) {
+            var smdFile = reader.read(new String(entry.getValue()));
+            map.put(entry.getKey(), smdFile);
+        }
+
+        return map;
+    }
+
+    public void close() {
+        modelLoadingPool.shutdown();
+    }
+
+    public GltfModel read(PixelAsset asset) {
+        try {
+            return reader.readWithoutReferences(new ByteArrayInputStream(asset.getModelFile()));
+        } catch (IOException e) {
+            throw new RuntimeException("Issue reading GLTF Model", e);
         }
     }
 }

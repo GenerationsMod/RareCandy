@@ -1,8 +1,8 @@
 package gg.generations.rarecandy.animation;
 
+import de.javagl.jgltf.model.SkinModel;
 import gg.generations.pokeutils.ModelNode;
 import gg.generations.rarecandy.rendering.Bone;
-import de.javagl.jgltf.model.SkinModel;
 import org.joml.Matrix4f;
 
 import java.util.HashMap;
@@ -39,7 +39,8 @@ public class Skeleton {
     }
 
     public Bone get(int id) {
-        if (id > boneArray.length) throw new RuntimeException("Animation is referencing bones which are out of bounds. Model is missing bone " + id);
+        if (id > boneArray.length)
+            throw new RuntimeException("Animation is referencing bones which are out of bounds. Model is missing bone " + id);
         return boneArray[id];
     }
 

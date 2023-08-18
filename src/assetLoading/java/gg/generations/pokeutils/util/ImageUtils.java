@@ -26,7 +26,7 @@
  */
 package gg.generations.pokeutils.util;
 
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
@@ -39,40 +39,43 @@ import java.nio.IntBuffer;
  * <br>
  * This class should not be considered to be part of the public API.
  */
-public class ImageUtils
-{
+public class ImageUtils {
+
+    /**
+     * Private constructor to prevent instantiation
+     */
+    private ImageUtils() {
+        // Private constructor to prevent instantiation
+    }
 
     /**
      * Returns a direct byte buffer that contains the ARGB pixel values of
      * the given image. <br>
      * <br>
      * The given image might become unmanaged/untrackable by this operation.
-     * 
-     * @param inputImage The input image
+     *
+     * @param inputImage     The input image
      * @param flipVertically Whether the contents of the image should be
-     * flipped vertically. This is always a hassle.
+     *                       flipped vertically. This is always a hassle.
      * @return The byte buffer containing the ARGB pixel values
      */
     public static ByteBuffer getImagePixelsARGB(
-            BufferedImage inputImage, boolean flipVertically)
-    {
+            BufferedImage inputImage, boolean flipVertically) {
         BufferedImage image = inputImage;
-        if (flipVertically)
-        {
+        if (flipVertically) {
             image = flipVertically(image);
         }
-        if (image.getType() != BufferedImage.TYPE_INT_ARGB)
-        {
+        if (image.getType() != BufferedImage.TYPE_INT_ARGB) {
             image = convertToARGB(image);
         }
         IntBuffer imageBuffer = getBuffer(image);
-        
+
         // Note: The byte order is BIG_ENDIAN by default. This order
         // is kept here, to keep the ARGB order, and not convert them
         // to BGRA implicitly.
         ByteBuffer outputByteBuffer = ByteBuffer
-            .allocateDirect(imageBuffer.remaining() * Integer.BYTES)
-            .order(ByteOrder.BIG_ENDIAN);
+                .allocateDirect(imageBuffer.remaining() * Integer.BYTES)
+                .order(ByteOrder.BIG_ENDIAN);
         IntBuffer output = outputByteBuffer.asIntBuffer();
         output.put(imageBuffer.slice());
         return outputByteBuffer;
@@ -81,66 +84,54 @@ public class ImageUtils
     /**
      * Convert the given image into a buffered image with the type
      * <code>TYPE_INT_ARGB</code>.
-     * 
+     *
      * @param image The input image
      * @return The converted image
      */
-    private static BufferedImage convertToARGB(BufferedImage image)
-    {
+    private static BufferedImage convertToARGB(BufferedImage image) {
         BufferedImage newImage = new BufferedImage(
-            image.getWidth(), image.getHeight(),
-            BufferedImage.TYPE_INT_ARGB);
+                image.getWidth(), image.getHeight(),
+                BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = newImage.createGraphics();
         g.drawImage(image, 0, 0, null);
         g.dispose();
         return newImage;
     }
-    
+
     /**
-     * Create a vertically flipped version of the given image. 
-     * 
+     * Create a vertically flipped version of the given image.
+     *
      * @param image The input image
      * @return The flipped image
      */
-    private static BufferedImage flipVertically(BufferedImage image)
-    {
+    private static BufferedImage flipVertically(BufferedImage image) {
         int w = image.getWidth();
         int h = image.getHeight();
         BufferedImage newImage = new BufferedImage(
-            w, h, BufferedImage.TYPE_INT_ARGB);
+                w, h, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = newImage.createGraphics();
         g.drawImage(image, 0, h, w, -h, null);
         g.dispose();
         return newImage;
     }
-    
+
     /**
      * Returns the data buffer of the given image as an IntBuffer. The given
      * image will become unmanaged/untrackable by this call.
-     * 
+     *
      * @param image The image
      * @return The data from the image as an IntBuffer
      * @throws IllegalArgumentException If the given image is not
-     * backed by a DataBufferInt
+     *                                  backed by a DataBufferInt
      */
-    private static IntBuffer getBuffer(BufferedImage image)
-    {
+    private static IntBuffer getBuffer(BufferedImage image) {
         DataBuffer dataBuffer = image.getRaster().getDataBuffer();
-        if (!(dataBuffer instanceof DataBufferInt dataBufferInt))
-        {
+        if (!(dataBuffer instanceof DataBufferInt dataBufferInt)) {
             throw new IllegalArgumentException(
-                "Invalid buffer type in image, " + 
-                "only TYPE_INT_* is allowed");
+                    "Invalid buffer type in image, " +
+                    "only TYPE_INT_* is allowed");
         }
         return IntBuffer.wrap(dataBufferInt.getData());
     }
 
-    /**
-     * Private constructor to prevent instantiation
-     */
-    private ImageUtils()
-    {
-        // Private constructor to prevent instantiation
-    }
-    
 }

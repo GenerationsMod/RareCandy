@@ -12,9 +12,9 @@ import java.util.List;
 public class ModelNode {
     public final String name;
     public final ModelNode parent;
-    public int id = -1;
     public final Matrix4f transform;
     public final List<ModelNode> children = new ArrayList<>();
+    public int id = -1;
 
     public ModelNode(NodeModel rootNodeModel, ModelNode parent) {
         this.parent = parent;

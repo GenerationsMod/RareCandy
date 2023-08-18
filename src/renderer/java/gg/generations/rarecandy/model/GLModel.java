@@ -17,16 +17,16 @@ public class GLModel {
     }
 
     @Override
+    public int hashCode() {
+        return meshDrawCommands != null ? meshDrawCommands.hashCode() : 0;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         var glModel = (GLModel) o;
         return Objects.equals(meshDrawCommands, glModel.meshDrawCommands);
-    }
-
-    @Override
-    public int hashCode() {
-        return meshDrawCommands != null ? meshDrawCommands.hashCode() : 0;
     }
 }

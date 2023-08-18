@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.tools.swsh;
 
 import gg.generations.rarecandy.LoggerUtil;
-import gg.generations.rarecandy.tools.Main;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
@@ -17,7 +16,7 @@ public class MouthTexture {
         NativeFileDialog.NFD_Init();
         var chosenFile = DialogueUtils.chooseMultipleFiles("PNG;png");
 
-        if(chosenFile == null) {
+        if (chosenFile == null) {
             LoggerUtil.print("Didn't select a folder");
             return;
         }

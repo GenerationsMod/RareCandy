@@ -10,8 +10,17 @@ public class PokeUtilsGui extends JPanel {
 
 
     public GuiHandler handler;
+    public JTree fileViewer;
+    public JPanel canvasPanel;
     private AWTGLCanvas renderingWindow;
-
+    // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
+    private JMenuBar toolbar;
+    private JMenu file;
+    private JMenuItem openArchive;
+    private JMenuItem createArchive;
+    private JMenuItem save;
+    private JMenuItem saveAs;
+    private JScrollPane scrollPane1;
     public PokeUtilsGui() {
         LafManager.install(LafManager.themeForPreferredStyle(LafManager.getPreferredThemeStyle()));
         initComponents();
@@ -49,13 +58,6 @@ public class PokeUtilsGui extends JPanel {
         SwingUtilities.invokeLater(renderLoop);
     }
 
-    public void setHandler(GuiHandler handler) {
-        this.handler = handler;
-        addKeyListener(handler);
-        fileViewer.addKeyListener(handler);
-        canvasPanel.addKeyListener(handler);
-    }
-
     public static void main(String[] args) {
         var frame = new JFrame();
         var gui = new PokeUtilsGui();
@@ -65,22 +67,18 @@ public class PokeUtilsGui extends JPanel {
         new GuiHandler(frame, gui);
     }
 
+    public void setHandler(GuiHandler handler) {
+        this.handler = handler;
+        addKeyListener(handler);
+        fileViewer.addKeyListener(handler);
+        canvasPanel.addKeyListener(handler);
+    }
+
     private void createUIComponents() {
 //        System.load("C:/Program Files/RenderDoc/renderdoc.dll");
         this.fileViewer = new PixelAssetTree(this);
         this.renderingWindow = new RareCandyCanvas();
     }
-
-    // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
-    private JMenuBar toolbar;
-    private JMenu file;
-    private JMenuItem openArchive;
-    private JMenuItem createArchive;
-    private JMenuItem save;
-    private JMenuItem saveAs;
-    private JScrollPane scrollPane1;
-    public JTree fileViewer;
-    public JPanel canvasPanel;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 
     private void initComponents() {

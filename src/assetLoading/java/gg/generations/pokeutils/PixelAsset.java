@@ -23,8 +23,8 @@ public class PixelAsset {
             .create();
 
     public final Map<String, byte[]> files = new HashMap<>();
-    private ModelConfig config;
     public String modelName;
+    private ModelConfig config;
 
     public PixelAsset(String modelName, byte[] glbFile) {
         this.modelName = modelName;
@@ -41,7 +41,7 @@ public class PixelAsset {
                 files.put(entry.getName(), tarFile.getInputStream(entry).readAllBytes());
             }
 
-            if(files.containsKey("config.json")) {
+            if (files.containsKey("config.json")) {
                 config = GSON.fromJson(new InputStreamReader(new ByteArrayInputStream(files.get("config.json"))), ModelConfig.class);
             }
 

@@ -4,15 +4,18 @@ package gg.generations.pokeutils.tranm;
 
 @SuppressWarnings("unused")
 public final class QuatTrack {
-  private QuatTrack() { }
-  public static final byte NONE = 0;
-  public static final byte FixedQuatTrack = 1;
-  public static final byte DynamicQuatTrack = 2;
-  public static final byte Framed16QuatTrack = 3;
-  public static final byte Framed8QuatTrack = 4;
+    public static final byte NONE = 0;
+    public static final byte FixedQuatTrack = 1;
+    public static final byte DynamicQuatTrack = 2;
+    public static final byte Framed16QuatTrack = 3;
+    public static final byte Framed8QuatTrack = 4;
+    public static final String[] names = {"NONE", "FixedQuatTrack", "DynamicQuatTrack", "Framed16QuatTrack", "Framed8QuatTrack",};
 
-  public static final String[] names = { "NONE", "FixedQuatTrack", "DynamicQuatTrack", "Framed16QuatTrack", "Framed8QuatTrack", };
+    private QuatTrack() {
+    }
 
-  public static String name(int e) { return names[e]; }
+    public static String name(int e) {
+        return names[e];
+    }
 }
 

@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools.gui;
 
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
-import gg.generations.rarecandy.tools.Main;
 import org.msgpack.core.MessagePack;
 
 import javax.swing.*;
@@ -41,10 +40,10 @@ public class AnimationNodePopup extends JPopupMenu {
 
         byte[] fileBytes = null;
 
-        try(var stream = Files.newInputStream(path)) {
-            if(name.endsWith("smd")) {
+        try (var stream = Files.newInputStream(path)) {
+            if (name.endsWith("smd")) {
                 fileBytes = stream.readAllBytes();
-            } else if(name.endsWith("smdx")) {
+            } else if (name.endsWith("smdx")) {
                 fileBytes = new SMDTextWriter().write(new SMDBinaryReader().read(MessagePack.newDefaultUnpacker(stream))).getBytes();
             }
         } catch (IOException e) {

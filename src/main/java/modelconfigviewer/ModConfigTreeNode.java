@@ -9,7 +9,8 @@ import java.awt.*;
 public class ModConfigTreeNode extends DefaultMutableTreeNode {
     public ModConfigTreeNode(ModelConfig config) {
         setUserObject("config.json");
-        this.add(new DefaultMutableTreeNode(new ModelConfigTree.FloatProvider("scale: ", config.scale, value -> {})));
+        this.add(new DefaultMutableTreeNode(new ModelConfigTree.FloatProvider("scale: ", config.scale, value -> {
+        })));
         this.add(new MapTreeNode<>("materials", config.materials, MaterialReferenceComponentProvider::new));
         this.add(new MapTreeNode<>("defaultVariant", config.defaultVariant, VariantReferenceComponentProvider::new));
         this.add(new NestedMapNode<>("variants", config.variants, (key, materialReference) -> {
@@ -20,9 +21,9 @@ public class ModConfigTreeNode extends DefaultMutableTreeNode {
     }
 
     public class MaterialReferenceComponentProvider implements ModelConfigTree.ComponentProvider {
-        private ModelConfig.MaterialReference materialReference;
-        private JTextField textureField;
-        private JTextField typeField;
+        private final ModelConfig.MaterialReference materialReference;
+        private final JTextField textureField;
+        private final JTextField typeField;
 
         public MaterialReferenceComponentProvider(ModelConfig.MaterialReference materialReference) {
             this.materialReference = materialReference;

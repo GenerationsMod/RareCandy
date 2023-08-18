@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.tools.Main;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.util.nfd.NFDFilterItem;

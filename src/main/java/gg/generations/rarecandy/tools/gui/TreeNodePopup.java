@@ -3,7 +3,6 @@ package gg.generations.rarecandy.tools.gui;
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
 import gg.generations.rarecandy.LoggerUtil;
-import gg.generations.rarecandy.tools.Main;
 import org.msgpack.core.MessagePack;
 
 import javax.swing.*;

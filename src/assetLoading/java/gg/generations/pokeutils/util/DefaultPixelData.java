@@ -31,6 +31,7 @@ import de.javagl.jgltf.model.image.PixelData;
 import java.nio.ByteBuffer;
 
 //TODO: properly expose in a gltf fork vs copying.
+
 /**
  * Default implementation of a {@link PixelData}
  */

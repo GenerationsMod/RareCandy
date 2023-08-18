@@ -1,9 +1,9 @@
 package gg.generations.rarecandy.animation;
 
-import gg.generations.pokeutils.ModelNode;
 import de.javagl.jgltf.model.AnimationModel;
 import de.javagl.jgltf.model.NodeModel;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
+import gg.generations.pokeutils.ModelNode;
 import gg.generations.pokeutils.tranm.*;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -13,16 +13,17 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 public class Animation {
-    public static BiConsumer<Animation, String> animationModifier = (animation, s) -> {};
     public static final int FPS_60 = 1000;
     public static final int FPS_24 = 400;
     public static final int GLB_SPEED = FPS_60;
+    public static BiConsumer<Animation, String> animationModifier = (animation, s) -> {
+    };
     public final String name;
     public final double animationDuration;
-    public Map<String, Integer> nodeIdMap = new HashMap<>();
     public final AnimationNode[] animationNodes;
-    public float ticksPerSecond;
     protected final Skeleton skeleton;
+    public Map<String, Integer> nodeIdMap = new HashMap<>();
+    public float ticksPerSecond;
     public boolean ignoreInstancedTime = false;
 
     public Animation(AnimationModel rawAnimation, Skeleton skeleton, int speed) {
@@ -64,6 +65,14 @@ public class Animation {
         this.animationDuration = findLastKeyTime();
 
         animationModifier.accept(this, "smd");
+    }
+
+    private static Vector3f convertArrayToVector3f(float[] array) {
+        return new Vector3f().set(array);
+    }
+
+    private static Quaternionf convertArrayToQuaterionf(float[] array) {
+        return new Quaternionf().set(array[0], array[1], array[2], array[3]);
     }
 
     private double findLastKeyTime() {
@@ -219,6 +228,11 @@ public class Animation {
         return nodeIdMap.size();
     }
 
+    @Override
+    public String toString() {
+        return this.name;
+    }
+
     public record SmdBoneStateKey(int time, Vector3f pos, Quaternionf rot) {
     }
 
@@ -299,18 +313,5 @@ public class Animation {
         public TransformStorage.TimeKey<Vector3f> getDefaultScale() {
             return scaleKeys.get(0);
         }
-    }
-
-    @Override
-    public String toString() {
-        return this.name;
-    }
-
-    private static Vector3f convertArrayToVector3f(float[] array) {
-        return new Vector3f().set(array);
-    }
-
-    private static Quaternionf convertArrayToQuaterionf(float[] array) {
-        return new Quaternionf().set(array[0], array[1], array[2], array[3]);
     }
 }

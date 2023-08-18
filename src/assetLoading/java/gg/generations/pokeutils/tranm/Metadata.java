@@ -12,41 +12,88 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class Metadata extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_5_26(); }
-  public static Metadata getRootAsMetadata(ByteBuffer _bb) { return getRootAsMetadata(_bb, new Metadata()); }
-  public static Metadata getRootAsMetadata(ByteBuffer _bb, Metadata obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
-  public Metadata __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+    public static void ValidateVersion() {
+        Constants.FLATBUFFERS_23_5_26();
+    }
 
-  public long loops() { int o = __offset(4); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
-  public long keyframes() { int o = __offset(6); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
-  public long fps() { int o = __offset(8); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
+    public static Metadata getRootAsMetadata(ByteBuffer _bb) {
+        return getRootAsMetadata(_bb, new Metadata());
+    }
 
-  public static int createMetadata(FlatBufferBuilder builder,
-      long loops,
-      long keyframes,
-      long fps) {
-    builder.startTable(3);
-    Metadata.addFps(builder, fps);
-    Metadata.addKeyframes(builder, keyframes);
-    Metadata.addLoops(builder, loops);
-    return Metadata.endMetadata(builder);
-  }
+    public static Metadata getRootAsMetadata(ByteBuffer _bb, Metadata obj) {
+        _bb.order(ByteOrder.LITTLE_ENDIAN);
+        return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb));
+    }
 
-  public static void startMetadata(FlatBufferBuilder builder) { builder.startTable(3); }
-  public static void addLoops(FlatBufferBuilder builder, long loops) { builder.addInt(0, (int) loops, (int) 0L); }
-  public static void addKeyframes(FlatBufferBuilder builder, long keyframes) { builder.addInt(1, (int) keyframes, (int) 0L); }
-  public static void addFps(FlatBufferBuilder builder, long fps) { builder.addInt(2, (int) fps, (int) 0L); }
-  public static int endMetadata(FlatBufferBuilder builder) {
-    int o = builder.endTable();
-    return o;
-  }
+    public static int createMetadata(FlatBufferBuilder builder,
+                                     long loops,
+                                     long keyframes,
+                                     long fps) {
+        builder.startTable(3);
+        Metadata.addFps(builder, fps);
+        Metadata.addKeyframes(builder, keyframes);
+        Metadata.addLoops(builder, loops);
+        return Metadata.endMetadata(builder);
+    }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+    public static void startMetadata(FlatBufferBuilder builder) {
+        builder.startTable(3);
+    }
 
-    public Metadata get(int j) { return get(new Metadata(), j); }
-    public Metadata get(Metadata obj, int j) {  return obj.__assign(Table.__indirect(__element(j), bb), bb); }
-  }
+    public static void addLoops(FlatBufferBuilder builder, long loops) {
+        builder.addInt(0, (int) loops, (int) 0L);
+    }
+
+    public static void addKeyframes(FlatBufferBuilder builder, long keyframes) {
+        builder.addInt(1, (int) keyframes, (int) 0L);
+    }
+
+    public static void addFps(FlatBufferBuilder builder, long fps) {
+        builder.addInt(2, (int) fps, (int) 0L);
+    }
+
+    public static int endMetadata(FlatBufferBuilder builder) {
+        int o = builder.endTable();
+        return o;
+    }
+
+    public void __init(int _i, ByteBuffer _bb) {
+        __reset(_i, _bb);
+    }
+
+    public Metadata __assign(int _i, ByteBuffer _bb) {
+        __init(_i, _bb);
+        return this;
+    }
+
+    public long loops() {
+        int o = __offset(4);
+        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
+    }
+
+    public long keyframes() {
+        int o = __offset(6);
+        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
+    }
+
+    public long fps() {
+        int o = __offset(8);
+        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
+    }
+
+    public static final class Vector extends BaseVector {
+        public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) {
+            __reset(_vector, _element_size, _bb);
+            return this;
+        }
+
+        public Metadata get(int j) {
+            return get(new Metadata(), j);
+        }
+
+        public Metadata get(Metadata obj, int j) {
+            return obj.__assign(Table.__indirect(__element(j), bb), bb);
+        }
+    }
 }
 

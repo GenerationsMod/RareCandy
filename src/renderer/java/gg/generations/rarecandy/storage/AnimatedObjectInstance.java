@@ -41,12 +41,13 @@ public class AnimatedObjectInstance extends ObjectInstance {
     }
 
     public Matrix4f[] getTransforms() {
-        if (currentAnimation == null || currentAnimation.matrixTransforms == null) return AnimationController.NO_ANIMATION;
+        if (currentAnimation == null || currentAnimation.matrixTransforms == null)
+            return AnimationController.NO_ANIMATION;
         return currentAnimation.matrixTransforms;
     }
 
     public void changeAnimation(AnimationInstance newAnimation) {
-        if(currentAnimation != null) currentAnimation.destroy();
+        if (currentAnimation != null) currentAnimation.destroy();
         this.currentAnimation = newAnimation;
     }
 }

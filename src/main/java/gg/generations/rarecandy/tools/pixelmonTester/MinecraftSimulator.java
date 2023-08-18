@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
 import gg.generations.rarecandy.rendering.RareCandy;
-import gg.generations.rarecandy.tools.Main;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;

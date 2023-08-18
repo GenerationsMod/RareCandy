@@ -9,6 +9,12 @@ import java.util.*;
  */
 public class AnimationController {
     public static final Matrix4f[] NO_ANIMATION = new Matrix4f[220];
+
+    static {
+        var identity = new Matrix4f().identity();
+        Arrays.fill(NO_ANIMATION, identity);
+    }
+
     public final List<AnimationInstance> playingInstances = new ArrayList<>();
     public final Map<Animation, Matrix4f[]> instanceIgnoringAnimTransforms = new HashMap<>();
 
@@ -37,10 +43,5 @@ public class AnimationController {
         }
 
         playingInstances.removeAll(instancesToRemove);
-    }
-
-    static {
-        var identity = new Matrix4f().identity();
-        Arrays.fill(NO_ANIMATION, identity);
     }
 }

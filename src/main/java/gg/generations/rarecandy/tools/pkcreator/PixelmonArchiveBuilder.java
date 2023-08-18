@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.tools.pkcreator;
 
-import gg.generations.rarecandy.tools.Main;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
@@ -96,7 +95,7 @@ public class PixelmonArchiveBuilder {
                     var relativePath = inFolder.relativize(path);
                     var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".glb", "") + ".pk");
 
-                    if(path.toString().endsWith(".glb")) {
+                    if (path.toString().endsWith(".glb")) {
                         convertToPk(inFolder, List.of(path), outputPath);
                     } else {
                         convertToPk(inFolder, Files.walk(path).toList(), outputPath);

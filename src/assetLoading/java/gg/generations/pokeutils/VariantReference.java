@@ -5,8 +5,8 @@ public record VariantReference(String material, Boolean hide) {
         var newMaterial = material;
         var newHide = hide;
 
-        if(newMaterial == null) newMaterial = filler.material;
-        if(newHide == null) newHide = filler.hide != null ? filler.hide : false;
+        if (newMaterial == null) newMaterial = filler.material;
+        if (newHide == null) newHide = filler.hide != null ? filler.hide : false;
 
         return new VariantReference(newMaterial, newHide);
     }

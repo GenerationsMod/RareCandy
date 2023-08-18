@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
-import gg.generations.rarecandy.tools.Main;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
@@ -111,7 +110,7 @@ public class Window {
             default -> throw new IllegalStateException("Unexpected value: " + glType);
         };
 
-        if(!type.equals("'other'")) {
+        if (!type.equals("'other'")) {
             print("[OpenGL " + source + " " + type + "] Message: " + MemoryUtil.memUTF8(pMessage));
         }
     }

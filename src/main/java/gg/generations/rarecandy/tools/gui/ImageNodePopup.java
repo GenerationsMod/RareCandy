@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
 import com.thebombzen.jxlatte.JXLDecoder;
-import gg.generations.rarecandy.tools.Main;
 import modelconfigviewer.ImageViewer;
 
 import javax.swing.*;
@@ -25,13 +24,14 @@ public class ImageNodePopup extends JPopupMenu {
 
         var path = tree.getClosestPathForLocation(e.getPoint().x, e.getPoint().y);
 
-        if(!path.getParentPath().toString().equals("images")) {
+        if (!path.getParentPath().toString().equals("images")) {
             var imports = new JMenuItem("Import");
             add(imports);
             imports.addActionListener(ae -> importNode(tree, path));
         } else {
             var export = new JMenuItem("Export");
-            export.addActionListener(e1 -> {});
+            export.addActionListener(e1 -> {
+            });
             var show = new JMenuItem("Show");
             show.addActionListener(s -> {
                 var name = path.getLastPathComponent().toString();
@@ -62,7 +62,7 @@ public class ImageNodePopup extends JPopupMenu {
 
         byte[] fileBytes;
 
-        try(var stream = Files.newInputStream(path)) {
+        try (var stream = Files.newInputStream(path)) {
             fileBytes = stream.readAllBytes();
 
             if (fileBytes == null) throw new RuntimeException("Removed non-existing file");

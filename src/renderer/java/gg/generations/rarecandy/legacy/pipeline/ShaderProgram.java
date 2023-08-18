@@ -28,13 +28,13 @@ public record ShaderProgram(
         postDrawBatch.run();
     }
 
-    public void updateSharedUniforms(RenderingInstance instance, Model renderObject) {
+    public void updateSharedUniforms() {
         for (var name : uniforms.keySet()) {
             var uniform = uniforms.get(name);
             if (!uniformSuppliers.containsKey(name))
                 throw new RareCandyException("No handler for uniform with name \"" + name + "\"");
             if (uniform.type != GL20C.GL_SAMPLER_2D)
-                uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
+                uniformSuppliers.get(name).accept(new UniformUploadContext(null, null, uniform));
         }
     }
 

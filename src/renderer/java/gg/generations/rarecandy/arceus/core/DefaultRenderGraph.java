@@ -37,15 +37,16 @@ public class DefaultRenderGraph {
             for (var shaderEntry : layoutEntry.getValue().entrySet()) {
                 var program = shaderEntry.getKey();
                 program.bind();
-                program.updateSharedUniforms(null, null); // FIXME: why did this work so badly
+                program.updateSharedUniforms();
 
                 for (var modelEntry : shaderEntry.getValue().entrySet()) {
-                    var data = modelEntry.getKey().data();
+                    var model = modelEntry.getKey();
+                    var data = model.data();
                     data.bind();
                     // program.updateModelUniforms(null, null); // TODO: add this
 
                     for (var instance : modelEntry.getValue()) {
-                        program.updateInstanceUniforms(null, null); // FIXME: here too...
+                        program.updateInstanceUniforms(instance, model); // FIXME: here too...
                         glDrawElements(data.mode.glType, data.indexCount, data.indexType.glType, 0);
                     }
                 }

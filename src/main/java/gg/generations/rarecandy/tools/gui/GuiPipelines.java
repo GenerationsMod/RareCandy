@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.pipeline.Pipeline;
-import gg.generations.rarecandy.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
+import gg.generations.rarecandy.legacy.storage.AnimatedObjectInstance;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
@@ -10,7 +10,7 @@ import java.io.IOException;
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
 
 public class GuiPipelines {
-    private static final Pipeline.Builder BASE = new Pipeline.Builder()
+    private static final ShaderProgram.Builder BASE = new ShaderProgram.Builder()
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
@@ -24,16 +24,16 @@ public class GuiPipelines {
                 ctx.uniform().uploadInt(0);
             });
 
-    public static final Pipeline STATIC = new Pipeline.Builder(BASE)
+    public static final ShaderProgram STATIC = new ShaderProgram.Builder(BASE)
             .shader(builtin("static/static.vs.glsl"), builtin("static/static.fs.glsl"))
             .build();
 
-    public static final Pipeline ANIMATED = new Pipeline.Builder(BASE)
+    public static final ShaderProgram ANIMATED = new ShaderProgram.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated.fs.glsl"))
             .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
             .build();
 
-    public static final Pipeline TRANSPARENT = new Pipeline.Builder(BASE)
+    public static final ShaderProgram TRANSPARENT = new ShaderProgram.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/transparent.fs.glsl"))
             .prePostDraw(() -> {
                 GL11.glEnable(GL11.GL_BLEND);
@@ -46,7 +46,7 @@ public class GuiPipelines {
             .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
             .build();
 
-    public static final Pipeline POKEMON_EYES = new Pipeline.Builder(BASE)
+    public static final ShaderProgram POKEMON_EYES = new ShaderProgram.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated.fs.glsl"))
             .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
             .build();
@@ -55,7 +55,7 @@ public class GuiPipelines {
     }
 
     private static String builtin(String name) {
-        try (var is = Pipeline.class.getResourceAsStream("/shaders/" + name)) {
+        try (var is = ShaderProgram.class.getResourceAsStream("/shaders/" + name)) {
             assert is != null;
             return new String(is.readAllBytes());
         } catch (IOException e) {

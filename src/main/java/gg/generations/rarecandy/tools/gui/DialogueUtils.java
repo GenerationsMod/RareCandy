@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static gg.generations.rarecandy.LoggerUtil.print;
+import static gg.generations.rarecandy.legacy.LoggerUtil.print;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.util.nfd.NativeFileDialog.*;
 

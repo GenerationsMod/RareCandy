@@ -1,10 +1,13 @@
-# RareCandy
+# RareCandy (Arceus)
 
-Generation's Fast, Efficient, Renderer.
+## Versions
 
-RareCandy is Generations Rendering System for 1.19
-Is used to render Pokemon, along with animated blocks in game using OpenGL and Java
+### Arceus (3.0.0) Unfinished TBD
+- Fine-tuned Pipeline control down to the type of data in a vertex attribute
+- Raw byte[] or ByteBuffer vertex data support
+- Removal of the old built in model loader. New version only takes a Pipeline and vertex data.
+- Customizable vertex attributes. No more hardcoded values
+- Lower guess work put into using RareCandy by handing more responsibility to user
 
-
-<br>
-<img alt="alt text" height="153" src="readme/rarecandy.jpg" title="Pixelmon RareCandy" width="251"/>
+### Legacy
+Starting point of new RareCandy. This version is being deprecated and replaced through newer updates.

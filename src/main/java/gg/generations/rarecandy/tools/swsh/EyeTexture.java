@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.tools.swsh;
 
 import gg.generations.pokeutils.Pair;
-import gg.generations.rarecandy.LoggerUtil;
+import gg.generations.rarecandy.legacy.LoggerUtil;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static gg.generations.rarecandy.LoggerUtil.print;
+import static gg.generations.rarecandy.legacy.LoggerUtil.print;
 
 public class EyeTexture {
 

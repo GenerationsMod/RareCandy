@@ -19,7 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static gg.generations.rarecandy.LoggerUtil.print;
+import static gg.generations.rarecandy.legacy.LoggerUtil.print;
 
 public class GuiHandler implements KeyListener {
     private static final LZMA2Options OPTIONS = new LZMA2Options();

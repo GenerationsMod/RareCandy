@@ -2,16 +2,13 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.pokeutils.GlbPixelAsset;
 import gg.generations.pokeutils.PixelAsset;
-import gg.generations.rarecandy.LoggerUtil;
-import gg.generations.rarecandy.animation.AnimationInstance;
-import gg.generations.rarecandy.components.AnimatedMeshObject;
-import gg.generations.rarecandy.components.MeshObject;
-import gg.generations.rarecandy.components.MultiRenderObject;
-import gg.generations.rarecandy.loading.ModelLoader;
-import gg.generations.rarecandy.pipeline.Pipeline;
-import gg.generations.rarecandy.rendering.ObjectInstance;
-import gg.generations.rarecandy.rendering.RareCandy;
-import gg.generations.rarecandy.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.legacy.LoggerUtil;
+import gg.generations.rarecandy.legacy.animation.AnimationInstance;
+import gg.generations.rarecandy.legacy.components.AnimatedMeshObject;
+import gg.generations.rarecandy.legacy.components.MeshObject;
+import gg.generations.rarecandy.legacy.components.MultiRenderObject;
+import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
+import gg.generations.rarecandy.legacy.storage.AnimatedObjectInstance;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL;
@@ -94,7 +91,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClearColor(60 / 255f, 63 / 255f, 65 / 255f, 1);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        try (var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {
+        try (var is = ShaderProgram.class.getResourceAsStream("/models/grid.glb")) {
             assert is != null;
             load(renderer, new GlbPixelAsset("plane", is.readAllBytes()), s -> STATIC, model -> {
                 plane = model;
@@ -140,7 +137,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         load(renderer, is, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
     }
 
-    protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Function<String, ShaderProgram> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
         loader.createObject(
                 () -> is,
@@ -153,7 +150,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         );
     }
 
-    private Pipeline getPokemonPipeline(String materialName) {
+    private ShaderProgram getPokemonPipeline(String materialName) {
         if (materialName.equals("transparent")) {
             return GuiPipelines.TRANSPARENT;
         } else {

@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.tools.swsh;
 
-import gg.generations.rarecandy.LoggerUtil;
+import gg.generations.rarecandy.legacy.LoggerUtil;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import org.lwjgl.util.nfd.NativeFileDialog;
 

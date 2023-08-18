@@ -13,7 +13,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import static gg.generations.rarecandy.LoggerUtil.printError;
+import static gg.generations.rarecandy.legacy.LoggerUtil.printError;
 
 public class ImageNodePopup extends JPopupMenu {
 

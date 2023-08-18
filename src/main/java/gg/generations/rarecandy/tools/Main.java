@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
-import static gg.generations.rarecandy.LoggerUtil.printError;
+import static gg.generations.rarecandy.legacy.LoggerUtil.printError;
 
 public class Main {
     public static final List<Command> ARGUMENTS = List.of(

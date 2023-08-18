@@ -18,7 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static gg.generations.rarecandy.LoggerUtil.printError;
+import static gg.generations.rarecandy.legacy.LoggerUtil.printError;
 
 /**
  * Utility for writing and reading Pixelmon: Generation's model format.

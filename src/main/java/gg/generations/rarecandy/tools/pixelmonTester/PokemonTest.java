@@ -2,16 +2,14 @@ package gg.generations.rarecandy.tools.pixelmonTester;
 
 import gg.generations.pokeutils.LoosePixelAsset;
 import gg.generations.pokeutils.PixelAsset;
-import gg.generations.rarecandy.animation.Animation;
-import gg.generations.rarecandy.animation.AnimationInstance;
-import gg.generations.rarecandy.animation.ThreeStageAnimationInstance;
-import gg.generations.rarecandy.components.AnimatedMeshObject;
-import gg.generations.rarecandy.components.MeshObject;
-import gg.generations.rarecandy.components.MultiRenderObject;
-import gg.generations.rarecandy.loading.ModelLoader;
-import gg.generations.rarecandy.pipeline.Pipeline;
-import gg.generations.rarecandy.rendering.RareCandy;
-import gg.generations.rarecandy.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.legacy.animation.Animation;
+import gg.generations.rarecandy.legacy.animation.AnimationInstance;
+import gg.generations.rarecandy.legacy.animation.ThreeStageAnimationInstance;
+import gg.generations.rarecandy.legacy.components.AnimatedMeshObject;
+import gg.generations.rarecandy.legacy.components.MeshObject;
+import gg.generations.rarecandy.legacy.components.MultiRenderObject;
+import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
+import gg.generations.rarecandy.legacy.storage.AnimatedObjectInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -79,7 +77,7 @@ public class PokemonTest {
         }
     }
 
-    protected <T extends MeshObject> void load(RareCandy renderer, Supplier<PixelAsset> asset, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected <T extends MeshObject> void load(RareCandy renderer, Supplier<PixelAsset> asset, Function<String, ShaderProgram> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
         loader.createObject(
                 asset,

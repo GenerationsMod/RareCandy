@@ -12,7 +12,7 @@ public class MinecraftSimulator {
     private static final double START_TIME = System.currentTimeMillis();
     public final Window window;
     public final Matrix4f projectionMatrix;
-    public final Matrix4f viewMatrix = new Matrix4f().lookAt(0f, 3f, 0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 1.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public final PokemonTest test;
 
     public MinecraftSimulator(PokemonTest test, int sizeMultiplier) {
@@ -41,9 +41,9 @@ public class MinecraftSimulator {
 
 
         GL11C.glClearColor(0.5f, 0.5f, 0.5f, 1);
-        GL11C.glFrontFace(GL11C.GL_CW);
-        GL11C.glCullFace(GL11C.GL_FRONT);
-        GL11C.glEnable(GL11C.GL_CULL_FACE);
+//        GL11C.glFrontFace(GL11C.GL_CW);
+//        GL11C.glCullFace(GL11C.GL_FRONT);
+//        GL11C.glEnable(GL11C.GL_CULL_FACE);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
         test.init(scene, projectionMatrix, viewMatrix);
@@ -55,6 +55,7 @@ public class MinecraftSimulator {
             GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
             try {
                 defaultScene.render();
+                test.instances.forEach(instance -> instance.getTransform().rotateY((float) Math.toRadians(0.01f)));
             } catch (Exception e) {
                 e.printStackTrace();
                 failGracefully = false;
@@ -67,7 +68,7 @@ public class MinecraftSimulator {
     }
 
     public static void main(String[] args) {
-        System.loadLibrary("renderdoc");
+//        System.loadLibrary("renderdoc");
         new MinecraftSimulator(new PokemonTest(args), args.length >= 2 ? Integer.parseInt(args[1]) : 1);
     }
 }

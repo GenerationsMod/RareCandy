@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.arceus.model.lowlevel;
 
 import java.io.Closeable;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11C.*;
@@ -11,20 +12,26 @@ import static org.lwjgl.opengl.GL30C.*;
 /**
  * Contains information about the layout of vertices.
  */
-public class VertexLayout implements Closeable, Bindable {
+public class VertexData implements Closeable, Bindable {
 
     private final int vao;
 
     /**
      * Constructs a new VertexLayout. Internally generates the OpenGL Vertex Attribute Object
      *
-     * @param layout         the layout of attributes to use
+     * @param vertexBuffer
+     * @param layout       the layout of attributes to use
      */
-    public VertexLayout(List<Attribute> layout) {
+    public VertexData(ByteBuffer vertexBuffer, List<Attribute> layout) {
         this.vao = glGenVertexArrays();
         bind();
         var stride = calculateVertexSize(layout);
         var attribPtr = 0;
+
+        // I hate openGL. why cant I keep the vertex data and vertex layout separate :(
+        var vbo = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
 
         for (int i = 0; i < layout.size(); i++) {
             var attrib = layout.get(i);

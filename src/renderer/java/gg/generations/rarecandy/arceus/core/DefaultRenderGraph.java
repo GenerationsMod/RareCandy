@@ -3,7 +3,7 @@ package gg.generations.rarecandy.arceus.core;
 import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.arceus.model.SmartObject;
-import gg.generations.rarecandy.arceus.model.lowlevel.VertexLayout;
+import gg.generations.rarecandy.arceus.model.lowlevel.VertexData;
 import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public class DefaultRenderGraph {
 
     private final RareCandyScene scene;
     private final List<SmartObject> updatableObjects = new ArrayList<>();
-    private final Map<VertexLayout, Map<ShaderProgram, Map<Model, List<RenderingInstance>>>> instanceMap = new HashMap<>();
+    private final Map<VertexData, Map<ShaderProgram, Map<Model, List<RenderingInstance>>>> instanceMap = new HashMap<>();
     private final Map<Model, Boolean> modelHasNoInstanceVariants = new HashMap<>(); // TODO: check if the instances share the same material as the model. if so, do the rendering thing faster TM
 
     public DefaultRenderGraph(RareCandyScene scene) {

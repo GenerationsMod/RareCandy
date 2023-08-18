@@ -18,7 +18,7 @@ import java.util.List;
 
 public class PokemonTest {
 
-    private final List<RenderingInstance> instances = new ArrayList<>();
+    public final List<RenderingInstance> instances = new ArrayList<>();
 //    private final Path path;
     public RareCandyScene renderer;
     public Pipelines pipelines;
@@ -40,8 +40,9 @@ public class PokemonTest {
 
         try {
             var model = PlaneGenerator.generatePlane(projectionMatrix, viewMatrix, 1.0f, 1.0f);
+            this.instances.add(new BasicInstance(model));
 
-            this.renderer.addInstance(new BasicInstance(model));
+            for (RenderingInstance instance : instances) this.renderer.addInstance(instance);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -40,35 +40,35 @@ public class PlaneGenerator {
 
     public static RenderData generatePlaneRenderData(float width, float length) {
         // Generate vertex data and indices
-        float[] vertices = generatePlaneVertices(width, length);
-        short[] indices = generatePlaneIndices();
+        var vertices = generatePlaneVertices(width, length);
+        var indices = generatePlaneIndices();
 
         // Convert float[] to ByteBuffer
-        ByteBuffer vertexBuffer = MemoryUtil.memAlloc(vertices.length * 4);
+        var vertexBuffer = MemoryUtil.memAlloc(vertices.length * 4);
         vertexBuffer.asFloatBuffer().put(vertices).flip();
 
         // Convert int[] to ByteBuffer
-        ByteBuffer indexBuffer = MemoryUtil.memAlloc(indices.length * 2);
+        var indexBuffer = MemoryUtil.memAlloc(indices.length * 2);
         indexBuffer.asShortBuffer().put(indices).flip();
 
         // Create and return RenderData using the generated data
-        return new RenderData(DrawMode.TRIANGLES, createVertexLayout(), vertexBuffer, indexBuffer, IndexType.UNSIGNED_SHORT, indices.length);
+        return new RenderData(DrawMode.TRIANGLES, createVertexLayout(vertexBuffer), indexBuffer, IndexType.UNSIGNED_SHORT, indices.length);
     }
 
-    private static VertexLayout createVertexLayout() {
-        return new VertexLayout(Arrays.asList(
+    private static VertexData createVertexLayout(ByteBuffer vertexBuffer) {
+        return new VertexData(vertexBuffer, Arrays.asList(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
         ));
     }
 
     private static float[] generatePlaneVertices(float width, float length) {
-        float[] vertices = {
-            // Position (x, y, z), Normal (nx, ny, nz), UV (u, v)
-            -width / 2, 0.0f, -length / 2, 0.0f, 0.0f, // Bottom left
-            width / 2, 0.0f, -length / 2, 1.0f, 0.0f,   // Bottom right
-            -width / 2, 0.0f, length / 2, 0.0f, 1.0f,   // Top left
-            width / 2, 0.0f, length / 2, 1.0f, 1.0f     // Top right
+        var vertices = new float[]{
+                // Position (x, y, z), Normal (nx, ny, nz), UV (u, v)
+                -width / 2, 0.0f, -length / 2, 0.0f, 0.0f, // Bottom left
+                width / 2, 0.0f, -length / 2, 1.0f, 0.0f,   // Bottom right
+                -width / 2, 0.0f, length / 2, 0.0f, 1.0f,   // Top left
+                width / 2, 0.0f, length / 2, 1.0f, 1.0f     // Top right
         };
         return vertices;
     }

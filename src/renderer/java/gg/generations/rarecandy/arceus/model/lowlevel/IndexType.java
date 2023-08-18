@@ -3,10 +3,9 @@ package gg.generations.rarecandy.arceus.model.lowlevel;
 import static org.lwjgl.opengl.GL11C.*;
 
 public enum IndexType {
-    INT(GL_INT),
-    UNSIGNED(GL_UNSIGNED_INT),
-    SHORT(GL_SHORT),
-    UNSIGNED_SHORT(GL_SHORT);
+    UNSIGNED_INT(GL_UNSIGNED_INT),
+    UNSIGNED_SHORT(GL_UNSIGNED_SHORT),
+    UNSIGNED_BYTE(GL_UNSIGNED_BYTE);
 
     public final int glType;
 

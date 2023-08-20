@@ -50,9 +50,9 @@ public record ShaderProgram(
 
     public void updateModelUniforms(Model renderObject) {
         for (var name : uniforms.keySet()) {
-            if (instanceUniformSuppliers.containsKey(name)) {
+            if (modelUniformSuppliers.containsKey(name)) {
                 var uniform = uniforms.get(name);
-                instanceUniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, null, uniform));
+                modelUniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, null, uniform));
             }
         }
     }

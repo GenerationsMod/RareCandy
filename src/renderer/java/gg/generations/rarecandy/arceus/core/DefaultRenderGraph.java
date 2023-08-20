@@ -20,7 +20,7 @@ public class DefaultRenderGraph {
 
     private final RareCandyScene scene;
     private final List<SmartObject> updatableObjects = new ArrayList<>();
-    private final Map<VertexData, Map<ShaderProgram, Map<Model, List<RenderingInstance>>>> instanceMap = new HashMap<>();
+    private final Map<ShaderProgram, Map<Model, Map<VertexData, List<RenderingInstance>>>> instanceMap = new HashMap<>();
     private final Map<Model, Boolean> modelHasNoInstanceVariants = new HashMap<>(); // TODO: check if the instances share the same material as the model. if so, do the rendering thing faster TM
 
     public DefaultRenderGraph(RareCandyScene scene) {
@@ -31,22 +31,22 @@ public class DefaultRenderGraph {
         if (scene.isDirty()) updateCache();
         updatableObjects.forEach(SmartObject::update);
 
-        for (var layoutEntry : instanceMap.entrySet()) {
-            layoutEntry.getKey().bind();
+        for (var shaderEntry : instanceMap.entrySet()) {
+            var program = shaderEntry.getKey();
+            program.bind();
+            program.updateSharedUniforms();
 
-            for (var shaderEntry : layoutEntry.getValue().entrySet()) {
-                var program = shaderEntry.getKey();
-                program.bind();
-                program.updateSharedUniforms();
+            for (var modelEntry : shaderEntry.getValue().entrySet()) {
+                var model = modelEntry.getKey();
+                var data = model.data();
+                data.bind();
+                program.updateModelUniforms(model); // TODO: add this
 
-                for (var modelEntry : shaderEntry.getValue().entrySet()) {
-                    var model = modelEntry.getKey();
-                    var data = model.data();
-                    data.bind();
-//                     program.updateModelUniforms(null, null); // TODO: add this
+                for (var layoutEntry : modelEntry.getValue().entrySet()) {
+                    layoutEntry.getKey().bind();
 
-                    for (var instance : modelEntry.getValue()) {
-                        program.updateInstanceUniforms(instance, model); // FIXME: here too...
+                    for (var instance : layoutEntry.getValue()) {
+                        program.updateInstanceUniforms(instance, model);
                         glDrawElements(data.mode.glType, data.indexCount, data.indexType.glType, 0);
                     }
                 }

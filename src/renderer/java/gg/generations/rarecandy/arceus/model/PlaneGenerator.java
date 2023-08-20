@@ -76,21 +76,19 @@ public class PlaneGenerator {
     }
 
     private static float[] generatePlaneVertices(float width, float length) {
-        var vertices = new float[]{
+        return new float[]{
                 // Position (x, y, z), Normal (nx, ny, nz), UV (u, v)
                 -width / 2, 0.0f, -length / 2, 0.0f, 0.0f, // Bottom left
                 width / 2, 0.0f, -length / 2, 1.0f, 0.0f,   // Bottom right
                 -width / 2, 0.0f, length / 2, 0.0f, 1.0f,   // Top left
                 width / 2, 0.0f, length / 2, 1.0f, 1.0f     // Top right
         };
-        return vertices;
     }
 
     private static short[] generatePlaneIndices() {
-        short[] indices = {
+        return new short[]{
             0, 1, 2, // First triangle
             1, 3, 2  // Second triangle
         };
-        return indices;
     }
 }

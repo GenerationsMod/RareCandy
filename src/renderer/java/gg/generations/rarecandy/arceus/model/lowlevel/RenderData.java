@@ -13,7 +13,7 @@ import static org.lwjgl.opengl.GL15C.*;
 public class RenderData implements Bindable, Closeable {
 
     public final DrawMode mode;
-    public final VertexData layout;
+    public final VertexData vertexData;
     private final int ebo;
     public final IndexType indexType;
     public final int indexCount;
@@ -21,7 +21,7 @@ public class RenderData implements Bindable, Closeable {
     /**
      * The {@link ByteBuffer} used must be allocated either through {@link org.lwjgl.BufferUtils#createByteBuffer(int)} or {@link org.lwjgl.system.MemoryUtil#memAlloc(int)}
      */
-    public RenderData(DrawMode mode, VertexData layout, ByteBuffer indices, IndexType type, int indexCount) {
+    public RenderData(DrawMode mode, VertexData vertexData, ByteBuffer indices, IndexType type, int indexCount) {
         // Generate Index Buffer Data
         this.ebo = glGenBuffers();
         glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);
@@ -30,7 +30,7 @@ public class RenderData implements Bindable, Closeable {
         this.indexCount = indexCount;
 
         this.mode = mode;
-        this.layout = layout;
+        this.vertexData = vertexData;
     }
 
     @Override

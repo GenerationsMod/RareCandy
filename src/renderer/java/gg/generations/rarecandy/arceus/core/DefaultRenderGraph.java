@@ -39,11 +39,11 @@ public class DefaultRenderGraph {
             for (var modelEntry : shaderEntry.getValue().entrySet()) {
                 var model = modelEntry.getKey();
                 var data = model.data();
-                data.bind();
                 program.updateModelUniforms(model); // TODO: add this
 
                 for (var layoutEntry : modelEntry.getValue().entrySet()) {
                     layoutEntry.getKey().bind();
+                    data.bind();
 
                     for (var instance : layoutEntry.getValue()) {
                         program.updateInstanceUniforms(instance, model);

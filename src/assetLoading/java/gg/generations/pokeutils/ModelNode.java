@@ -16,6 +16,13 @@ public class ModelNode {
     public final List<ModelNode> children = new ArrayList<>();
     public int id = -1;
 
+    public ModelNode(String name, Matrix4f localTransform, ModelNode parent) {
+        this.parent = parent;
+        this.name = name;
+        this.transform = localTransform;
+    }
+
+    @Deprecated // Reason: relies on JGLTF and hardcoded .trmdl references. REMEMBER WHEN REPLACING: adding children now happens outside of this
     public ModelNode(NodeModel rootNodeModel, ModelNode parent) {
         this.parent = parent;
         this.name = rootNodeModel.getName().replace(".trmdl", "");

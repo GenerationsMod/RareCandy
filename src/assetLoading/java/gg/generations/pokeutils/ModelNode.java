@@ -11,10 +11,10 @@ import java.util.List;
  */
 public class ModelNode {
     public final String name;
-    public final ModelNode parent;
     public final Matrix4f transform;
     public final List<ModelNode> children = new ArrayList<>();
-    public int id = -1;
+    public ModelNode parent;
+    public int id = -1; // TODO: move this out of here. Its animator only data
 
     public ModelNode(String name, Matrix4f localTransform, ModelNode parent) {
         this.parent = parent;

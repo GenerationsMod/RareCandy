@@ -36,7 +36,7 @@ public class MinecraftSimulator {
             }
         });
 
-        var scene = new RareCandyScene();
+        var scene = new RareCandyScene<>();
         var defaultScene = new DefaultRenderGraph(scene);
 
 

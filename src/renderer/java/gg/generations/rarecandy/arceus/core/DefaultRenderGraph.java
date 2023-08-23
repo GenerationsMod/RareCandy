@@ -18,12 +18,12 @@ import static org.lwjgl.opengl.GL11C.glDrawElements;
  */
 public class DefaultRenderGraph {
 
-    private final RareCandyScene scene;
+    private final RareCandyScene<RenderingInstance> scene;
     private final List<SmartObject> updatableObjects = new ArrayList<>();
     private final Map<ShaderProgram, Map<Model, Map<VertexData, List<RenderingInstance>>>> instanceMap = new HashMap<>();
     private final Map<Model, Boolean> modelHasNoInstanceVariants = new HashMap<>(); // TODO: check if the instances share the same material as the model. if so, do the rendering thing faster TM
 
-    public DefaultRenderGraph(RareCandyScene scene) {
+    public DefaultRenderGraph(RareCandyScene<RenderingInstance> scene) {
         this.scene = scene;
     }
 

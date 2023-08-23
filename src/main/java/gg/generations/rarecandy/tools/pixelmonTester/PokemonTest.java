@@ -20,7 +20,7 @@ public class PokemonTest {
 
     public final List<RenderingInstance> instances = new ArrayList<>();
 //    private final Path path;
-    public RareCandyScene renderer;
+    public RareCandyScene<RenderingInstance> renderer;
     public Pipelines pipelines;
     private boolean rotate;
 
@@ -34,7 +34,7 @@ public class PokemonTest {
         return Math.min(Math.max(value, 0), max);
     }
 
-    public void init(RareCandyScene scene, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
+    public void init(RareCandyScene<RenderingInstance> scene, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         this.renderer = scene;
 //        this.pipelines = new Pipelines(projectionMatrix, viewMatrix);
 

@@ -8,18 +8,18 @@ import java.util.List;
 /**
  * Pretty simple but effective scene. Keeps track of the added and removed objects for caching in the Render Graph
  */
-public class RareCandyScene {
+public class RareCandyScene<T extends RenderingInstance> {
 
     private boolean dirty;
-    public List<RenderingInstance> addedInstances = new ArrayList<>();
-    public List<RenderingInstance> removedInstances = new ArrayList<>();
+    public List<T> addedInstances = new ArrayList<>();
+    public List<T> removedInstances = new ArrayList<>();
 
-    public void addInstance(RenderingInstance instance) {
+    public void addInstance(T instance) {
         addedInstances.add(instance);
         this.dirty = true;
     }
 
-    public void removeInstance(RenderingInstance instance) {
+    public void removeInstance(T instance) {
         removedInstances.add(null);
         this.dirty = true;
     }

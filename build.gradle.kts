@@ -36,7 +36,7 @@ dependencies {
     compileOnly("org.jetbrains:annotations:24.0.1")
 
     shadow(implementation("org.tukaani", "xz", "1.9"))
-    shadow(implementation("org.apache.commons", "commons-compress", "1.23.0"))
+    shadow(implementation("org.apache.commons", "commons-compress", "1.24.0"))
     shadow(implementation("org.joml", "joml", "1.10.5"))
     shadow(implementation("de.javagl", "jgltf-model", "2.0.3"))
 
@@ -52,7 +52,7 @@ dependencies {
     shadow(runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-windows"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = "natives-windows"))
 
-    shadow(implementation("org.slf4j:slf4j-jdk14:2.0.7")!!)
+    shadow(implementation("org.slf4j:slf4j-jdk14:2.0.9")!!)
 
     // PokeUtils Libs
     shadow(implementation("com.github.weisj:darklaf-core:3.0.2")!!)

@@ -15,6 +15,7 @@ import java.util.function.Function;
 public abstract class RenderObject {
     protected Function<String, Pipeline> pipeline;
     protected Map<String, Material> variants = new HashMap<>();
+    protected String defaultVariant = null;
 
     protected boolean ready = false;
     protected Matrix4f matrixOffset = new Matrix4f().identity();
@@ -48,13 +49,14 @@ public abstract class RenderObject {
     }
 
     public Material getVariant(@Nullable String materialId) {
-        return variants.get(materialId != null ? materialId : "default");
+        var variant = variants.containsKey(materialId) ? materialId : defaultVariant;
+        return variants.get(variant);
     }
 
     protected abstract <T extends RenderObject> void render(List<ObjectInstance> instances, T object);
 
     protected boolean shouldRender(String variant) {
-        return shouldRenderList == null || shouldRenderList.contains(variant != null ? variant : "default"); //TODO: check if correct.
+        return shouldRenderList != null && shouldRenderList.contains(variant); //TODO: check if correct.
     }
 }
 

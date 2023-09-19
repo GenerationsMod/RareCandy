@@ -76,7 +76,7 @@ public class PixelAssetTree extends JTree {
         addTreeSelectionListener(e -> {
             var selectedNode = (DefaultMutableTreeNode) getLastSelectedPathComponent();
 
-            if (selectedNode != null && selectedNode.getParent().toString().equals("animations")) {
+            if (selectedNode != null && selectedNode.getParent() != null && selectedNode.getParent().toString().equals("animations")) {
                 this.gui.handler.getCanvas().currentAnimation = selectedNode.toString();
                 this.gui.handler.getCanvas().startTime = System.currentTimeMillis();
             }
@@ -88,7 +88,7 @@ public class PixelAssetTree extends JTree {
         var animationsNode = node("animations");
         var imagesNode = node("images");
 
-        List<String> variants = asset.getConfig() != null ? List.copyOf(asset.getConfig().variants.keySet()) : new ArrayList<>();
+        List<String> variants = asset.getConfig() != null && asset.getConfig().variants != null ? List.copyOf(asset.getConfig().variants.keySet()) : new ArrayList<>();
 
         for (var s : asset.files.keySet()) {
             if (s.endsWith("tranm") || s.endsWith("gfbanm") || s.endsWith("smd")) animationsNode.add(node(s));

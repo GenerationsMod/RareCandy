@@ -22,6 +22,7 @@ public class MeshObject extends RenderObject {
         this.shouldRenderList = shouldRender;
         this.model = model;
         this.pipeline = pipeline;
+        this.defaultVariant = new ArrayList<>(variants.keySet()).get(0);
         this.ready = true;
     }
 
@@ -29,7 +30,7 @@ public class MeshObject extends RenderObject {
         Map<String, List<Consumer<Pipeline>>> map = new HashMap<>();
 
         for (var instance : instances) {
-            if (!object.shouldRender(instance.materialId())) {
+            if (object.shouldRender(instance.materialId())) {
                 continue;
             }
 

@@ -7,10 +7,7 @@ import de.javagl.jgltf.model.v2.MaterialModelV2;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
-import gg.generations.pokeutils.DataUtils;
-import gg.generations.pokeutils.ModelConfig;
-import gg.generations.pokeutils.PixelAsset;
-import gg.generations.pokeutils.VariantReference;
+import gg.generations.pokeutils.*;
 import gg.generations.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.ThreadSafety;
 import gg.generations.rarecandy.animation.Animation;
@@ -43,6 +40,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -96,30 +94,39 @@ public class ModelLoader {
         }
 
         if (config != null) {
-            var materials = config.materials.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> new Material(a.getValue(), images)));
-            var variantPair = new HashMap<VariantReference, Variant>();
+
+
+            var materials = config.materials.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> new Material(a.getValue().type(), images.get(a.getValue().texture()))));
+            var defaultVariant = config.defaultVariant.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> new Variant(materials.get(a.getValue().material()), a.getValue().hide())));
 
             var variantMaterialMap = new HashMap<String, Map<String, Material>>();
             var variantHideMap = new HashMap<String, List<String>>();
 
+            if(config.variants != null) {
+                config.variants.forEach((s, variantMap) -> {
+                    var matMap = variantMaterialMap.computeIfAbsent(s, s3 -> new HashMap<>());
+                    var hideMap = variantHideMap.computeIfAbsent(s, s3 -> new ArrayList<>());
 
-            config.defaultVariant.forEach((k, v) -> {
-                var pair = variantPair.computeIfAbsent(v.fillIn(), b -> new Variant(materials.get(b.material()), b.hide()));
-                variantMaterialMap.computeIfAbsent(k, a -> new HashMap<>()).put("default", pair.material());
-                if (!pair.hide()) variantHideMap.computeIfAbsent(k, a -> new ArrayList<>()).add("default");
-            });
+                    defaultVariant.forEach((s1, variant) -> {
+                        var v = variantMap.get(s1);
 
-            for (var variantName : config.variants.keySet()) {
-                var entryset = config.variants.get(variantName);
-                if (entryset.isEmpty()) entryset = config.defaultVariant;
-                for (var entry : entryset.entrySet()) {
-                    var model = entry.getKey();
-                    var variant = variantPair.computeIfAbsent(entry.getValue().fillIn(config.defaultVariant.get(entry.getKey())), b -> new Variant(materials.get(b.material()), b.hide()));
+                        matMap.put(s1, v != null && v.material() != null ? materials.get(v.material()) : variant.material());
+                        if ((v != null && v.hide() != null ? v.hide() : variant.hide())) hideMap.add(s1);
 
-                    variantMaterialMap.computeIfAbsent(model, a -> new HashMap<>()).put(variantName, variant.material());
-                    if (!variant.hide()) variantHideMap.computeIfAbsent(model, a -> new ArrayList<>()).add(variantName);
-                }
+                    });
+                });
+            } else {
+                var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
+                var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
+
+                defaultVariant.forEach((s1, variant) -> {
+                    matMap.put(s1, variant.material());
+                    if (variant.hide()) hideMap.add(s1);
+                });
             }
+
+            var matMap = reverseMap(variantMaterialMap);
+            var hidMap = reverseListMap(variantHideMap);
 
             for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
                 var transform = new Matrix4f();
@@ -130,7 +137,7 @@ public class ModelLoader {
                     objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
 
                     for (var meshModel : node.getMeshModels()) {
-                        processPrimitiveModels(objects, supplier, meshModel, variantMaterialMap, variantHideMap, pipeline, glCalls, skeleton, animations);
+                        processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, pipeline, glCalls, skeleton, animations);
                     }
                 } else {
                     // Model Loading Method #2
@@ -139,7 +146,7 @@ public class ModelLoader {
                         objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
 
                         for (var meshModel : child.getMeshModels()) {
-                            processPrimitiveModels(objects, supplier, meshModel, variantMaterialMap, variantHideMap, pipeline, glCalls, skeleton, animations);
+                            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, pipeline, glCalls, skeleton, animations);
                         }
                     }
                 }
@@ -218,7 +225,7 @@ public class ModelLoader {
 
     private static List<String> collectShownVariants(MeshModel meshModel, List<String> variantsList) {
         if (variantsList == null) {
-            return Collections.singletonList("default");
+            return null;
         } else if ((meshModel.getExtensions() != null && !meshModel.getExtensions().containsKey("KHR_materials_variants"))) {
             var map = (Map<String, Object>) meshModel.getExtensions().get("KHR_materials_variants");
             var variants = (List<Integer>) map.get("variants");
@@ -508,5 +515,38 @@ public class ModelLoader {
         } catch (IOException e) {
             throw new RuntimeException("Issue reading GLTF Model", e);
         }
+    }
+
+    public static <T> Map<String, Map<String, T>> reverseMap(Map<String, Map<String, T>> inputMap) {
+        Map<String, Map<String, T>> reversedMap = new HashMap<>();
+
+        for (Map.Entry<String, Map<String, T>> outerEntry : inputMap.entrySet()) {
+            String outerKey = outerEntry.getKey();
+            Map<String, T> innerMap = outerEntry.getValue();
+
+            for (Map.Entry<String, T> innerEntry : innerMap.entrySet()) {
+                String innerKey = innerEntry.getKey();
+                T value = innerEntry.getValue();
+
+                reversedMap.computeIfAbsent(innerKey, k -> new HashMap<>()).put(outerKey, value);
+            }
+        }
+
+        return reversedMap;
+    }
+
+    public static Map<String, List<String>> reverseListMap(Map<String, List<String>> inputMap) {
+        Map<String, List<String>> reversedMap = new HashMap<>();
+
+        for (Map.Entry<String, List<String>> entry : inputMap.entrySet()) {
+            String outerKey = entry.getKey();
+            List<String> innerList = entry.getValue();
+
+            for (String innerKey : innerList) {
+                reversedMap.computeIfAbsent(innerKey, k -> new ArrayList<>()).add(outerKey);
+            }
+        }
+
+        return reversedMap;
     }
 }

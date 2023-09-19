@@ -114,26 +114,26 @@ public class RareCandyCanvas extends AWTGLCanvas {
         renderer.render(false, (System.currentTimeMillis() - startTime) / 16000);
         swapBuffers();
 
-//        if (instances.size() > 1) {
-//            ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
-//                for (var instance : instances) {
-//                    if(a.animations != null) {
-//                        var newAnimation = a.animations.get(currentAnimation);
-//
-//                        if(newAnimation != null) {
-//                            instance.changeAnimation(new AnimationInstance(newAnimation));
-//                        }
-//                    }
-//                }
-//            });
-//        }
-//
-//        for (var instance : instances) {
-//            if (scaleModifier != 0) {
-//                var newScale = 1 - (scaleModifier * 0.1f);
-//                instance.transformationMatrix().scale(newScale);
-//            }
-//        }
+        if (instances.size() > 1) {
+            ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
+                for (var instance : instances) {
+                    if(a.animations != null) {
+                        var newAnimation = a.animations.get(currentAnimation);
+
+                        if(newAnimation != null) {
+                            instance.changeAnimation(new AnimationInstance(newAnimation));
+                        }
+                    }
+                }
+            });
+        }
+
+        for (var instance : instances) {
+            if (scaleModifier != 0) {
+                var newScale = 1 - (scaleModifier * 0.1f);
+                instance.transformationMatrix().scale(newScale);
+            }
+        }
     }
 
     protected void loadPokemonModel(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {

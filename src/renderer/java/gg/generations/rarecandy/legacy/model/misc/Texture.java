@@ -4,11 +4,12 @@ import gg.generations.pokeutils.reader.TextureReference;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL13C;
 
-public class Texture {
+import java.util.function.Function;
+
+public class Texture extends ITexture {
 
     public final String name;
     public final int id;
-
     public Texture(TextureReference reference) {
         this.name = reference.name();
         this.id = GL11C.glGenTextures();

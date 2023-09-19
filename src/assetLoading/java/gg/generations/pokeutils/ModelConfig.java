@@ -1,5 +1,7 @@
 package gg.generations.pokeutils;
 
+import com.google.gson.JsonObject;
+
 import java.util.Map;
 import java.util.Objects;
 

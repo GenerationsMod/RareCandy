@@ -1,5 +1,7 @@
 package gg.generations.rarecandy.arceus.model.lowlevel;
 
+import java.util.Arrays;
+
 import static org.lwjgl.opengl.GL11C.*;
 
 public enum IndexType {
@@ -11,5 +13,9 @@ public enum IndexType {
 
     IndexType(int glType) {
         this.glType = glType;
+    }
+
+    public static IndexType fromGlType(int glType) {
+        return Arrays.stream(values()).filter(mode -> mode.glType == glType).findFirst().orElse(null);
     }
 }

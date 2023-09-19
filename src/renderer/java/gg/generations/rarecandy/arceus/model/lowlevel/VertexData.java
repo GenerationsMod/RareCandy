@@ -14,7 +14,12 @@ import static org.lwjgl.opengl.GL30C.*;
  */
 public class VertexData implements Closeable, Bindable {
 
-    private final int vao;
+    protected final int vao;
+
+    public VertexData() {
+        this.vao = glGenVertexArrays();
+        bind();
+    }
 
     /**
      * Constructs a new VertexLayout. Internally generates the OpenGL Vertex Attribute Object
@@ -23,8 +28,7 @@ public class VertexData implements Closeable, Bindable {
      * @param layout       the layout of attributes to use
      */
     public VertexData(ByteBuffer vertexBuffer, List<Attribute> layout) {
-        this.vao = glGenVertexArrays();
-        bind();
+        this();
         var stride = calculateVertexSize(layout);
         var attribPtr = 0;
 

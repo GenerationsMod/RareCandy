@@ -2,9 +2,13 @@ package gg.generations.rarecandy.tools.pixelmonTester;
 
 import gg.generations.rarecandy.arceus.core.DefaultRenderGraph;
 import gg.generations.rarecandy.arceus.core.RareCandyScene;
+import gg.generations.rarecandy.arceus.model.generator.PlaneGenerator;
+import gg.generations.rarecandy.loading.gltf.VariantScene;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
+
+import java.io.IOException;
 
 import static gg.generations.rarecandy.legacy.LoggerUtil.printError;
 
@@ -12,10 +16,10 @@ public class MinecraftSimulator {
     private static final double START_TIME = System.currentTimeMillis();
     public final Window window;
     public final Matrix4f projectionMatrix;
-    public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.01f, -0.5f, 0.01f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    public final Matrix4f viewMatrix = new Matrix4f().arcball(0.75f, 0, 0.5f, 0, 0, 0);//lookAt(-10f, -50f, 0.01f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public final PokemonTest test;
 
-    public MinecraftSimulator(PokemonTest test, int sizeMultiplier) {
+    public MinecraftSimulator(PokemonTest test, int sizeMultiplier) throws IOException {
         this.test = test;
         this.window = new Window("RareCandy Feature Test", 960 * sizeMultiplier, 540 * sizeMultiplier);
         this.projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) window.width / window.height, 0.1f, 1000.0f);
@@ -36,7 +40,10 @@ public class MinecraftSimulator {
             }
         });
 
-        var scene = new RareCandyScene<>();
+//        var model = PlaneGenerator.generatePlane(projectionMatrix, viewMatrix, 1, 1);
+
+        var scene = new VariantScene();
+//        scene.addInstance(new BasicInstance(model));
         var defaultScene = new DefaultRenderGraph(scene);
 
 
@@ -67,7 +74,7 @@ public class MinecraftSimulator {
 //        scene.close();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 //        System.loadLibrary("renderdoc");
         new MinecraftSimulator(new PokemonTest(args), args.length >= 2 ? Integer.parseInt(args[1]) : 1);
     }

@@ -18,18 +18,21 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 
 public record TextureReference(PixelData data, String name) {
-    public static TextureReference read(byte[] imageBytes, String name) throws IOException {
+    public static TextureReference read(byte[] imageBytes, String name) {
         BufferedImage pixelData;
         BufferedImage temp;
 
-
-        if (name.endsWith("jxl")) {
-            var options = new JXLOptions();
-            options.hdr = JXLOptions.HDR_OFF;
-            options.threads = 2;
-            temp = new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage();
-        } else {
-            temp = ImageIO.read(new ByteArrayInputStream(imageBytes));
+        try {
+            if (name.endsWith("jxl")) {
+                var options = new JXLOptions();
+                options.hdr = JXLOptions.HDR_OFF;
+                options.threads = 2;
+                temp = new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage();
+            } else {
+                temp = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         var width = temp.getWidth();

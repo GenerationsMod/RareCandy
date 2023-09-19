@@ -62,7 +62,11 @@ public class Main {
     }
 
     private static void modelTester(String[] args) {
-        MinecraftSimulator.main(args);
+        try {
+            MinecraftSimulator.main(args);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void converter(String[] args) {

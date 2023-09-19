@@ -2,6 +2,7 @@ package gg.generations.pokeutils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import gg.generations.pokeutils.reader.TextureReference;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.jetbrains.annotations.Nullable;
 import org.tukaani.xz.XZInputStream;
@@ -43,6 +44,14 @@ public class PixelAsset {
 
             if (files.containsKey("config.json")) {
                 config = GSON.fromJson(new InputStreamReader(new ByteArrayInputStream(files.get("config.json"))), ModelConfig.class);
+
+                for(var model : config.variants.entrySet()) {
+                    var reference = config.defaultVariant.get(model.getKey());
+
+                    for (var variant : model.getValue().entrySet()) {
+                        variant.setValue(variant.getValue().fillIn(reference));
+                    }
+                }
             }
 
         } catch (IOException | NullPointerException e) {

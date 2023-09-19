@@ -9,7 +9,7 @@ public class Material {
 
     public final TextureReference diffuseTextureReference;
     private final String type;
-    private Texture diffuseTexture;
+    private ITexture diffuseTexture;
 
     public Material(String type, TextureReference diffuseTexture) {
         this.type = type;
@@ -20,8 +20,8 @@ public class Material {
         this(value.type(), images.get(value.texture()));
     }
 
-    public Texture getDiffuseTexture() {
-        if (diffuseTexture == null) this.diffuseTexture = new Texture(diffuseTextureReference);
+    public ITexture getDiffuseTexture() {
+        if (diffuseTexture == null) this.diffuseTexture = ITexture.generate(diffuseTextureReference);
         return diffuseTexture;
     }
 

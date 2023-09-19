@@ -1,5 +1,7 @@
 package gg.generations.rarecandy.arceus.model.lowlevel;
 
+import java.util.Arrays;
+
 import static org.lwjgl.opengl.GL11C.*;
 
 public enum DrawMode {
@@ -13,5 +15,9 @@ public enum DrawMode {
 
     DrawMode(int glType) {
         this.glType = glType;
+    }
+
+    public static DrawMode fromGlType(int glType) {
+        return Arrays.stream(values()).filter(mode -> mode.glType == glType).findFirst().orElse(null);
     }
 }

@@ -27,4 +27,9 @@ public class BasicInstance implements RenderingInstance {
     public Matrix4f getTransform() {
         return tranform;
     }
+
+    @Override
+    public boolean visible() {
+        return true;
+    }
 }

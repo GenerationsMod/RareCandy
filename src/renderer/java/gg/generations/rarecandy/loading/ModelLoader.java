@@ -93,6 +93,8 @@ public class ModelLoader {
             skeleton = null;
         }
 
+        Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation = new HashMap<>();
+
         if (config != null) {
 
 
@@ -101,6 +103,10 @@ public class ModelLoader {
 
             var variantMaterialMap = new HashMap<String, Map<String, Material>>();
             var variantHideMap = new HashMap<String, List<String>>();
+
+            if(config.hideDuringAnimation != null) {
+                hideDuringAnimation = config.hideDuringAnimation;
+            }
 
             if(config.variants != null) {
                 config.variants.forEach((s, variantMap) -> {
@@ -137,7 +143,7 @@ public class ModelLoader {
                     objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
 
                     for (var meshModel : node.getMeshModels()) {
-                        processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, pipeline, glCalls, skeleton, animations);
+                        processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, pipeline, glCalls, skeleton, animations, hideDuringAnimation);
                     }
                 } else {
                     // Model Loading Method #2
@@ -146,7 +152,7 @@ public class ModelLoader {
                         objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
 
                         for (var meshModel : child.getMeshModels()) {
-                            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, pipeline, glCalls, skeleton, animations);
+                            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, pipeline, glCalls, skeleton, animations, hideDuringAnimation);
                         }
                     }
                 }
@@ -289,7 +295,7 @@ public class ModelLoader {
             var renderObject = objSupplier.get();
 
             if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-                animatedMeshObject.setup(variants, hiddenList, glModel, pipeline, model.getName(), skeleton, animations);
+                animatedMeshObject.setup(variants, hiddenList, glModel, pipeline, model.getName(), skeleton, animations, ModelConfig.HideDuringAnimation.NONE);
             } else {
                 renderObject.setup(variants, hiddenList, glModel, pipeline, model.getName());
             }
@@ -298,7 +304,7 @@ public class ModelLoader {
         }
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Function<String, Pipeline> pipeline, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
         var name = model.getName();
 
         var map = materialMap.get(name);
@@ -310,7 +316,7 @@ public class ModelLoader {
 
 
             if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-                animatedMeshObject.setup(map, list, glModel, pipeline, name, skeleton, animations);
+                animatedMeshObject.setup(map, list, glModel, pipeline, name, skeleton, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
             } else {
                 renderObject.setup(map, list, glModel, pipeline, name);
             }

@@ -7,6 +7,7 @@ import gg.generations.pokeutils.util.DefaultPixelData;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;
+import javax.xml.parsers.DocumentBuilder;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferFloat;
@@ -27,6 +28,7 @@ public record TextureReference(PixelData data, String name) {
             options.threads = 2;
             temp = new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage();
         } else {
+
             temp = ImageIO.read(new ByteArrayInputStream(imageBytes));
         }
 

@@ -1,5 +1,6 @@
 package gg.generations.pokeutils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -9,6 +10,7 @@ public class ModelConfig {
 
     public Map<String, VariantReference> defaultVariant;
     public Map<String, Map<String, VariantReference>> variants;
+    public Map<String, HideDuringAnimation> hideDuringAnimation;
 
     public static final class MaterialReference {
         private String texture;
@@ -54,6 +56,20 @@ public class ModelConfig {
             return "MaterialReference[" +
                    "texture=" + texture + ", " +
                    "type=" + type + ']';
+        }
+    }
+
+    public record HideDuringAnimation(boolean blackList, List<String> animations) {
+        public static final HideDuringAnimation NONE = new HideDuringAnimation();
+
+        public HideDuringAnimation() {
+            this(false, null);
+        }
+
+        public boolean check(String animation) {
+            if (animations != null)
+                return animations.contains(animation) == blackList;
+            return false;
         }
     }
 }

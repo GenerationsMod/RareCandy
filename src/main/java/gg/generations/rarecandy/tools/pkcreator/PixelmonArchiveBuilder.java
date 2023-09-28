@@ -60,7 +60,7 @@ public class PixelmonArchiveBuilder {
     //TODO: Add more animations
     private static Optional<String> processFileName(Path archiveFile, Path relativeFolder) {
         var fileName = relativeFolder.relativize(archiveFile).getFileName().toString();
-        if (fileName.startsWith("pm")) {
+        if (fileName.startsWith("pm") && !fileName.endsWith("png")) {
             var cleanName = fileName.substring("pmxxxx_xx_xx_xxxxx_".length()).replace(".tranm", "").replace(".gfbanm", "");
 
             return Optional.of(switch (cleanName) {

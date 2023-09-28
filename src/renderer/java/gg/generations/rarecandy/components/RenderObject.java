@@ -1,8 +1,10 @@
 package gg.generations.rarecandy.components;
 
+import gg.generations.rarecandy.animation.AnimationInstance;
 import gg.generations.rarecandy.model.material.Material;
 import gg.generations.rarecandy.pipeline.Pipeline;
 import gg.generations.rarecandy.rendering.ObjectInstance;
+import gg.generations.rarecandy.storage.AnimatedObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
@@ -55,8 +57,8 @@ public abstract class RenderObject {
 
     protected abstract <T extends RenderObject> void render(List<ObjectInstance> instances, T object);
 
-    protected boolean shouldRender(String variant) {
-        return shouldRenderList != null && shouldRenderList.contains(variant); //TODO: check if correct.
+    protected boolean shouldRender(ObjectInstance instance) {
+        return shouldRenderList != null && shouldRenderList.contains(instance.variant()); //TODO: check if correct.
     }
 }
 

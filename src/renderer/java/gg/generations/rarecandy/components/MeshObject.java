@@ -30,7 +30,7 @@ public class MeshObject extends RenderObject {
         Map<String, List<Consumer<Pipeline>>> map = new HashMap<>();
 
         for (var instance : instances) {
-            if (object.shouldRender(instance.materialId())) {
+            if (object.shouldRender(instance)) {
                 continue;
             }
 

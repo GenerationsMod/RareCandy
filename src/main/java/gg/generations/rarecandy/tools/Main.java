@@ -84,7 +84,7 @@ public class Main {
     }
 
     private static void glbConverter(String[] args) {
-        GlbReader.main(args);
+//        GlbReader.main(args);
     }
 
     private static void archiveExplorer(String[] args) {

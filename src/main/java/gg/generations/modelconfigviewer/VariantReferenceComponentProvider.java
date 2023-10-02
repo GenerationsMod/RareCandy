@@ -1,6 +1,6 @@
 package gg.generations.modelconfigviewer;
 
-import gg.generations.pokeutils.VariantReference;
+import gg.generations.pokeutils.VariantDetails;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,7 +9,7 @@ public class VariantReferenceComponentProvider implements ModelConfigTree.Compon
     private final JTextField textureField;
     private final Checkbox typeField;
 
-    public VariantReferenceComponentProvider(VariantReference materialReference) {
+    public VariantReferenceComponentProvider(VariantDetails materialReference) {
         textureField = new JTextField(materialReference.material());
         typeField = new Checkbox("", materialReference.hide());
     }

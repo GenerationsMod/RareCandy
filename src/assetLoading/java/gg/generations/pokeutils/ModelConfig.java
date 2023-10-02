@@ -8,8 +8,8 @@ public class ModelConfig {
     public float scale = 1.0f;
     public Map<String, MaterialReference> materials;
 
-    public Map<String, VariantReference> defaultVariant;
-    public Map<String, Map<String, VariantReference>> variants;
+    public Map<String, VariantDetails> defaultVariant;
+    public Map<String, VariantParent> variants;
     public Map<String, HideDuringAnimation> hideDuringAnimation;
 
     public static final class MaterialReference {

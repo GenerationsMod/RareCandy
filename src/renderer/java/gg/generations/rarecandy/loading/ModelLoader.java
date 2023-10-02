@@ -40,7 +40,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -109,18 +109,29 @@ public class ModelLoader {
             }
 
             if(config.variants != null) {
-                config.variants.forEach((s, variantMap) -> {
-                    var matMap = variantMaterialMap.computeIfAbsent(s, s3 -> new HashMap<>());
-                    var hideMap = variantHideMap.computeIfAbsent(s, s3 -> new ArrayList<>());
+                for (Map.Entry<String, VariantParent> entry : config.variants.entrySet()) {
+                    String variantKey = entry.getKey();
+                    VariantParent variantParent = entry.getValue();
 
-                    defaultVariant.forEach((s1, variant) -> {
-                        var v = variantMap.get(s1);
+                    VariantParent child = config.variants.get(variantParent.inherits());
 
-                        matMap.put(s1, v != null && v.material() != null ? materials.get(v.material()) : variant.material());
-                        if ((v != null && v.hide() != null ? v.hide() : variant.hide())) hideMap.add(s1);
+                    var map = variantParent.details();
 
-                    });
-                });
+                    while (child != null) {
+                         var details = child.details();
+
+                         applyVariantDetails(details, map);
+
+                        child = config.variants.get(child.inherits());
+                    }
+
+                    applyVariantDetails(config.defaultVariant, map);
+
+                    var matMap = variantMaterialMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
+                    var hideMap = variantHideMap.computeIfAbsent(variantKey, s3 -> new ArrayList<>());
+
+                    applyVariant(materials, matMap, hideMap, map);
+                }
             } else {
                 var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
                 var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
@@ -200,6 +211,24 @@ public class ModelLoader {
                 }
             }
         }
+    }
+
+    private static void applyVariantDetails(Map<String, VariantDetails> applied, Map<String, VariantDetails> appliee) {
+        for (Map.Entry<String, VariantDetails> entry : applied.entrySet()) {
+            String k = entry.getKey();
+            VariantDetails v = entry.getValue();
+            appliee.compute(k, (s, variantDetails) -> {
+                if(variantDetails == null) return v;
+                return variantDetails.fillIn(v);
+            });
+        }
+    }
+
+    private static void applyVariant(Map<String, Material> materials, Map<String, Material> matMap, List<String> hideMap, Map<String, VariantDetails> variantMap) {
+        variantMap.forEach((k, v) -> {
+            matMap.put(k, materials.get(v.material()));
+            if (v.hide()) hideMap.add(k);
+        });
     }
 
     private static float calculateScale(GltfModel model) {

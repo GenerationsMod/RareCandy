@@ -72,6 +72,8 @@ public class DialogueUtils {
             if (result == NativeFileDialog.NFD_OKAY) {
                 return Paths.get(outPath.getStringUTF8(0));
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return null;

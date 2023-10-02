@@ -20,6 +20,7 @@ import java.util.Objects;
  */
 public class PixelAsset {
     public static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(VariantParent.class, new VariantParent.Serializer())
             .create();
 
     public final Map<String, byte[]> files = new HashMap<>();

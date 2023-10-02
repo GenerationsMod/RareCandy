@@ -3,6 +3,7 @@ package gg.generations.rarecandy.tools;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
 import gg.generations.rarecandy.tools.pkcreator.Convert;
+import gg.generations.rarecandy.tools.pkcreator.GlbReader;
 import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 import gg.generations.rarecandy.tools.swsh.EyeTexture;
@@ -23,7 +24,8 @@ public class Main {
             new Command("pixelmonArchiveBuilder", "Allows you to build an entire pokemon. each pokemon should match their folder name eg: converter/in/koraidon should have a glb called koraidon.glb and all the anims", Main::pixelmonArchiveBuilder),
             new Command("eyeFixer (swsh)", "Used to convert all pairs of iris and eye textures in a folder into the format used in Sword and Shield pokemon model eyes", Main::eyeFixer),
             new Command("mouthFixer (swsh)", "Used to convert mouth textures in a folder into the format used in Sword and Shield pokemon model mouth", Main::mouthFixer),
-            new Command("longBoi (swsh)", "Used to convert all selected non eye related textures into a long boi (mirrored version of itself) that makes setting up Sword and Shield pokemon models easier the format used in Sword and Shield pokemon model eyes.", Main::longBoi)
+            new Command("longBoi (swsh)", "Used to convert all selected non eye related textures into a long boi (mirrored version of itself) that makes setting up Sword and Shield pokemon models easier the format used in Sword and Shield pokemon model eyes.", Main::longBoi),
+            new Command("Sun Convert (us/sm)", "Experimental converter for a full glb into the new config.json based form.", Main::glbConverter)
 
     );
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
@@ -79,6 +81,10 @@ public class Main {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static void glbConverter(String[] args) {
+        GlbReader.main(args);
     }
 
     private static void archiveExplorer(String[] args) {

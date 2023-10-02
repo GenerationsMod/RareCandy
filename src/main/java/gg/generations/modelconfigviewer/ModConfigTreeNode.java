@@ -13,11 +13,11 @@ public class ModConfigTreeNode extends DefaultMutableTreeNode {
         })));
         this.add(new MapTreeNode<>("materials", config.materials, MaterialReferenceComponentProvider::new));
         this.add(new MapTreeNode<>("defaultVariant", config.defaultVariant, VariantReferenceComponentProvider::new));
-        this.add(new NestedMapNode<>("variants", config.variants, (key, materialReference) -> {
-            var larp = materialReference.fillIn(config.defaultVariant.get(key));
-            var blep = new VariantReferenceComponentProvider(larp);
-            return blep;
-        }));
+//        this.add(new NestedMapNode<>("variants", config.variants, (key, materialReference) -> {
+//            var larp = materialReference.fillIn(config.defaultVariant.get(key));
+//            var blep = new VariantReferenceComponentProvider(larp);
+//            return blep;
+//        }));
     }
 
     public class MaterialReferenceComponentProvider implements ModelConfigTree.ComponentProvider {

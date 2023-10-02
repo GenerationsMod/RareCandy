@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.3.9-SNAPSHOT"
+version = "2.3.10-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -28,6 +28,7 @@ sourceSets {
 
 repositories {
     mavenCentral()
+    mavenLocal()
     maven("https://jitpack.io")
     maven("https://maven.generations.gg/releases")
 }
@@ -65,6 +66,8 @@ dependencies {
 
     //TODO: JT need some funky gradle logic that lets us build a version does and doesn't include gson for the viewer and generations respectively
     shadow(implementation("com.google.code.gson:gson:2.10.1")!!)
+    shadow(implementation("de.javagl:jgltf-model-builder:2.0.4-SNAPSHOT")!!)
+
 
     shadow(implementation("com.thebombzen:jxlatte:1.1.2")!!)
 }

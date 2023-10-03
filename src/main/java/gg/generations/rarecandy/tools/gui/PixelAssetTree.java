@@ -90,8 +90,10 @@ public class PixelAssetTree extends JTree {
 
         List<String> variants = asset.getConfig() != null && asset.getConfig().variants != null ? List.copyOf(asset.getConfig().variants.keySet()) : new ArrayList<>();
 
+        List<String> animationStrings = new ArrayList<>();
+
         for (var s : asset.files.keySet()) {
-            if (s.endsWith("tranm") || s.endsWith("gfbanm") || s.endsWith("smd")) animationsNode.add(node(s));
+            if (s.endsWith("tranm") || s.endsWith("gfbanm") || s.endsWith("smd")) animationStrings.add(s);
             else if (s.endsWith("glb")) {
                 var glbNode = node(s);
                 try {
@@ -117,6 +119,8 @@ public class PixelAssetTree extends JTree {
                 tree.add(new ModConfigTreeNode(asset.getConfig()));
             }*/ else tree.add(node(s));
         }
+
+        animationStrings.stream().sorted(new AnimationComparator()).map(this::node).forEach(a -> animationsNode.add(a));
 
         if (animationsNode.getChildCount() > 0) tree.add(animationsNode);
         if (imagesNode.getChildCount() > 0) tree.add(imagesNode);

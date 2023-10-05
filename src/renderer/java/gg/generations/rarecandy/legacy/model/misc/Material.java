@@ -1,31 +1,18 @@
 package gg.generations.rarecandy.legacy.model.misc;
 
 import gg.generations.pokeutils.ModelConfig;
-import gg.generations.pokeutils.reader.TextureReference;
+import gg.generations.pokeutils.SoliddMaterialReference;
+import gg.generations.pokeutils.util.ResourceLocation;
 
 import java.util.Map;
 
-public class Material {
+public interface Material {
+    String type();
 
-    public final TextureReference diffuseTextureReference;
-    private final String type;
-    private ITexture diffuseTexture;
-
-    public Material(String type, TextureReference diffuseTexture) {
-        this.type = type;
-        this.diffuseTextureReference = diffuseTexture;
-    }
-
-    public Material(ModelConfig.MaterialReference value, Map<String, TextureReference> images) {
-        this(value.type(), images.get(value.texture()));
-    }
-
-    public ITexture getDiffuseTexture() {
-        if (diffuseTexture == null) this.diffuseTexture = ITexture.generate(diffuseTextureReference);
-        return diffuseTexture;
-    }
-
-    public String getType() {
-        return type;
+    public static Material create(ModelConfig.MaterialReference reference, Map<String, ResourceLocation> images) {
+        return switch (reference.type()) {
+            case "solid" -> new SolidMaterial(images.get(((SoliddMaterialReference) reference).texture()));
+            default -> null;
+        };
     }
 }

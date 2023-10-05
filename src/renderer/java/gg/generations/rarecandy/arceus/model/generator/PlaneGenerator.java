@@ -1,35 +1,26 @@
 package gg.generations.rarecandy.arceus.model.generator;
 
-import gg.generations.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.lowlevel.*;
-import gg.generations.rarecandy.legacy.model.misc.ITexture;
-import gg.generations.rarecandy.legacy.model.misc.Texture;
+import gg.generations.rarecandy.legacy.model.misc.SolidMaterial;
 import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
+import gg.generations.rarecandy.loading.pk.TextureRegistery;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Path;
 import java.util.Arrays;
-
-import static de.javagl.jgltf.model.GltfConstants.*;
-import static org.lwjgl.opengl.GL14.glBlendFuncSeparate;
 
 public class PlaneGenerator {
     public static ShaderProgram simple(Matrix4f projectionMatrix, Matrix4f viewMatrix) throws IOException {
         return new ShaderProgram.Builder()
-                .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "color1", ctx -> ctx.uniform().upload4f(1f, 0f, 0f, 1))
-                .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "color2", ctx -> ctx.uniform().upload4f(1f, 1f, 0f, 1))
-                .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "color3", ctx -> ctx.uniform().upload4f(0f, 0f, 1f, 1))
-                .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "color4", ctx -> ctx.uniform().upload4f(1f, 1f, 1f, 1))
                 .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "viewMatrix", ctx -> ctx.uniform().uploadMat4f(viewMatrix))
                 .supplyUniform(ShaderProgram.Builder.UniformType.INSTANCE, "modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().getTransform()))
                 .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
                 .supplyUniform(ShaderProgram.Builder.UniformType.INSTANCE, "textureSampler", ctx -> {
-                    ctx.bindAndUploadTex(ctx.instance().getMaterial().getDiffuseTexture(), 0);
+                    ctx.bindAndUploadTex(TextureRegistery.get(((SolidMaterial) ctx.instance().getMaterial()).getDiffuseTexture()), 0);
                 })
                 .shader(builtin("simple/simple.vs.glsl"), builtin("simple/simple.fs.glsl"))
                             .prePostDraw(() -> {
@@ -55,9 +46,9 @@ public class PlaneGenerator {
         }
     }
 
-    public static Model generatePlane(Matrix4f projection, Matrix4f view, float width, float length) throws IOException {
-        return new Model(PlaneGenerator.generatePlaneRenderData(width, length), simple(projection, view));
-    }
+//    public static Model generatePlane(Matrix4f projection, Matrix4f view, float width, float length) throws IOException {
+//        return new Model(PlaneGenerator.generatePlaneRenderData(width, length), s -> simple(projection, view));
+//    }
 
     public static RenderData generatePlaneRenderData(float width, float length) {
         // Generate vertex data and indices

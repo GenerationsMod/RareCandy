@@ -1,61 +1,46 @@
 package gg.generations.pokeutils;
 
-import com.google.gson.JsonObject;
+import com.google.gson.*;
+import gg.generations.pokeutils.util.ResourceLocation;
 
+import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class ModelConfig {
+
     public float scale = 1.0f;
     public Map<String, MaterialReference> materials;
 
     public Map<String, VariantReference> defaultVariant;
     public Map<String, Map<String, VariantReference>> variants;
 
-    public static final class MaterialReference {
-        private String texture;
-        private String type;
+    public interface MaterialReference {
+        JsonObject toJson();
 
-        public MaterialReference(String texture, String type) {
-            this.texture = texture;
-            this.type = type;
-        }
+        String type();
+    }
 
-        public String texture() {
-            return texture;
-        }
+    public static class Serializer implements JsonDeserializer<MaterialReference>, JsonSerializer<MaterialReference> {
+        @Override
+        public MaterialReference deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            JsonObject obj = json.getAsJsonObject();
 
-        public void setTexture(String texture) {
-            this.texture = texture;
-        }
+            var type = obj.getAsJsonPrimitive("type").getAsString();
 
-        public String type() {
-            return type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
+            return switch (type) {
+                case "solid" -> new SoliddMaterialReference(obj.getAsJsonPrimitive("texture").getAsString());
+                default -> null;
+            };
         }
 
         @Override
-        public int hashCode() {
-            return Objects.hash(texture, type);
-        }
+        public JsonElement serialize(MaterialReference src, Type typeOfSrc, JsonSerializationContext context) {
+            var obj = src.toJson();
+            obj.addProperty("type", src.type());
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) return true;
-            if (obj == null || obj.getClass() != this.getClass()) return false;
-            var that = (MaterialReference) obj;
-            return Objects.equals(this.texture, that.texture) &&
-                   Objects.equals(this.type, that.type);
-        }
-
-        @Override
-        public String toString() {
-            return "MaterialReference[" +
-                   "texture=" + texture + ", " +
-                   "type=" + type + ']';
+            return obj;
         }
     }
 }

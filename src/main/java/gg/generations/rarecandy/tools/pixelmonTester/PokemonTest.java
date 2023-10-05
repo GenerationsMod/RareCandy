@@ -1,22 +1,18 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
-import gg.generations.rarecandy.arceus.core.RareCandyScene;
 import gg.generations.rarecandy.arceus.model.generator.PlaneGenerator;
-import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.legacy.animation.Animation;
-import gg.generations.rarecandy.loading.GltfLoader;
+import gg.generations.pokeutils.util.ResourceLocation;
 import gg.generations.rarecandy.loading.gltf.VariantInstance;
 import gg.generations.rarecandy.loading.gltf.VariantScene;
 import gg.generations.rarecandy.loading.pk.Loader;
 import org.joml.Matrix4f;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PokemonTest {
-
     public List<VariantInstance.InstanceProxy> instances = new ArrayList<>();
 //    private final Path path;
     public VariantScene renderer;
@@ -35,13 +31,10 @@ public class PokemonTest {
 
     public void init(VariantScene scene, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         this.renderer = scene;
-//        this.pipelines = new Pipelines(projectionMatrix, viewMatrix);
-
 
         try {
         var shader = PlaneGenerator.simple(projectionMatrix, viewMatrix);
-        var model = Loader.load(Path.of("growlithe-hisuian.pk"), shader); //PlaneGenerator.generatePlane(projectionMatrix, viewMatrix, 1.0f, 1.0f);
-//            this.instances.add(new BasicInstance(model));
+        var model = Loader.load(new ResourceLocation(null, "pm0040_00_01.pk"), type -> shader); //PlaneGenerator.generatePlane(projectionMatrix, viewMatrix, 1.0f, 1.0f);
         instances = model.generateInstance().instances();
             for (var instance : instances) this.renderer.addInstance(instance);
         } catch (IOException e) {

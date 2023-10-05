@@ -22,19 +22,19 @@ public class ModConfigTreeNode extends DefaultMutableTreeNode {
 
     public class MaterialReferenceComponentProvider implements ModelConfigTree.ComponentProvider {
         private final ModelConfig.MaterialReference materialReference;
-        private final JTextField textureField;
+//        private final JTextField textureField;
         private final JTextField typeField;
 
         public MaterialReferenceComponentProvider(ModelConfig.MaterialReference materialReference) {
             this.materialReference = materialReference;
-            textureField = new JTextField(materialReference.texture());
+//            textureField = new JTextField(materialReference.texture());
             typeField = new JTextField(materialReference.type());
         }
 
         public Component getComponent() {
             JPanel panel = new JPanel(new GridLayout(2, 2));
             panel.add(new JLabel("Texture:"));
-            panel.add(textureField);
+//            panel.add(textureField);
             panel.add(new JLabel("Type:"));
             panel.add(typeField);
             return panel;

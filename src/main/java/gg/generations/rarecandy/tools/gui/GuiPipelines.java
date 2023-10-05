@@ -1,9 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.pokeutils.reader.TextureReference;
-import gg.generations.rarecandy.legacy.model.misc.Texture;
 import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
-import org.joml.Matrix4f;
 
 import java.io.IOException;
 

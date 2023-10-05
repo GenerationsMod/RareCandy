@@ -19,7 +19,7 @@ public class ModelConfigTree {
         // Create sample data
         var config = new ModelConfig();
         config.materials = new HashMap<>();
-        config.materials.put("blep", new ModelConfig.MaterialReference("blep", "blep"));
+//        config.materials.put("blep", new ModelConfig.MaterialReference("blep", "blep"));
         ModConfigTreeNode rootNode = new ModConfigTreeNode(config);
 
         var renderer = new DefaultTreeCellRenderer() {

@@ -1,20 +1,20 @@
 package gg.generations.rarecandy.legacy.model.misc;
 
-import gg.generations.pokeutils.reader.TextureReference;
+import gg.generations.pokeutils.util.ResourceLocation;
 
-public class SolidMaterial extends Material {
-    private final String materialName;
+public class SolidMaterial implements Material {
+    private static String TYPE = "solid";
+    private final ResourceLocation difuseTexture;
 
-    public SolidMaterial(TextureReference diffuseTexture) {
-        this("", diffuseTexture);
+    public SolidMaterial(ResourceLocation diffuseTexture) {
+        difuseTexture = diffuseTexture;
     }
 
-    public SolidMaterial(String materialName, TextureReference diffuseTexture) {
-        super("solid", diffuseTexture);
-        this.materialName = materialName;
+    public String type() {
+        return TYPE;
     }
 
-    public String getMaterialName() {
-        return materialName;
+    public ResourceLocation getDiffuseTexture() {
+        return difuseTexture;
     }
 }

@@ -1,22 +1,20 @@
 package gg.generations.rarecandy.legacy.model.misc;
 
-import gg.generations.pokeutils.reader.TextureReference;
+import de.javagl.jgltf.model.image.PixelData;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL13C;
 
-import java.util.function.Function;
+import java.io.Closeable;
 
-public class Texture extends ITexture {
-
-    public final String name;
+public class Texture extends ITexture implements Closeable {
     public final int id;
-    public Texture(TextureReference reference) {
-        this.name = reference.name();
+    public Texture(PixelData data) {
         this.id = GL11C.glGenTextures();
 
         GL13C.glActiveTexture(GL13C.GL_TEXTURE0);
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, this.id);
-        GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, reference.data().getWidth(), reference.data().getHeight(), 0, GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, reference.data().getPixelsRGBA());
+        GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, data.getWidth(), data.getHeight(), 0, GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, data.getPixelsRGBA());
 
         GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_S, GL11C.GL_REPEAT);
         GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_T, GL11C.GL_REPEAT);
@@ -30,5 +28,10 @@ public class Texture extends ITexture {
         assert (slot >= 0 && slot <= 31);
         GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + slot);
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, this.id);
+    }
+
+    @Override
+    public void close() {
+        GL11.glDeleteTextures(id);
     }
 }

@@ -67,7 +67,7 @@ public class DefaultRenderGraph {
 
     private void addInstance(RenderingInstance instance) {
         if (instance instanceof SmartObject object) updatableObjects.add(object);
-        instanceMap.computeIfAbsent(instance.getModel().program(), layout -> new HashMap<>())
+        instanceMap.computeIfAbsent(instance.getProgram(), layout -> new HashMap<>())
                 .computeIfAbsent(instance.getModel(), shaderProgram -> new HashMap<>())
                 .computeIfAbsent(instance.getModel().data().vertexData, program -> new ArrayList<>())
                 .add(instance);
@@ -75,7 +75,7 @@ public class DefaultRenderGraph {
 
     private void removeInstance(RenderingInstance instance) {
         if (instance instanceof SmartObject) updatableObjects.remove(instance);
-        instanceMap.get(instance.getModel().program())
+        instanceMap.get(instance.getProgram())
                 .get(instance.getModel())
                 .get(instance.getModel().data().vertexData)
                 .remove(instance);

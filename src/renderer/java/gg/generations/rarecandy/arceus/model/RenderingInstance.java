@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.arceus.model;
 
 import gg.generations.rarecandy.legacy.model.misc.Material;
+import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
 import org.joml.Matrix4f;
 
 public interface RenderingInstance {
@@ -12,4 +13,8 @@ public interface RenderingInstance {
     Matrix4f getTransform();
 
     boolean visible();
+
+    public default ShaderProgram getProgram() {
+        return getModel().program().apply(getMaterial().type());
+    }
 }

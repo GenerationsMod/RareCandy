@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -120,7 +121,7 @@ public class PixelAssetTree extends JTree {
             }*/ else tree.add(node(s));
         }
 
-        animationStrings.stream().sorted(new AnimationComparator()).map(this::node).forEach(a -> animationsNode.add(a));
+        animationStrings.stream().sorted().map(this::node).forEach(a -> animationsNode.add(a));
 
         if (animationsNode.getChildCount() > 0) tree.add(animationsNode);
         if (imagesNode.getChildCount() > 0) tree.add(imagesNode);

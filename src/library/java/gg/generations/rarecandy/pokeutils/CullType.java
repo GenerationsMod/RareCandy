@@ -13,6 +13,10 @@ public enum CullType {
         this.glConstant = glConstant;
     }
 
+    public int getGlConstant() {
+        return glConstant;
+    }
+
     public static CullType from(String cull) {
         if (cull.equalsIgnoreCase("back")) return Back;
         else if (cull.equalsIgnoreCase("forward")) return Forward;

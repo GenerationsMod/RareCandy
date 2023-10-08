@@ -1,6 +1,6 @@
 package gg.generations.modelconfigviewer;
 
-import gg.generations.pokeutils.VariantDetails;
+import gg.generations.rarecandy.pokeutils.VariantDetails;
 
 import javax.swing.*;
 import java.awt.*;

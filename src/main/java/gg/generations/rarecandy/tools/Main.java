@@ -3,7 +3,6 @@ package gg.generations.rarecandy.tools;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
 import gg.generations.rarecandy.tools.pkcreator.Convert;
-import gg.generations.rarecandy.tools.pkcreator.GlbReader;
 import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 import gg.generations.rarecandy.tools.swsh.EyeTexture;
@@ -15,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
-import static gg.generations.rarecandy.LoggerUtil.printError;
+import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
 
 public class Main {
     public static final List<Command> ARGUMENTS = List.of(

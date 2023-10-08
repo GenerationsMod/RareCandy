@@ -11,8 +11,8 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.util.Objects;
 
-import static gg.generations.rarecandy.LoggerUtil.print;
-import static gg.generations.rarecandy.LoggerUtil.printError;
+import static gg.generations.rarecandy.renderer.LoggerUtil.print;
+import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
 
 /**
  * New modern window handling, so I don't cringe looking at this codebase as much.

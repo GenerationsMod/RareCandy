@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
-import gg.generations.rarecandy.pipeline.Pipeline;
-import gg.generations.rarecandy.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.renderer.pipeline.Pipeline;
+import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 

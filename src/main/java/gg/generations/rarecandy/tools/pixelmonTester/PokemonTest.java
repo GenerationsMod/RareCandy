@@ -1,17 +1,17 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
-import gg.generations.pokeutils.LoosePixelAsset;
-import gg.generations.pokeutils.PixelAsset;
-import gg.generations.rarecandy.animation.Animation;
-import gg.generations.rarecandy.animation.AnimationInstance;
-import gg.generations.rarecandy.animation.ThreeStageAnimationInstance;
-import gg.generations.rarecandy.components.AnimatedMeshObject;
-import gg.generations.rarecandy.components.MeshObject;
-import gg.generations.rarecandy.components.MultiRenderObject;
-import gg.generations.rarecandy.loading.ModelLoader;
-import gg.generations.rarecandy.pipeline.Pipeline;
-import gg.generations.rarecandy.rendering.RareCandy;
-import gg.generations.rarecandy.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.pokeutils.LoosePixelAsset;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.renderer.animation.Animation;
+import gg.generations.rarecandy.renderer.animation.AnimationInstance;
+import gg.generations.rarecandy.renderer.animation.ThreeStageAnimationInstance;
+import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
+import gg.generations.rarecandy.renderer.components.MeshObject;
+import gg.generations.rarecandy.renderer.components.MultiRenderObject;
+import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.pipeline.Pipeline;
+import gg.generations.rarecandy.renderer.rendering.RareCandy;
+import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -86,7 +86,7 @@ public class PokemonTest {
                 (gltfModel, smdFileMap, gfbFileMap, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     try {
-                        ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, images, config, glCalls, pipelineFactory, supplier);
+                        ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, images, config, glCalls, supplier);
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to interpret data", e);
                     }

@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
-import gg.generations.pokeutils.reader.TextureReference;
+import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 
 import javax.swing.*;
 import java.awt.image.BufferedImage;

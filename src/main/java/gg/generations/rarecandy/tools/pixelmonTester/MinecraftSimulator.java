@@ -1,11 +1,11 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
-import gg.generations.rarecandy.rendering.RareCandy;
+import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
 
-import static gg.generations.rarecandy.LoggerUtil.printError;
+import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
 
 public class MinecraftSimulator {
     private static final double START_TIME = System.currentTimeMillis();

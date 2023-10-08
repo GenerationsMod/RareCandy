@@ -1,17 +1,17 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.pokeutils.GlbPixelAsset;
-import gg.generations.pokeutils.PixelAsset;
-import gg.generations.rarecandy.LoggerUtil;
-import gg.generations.rarecandy.animation.AnimationInstance;
-import gg.generations.rarecandy.components.AnimatedMeshObject;
-import gg.generations.rarecandy.components.MeshObject;
-import gg.generations.rarecandy.components.MultiRenderObject;
-import gg.generations.rarecandy.loading.ModelLoader;
-import gg.generations.rarecandy.pipeline.Pipeline;
-import gg.generations.rarecandy.rendering.ObjectInstance;
-import gg.generations.rarecandy.rendering.RareCandy;
-import gg.generations.rarecandy.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.pokeutils.GlbPixelAsset;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.renderer.LoggerUtil;
+import gg.generations.rarecandy.renderer.animation.AnimationInstance;
+import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
+import gg.generations.rarecandy.renderer.components.MeshObject;
+import gg.generations.rarecandy.renderer.components.MultiRenderObject;
+import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.pipeline.Pipeline;
+import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.rendering.RareCandy;
+import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL;
@@ -25,10 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
-
-import static gg.generations.rarecandy.tools.gui.GuiPipelines.STATIC;
 
 
 public class RareCandyCanvas extends AWTGLCanvas {
@@ -96,7 +93,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         try (var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {
             assert is != null;
-            load(renderer, new GlbPixelAsset("plane", is.readAllBytes()), s -> STATIC, model -> {
+            load(renderer, new GlbPixelAsset("plane", is.readAllBytes()), model -> {
                 plane = model;
                 renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));
             }, MeshObject::new);
@@ -137,16 +134,16 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     protected void loadPokemonModel(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
-        load(renderer, is, this::getPokemonPipeline, onFinish, AnimatedMeshObject::new);
+        load(renderer, is, onFinish, AnimatedMeshObject::new);
     }
 
-    protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
         loader.createObject(
                 () -> is,
                 (gltfModel, smdFileMap, gfbFileMap, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, images, config, glCalls, pipelineFactory, supplier);
+                    ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, images, config, glCalls, supplier);
                     return glCalls;
                 },
                 onFinish

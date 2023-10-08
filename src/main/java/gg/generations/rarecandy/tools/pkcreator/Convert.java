@@ -18,8 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static gg.generations.rarecandy.LoggerUtil.print;
-import static gg.generations.rarecandy.LoggerUtil.printError;
+import static gg.generations.rarecandy.renderer.LoggerUtil.print;
+import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
 
 public class Convert {
     private static final GltfModelReader reader = new GltfModelReader();

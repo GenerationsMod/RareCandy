@@ -2,7 +2,7 @@ package gg.generations.rarecandy.tools.gui;
 
 import de.javagl.jgltf.model.NamedModelElement;
 import de.javagl.jgltf.model.io.GltfModelReader;
-import gg.generations.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.modelconfigviewer.ComponentProviderEditor;
 import gg.generations.modelconfigviewer.ModelConfigTree;
 
@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 

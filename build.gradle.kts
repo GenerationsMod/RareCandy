@@ -7,12 +7,12 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.3.10-SNAPSHOT"
+version = "2.4.0-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
 sourceSets {
-    val assetLoading = create("assetLoading") {
+    val assetLoading = create("library") {
         compileClasspath += main.get().compileClasspath
     }
 
@@ -75,23 +75,20 @@ dependencies {
 tasks {
     shadowJar {
         archiveBaseName.set("RareCandyTools")
-        from(sourceSets.getByName("assetLoading").output.classesDirs)
-        from(sourceSets.getByName("renderer").output.classesDirs)
-        from(sourceSets.getByName("renderer").output.resourcesDir)
+        from(sourceSets.getByName("library").output.classesDirs)
+        from(sourceSets.getByName("library").output.resourcesDir)
         manifest.attributes(mapOf("Main-Class" to "gg.generations.rarecandy.tools.Main"))
     }
 
     jar {
-        from(sourceSets.getByName("assetLoading").output.classesDirs)
-        from(sourceSets.getByName("renderer").output.classesDirs)
-        from(sourceSets.getByName("renderer").output.resourcesDir)
+        from(sourceSets.getByName("library").output.classesDirs)
+        from(sourceSets.getByName("library").output.resourcesDir)
     }
 
     build.get().dependsOn(shadowJar)
 
     processResources {
-        dependsOn("processAssetLoadingResources")
-        dependsOn("processRendererResources")
+        dependsOn("processLibraryResources")
     }
 }
 

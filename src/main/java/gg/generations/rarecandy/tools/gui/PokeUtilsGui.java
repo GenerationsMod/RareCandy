@@ -1,10 +1,13 @@
 package gg.generations.rarecandy.tools.gui;
 
 import com.github.weisj.darklaf.LafManager;
+import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
+import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.function.Function;
 
 public class PokeUtilsGui extends JPanel {
 
@@ -46,6 +49,7 @@ public class PokeUtilsGui extends JPanel {
             }
         });
 
+        PipelineRegistry.setFunction(s-> s.equals("transparent") ? GuiPipelines.TRANSPARENT : GuiPipelines.ANIMATED);
 
         var renderLoop = new Runnable() {
             @Override

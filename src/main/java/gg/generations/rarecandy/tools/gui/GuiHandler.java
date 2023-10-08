@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
@@ -19,7 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static gg.generations.rarecandy.LoggerUtil.print;
+import static gg.generations.rarecandy.renderer.LoggerUtil.print;
 
 public class GuiHandler implements KeyListener {
     private static final LZMA2Options OPTIONS = new LZMA2Options();

@@ -9,7 +9,8 @@ import org.lwjgl.opengl.GL11C;
 import static gg.generations.rarecandy.legacy.LoggerUtil.printError;
 
 public class MinecraftSimulator {
-    private static final double START_TIME = System.currentTimeMillis();
+//    FIXME: end me
+    /*private static final double START_TIME = System.currentTimeMillis();
     public final Window window;
     public final Matrix4f projectionMatrix;
     public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.01f, -0.5f, 0.01f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
@@ -70,5 +71,5 @@ public class MinecraftSimulator {
     public static void main(String[] args) {
 //        System.loadLibrary("renderdoc");
         new MinecraftSimulator(new PokemonTest(args), args.length >= 2 ? Integer.parseInt(args[1]) : 1);
-    }
+    }*/
 }

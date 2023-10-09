@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.legacy.animation;
 
+import gg.generationsmod.rarecandy.model.animation.Animation;
 import org.joml.Matrix4f;
 
 import java.util.*;
@@ -39,7 +40,7 @@ public class AnimationController {
 
             if (playingInstance.startTime == -1) playingInstance.startTime = globalSecondsPassed;
             playingInstance.update(globalSecondsPassed);
-            playingInstance.matrixTransforms = playingInstance.animation.getFrameTransform(playingInstance);
+            playingInstance.matrixTransforms = playingInstance.animation.getFrameTransform(globalSecondsPassed);
         }
 
         playingInstances.removeAll(instancesToRemove);

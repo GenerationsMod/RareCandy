@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.legacy.pipeline;
 
-import gg.generations.rarecandy.legacy.model.misc.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;

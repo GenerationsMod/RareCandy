@@ -2,6 +2,8 @@
 
 ## Versions
 
+### RKS (3.1.0) Release TBD
+
 ### Arceus (3.0.0) 24/08/2023 Release
 - Fine-tuned Pipeline control down to the type of data in a vertex attribute
 - Raw byte[] or ByteBuffer vertex data support

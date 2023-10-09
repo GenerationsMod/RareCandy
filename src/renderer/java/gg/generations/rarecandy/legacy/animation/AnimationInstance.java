@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.legacy.animation;
 
+import gg.generationsmod.rarecandy.model.animation.Animation;
 import org.joml.Matrix4f;
 
 /**

@@ -38,19 +38,20 @@ dependencies {
     shadow(implementation("org.tukaani", "xz", "1.9"))
     shadow(implementation("org.apache.commons", "commons-compress", "1.24.0"))
     shadow(implementation("org.joml", "joml", "1.10.5"))
-    shadow(implementation("de.javagl", "jgltf-model", "2.0.3"))
 
     shadow(implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))!!)
     shadow(implementation("org.lwjgl", "lwjgl"))
     shadow(implementation("org.lwjgl", "lwjgl-glfw"))
     shadow(implementation("org.lwjgl", "lwjgl-opengl"))
     shadow(implementation("org.lwjgl", "lwjgl-stb"))
+    shadow(implementation("org.lwjgl", "lwjgl-assimp"))
     shadow(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
 
     shadow(runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-windows"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-windows"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-windows"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = "natives-windows"))
+    shadow(runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = "natives-windows"))
 
     shadow(implementation("org.slf4j:slf4j-jdk14:2.0.9")!!)
 

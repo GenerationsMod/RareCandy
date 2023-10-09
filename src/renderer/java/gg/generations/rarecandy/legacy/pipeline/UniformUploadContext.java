@@ -2,7 +2,6 @@ package gg.generations.rarecandy.legacy.pipeline;
 
 import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
-import gg.generations.rarecandy.legacy.model.misc.Texture;
 
 public record UniformUploadContext(
         Model object,

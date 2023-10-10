@@ -39,7 +39,7 @@ dependencies {
     shadow(implementation("org.apache.commons", "commons-compress", "1.24.0"))
     shadow(implementation("org.joml", "joml", "1.10.5"))
 
-    shadow(implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))!!)
+    shadow(implementation(platform("org.lwjgl:lwjgl-bom:3.3.3"))!!)
     shadow(implementation("org.lwjgl", "lwjgl"))
     shadow(implementation("org.lwjgl", "lwjgl-glfw"))
     shadow(implementation("org.lwjgl", "lwjgl-opengl"))

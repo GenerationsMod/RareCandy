@@ -20,7 +20,8 @@ public class RareCandyScene<T extends RenderingInstance> {
     }
 
     public void removeInstance(T instance) {
-        removedInstances.add(null);
+        if(instance == null) return;
+        removedInstances.add(instance);
         this.dirty = true;
     }
 

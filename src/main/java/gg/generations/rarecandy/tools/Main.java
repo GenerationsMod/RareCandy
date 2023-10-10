@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools;
 
+import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 
@@ -32,7 +33,7 @@ public class Main {
     }
 
     private static void archiveExplorer(String[] args) {
-//        PokeUtilsGui.main(args);
+        PokeUtilsGui.main(args);
     }
 
     public static void main(String[] args) throws IOException {

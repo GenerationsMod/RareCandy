@@ -72,6 +72,9 @@ public class ModelLoader {
                 var name = entry.getKey();
                 var buffer = ByteBuffer.wrap(entry.getValue());
                 var gfbAnim = gg.generations.rarecandy.pokeutils.tranm.Animation.getRootAsAnimation(buffer);
+
+                if(gfbAnim.anim() == null) continue;
+
                 animations.put(name, new Animation(name, gfbAnim, new Skeleton(skeleton)));
             }
 
@@ -528,8 +531,12 @@ public class ModelLoader {
                 .collect(Collectors.toMap(this::cleanAnimName, Map.Entry::getValue));
     }
 
-    private String cleanAnimName(Map.Entry<String, byte[]> entry) {
+    public String cleanAnimName(Map.Entry<String, byte[]> entry) {
         var str = entry.getKey();
+        return cleanAnimName(str);
+    }
+
+    public String cleanAnimName(String str) {
         var substringEnd = str.lastIndexOf(".") == -1 ? str.length() : str.lastIndexOf(".");
         var substringStart = str.lastIndexOf("/") == -1 ? 0 : str.lastIndexOf("/");
         return str.substring(substringStart, substringEnd);

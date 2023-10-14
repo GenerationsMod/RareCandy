@@ -27,7 +27,7 @@ public class Pipelines {
                 });
 
         this.animated = new Pipeline.Builder(base)
-                .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated.fs.glsl"))
+                .shader(builtin("animated/animated.vs.glsl"), builtin("animated/animated_pbr.fs.glsl"))
                 .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(((AnimatedObjectInstance) ctx.instance()).getTransforms()))
                 .build();
     }

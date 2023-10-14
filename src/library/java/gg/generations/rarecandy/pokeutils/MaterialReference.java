@@ -29,6 +29,9 @@ public abstract class MaterialReference {
                         var cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Forward;
                         return new CullMaterialReference(texture, cull);
                     }
+                    case "unlit" -> {
+                        return new UnlitMaterialReference(texture);
+                    }
                     default -> throw new JsonParseException("Material type %s invalid".formatted(type));
                 }
 

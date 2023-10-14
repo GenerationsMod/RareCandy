@@ -66,7 +66,7 @@ public class PixelAssetTree extends JTree {
                     }
                 else if (path.getParentPath() != null)
                     if (path.getParentPath().getLastPathComponent().toString().equals("animations")) {
-                        PixelAssetTree.this.gui.handler.getCanvas().setAnimation(path.getLastPathComponent().toString().replace(".tranm", ""));
+                        PixelAssetTree.this.gui.handler.getCanvas().setAnimation(path.getLastPathComponent().toString().replace(".tranm", "").replace(".gfbanm", ""));
                     } else if (path.getParentPath().getLastPathComponent().toString().equals("variants")) {
                         PixelAssetTree.this.gui.handler.getCanvas().setVariant(path.getLastPathComponent().toString());
                     }

@@ -30,6 +30,9 @@ import java.util.function.Supplier;
 
 public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
+
+    private static float lightLevel = 0.6f;
+
     public final Matrix4f viewMatrix = new Matrix4f();
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
     private final int scaleModifier = 0;
@@ -40,7 +43,16 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     private MultiRenderObject<AnimatedMeshObject> loadedModel;
     private AnimatedObjectInstance loadedModelInstance;
+    private static float previousLightLevel;
 
+    public static void setLightLevel(float lightLevel) {
+        previousLightLevel = RareCandyCanvas.lightLevel;
+        RareCandyCanvas.lightLevel = lightLevel;
+    }
+
+     static float getLightLevel() {
+        return lightLevel;
+    }
 
     public RareCandyCanvas() {
         super(defaultData());
@@ -88,7 +100,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GuiPipelines.onInitialize();
         this.renderer = new RareCandy();
 
-        GL11C.glClearColor(60 / 255f, 63 / 255f, 65 / 255f, 1);
+        GL11C.glClearColor(lightLevel, lightLevel, lightLevel, 1);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
         try (var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {
@@ -108,6 +120,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
         if (loadedModelInstance != null) {
             loadedModelInstance.transformationMatrix().identity().scale(loadedModel.scale);
         }
+
+        if(lightLevel != previousLightLevel)
+
         renderer.render(false, (System.currentTimeMillis() - startTime) / 16000);
         swapBuffers();
 
@@ -154,7 +169,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         if (materialName.equals("transparent")) {
             return GuiPipelines.TRANSPARENT;
         } else {
-            return GuiPipelines.ANIMATED;
+            return GuiPipelines.SOLID;
         }
     }
 

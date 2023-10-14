@@ -12,6 +12,7 @@ uniform float lightLevel;
 void main() {
     vec4 color = texture2D(diffuse, texCoord0);
 
+    if (color.a < 0.01) discard;
+
     outColor = vec4(lightLevel, lightLevel, lightLevel, 1.0f) * color;
-    outColor.a = color.a;
 }

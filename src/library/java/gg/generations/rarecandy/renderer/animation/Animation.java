@@ -167,7 +167,6 @@ public class Animation {
             trueIndex++;
 
             nodeIdMap.put(Objects.requireNonNull(boneAnim.name()).replace(".trmdl", ""), trueIndex);
-            System.out.println(trueIndex);
 
             var node = animationNodes[trueIndex] = new AnimationNode();
 

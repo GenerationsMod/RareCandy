@@ -7,11 +7,7 @@ out vec4 outColor;
 
 uniform sampler2D diffuse;
 
-uniform float lightLevel;
-
 void main() {
     vec4 color = texture2D(diffuse, texCoord0);
-
-    outColor = vec4(lightLevel, lightLevel, lightLevel, 1.0f) * color;
-    outColor.a = color.a;
+    outColor = color;
 }

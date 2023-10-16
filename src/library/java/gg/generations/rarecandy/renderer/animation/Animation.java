@@ -79,8 +79,11 @@ public class Animation {
         var duration = 0d;
 
         for (var value : this.animationNodes) {
-            if (value != null)
+            if (value != null) {
                 for (var key : value.positionKeys) duration = Math.max(key.time(), duration);
+                for (var key : value.rotationKeys) duration = Math.max(key.time(), duration);
+                for (var key : value.scaleKeys) duration = Math.max(key.time(), duration);
+            }
         }
 
         return duration;

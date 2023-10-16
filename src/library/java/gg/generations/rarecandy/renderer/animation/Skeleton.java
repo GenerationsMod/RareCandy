@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.renderer.animation;
 
+import de.javagl.jgltf.model.NodeModel;
 import de.javagl.jgltf.model.SkinModel;
 import gg.generations.rarecandy.pokeutils.ModelNode;
 import gg.generations.rarecandy.renderer.rendering.Bone;
@@ -19,8 +20,7 @@ public class Skeleton {
         this.raw = skeleton;
         this.boneArray = new Bone[boneCount];
         this.boneMap = new HashMap<>(boneCount);
-        var root = skeleton.getJoints().get(0).getParent();
-        if(root == null) root = skeleton.getJoints().get(0);
+        var root = findRoot(skeleton);
         this.rootNode = new ModelNode(root, null);
         var array = new float[16];
 
@@ -30,6 +30,16 @@ public class Skeleton {
             this.boneArray[i] = bone;
             this.boneMap.put(jointNode.getName(), bone);
         }
+    }
+
+    private NodeModel findRoot(SkinModel skeleton) {
+        var root = skeleton.getJoints().get(0);
+
+        while(root.getParent() != null && skeleton.getJoints().contains(root.getParent())) {
+            root = root.getParent();
+        }
+
+        return root;
     }
 
     public Skeleton(Skeleton skeleton) {

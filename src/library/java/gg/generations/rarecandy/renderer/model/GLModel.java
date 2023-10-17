@@ -1,14 +1,21 @@
 package gg.generations.rarecandy.renderer.model;
 
 import org.joml.Vector3f;
+import org.lwjgl.opengl.GL30;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class GLModel {
+public class GLModel implements Closeable {
     public List<MeshDrawCommand> meshDrawCommands = new ArrayList<>();
+
+    public int vao = -1;
+
     public Vector3f dimensions = new Vector3f();
+    public int ebo = -1;
 
     public void runDrawCalls() {
         for (var drawCommand : meshDrawCommands) {
@@ -28,5 +35,11 @@ public class GLModel {
 
         var glModel = (GLModel) o;
         return Objects.equals(meshDrawCommands, glModel.meshDrawCommands);
+    }
+
+    @Override
+    public void close() throws IOException {
+        GL30.glDeleteVertexArrays(vao);
+        GL30.glDeleteBuffers(ebo);
     }
 }

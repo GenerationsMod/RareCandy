@@ -370,8 +370,8 @@ public class ModelLoader {
         var attributes = primitiveModel.getAttributes();
 
         glCalls.add(() -> {
-            var vao = GL30.glGenVertexArrays();
-            GL30.glBindVertexArray(vao);
+            model.vao = GL30.glGenVertexArrays();
+            GL30.glBindVertexArray(model.vao);
 
             var position = attributes.get("POSITION");
             DataUtils.bindArrayBuffer(position.getBufferViewModel());
@@ -418,12 +418,12 @@ public class ModelLoader {
                 vertexAttribPointer(weights, 4);
             }
 
-            var ebo = GL15.glGenBuffers();
-            GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);
+            model.ebo = GL15.glGenBuffers();
+            GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
             GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, DataUtils.makeDirect(primitiveModel.getIndices().getBufferViewModel().getBufferViewData()), GL15.GL_STATIC_DRAW);
 
             var mode = primitiveModel.getMode();
-            model.meshDrawCommands.add(new MeshDrawCommand(vao, mode, primitiveModel.getIndices().getComponentType(), ebo, primitiveModel.getIndices().getCount()));
+            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, mode, primitiveModel.getIndices().getComponentType(), model.ebo, primitiveModel.getIndices().getCount()));
         });
         return model;
     }

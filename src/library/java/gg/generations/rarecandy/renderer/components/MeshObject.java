@@ -5,6 +5,7 @@ import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,5 +48,11 @@ public class MeshObject extends RenderObject {
             v.forEach(a -> a.accept(pl));
             pl.unbind(k);
         });
+    }
+
+    @Override
+    public void close() throws IOException {
+        super.close();
+        model.close();
     }
 }

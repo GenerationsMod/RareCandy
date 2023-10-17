@@ -86,4 +86,8 @@ public class PixelAsset {
     public ModelConfig getConfig() {
         return config;
     }
+
+    public byte[] get(String key) {
+        return this.files.get(key);
+    }
 }

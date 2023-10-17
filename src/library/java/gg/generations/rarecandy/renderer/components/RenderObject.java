@@ -5,12 +5,14 @@ import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class RenderObject {
+public abstract class RenderObject implements Closeable {
     protected Map<String, Material> variants = new HashMap<>();
     protected String defaultVariant = null;
 
@@ -54,6 +56,13 @@ public abstract class RenderObject {
 
     protected boolean shouldRender(ObjectInstance instance) {
         return shouldRenderList != null && shouldRenderList.contains(instance.variant()); //TODO: check if correct.
+    }
+
+    @Override
+    public void close() throws IOException {
+        for (Material a : variants.values()) {
+            a.close();
+        }
     }
 }
 

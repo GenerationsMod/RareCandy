@@ -156,9 +156,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
         var loader = renderer.getLoader();
         loader.createObject(
                 () -> is,
-                (gltfModel, smdFileMap, gfbFileMap, images, config, object) -> {
+                (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, images, config, glCalls, supplier);
+                    ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, glCalls, supplier);
                     return glCalls;
                 },
                 onFinish

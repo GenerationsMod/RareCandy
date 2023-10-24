@@ -13,5 +13,5 @@ import java.util.Map;
 @FunctionalInterface
 public interface GlCallSupplier<T extends RenderObject> {
 
-    List<Runnable> getCalls(GltfModel model, Map<String, SMDFile> smdFiles, Map<String, byte[]> gfbFiles, Map<String, TextureReference> imageFiles, ModelConfig config, MultiRenderObject<T> mro);
+    List<Runnable> getCalls(GltfModel model, Map<String, SMDFile> smdFiles, Map<String, byte[]> gfbamnFiles, Map<String, byte[]> tranmFiles, Map<String, TextureReference> imageFiles, ModelConfig config, MultiRenderObject<T> mro);
 }

@@ -1,4 +1,5 @@
-#version 450 core
+#version 150 core
+
 #define ambientLight 0.6f
 
 in vec2 texCoord0;
@@ -10,7 +11,7 @@ uniform sampler2D diffuse;
 uniform float lightLevel;
 
 void main() {
-    vec4 color = texture2D(diffuse, texCoord0);
+    vec4 color = texture(diffuse, texCoord0);
 
     if (color.a < 0.01) discard;
 

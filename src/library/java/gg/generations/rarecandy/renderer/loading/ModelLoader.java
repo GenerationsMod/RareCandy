@@ -52,11 +52,11 @@ public class ModelLoader {
         this.modelLoadingPool = Executors.newFixedThreadPool(2);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, TextureReference> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
-        create2(objects, gltfModel, smdFileMap, gfbFileMap, images, config, glCalls, supplier, Animation.GLB_SPEED);
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, byte[]> tranmFilesMap, Map<String, TextureReference> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
+        create2(objects, gltfModel, smdFileMap, gfbFileMap, tranmFilesMap, images, config, glCalls, supplier, Animation.GLB_SPEED);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, TextureReference> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, byte[]> tranmFilesMap, Map<String, TextureReference> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
         checkForRootTransformation(objects, gltfModel);
         if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
 
@@ -68,12 +68,23 @@ public class ModelLoader {
             skeleton = new Skeleton(gltfModel.getSkinModels().get(0));
             animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, skeleton, animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
-            for (var entry : gfbFileMap.entrySet()) {
+            for (var entry : tranmFilesMap.entrySet()) {
                 var name = entry.getKey();
                 var buffer = ByteBuffer.wrap(entry.getValue());
+
                 var gfbAnim = gg.generations.rarecandy.pokeutils.tranm.Animation.getRootAsAnimation(buffer);
 
                 if(gfbAnim.anim() == null) continue;
+
+                animations.put(name, new Animation(name, gfbAnim, new Skeleton(skeleton)));
+            }
+
+            for (var entry : gfbFileMap.entrySet()) {
+                var name = entry.getKey();
+
+                var gfbAnim = gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT.deserializeFromBinary(entry.getValue());
+
+                if(gfbAnim.getSkeleton() == null) continue;
 
                 animations.put(name, new Animation(name, gfbAnim, new Skeleton(skeleton)));
             }
@@ -499,8 +510,9 @@ public class ModelLoader {
             var model = read(asset);
             var smdAnims = readSmdAnimations(asset);
             var gfbAnims = readGfbAnimations(asset);
+            var trAnims = readtrAnimations(asset);
             var images = readImages(asset);
-            var glCalls = objectCreator.getCalls(model, smdAnims, gfbAnims, images, config, obj);
+            var glCalls = objectCreator.getCalls(model, smdAnims, gfbAnims, trAnims, images, config, obj);
             ThreadSafety.runOnContextThread(() -> {
                 glCalls.forEach(Runnable::run);
                 obj.updateDimensions();
@@ -527,9 +539,16 @@ public class ModelLoader {
 
     private Map<String, byte[]> readGfbAnimations(PixelAsset asset) {
         return asset.files.entrySet().stream()
-                .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm") || entry.getKey().endsWith(".tranm"))
+                .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm"))
                 .collect(Collectors.toMap(this::cleanAnimName, Map.Entry::getValue));
     }
+
+    private Map<String, byte[]> readtrAnimations(PixelAsset asset) {
+        return asset.files.entrySet().stream()
+                .filter(entry -> entry.getKey().endsWith(".tranm"))
+                .collect(Collectors.toMap(this::cleanAnimName, Map.Entry::getValue));
+    }
+
 
     public String cleanAnimName(Map.Entry<String, byte[]> entry) {
         var str = entry.getKey();
@@ -549,7 +568,7 @@ public class ModelLoader {
 
         for (var entry : files) {
             var smdFile = reader.read(new String(entry.getValue()));
-            map.put(entry.getKey(), smdFile);
+            map.put(cleanAnimName(entry.getKey()), smdFile);
         }
 
         return map;

@@ -1,4 +1,7 @@
-#version 450
+#version 150 core
+#extension GL_ARB_explicit_uniform_location : enable
+#extension GL_ARB_explicit_attrib_location : enable
+
 #define MAX_BONES 220
 
 layout(location = 0) in vec3 positions;
@@ -15,7 +18,6 @@ out vec3 normal;
 uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 uniform mat4 projectionMatrix;
-uniform vec3 lightPosition;
 
 uniform mat4 boneTransforms[MAX_BONES];
 
@@ -37,6 +39,5 @@ void main() {
     texCoord0 = vec2(texcoords.x, texcoords.y);
     gl_Position = worldSpace * worldPosition;
 
-    toLightVector = lightPosition - vec3(worldPosition.x, -5.0, worldPosition.z);
     toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
 }

@@ -30,7 +30,7 @@ public class PokemonTest {
     private final List<AnimatedObjectInstance> instances = new ArrayList<>();
     private final Path path;
     public RareCandy renderer;
-    public Pipelines pipelines;
+//    public Pipelines pipelines;
     private boolean rotate;
 
     public PokemonTest(String[] args) {
@@ -44,25 +44,25 @@ public class PokemonTest {
     }
 
     public void init(RareCandy scene, Matrix4f projectionMatrix, Matrix4f viewMatrix) {
-        this.renderer = scene;
-        this.pipelines = new Pipelines(projectionMatrix);
-
-        loadPokemonModel(scene, this::getAsset, model -> {
-            var variants = List.of("none-normal");//, "none-shiny");
-
-            for (int i = 0; i < variants.size(); i++) {
-                var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variants.get(i));
-                instance.transformationMatrix()
-                        .translate(new Vector3f(i * 4 - 2, -1f, 2))
-                        .rotate((float) Math.toRadians(-180), new Vector3f(0, 1, 0))
-                        .scale(0.4f);
-
-                if (rotate) instance.transformationMatrix()
-                        .rotate((float) Math.toRadians(-90), new Vector3f(0, 1, 0));
-
-                instances.add(scene.objectManager.add(model, instance));
-            }
-        });
+//        this.renderer = scene;
+//        this.pipelines = new Pipelines(projectionMatrix);
+//
+//        loadPokemonModel(scene, this::getAsset, model -> {
+//            var variants = List.of("none-normal");//, "none-shiny");
+//
+//            for (int i = 0; i < variants.size(); i++) {
+//                var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variants.get(i));
+//                instance.transformationMatrix()
+//                        .translate(new Vector3f(i * 4 - 2, -1f, 2))
+//                        .rotate((float) Math.toRadians(-180), new Vector3f(0, 1, 0))
+//                        .scale(0.4f);
+//
+//                if (rotate) instance.transformationMatrix()
+//                        .rotate((float) Math.toRadians(-90), new Vector3f(0, 1, 0));
+//
+//                instances.add(scene.objectManager.add(model, instance));
+//            }
+//        });
     }
 
     private PixelAsset getAsset() {
@@ -83,10 +83,10 @@ public class PokemonTest {
         var loader = renderer.getLoader();
         loader.createObject(
                 asset,
-                (gltfModel, smdFileMap, gfbFileMap, images, config, object) -> {
+                (gltfModel, smdFileMap, gfbFileMap, tranmFilesMaps, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     try {
-                        ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, images, config, glCalls, supplier);
+                        ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, tranmFilesMaps, images, config, glCalls, supplier);
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to interpret data", e);
                     }
@@ -96,9 +96,9 @@ public class PokemonTest {
         );
     }
 
-    protected void loadPokemonModel(RareCandy renderer, Supplier<PixelAsset> assetSupplier, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
-        load(renderer, assetSupplier, s -> pipelines.animated, onFinish, AnimatedMeshObject::new);
-    }
+//    protected void loadPokemonModel(RareCandy renderer, Supplier<PixelAsset> assetSupplier, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
+//        load(renderer, assetSupplier, s -> pipelines.animated, onFinish, AnimatedMeshObject::new);
+//    }
 
     public void leftTap() {
         var map = instances.get(0).getAnimationsIfAvailable();

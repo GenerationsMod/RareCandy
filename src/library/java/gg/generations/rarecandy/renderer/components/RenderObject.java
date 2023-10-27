@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public abstract class RenderObject implements Closeable {
     protected Map<String, Material> variants = new HashMap<>();
@@ -20,8 +21,8 @@ public abstract class RenderObject implements Closeable {
     protected Matrix4f matrixOffset = new Matrix4f().identity();
     protected List<String> shouldRenderList;
 
-    public void render(List<ObjectInstance> instances) {
-        render(instances, this);
+    public void render(Predicate<Material> predicate, List<ObjectInstance> instances) {
+        render(predicate, instances, this);
     }
 
     public void update() {
@@ -52,7 +53,7 @@ public abstract class RenderObject implements Closeable {
         return variants.get(variant);
     }
 
-    protected abstract <T extends RenderObject> void render(List<ObjectInstance> instances, T object);
+    protected abstract <T extends RenderObject> void render(Predicate<Material> predicate, List<ObjectInstance> instances, T object);
 
     protected boolean shouldRender(ObjectInstance instance) {
         return shouldRenderList != null && shouldRenderList.contains(instance.variant()); //TODO: check if correct.

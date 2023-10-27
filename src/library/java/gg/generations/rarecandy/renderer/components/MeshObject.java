@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class MeshObject extends RenderObject {
     public GLModel model;
@@ -25,15 +26,16 @@ public class MeshObject extends RenderObject {
         this.ready = true;
     }
 
-    public <T extends RenderObject> void render(List<ObjectInstance> instances, T object) {
+    public <T extends RenderObject> void render(Predicate<Material> predicate, List<ObjectInstance> instances, T object) {
         Map<Material, List<Consumer<Pipeline>>> map = new HashMap<>();
 
         for (var instance : instances) {
-            if (object.shouldRender(instance)) {
+            var material = object.getMaterial(instance.variant());
+
+            if (object.shouldRender(instance) || !predicate.test(material)) {
                 continue;
             }
 
-            var material = object.getMaterial(instance.variant());
 
             map.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
                 pipeline.updateOtherUniforms(instance, object);

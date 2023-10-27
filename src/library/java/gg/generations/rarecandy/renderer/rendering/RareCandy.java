@@ -3,10 +3,12 @@ package gg.generations.rarecandy.renderer.rendering;
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.storage.ObjectManager;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Predicate;
 
 public class RareCandy {
     private static final Queue<Runnable> TASKS = new ConcurrentLinkedQueue<>();
@@ -30,6 +32,10 @@ public class RareCandy {
     }
 
     public void render(boolean clearInstances, double secondsPassed) {
+        render(mat -> true, clearInstances, secondsPassed);
+    }
+
+    public void render(Predicate<Material> predicate, boolean clearInstances, double secondsPassed) {
         var task = TASKS.poll();
         while (task != null) {
             task.run();
@@ -37,7 +43,7 @@ public class RareCandy {
         }
 
         objectManager.update(secondsPassed);
-        objectManager.render();
+        objectManager.render(predicate);
 
         if (clearInstances) {
             this.objectManager.clearObjects();

@@ -2,6 +2,7 @@ package gg.generations.rarecandy.renderer.storage;
 
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.components.RenderObject;
+import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.NotNull;
 
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class ObjectManager {
     private final AnimationController animationController = new AnimationController();
@@ -27,13 +29,13 @@ public class ObjectManager {
         animationController.render(secondsPassed);
     }
 
-    public void render() {
+    public void render(Predicate<Material> predicate) {
         for (var entry : objects.entrySet()) {
             var object = entry.getKey();
 
             if (object.isReady()) {
                 object.update();
-                object.render(entry.getValue());
+                object.render(predicate, entry.getValue());
             }
         }
     }

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Stores multiple separate render objects of the same type into one {@link RenderObject}
@@ -90,7 +91,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public <V extends RenderObject> void render(List<ObjectInstance> instances, V obj) {
+    public <V extends RenderObject> void render(Predicate<Material> predicate, List<ObjectInstance> instances, V obj) {
 //        if (dirty) {
 //            pipeline = null;
 //            smartRender = true;
@@ -129,7 +130,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 //            });
 //        } else {
         for (T object : this.objects) {
-            object.render(instances, object);
+            object.render(predicate, instances, object);
         }
 //        }
     }

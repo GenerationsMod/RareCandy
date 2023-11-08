@@ -27,6 +27,6 @@ public abstract class DiffuseMaterialReference extends MaterialReference {
 
         var supplier = reference != null ? new Material.ImageSupplier(reference) : Material.ImageSupplier.BLANK;
 
-        return new Material(name, Map.of("diffuse", supplier), cullType(), blendType(), shader());
+        return new Material(name, Map.of("diffuse", supplier), Map.of(), cullType(), blendType(), shader());
     }
 }

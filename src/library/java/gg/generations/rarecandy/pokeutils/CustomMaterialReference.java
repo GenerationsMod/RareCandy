@@ -26,6 +26,6 @@ public class CustomMaterialReference extends MaterialReference {
             else return Material.ImageSupplier.BLANK;
         }));
 
-        return new Material(name, map, cull, blend, shader);
+        return new Material(name, map, Map.of(), cull, blend, shader);
     }
 }

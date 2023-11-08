@@ -2,10 +2,13 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.UniformUploadContext;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import org.joml.Vector3f;
 
 import java.io.IOException;
+import java.util.Vector;
+import java.util.function.Consumer;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
 
@@ -33,6 +36,19 @@ public class GuiPipelines {
     public static final Pipeline SOLID = new Pipeline.Builder(LIGHT)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/solid.fs.glsl"))
             .build();
+
+    public static final Pipeline MASKED = new Pipeline.Builder(LIGHT)
+            .shader(builtin("animated/animated.vs.glsl"), builtin("animated/masked.fs.glsl"))
+            .supplyUniform("mask", ctx -> {
+                ctx.object().getVariant(ctx.instance().variant()).getTexture("mask").bind(1);
+                ctx.uniform().uploadInt(1);
+            })
+            .supplyUniform("color", ctx -> {
+                var color = (Vector3f) ctx.object().getMaterial(ctx.instance().variant()).getValue("color");
+                ctx.uniform().uploadVec3f(color);
+            })
+            .build();
+
 
     public static final Pipeline TRANSPARENT = new Pipeline.Builder(LIGHT)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/transparent.fs.glsl"))

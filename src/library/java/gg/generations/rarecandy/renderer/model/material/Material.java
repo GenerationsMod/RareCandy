@@ -15,17 +15,21 @@ import java.util.function.Supplier;
 public class Material implements Closeable {
     private final String materialName;
     private Map<String, CloseableSupplier<Texture>> images;
+
+    private Map<String, Object> values;
+
     private CullType cullType;
     private BlendType blendType;
 
     private String shader;
 
-    public Material(String materialName, Map<String, CloseableSupplier<Texture>> images, CullType cullType, BlendType blendType, String shader) {
+    public Material(String materialName, Map<String, CloseableSupplier<Texture>> images, Map<String, Object> values, CullType cullType, BlendType blendType, String shader) {
         this.materialName = materialName;
         this.images = images;
         this.cullType = cullType;
         this.blendType = blendType;
         this.shader = shader;
+        this.values = values;
     }
 
     public Texture getDiffuseTexture() {
@@ -46,6 +50,10 @@ public class Material implements Closeable {
 
     public Texture getTexture(String imageType) {
         return images.get(imageType).get();
+    }
+
+    public Object getValue(String valueType) {
+        return values.get(valueType);
     }
 
     public String getMaterialName() {

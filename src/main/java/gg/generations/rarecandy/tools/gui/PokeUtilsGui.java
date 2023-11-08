@@ -50,6 +50,7 @@ public class PokeUtilsGui extends JPanel {
         PipelineRegistry.setFunction(s-> switch(s) {
             case "transparent"-> GuiPipelines.TRANSPARENT;
             case "unlit" -> GuiPipelines.UNLIT;
+            case "masked" -> GuiPipelines.MASKED;
             default -> GuiPipelines.SOLID;
         });
 

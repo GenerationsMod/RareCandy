@@ -4,6 +4,7 @@ import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL13C;
 import org.lwjgl.opengl.GL40;
+import org.lwjgl.system.MemoryUtil;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -27,6 +28,7 @@ public class Texture implements Closeable {
         GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_NEAREST);
         GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_NEAREST);
 
+        MemoryUtil.memFree(reference.data().getPixelsRGBA());
     }
 
     public void bind(int slot) {

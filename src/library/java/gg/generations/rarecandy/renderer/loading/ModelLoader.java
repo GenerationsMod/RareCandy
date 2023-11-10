@@ -8,7 +8,10 @@ import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import gg.generations.rarecandy.pokeutils.*;
+import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
+import gg.generations.rarecandy.pokeutils.reader.TextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
+import gg.generations.rarecandy.pokeutils.util.ImageUtils;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
@@ -32,6 +35,7 @@ import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -50,11 +54,11 @@ public class ModelLoader {
         this.modelLoadingPool = Executors.newFixedThreadPool(2);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, byte[]> tranmFilesMap, Map<String, TextureReference> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, byte[]> tranmFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
         create2(objects, gltfModel, smdFileMap, gfbFileMap, tranmFilesMap, images, config, glCalls, supplier, Animation.GLB_SPEED);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, byte[]> tranmFilesMap, Map<String, TextureReference> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, byte[]> tranmFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
         checkForRootTransformation(objects, gltfModel);
         if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
 
@@ -80,7 +84,7 @@ public class ModelLoader {
             for (var entry : gfbFileMap.entrySet()) {
                 var name = entry.getKey();
 
-                var gfbAnim = gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT.deserializeFromBinary(entry.getValue());
+                var gfbAnim = AnimationT.deserializeFromBinary(entry.getValue());
 
                 if(gfbAnim.getSkeleton() == null) continue;
 
@@ -165,21 +169,27 @@ public class ModelLoader {
             var matMap = reverseMap(variantMaterialMap);
             var hidMap = reverseListMap(variantHideMap);
 
-            for (NodeModel nodeModel : gltfModel.getSceneModels().get(0).getNodeModels()) {
-                System.out.println(nodeModel.getName());
-            }
+//            for (NodeModel nodeModel : gltfModel.getSceneModels().get(0).getNodeModels()) {
+//                System.out.println(nodeModel.getName());
+//            }
             for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
                 var transform = new Matrix4f();
 
                 traverseTree(transform, node, objects, supplier, matMap, hidMap, glCalls, skeleton, animations, hideDuringAnimation);
             }
-
-            System.out.println();
         } else {
 
             //Original model loading code
 
-            var textures = gltfModel.getTextureModels().stream().collect(Collectors.toMap(textureModel -> textureModel.getImageModel().getName(), raw -> new TextureReference(PixelDatas.create(raw.getImageModel().getImageData()), raw.getImageModel().getName())));
+            var textures = gltfModel.getTextureModels().stream().collect(Collectors.toMap(textureModel -> textureModel.getImageModel().getName(), raw -> {
+                var id = gltfModel.getNodeModels().get(0).getName() + "-" + raw.getImageModel().getName();
+
+                var image = ImageUtils.readAsBufferedImage(raw.getImageModel().getImageData());
+
+                TextureLoader.instance().register(id, new TextureReference(image, raw.getImageModel().getName()));
+
+                return id;
+            }));
 
             var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
                 var textureName = raw.getBaseColorTexture().getImageModel().getName();
@@ -519,14 +529,17 @@ public class ModelLoader {
         });
     }
 
-    private Map<String, TextureReference> readImages(PixelAsset asset) {
+    private Map<String, String> readImages(PixelAsset asset) {
         var images = asset.getImageFiles();
-        var map = new HashMap<String, TextureReference>();
+        var map = new HashMap<String, String>();
         for (var entry : images) {
             var key = entry.getKey();
 
             try {
-                map.put(key, TextureReference.read(entry.getValue(), key));
+                var id = asset.modelName + "-" + key;
+                TextureLoader.instance().register(id, TextureReference.read(entry.getValue(), key));
+
+                map.put(key, id);
             } catch (IOException e) {
                 System.out.print("Error couldn't load: " + key); //TODO: Logger solution.
             }

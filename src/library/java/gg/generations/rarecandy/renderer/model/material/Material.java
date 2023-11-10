@@ -2,19 +2,17 @@ package gg.generations.rarecandy.renderer.model.material;
 
 import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.CullType;
-import gg.generations.rarecandy.pokeutils.reader.TextureReference;
+import gg.generations.rarecandy.pokeutils.reader.TextureLoader;
 import gg.generations.rarecandy.renderer.loading.Texture;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
-import org.lwjgl.opengl.GL40;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
-import java.util.function.Supplier;
 
 public class Material implements Closeable {
     private final String materialName;
-    private Map<String, CloseableSupplier<Texture>> images;
+    private Map<String, String> images;
 
     private Map<String, Object> values;
 
@@ -23,7 +21,7 @@ public class Material implements Closeable {
 
     private String shader;
 
-    public Material(String materialName, Map<String, CloseableSupplier<Texture>> images, Map<String, Object> values, CullType cullType, BlendType blendType, String shader) {
+    public Material(String materialName, Map<String, String> images, Map<String, Object> values, CullType cullType, BlendType blendType, String shader) {
         this.materialName = materialName;
         this.images = images;
         this.cullType = cullType;
@@ -33,7 +31,7 @@ public class Material implements Closeable {
     }
 
     public Texture getDiffuseTexture() {
-        return images.getOrDefault("diffuse", ImageSupplier.BLANK).get();
+        return getTexture("diffuse");
     }
 
     public Pipeline getPipeline() {
@@ -49,7 +47,7 @@ public class Material implements Closeable {
     }
 
     public Texture getTexture(String imageType) {
-        return images.get(imageType).get();
+        return TextureLoader.instance().getTexture(images.get(imageType)).get();
     }
 
     public Object getValue(String valueType) {
@@ -64,44 +62,8 @@ public class Material implements Closeable {
     public void close() throws IOException {
         if(images != null) {
             for (var texture : images.values()) {
-                texture.close();
+                TextureLoader.instance().remove(texture);
             }
         }
-    }
-
-    public static class ImageSupplier implements CloseableSupplier<Texture> {
-        public static final CloseableSupplier<Texture> BLANK = new CloseableSupplier<>() {
-            @Override
-            public void close() throws IOException {
-
-            }
-
-            @Override
-            public Texture get() {
-                return null;
-            }
-        };
-
-        private final TextureReference textureReference;
-        private Texture texture;
-
-        public ImageSupplier(TextureReference textureReference) {
-            this.textureReference = textureReference;
-        }
-
-        @Override
-        public Texture get() {
-            if (texture == null) this.texture = new Texture(textureReference);
-            return texture;
-        }
-
-        @Override
-        public void close() throws IOException {
-            texture.close();
-        }
-    }
-
-    public static interface CloseableSupplier<T> extends Supplier<T>, Closeable {
-
     }
 }

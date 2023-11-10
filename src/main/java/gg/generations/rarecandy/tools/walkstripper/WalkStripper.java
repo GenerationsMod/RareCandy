@@ -14,7 +14,5 @@ public class WalkStripper {
 
 
         gfbAnim.anim().bones(0);
-
-        System.out.println();
     }
 }

@@ -14,13 +14,18 @@ public class Texture implements Closeable {
     public final String name;
     public final int id;
 
-    public Texture(TextureReference reference) {
-        this.name = reference.name();
-        this.id = GL11C.glGenTextures();
+    public Texture(String name, int id) {
+        this.name = name;
+        this.id = id;
+    }
 
-        GL13C.glActiveTexture(GL13C.GL_TEXTURE0);
+    public Texture(TextureReference reference) {
+        this(reference.name(), GL11C.glGenTextures());
+
+        var buffer = TextureReference.read(reference.data());
+
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, this.id);
-        GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, reference.data().getWidth(), reference.data().getHeight(), 0, GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, reference.data().getPixelsRGBA());
+        GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, reference.data().getWidth(), reference.data().getHeight(), 0, GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, buffer);
 
         GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_S, GL11C.GL_REPEAT);
         GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_T, GL11C.GL_REPEAT);
@@ -28,7 +33,7 @@ public class Texture implements Closeable {
         GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_NEAREST);
         GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_NEAREST);
 
-        MemoryUtil.memFree(reference.data().getPixelsRGBA());
+        MemoryUtil.memFree(buffer);
     }
 
     public void bind(int slot) {

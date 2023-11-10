@@ -128,9 +128,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 //                pl.unbind();
 //            });
 //        } else {
-        for (T object : this.objects) {
-            object.render(instances, object);
-        }
+        this.objects.forEach(object -> object.render(instances, object));
 //        }
     }
 

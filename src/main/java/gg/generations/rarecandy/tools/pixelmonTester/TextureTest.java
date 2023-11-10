@@ -18,7 +18,7 @@ public class TextureTest {
     }
 
     public static void displayImage(TextureReference reference) {
-        displayImage(reference.data().getWidth(), reference.data().getHeight(), reference.data().getPixelsRGBA(), reference.name());
+//        displayImage(reference.data().getWidth(), reference.data().getHeight(), reference.data().getPixelsRGBA(), reference.name());
     }
 
     public static void displayImage(int width, int height, ByteBuffer pixelData, String imageName) {

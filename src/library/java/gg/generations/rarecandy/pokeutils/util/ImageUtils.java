@@ -26,10 +26,15 @@
  */
 package gg.generations.rarecandy.pokeutils.util;
 
+import de.javagl.jgltf.model.io.Buffers;
+
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -134,4 +139,22 @@ public class ImageUtils {
         return IntBuffer.wrap(dataBufferInt.getData());
     }
 
+
+    public static BufferedImage readAsBufferedImage(ByteBuffer byteBuffer)
+    {
+        if (byteBuffer == null)
+        {
+            return null;
+        }
+        try (InputStream inputStream =
+                     Buffers.createByteBufferInputStream(byteBuffer.slice()))
+        {
+            return ImageIO.read(inputStream);
+        }
+        catch (IOException e)
+        {
+//            logger.severe(e.toString());
+            return null;
+        }
+    }
 }

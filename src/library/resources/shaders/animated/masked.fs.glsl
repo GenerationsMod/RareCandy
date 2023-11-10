@@ -20,5 +20,5 @@ void main() {
 
     vec3 color1 = baseColor.xyz * mix(vec3(1.0), color, mask);
 
-    outColor = vec4(color1, 1.0f);
+    outColor = vec4(vec3(mask), 1.0f);
 }

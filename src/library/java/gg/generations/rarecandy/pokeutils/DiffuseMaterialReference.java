@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.pokeutils;
 
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
+import gg.generations.rarecandy.renderer.model.material.ImageSupplier;
 import gg.generations.rarecandy.renderer.model.material.Material;
 
 import java.util.Map;
@@ -22,11 +23,9 @@ public abstract class DiffuseMaterialReference extends MaterialReference {
     }
 
     @Override
-    public Material process(String name, Map<String, TextureReference> images) {
+    public Material process(String name, Map<String, String> images) {
         var reference = images.get(texture);
 
-        var supplier = reference != null ? new Material.ImageSupplier(reference) : Material.ImageSupplier.BLANK;
-
-        return new Material(name, Map.of("diffuse", supplier), Map.of(), cullType(), blendType(), shader());
+        return new Material(name, Map.of("diffuse", reference), Map.of(), cullType(), blendType(), shader());
     }
 }

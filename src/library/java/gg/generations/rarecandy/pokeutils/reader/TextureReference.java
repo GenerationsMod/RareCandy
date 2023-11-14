@@ -2,9 +2,6 @@ package gg.generations.rarecandy.pokeutils.reader;
 
 import com.thebombzen.jxlatte.JXLDecoder;
 import com.thebombzen.jxlatte.JXLOptions;
-import de.javagl.jgltf.model.image.PixelData;
-import gg.generations.rarecandy.pokeutils.util.DefaultPixelData;
-import gg.generations.rarecandy.renderer.loading.Texture;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;

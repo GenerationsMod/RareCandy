@@ -55,4 +55,9 @@ public class MeshObject extends RenderObject {
         super.close();
         model.close();
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

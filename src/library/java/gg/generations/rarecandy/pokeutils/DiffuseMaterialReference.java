@@ -1,7 +1,5 @@
 package gg.generations.rarecandy.pokeutils;
 
-import gg.generations.rarecandy.pokeutils.reader.TextureReference;
-import gg.generations.rarecandy.renderer.model.material.ImageSupplier;
 import gg.generations.rarecandy.renderer.model.material.Material;
 
 import java.util.Map;

@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.renderer.pipeline;
 
-import gg.generations.rarecandy.renderer.loading.Texture;
+import gg.generations.rarecandy.renderer.loading.ITexture;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -109,7 +109,7 @@ public class Uniform {
         return locations[0];
     }
 
-    public void uploadTexture(Texture texture, int slot) {
+    public void uploadTexture(ITexture texture, int slot) {
         texture.bind(slot);
         uploadInt(slot);
     }

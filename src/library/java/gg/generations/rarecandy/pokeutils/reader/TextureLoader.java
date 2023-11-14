@@ -1,8 +1,6 @@
 package gg.generations.rarecandy.pokeutils.reader;
 
-import gg.generations.rarecandy.renderer.loading.Texture;
-import gg.generations.rarecandy.renderer.model.material.CloseableSupplier;
-import gg.generations.rarecandy.renderer.model.material.ImageSupplier;
+import gg.generations.rarecandy.renderer.loading.ITexture;
 
 public abstract class TextureLoader {
     private static TextureLoader instance;
@@ -16,9 +14,11 @@ public abstract class TextureLoader {
         TextureLoader.instance = instance;
     }
 
-    public abstract CloseableSupplier<Texture> getTexture(String name);
+    public abstract ITexture getTexture(String name);
 
     public abstract void register(String name, TextureReference reference);
 
     public abstract void remove(String name);
+
+    public abstract void clear();
 }

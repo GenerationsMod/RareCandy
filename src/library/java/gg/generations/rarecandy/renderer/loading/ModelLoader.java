@@ -85,7 +85,7 @@ public class ModelLoader {
 
                 if(gfbAnim.getSkeleton() == null) continue;
 
-                animations.put(name, new GfamnAnimation(name, gfbAnim, new Skeleton(skeleton)));
+                animations.put(name, new GfbAnimation(name, gfbAnim, new Skeleton(skeleton)));
             }
 
             for (var entry : smdFileMap.entrySet()) {
@@ -193,7 +193,7 @@ public class ModelLoader {
 
             var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
                 var textureName = raw.getBaseColorTexture().getImageModel().getName();
-                return new SolidReferenceMaterial(textureName).process(raw.getName(), textures);
+                return new EyeMaterialReference(textureName).process(raw.getName(), textures);
             }).toList();
             var variants = getVariants(gltfModel);
 

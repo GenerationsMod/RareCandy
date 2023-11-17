@@ -1,6 +1,8 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.renderer.animation.AnimationController;
+import gg.generations.rarecandy.renderer.animation.GfbAnimation;
+import gg.generations.rarecandy.renderer.animation.GfbAnimationInstance;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.pipeline.UniformUploadContext;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
@@ -33,7 +35,29 @@ public class GuiPipelines {
     public static final Pipeline.Builder LIGHT = new Pipeline.Builder(BASE)
             .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()));
 
+    public static final Pipeline EYE = new Pipeline.Builder(LIGHT)
+            .supplyUniform("eyeOffset", ctx -> {
+                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
+                    if (instance.currentAnimation instanceof GfbAnimationInstance gfbAnimation) {
+                        ctx.uniform().uploadVec2f(gfbAnimation.getEyeOffset());
+                    }
+                    else ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET);
+                }
+                else ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET);
+            })
+            .shader(builtin("animated/animated_eye.vs.glsl"), builtin("animated/solid.fs.glsl"))
+            .build();
+
     public static final Pipeline SOLID = new Pipeline.Builder(LIGHT)
+            .supplyUniform("eyeOffset", ctx -> {
+                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
+                    if (instance.currentAnimation instanceof GfbAnimationInstance gfbAnimation) {
+                        ctx.uniform().uploadVec2f(gfbAnimation.getEyeOffset());
+                    }
+                    else ctx.uniform().uploadMat4fs(AnimationController.NO_ANIMATION);
+                }
+                else ctx.uniform().uploadMat4fs(AnimationController.NO_ANIMATION);
+            })
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/solid.fs.glsl"))
             .build();
 

@@ -6,7 +6,7 @@ import gg.generations.rarecandy.renderer.animation.TranmUtil;
 import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import org.joml.Quaternionf;
 
-public class Framed8RotationTrackT implements RotationTrackUnion.TrackProcesser<Quaternionf> {
+public class Framed8RotationTrackT implements TrackProcesser<Quaternionf> {
   private int[] frames;
   private sVec3T[] co;
 

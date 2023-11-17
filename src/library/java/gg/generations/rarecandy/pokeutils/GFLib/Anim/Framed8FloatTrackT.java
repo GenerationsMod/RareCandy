@@ -16,10 +16,14 @@ import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
 import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
+import gg.generations.rarecandy.renderer.animation.TranmUtil;
+import gg.generations.rarecandy.renderer.animation.TransformStorage;
+import org.joml.Quaternionf;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class Framed8FloatTrackT {
+public class Framed8FloatTrackT implements TrackProcesser<Float> {
   private int[] frames;
   private float[] float_;
 
@@ -35,6 +39,15 @@ public class Framed8FloatTrackT {
   public Framed8FloatTrackT() {
     this.frames = null;
     this.float_ = null;
+  }
+
+  @Override
+  public void process(TransformStorage<Float> rotationKeys) {
+    var frames = getFrames();
+    for (int i = 0; i < getFrames().length; i++) {
+      var vec = getFloat()[i];
+      rotationKeys.add(frames[i], vec);
+    }
   }
 }
 

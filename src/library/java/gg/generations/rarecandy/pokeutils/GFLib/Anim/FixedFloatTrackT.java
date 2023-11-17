@@ -16,10 +16,13 @@ import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
 import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
+import gg.generations.rarecandy.renderer.animation.TranmUtil;
+import gg.generations.rarecandy.renderer.animation.TransformStorage;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class FixedFloatTrackT {
+public class FixedFloatTrackT implements TrackProcesser<Float> {
   private float float_;
 
   public float getFloat() { return float_; }
@@ -29,6 +32,12 @@ public class FixedFloatTrackT {
 
   public FixedFloatTrackT() {
     this.float_ = 0.0f;
+  }
+
+  @Override
+  public void process(TransformStorage<Float> keys) {
+    keys.add(0, float_);
+
   }
 }
 

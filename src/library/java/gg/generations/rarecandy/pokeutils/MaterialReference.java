@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.pokeutils;
 
 import com.google.gson.*;
-import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import org.joml.Vector3f;
 
@@ -29,6 +28,9 @@ public abstract class MaterialReference {
                 switch (type) {
                     case "solid" -> {
                         return new SolidReferenceMaterial(texture);
+                    }
+                    case "eye" -> {
+                        return new EyeMaterialReference(texture);
                     }
                     case "transparent" -> {
                         return new TransparentMaterialReference(texture);

@@ -6,7 +6,7 @@ import gg.generations.rarecandy.renderer.animation.TranmUtil;
 import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import org.joml.Quaternionf;
 
-public class Framed16RotationTrackT implements RotationTrackUnion.TrackProcesser<Quaternionf> {
+public class Framed16RotationTrackT implements TrackProcesser<Quaternionf> {
   private int[] frames;
   private sVec3T[] co;
 
@@ -29,7 +29,6 @@ public class Framed16RotationTrackT implements RotationTrackUnion.TrackProcesser
     var frames = getFrames();
     for (int i = 0; i < getFrames().length; i++) {
       var vec = getCo()[i];
-      var frame = frames[i];
       rotationKeys.add(frames[i], TranmUtil.packedToQuat((short) vec.getX(), (short) vec.getY(), (short) vec.getZ()));
     }
   }

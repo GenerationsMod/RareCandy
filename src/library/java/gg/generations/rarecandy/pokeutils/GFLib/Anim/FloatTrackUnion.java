@@ -6,15 +6,15 @@ import com.google.flatbuffers.FlatBufferBuilder;
 
 public class FloatTrackUnion {
   private byte type;
-  private Object value;
+  private TrackProcesser<Float> value;
 
   public byte getType() { return type; }
 
   public void setType(byte type) { this.type = type; }
 
-  public Object getValue() { return value; }
+  public TrackProcesser<Float> getValue() { return value; }
 
-  public void setValue(Object value) { this.value = value; }
+  public void setValue(TrackProcesser<Float> value) { this.value = value; }
 
   public FloatTrackUnion() {
     this.type = FloatTrack.NONE;

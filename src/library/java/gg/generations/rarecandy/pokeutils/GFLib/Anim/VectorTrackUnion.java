@@ -7,15 +7,15 @@ import org.joml.Vector3f;
 
 public class VectorTrackUnion {
   private byte type;
-  private RotationTrackUnion.TrackProcesser<Vector3f> value;
+  private TrackProcesser<Vector3f> value;
 
   public byte getType() { return type; }
 
   public void setType(byte type) { this.type = type; }
 
-  public RotationTrackUnion.TrackProcesser<Vector3f> getValue() { return value; }
+  public TrackProcesser<Vector3f> getValue() { return value; }
 
-  public void setValue(RotationTrackUnion.TrackProcesser<Vector3f> value) { this.value = value; }
+  public void setValue(TrackProcesser<Vector3f> value) { this.value = value; }
 
   public VectorTrackUnion() {
     this.type = VectorTrack.NONE;

@@ -3,7 +3,6 @@
 package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
 import com.google.flatbuffers.FlatBufferBuilder;
-import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import org.joml.Quaternionf;
 
 public class RotationTrackUnion {
@@ -38,8 +37,5 @@ public class RotationTrackUnion {
     }
   }
 
-  public interface TrackProcesser<T> {
-    void process(TransformStorage<T> rotationKeys);
-  }
 }
 

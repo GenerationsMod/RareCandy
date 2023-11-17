@@ -40,7 +40,7 @@ public class AnimatedObjectInstance extends ObjectInstance {
         return (AnimatedMeshObject) object();
     }
 
-    public Matrix4f[] getTransforms() {
+    public Matrix4f[]  getTransforms() {
         if (currentAnimation == null || currentAnimation.matrixTransforms == null)
             return AnimationController.NO_ANIMATION;
         return currentAnimation.matrixTransforms;

@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.renderer.animation;
 
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 
 import java.util.*;
 
@@ -9,6 +10,7 @@ import java.util.*;
  */
 public class AnimationController {
     public static final Matrix4f[] NO_ANIMATION = new Matrix4f[220];
+    public static final Vector2f NO_OFFSET = new Vector2f().zero();
 
     static {
         var identity = new Matrix4f().identity();

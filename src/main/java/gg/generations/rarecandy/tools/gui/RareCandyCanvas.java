@@ -3,7 +3,10 @@ package gg.generations.rarecandy.tools.gui;
 import gg.generations.rarecandy.pokeutils.GlbPixelAsset;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.LoggerUtil;
+import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
+import gg.generations.rarecandy.renderer.animation.GfbAnimation;
+import gg.generations.rarecandy.renderer.animation.GfbAnimationInstance;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
@@ -126,7 +129,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
             size.set(loadedModel.dimensions).mul(loadedModel.scale);
 
-            System.out.println("Size: (%s, %s, %s)".formatted(size.x - (size.x % fraciton), size.y - (size.y % fraciton), size.z - (size.z % fraciton)));
+//            System.out.println("Size: (%s, %s, %s)".formatted(size.x - (size.x % fraciton), size.y - (size.y % fraciton), size.z - (size.z % fraciton))); //TODO: For boundingbox calcuations in generations blocks
         }
 
         if(lightLevel != previousLightLevel)
@@ -141,7 +144,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
                         var newAnimation = a.animations.get(currentAnimation);
 
                         if(newAnimation != null) {
-                            instance.changeAnimation(new AnimationInstance(newAnimation));
+                            instance.changeAnimation(createInstance(newAnimation));
                         }
                     }
                 }
@@ -153,6 +156,14 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 var newScale = 1 - (scaleModifier * 0.1f);
                 instance.transformationMatrix().scale(newScale);
             }
+        }
+    }
+
+    public AnimationInstance createInstance(Animation animation) {
+        if(animation instanceof GfbAnimation gfbAnimation) {
+            return new GfbAnimationInstance(gfbAnimation);
+        } else {
+            return new AnimationInstance(animation);
         }
     }
 
@@ -187,7 +198,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         if (object.animations != null)
             LoggerUtil.print(animation);
         if (Objects.requireNonNull(object.animations).containsKey(animation)) {
-            loadedModelInstance.changeAnimation(new AnimationInstance(object.animations.get(animation)));
+            loadedModelInstance.changeAnimation(createInstance(object.animations.get(animation)));
         }
     }
 

@@ -6,7 +6,7 @@ import gg.generations.rarecandy.renderer.animation.TranmUtil;
 import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import org.joml.Quaternionf;
 
-public class DynamicRotationTrackT implements RotationTrackUnion.TrackProcesser<Quaternionf> {
+public class DynamicRotationTrackT implements TrackProcesser<Quaternionf> {
   private sVec3T[] co;
 
   public sVec3T[] getCo() { return co; }

@@ -9,6 +9,7 @@ public class AnimationInstance {
 
     public double startTime = -1;
     public Matrix4f[] matrixTransforms;
+
     protected Animation animation;
     protected float currentTime;
     protected double timeAtPause;

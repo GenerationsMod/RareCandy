@@ -16,10 +16,14 @@ import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
 import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
+import gg.generations.rarecandy.renderer.animation.TranmUtil;
+import gg.generations.rarecandy.renderer.animation.TransformStorage;
+import org.joml.Quaternionf;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class DynamicFloatTrackT {
+public class DynamicFloatTrackT implements TrackProcesser<Float> {
   private float[] float_;
 
   public float[] getFloat() { return float_; }
@@ -29,6 +33,14 @@ public class DynamicFloatTrackT {
 
   public DynamicFloatTrackT() {
     this.float_ = null;
+  }
+
+  @Override
+  public void process(TransformStorage<Float> rotationKeys) {
+    for (int i = 0; i < float_.length; i++) {
+      var vec = float_[i];
+      rotationKeys.add(i, vec);
+    }
   }
 }
 

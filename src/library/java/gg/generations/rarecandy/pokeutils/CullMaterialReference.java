@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.pokeutils;
 
-public class CullMaterialReference extends SolidReferenceMaterial {
+public class CullMaterialReference extends EyeMaterialReference {
     private CullType cullType;
 
     public CullMaterialReference(String texture, CullType type) {

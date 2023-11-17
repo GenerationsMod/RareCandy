@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.renderer.loading;
 
 import de.javagl.jgltf.model.*;
-import de.javagl.jgltf.model.image.PixelDatas;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import de.javagl.jgltf.model.v2.MaterialModelV2;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
@@ -13,8 +12,7 @@ import gg.generations.rarecandy.pokeutils.reader.TextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.util.ImageUtils;
 import gg.generations.rarecandy.renderer.ThreadSafety;
-import gg.generations.rarecandy.renderer.animation.Animation;
-import gg.generations.rarecandy.renderer.animation.Skeleton;
+import gg.generations.rarecandy.renderer.animation.*;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
@@ -35,7 +33,6 @@ import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -68,7 +65,7 @@ public class ModelLoader {
 
         if (!gltfModel.getSkinModels().isEmpty()) {
             skeleton = new Skeleton(gltfModel.getSkinModels().get(0));
-            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new Animation(animationModel, skeleton, animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
             for (var entry : tranmFilesMap.entrySet()) {
                 var name = entry.getKey();
@@ -78,7 +75,7 @@ public class ModelLoader {
 
                 if(gfbAnim.anim() == null) continue;
 
-                animations.put(name, new Animation(name, gfbAnim, new Skeleton(skeleton)));
+                animations.put(name, new TranmAnimation(name, gfbAnim, new Skeleton(skeleton)));
             }
 
             for (var entry : gfbFileMap.entrySet()) {
@@ -88,7 +85,7 @@ public class ModelLoader {
 
                 if(gfbAnim.getSkeleton() == null) continue;
 
-                animations.put(name, new Animation(name, gfbAnim, new Skeleton(skeleton)));
+                animations.put(name, new GfamnAnimation(name, gfbAnim, new Skeleton(skeleton)));
             }
 
             for (var entry : smdFileMap.entrySet()) {
@@ -97,7 +94,7 @@ public class ModelLoader {
 
                 for (var block : value.blocks) {
                     if (block instanceof SkeletonBlock skeletonBlock) {
-                        animations.put(key, new Animation(key, skeletonBlock, new Skeleton(skeleton), Animation.FPS_24));
+                        animations.put(key, new SmdAnimation(key, skeletonBlock, new Skeleton(skeleton), Animation.FPS_24));
                         break;
                     }
                 }
@@ -172,6 +169,9 @@ public class ModelLoader {
 //            for (NodeModel nodeModel : gltfModel.getSceneModels().get(0).getNodeModels()) {
 //                System.out.println(nodeModel.getName());
 //            }
+
+            objects.dimensions.set(calculateDimensions(gltfModel));
+
             for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
                 var transform = new Matrix4f();
 
@@ -197,7 +197,8 @@ public class ModelLoader {
             }).toList();
             var variants = getVariants(gltfModel);
 
-            objects.scale = calculateScale(gltfModel); //TODO: DO this properly
+            objects.dimensions.set(calculateDimensions(gltfModel));
+            objects.scale = 1f / objects.scale;
 
             // gltfModel.getSceneModels().get(0).getNodeModels().get(0).getScale()
             for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
@@ -261,31 +262,40 @@ public class ModelLoader {
         });
     }
 
-    private static float calculateScale(GltfModel model) {
-        var scale = 1.0f;
+    private static Vector3f calculateDimensions(GltfModel model) {
+        var vec = new Vector3f();
+        var pos = new Vector3f();
 
-        var buf = model.getMeshModels().get(0).getMeshPrimitiveModels().get(0).getAttributes().get("POSITION").getBufferViewModel().getBufferViewData();
+        for(var mesh : model.getMeshModels()) {
+            for(var primitive : mesh.getMeshPrimitiveModels()) {
 
-        var smallestVertexX = 0f;
-        var smallestVertexY = 0f;
-        var smallestVertexZ = 0f;
-        var largestVertexX = 0f;
-        var largestVertexY = 0f;
-        var largestVertexZ = 0f;
-        for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
-            var xPoint = buf.getFloat(i);
-            var yPoint = buf.getFloat(i + 4);
-            var zPoint = buf.getFloat(i + 8);
-            smallestVertexX = Math.min(smallestVertexX, xPoint);
-            smallestVertexY = Math.min(smallestVertexY, yPoint);
-            smallestVertexZ = Math.min(smallestVertexZ, zPoint);
-            largestVertexX = Math.max(largestVertexX, xPoint);
-            largestVertexY = Math.max(largestVertexY, yPoint);
-            largestVertexZ = Math.max(largestVertexZ, zPoint);
+                var buf = primitive.getAttributes().get("POSITION").getBufferViewModel().getBufferViewData();
+
+                var smallestVertexX = 0f;
+                var smallestVertexY = 0f;
+                var smallestVertexZ = 0f;
+                var largestVertexX = 0f;
+                var largestVertexY = 0f;
+                var largestVertexZ = 0f;
+                for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
+                    var xPoint = buf.getFloat(i);
+                    var yPoint = buf.getFloat(i + 4);
+                    var zPoint = buf.getFloat(i + 8);
+                    smallestVertexX = Math.min(smallestVertexX, xPoint);
+                    smallestVertexY = Math.min(smallestVertexY, yPoint);
+                    smallestVertexZ = Math.min(smallestVertexZ, zPoint);
+                    largestVertexX = Math.max(largestVertexX, xPoint);
+                    largestVertexY = Math.max(largestVertexY, yPoint);
+                    largestVertexZ = Math.max(largestVertexZ, zPoint);
+                }
+
+                vec.set(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ);
+
+                pos.max(vec);
+            }
         }
 
-        scale = 1 / new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ).y;
-        return scale;
+        return pos;
     }
 
     private static List<String> collectShownVariants(MeshModel meshModel, List<String> variantsList) {

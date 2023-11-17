@@ -14,6 +14,7 @@ import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
@@ -114,11 +115,18 @@ public class RareCandyCanvas extends AWTGLCanvas {
         }
     }
 
+    private Vector3f size = new Vector3f();
+
+    private double fraciton = 1/16f;
     @Override
     public void paintGL() {
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
         if (loadedModelInstance != null) {
             loadedModelInstance.transformationMatrix().identity().scale(loadedModel.scale);
+
+            size.set(loadedModel.dimensions).mul(loadedModel.scale);
+
+            System.out.println("Size: (%s, %s, %s)".formatted(size.x - (size.x % fraciton), size.y - (size.y % fraciton), size.z - (size.z % fraciton)));
         }
 
         if(lightLevel != previousLightLevel)

@@ -3,8 +3,6 @@ package gg.generations.rarecandy.renderer.animation;
 import de.javagl.jgltf.model.AnimationModel;
 import de.javagl.jgltf.model.NodeModel;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
-import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
-import gg.generations.rarecandy.pokeutils.GFLib.Anim.RotationTrack;
 import gg.generations.rarecandy.pokeutils.ModelNode;
 import gg.generations.rarecandy.pokeutils.tranm.*;
 import org.joml.Matrix4f;
@@ -14,7 +12,7 @@ import org.joml.Vector3f;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-public class Animation {
+public abstract class Animation<T> {
     public static final int FPS_60 = 1000;
     public static final int FPS_24 = 400;
     public static final int GLB_SPEED = FPS_60;
@@ -22,74 +20,23 @@ public class Animation {
     };
     public final String name;
     public final double animationDuration;
-    public final AnimationNode[] animationNodes;
     protected final Skeleton skeleton;
     public Map<String, Integer> nodeIdMap = new HashMap<>();
+
+    private final AnimationNode[] animationNodes;
+
     public float ticksPerSecond;
     public boolean ignoreInstancedTime = false;
 
-    public Animation(AnimationModel rawAnimation, Skeleton skeleton, int speed) {
-        this.name = rawAnimation.getName();
-        this.ticksPerSecond = speed;
-        this.skeleton = skeleton;
-        this.animationNodes = fillAnimationNodesGlb(rawAnimation.getChannels());
-        this.animationDuration = findLastKeyTime();
-        animationModifier.accept(this, "glb");
-    }
-
-    public Animation(String name, AnimationT rawAnimation, Skeleton skeleton) {
+    public Animation(String name, float ticksPerSecond, Skeleton skeleton, T item) {
         this.name = name;
-        this.ticksPerSecond = FPS_60 - 95;
+        this.ticksPerSecond = ticksPerSecond;
         this.skeleton = skeleton;
-        this.animationNodes = fillAnimationNodesGfb(rawAnimation);
+        this.animationNodes = fillAnimationNodes(item);
         this.animationDuration = findLastKeyTime();
-
-
-        for (var animationNode : animationNodes) {
-            if (animationNode != null) {
-                if (animationNode.positionKeys.getAtTime((int) animationDuration - 10) == null)
-                    animationNode.positionKeys.add(animationDuration, animationNode.positionKeys.get(0).value());
-                if (animationNode.rotationKeys.getAtTime((int) animationDuration - 10) == null)
-                    animationNode.rotationKeys.add(animationDuration, animationNode.rotationKeys.get(0).value());
-                if (animationNode.scaleKeys.getAtTime((int) animationDuration - 10) == null)
-                    animationNode.scaleKeys.add(animationDuration, animationNode.scaleKeys.get(0).value());
-            }
-        }
-
-        animationModifier.accept(this, "gfb");
     }
 
-    public Animation(String name, gg.generations.rarecandy.pokeutils.tranm.Animation rawAnimation, Skeleton skeleton) {
-        this.name = name;
-        this.ticksPerSecond = FPS_60 - 95;
-        this.skeleton = skeleton;
-        this.animationNodes = fillAnimationNodesTranm(rawAnimation);
-        this.animationDuration = findLastKeyTime();
-
-
-        for (var animationNode : animationNodes) {
-            if (animationNode != null) {
-                if (animationNode.positionKeys.getAtTime((int) animationDuration - 10) == null)
-                    animationNode.positionKeys.add(animationDuration, animationNode.positionKeys.get(0).value());
-                if (animationNode.rotationKeys.getAtTime((int) animationDuration - 10) == null)
-                    animationNode.rotationKeys.add(animationDuration, animationNode.rotationKeys.get(0).value());
-                if (animationNode.scaleKeys.getAtTime((int) animationDuration - 10) == null)
-                    animationNode.scaleKeys.add(animationDuration, animationNode.scaleKeys.get(0).value());
-            }
-        }
-
-        animationModifier.accept(this, "gfb");
-    }
-
-    public Animation(String name, SkeletonBlock smdFile, Skeleton bones, int speed) {
-        this.name = name;
-        this.ticksPerSecond = speed;
-        this.skeleton = bones;
-        this.animationNodes = fillAnimationNodesSmdx(smdFile.keyframes);
-        this.animationDuration = findLastKeyTime();
-
-        animationModifier.accept(this, "smd");
-    }
+    abstract AnimationNode[] fillAnimationNodes(T item);
 
     private static Vector3f convertArrayToVector3f(float[] array) {
         return new Vector3f().set(array);
@@ -102,7 +49,7 @@ public class Animation {
     private double findLastKeyTime() {
         var duration = 0d;
 
-        for (var value : this.animationNodes) {
+        for (var value : this.getAnimationNodes()) {
             if (value != null) {
                 for (var key : value.positionKeys) duration = Math.max(key.time(), duration);
                 for (var key : value.rotationKeys) duration = Math.max(key.time(), duration);
@@ -137,7 +84,7 @@ public class Animation {
         var bone = skeleton.get(name);
 
         if (node.id != -1) {
-            var animNode = animationNodes[node.id];
+            var animNode = getAnimationNodes()[node.id];
 
             if (animNode != null) {
                 var scale = AnimationMath.calcInterpolatedScaling(animTime, animNode);
@@ -169,132 +116,17 @@ public class Animation {
             readNodeHierarchy(animTime, child, globalTransform, boneTransforms);
     }
 
-    private AnimationNode[] fillAnimationNodesGlb(List<AnimationModel.Channel> channels) {
-        var animationNodes = new AnimationNode[channels.size()];
-
-        for (var channel : channels) {
-            var node = channel.getNodeModel();
-            animationNodes[nodeIdMap.computeIfAbsent(node.getName(), this::newNode)] = new AnimationNode(channels.stream().filter(c -> c.getNodeModel().equals(node)).toList(), node);
-        }
-
-        return animationNodes;
-    }
-
-    private AnimationNode[] fillAnimationNodesGfb(AnimationT rawAnimation) {
-        var animationNodes = new AnimationNode[skeleton.boneMap.size()]; // BoneGroup
-
-        if (rawAnimation.getSkeleton() != null) {
-            int trueIndex = -1;
-
-            for (int i = 0; i < rawAnimation.getSkeleton().getTracks().length; i++) {
-                var boneAnim = rawAnimation.getSkeleton().getTracks()[i];
-                if (!skeleton.boneMap.containsKey(boneAnim.getName())) {
-                    continue;
-                }
-
-                trueIndex++;
-
-                nodeIdMap.put(Objects.requireNonNull(boneAnim.getName()).replace(".trmdl", ""), trueIndex);
-
-                var node = animationNodes[trueIndex] = new AnimationNode();
-
-                boneAnim.getRotate().getValue().process(node.rotationKeys);
-                boneAnim.getScale().getValue().process(node.scaleKeys);
-                boneAnim.getTranslate().getValue().process(node.positionKeys);
-            }
-
-        }
-        return animationNodes;
-
-    }
-
-    private AnimationNode[] fillAnimationNodesTranm(gg.generations.rarecandy.pokeutils.tranm.Animation rawAnimation) {
-        var animationNodes = new AnimationNode[skeleton.boneMap.size()]; // BoneGroup
-
-        int trueIndex = -1;
-
-        for (int i = 0; i < rawAnimation.anim().bonesVector().length(); i++) {
-            var boneAnim = rawAnimation.anim().bonesVector().get(i);
-            if(!skeleton.boneMap.containsKey(boneAnim.name())) {
-                continue;
-            }
-
-            trueIndex++;
-
-            nodeIdMap.put(Objects.requireNonNull(boneAnim.name()).replace(".trmdl", ""), trueIndex);
-
-            var node = animationNodes[trueIndex] = new AnimationNode();
-
-            switch (boneAnim.rotType()) {
-                case QuatTrack.DynamicQuatTrack ->
-                        TranmUtil.processDynamicQuatTrack((DynamicQuatTrack) Objects.requireNonNull(boneAnim.rot(new DynamicQuatTrack())), node.rotationKeys);
-                case QuatTrack.FixedQuatTrack ->
-                        TranmUtil.processFixedQuatTrack((FixedQuatTrack) Objects.requireNonNull(boneAnim.rot(new FixedQuatTrack())), node.rotationKeys);
-                case QuatTrack.Framed8QuatTrack ->
-                        TranmUtil.processFramed8QuatTrack((Framed8QuatTrack) Objects.requireNonNull(boneAnim.rot(new Framed8QuatTrack())), node.rotationKeys);
-                case QuatTrack.Framed16QuatTrack ->
-                        TranmUtil.processFramed16QuatTrack((Framed16QuatTrack) Objects.requireNonNull(boneAnim.rot(new Framed16QuatTrack())), node.rotationKeys);
-            }
-
-            switch (boneAnim.scaleType()) {
-                case VectorTrack.DynamicVectorTrack ->
-                        TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.scale(new DynamicVectorTrack())), node.scaleKeys);
-                case VectorTrack.FixedVectorTrack ->
-                        TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.scale(new FixedVectorTrack())), node.scaleKeys);
-                case VectorTrack.Framed8VectorTrack ->
-                        TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.scale(new Framed8VectorTrack())), node.scaleKeys);
-                case VectorTrack.Framed16VectorTrack ->
-                        TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.scale(new Framed16VectorTrack())), node.scaleKeys);
-            }
-
-            switch (boneAnim.transType()) {
-                case VectorTrack.DynamicVectorTrack ->
-                        TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.trans(new DynamicVectorTrack())), node.positionKeys);
-                case VectorTrack.FixedVectorTrack ->
-                        TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.trans(new FixedVectorTrack())), node.positionKeys);
-                case VectorTrack.Framed8VectorTrack ->
-                        TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed8VectorTrack())), node.positionKeys);
-                case VectorTrack.Framed16VectorTrack ->
-                        TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed16VectorTrack())), node.positionKeys);
-            }
-        }
-
-        return animationNodes;
-    }
-
-    private AnimationNode[] fillAnimationNodesSmdx(List<SkeletonBlock.Keyframe> keyframes) {
-        var nodes = new HashMap<String, List<SmdBoneStateKey>>();
-
-        for (var keyframe : keyframes) {
-            var time = keyframe.time;
-            var states = keyframe.states;
-
-            for (var boneState : states) {
-                if (boneState.bone < skeleton.boneArray.length - 1) {
-                    var id = skeleton.getName(boneState.bone);
-                    var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
-                    list.add(new SmdBoneStateKey(time, new Vector3f(boneState.posX, boneState.posY, boneState.posZ), new Quaternionf().rotateZYX(boneState.rotZ, boneState.rotY, boneState.rotX)));
-                }
-            }
-
-            nodes.forEach((k, v) -> v.sort(Comparator.comparingInt(SmdBoneStateKey::time)));
-        }
-
-        var animationNodes = new AnimationNode[nodes.size()];
-        for (var entry : nodes.entrySet()) {
-            animationNodes[nodeIdMap.computeIfAbsent(entry.getKey(), this::newNode)] = new AnimationNode(entry.getValue());
-        }
-
-        return animationNodes;
-    }
-
-    private int newNode(String nodeName) {
+    protected int newNode(String nodeName) {
         return nodeIdMap.size();
     }
 
     @Override
     public String toString() {
         return this.name;
+    }
+
+    public AnimationNode[] getAnimationNodes() {
+        return animationNodes;
     }
 
     public record SmdBoneStateKey(int time, Vector3f pos, Quaternionf rot) {

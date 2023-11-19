@@ -111,7 +111,7 @@ public class ModelLoader {
             var materials = new HashMap<String, Material>();
 
             config.materials.forEach((k, v) -> {
-                var material = v.process(k, images);
+                var material = MaterialReference.process(k, config.materials, images);
 
                 materials.put(k, material);
             });
@@ -193,7 +193,7 @@ public class ModelLoader {
 
             var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
                 var textureName = raw.getBaseColorTexture().getImageModel().getName();
-                return new EyeMaterialReference(textureName).process(raw.getName(), textures);
+                return SolidReferenceMaterial.process(raw.getName(), textureName, textures);
             }).toList();
             var variants = getVariants(gltfModel);
 

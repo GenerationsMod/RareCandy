@@ -2,56 +2,180 @@ package gg.generations.rarecandy.pokeutils;
 
 import com.google.gson.*;
 import gg.generations.rarecandy.renderer.model.material.Material;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
-public abstract class MaterialReference {
-    public abstract Material process(String name, Map<String, String> images);
+public class MaterialReference {
+    private String parent;
+    private String shader;
+
+    private CullType cull;
+
+    private BlendType blend;
+
+    private Map<String, String> images;
+
+    private Map<String, Object> values;
+
+    protected MaterialReference(String parent, String shader, CullType cull, BlendType blend, Map<String, String> images, Map<String, Object> values) {
+        this.parent = parent;
+        this.shader = shader;
+        this.cull = cull;
+        this.blend = blend;
+        this.images = images;
+        this.values = values;
+    }
+
+    public static Material process(String name, @NotNull Map<String, MaterialReference> materialreferences, @NotNull Map<String, String> imageMap) {
+        var reference = materialreferences.get(name);
+
+        var cull = reference.cull;
+        var blend = reference.blend;
+        var shader = reference.shader;
+        var images = new HashMap<>(reference.images);
+        var values = new HashMap<>(reference.values);
+        var parent = reference.parent;
+
+        while (parent != null) {
+            reference = materialreferences.get(parent);
+
+            if(reference == null) parent = null;
+            else {
+
+                if (!shader.equals(reference.shader)) {
+                    shader = reference.shader;
+                }
+
+                if (!cull.equals(reference.cull)) {
+                    cull = reference.cull;
+                }
+
+                if (!blend.equals(reference.blend)) {
+                    blend = reference.blend;
+                }
+
+                reference.images.forEach((key, value) -> images.merge(key, value, (old, value1) -> old));
+                reference.values.forEach((key, value) -> values.merge(key, value, (old, value1) -> old));
+
+                parent = reference.parent;
+            }
+        }
+
+        var map = images.entrySet().stream().filter(a -> imageMap.containsKey(a.getValue())).collect(Collectors.toMap(Map.Entry::getKey, a -> imageMap.get(a.getValue())));
+        return new Material(name, map, values, cull, blend, shader);
+    }
     public static final class Serializer implements JsonDeserializer<MaterialReference> {
+
+
         @Override
         public MaterialReference deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+
+            String shader = "solid";
+
+            CullType cull = CullType.None;
+
+            BlendType blend = BlendType.None;
+
+            Map<String, String> images = new HashMap<>();
+
+            Map<String, Object> values = new HashMap<>();
+
             var jsonObject = json.getAsJsonObject();
 
-            var type = jsonObject.getAsJsonPrimitive("type").getAsString();
+            String parent = jsonObject.has("inherits") ? jsonObject.get("inherits").getAsString() : null;
 
-            if (jsonObject.has("texture")) {
-                var texture = jsonObject.getAsJsonPrimitive("texture").getAsString();
+            if(jsonObject.has("type")) {
 
-                if(type.equals("masked")) {
-                    var color = jsonObject.has("color") ? color(jsonObject.get("color")) : new Vector3f(1.0f, 1.0f, 1.0f);
+                var type = jsonObject.getAsJsonPrimitive("type").getAsString();
 
-                    return new MaskReferenceMaterial(texture, jsonObject.getAsJsonPrimitive("mask").getAsString(), color);
+                if (jsonObject.has("texture")) {
+                    var texture = jsonObject.getAsJsonPrimitive("texture").getAsString();
+
+                    images.put("diffuse", texture);
+
+                    if (type.equals("masked")) {
+                        var color = jsonObject.has("color") ? color(jsonObject.get("color")) : new Vector3f(1.0f, 1.0f, 1.0f);
+                        shader = "masked";
+                        values.put("color", color);
+                        images.put("mask", jsonObject.getAsJsonPrimitive("mask").getAsString());
+//                        return new MaskReferenceMaterial(texture, jsonObject.getAsJsonPrimitive("mask").getAsString(), color);
+                    } else {
+
+                        switch (type) {
+                            case "eye" -> {
+                                shader = "eye";
+                            }
+                            case "transparent" -> {
+                                shader = "transparent";
+                                blend = BlendType.Regular;
+                            }
+                            case "cull" -> {
+                                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Forward;
+                            }
+                            case "unlit_cull" -> {
+                                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Forward;
+                                shader = "unlit";
+                            }
+                            case "unlit" -> {
+                                shader = "unlit";
+                            }
+                        }
+                    }
                 }
-
-                switch (type) {
-                    case "solid" -> {
-                        return new SolidReferenceMaterial(texture);
-                    }
-                    case "eye" -> {
-                        return new EyeMaterialReference(texture);
-                    }
-                    case "transparent" -> {
-                        return new TransparentMaterialReference(texture);
-                    }
-                    case "cull" -> {
-                        var cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Forward;
-                        return new CullMaterialReference(texture, cull);
-                    }
-                    case "unlit_cull" -> {
-                        return new UnlitCullMaterialReference(texture);
-                    }
-                    case "unlit" -> {
-                        return new UnlitMaterialReference(texture);
-                    }
-                    default -> throw new JsonParseException("Material type %s invalid".formatted(type));
-                }
-
+            } else {
+                shader = jsonObject.has("shader") ? jsonObject.getAsJsonPrimitive("shader").getAsString() : "solid";
+                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("blend").getAsString()) : CullType.None;
+                blend = jsonObject.has("blend") ? BlendType.from(jsonObject.getAsJsonPrimitive("blend").getAsString()) : BlendType.None;
+                images = jsonObject.has("images") ? images(jsonObject.getAsJsonObject("images")) : new HashMap<>();
+                values = jsonObject.has("values") ? values(jsonObject.getAsJsonObject("values")) : new HashMap<>();
             }
 
-            throw new JsonParseException("Material type %s invalid".formatted(type));
+            return new MaterialReference(parent, shader, cull, blend, images, values);
+
+//            throw new JsonParseException("Material type %s invalid".formatted(type));
         }
+    }
+
+    private static Map<String, String> images(JsonObject images) {
+        return images.asMap().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> a.getValue().getAsString()));
+    }
+
+    private static Map<String, Object> values(JsonObject object) {
+        var values = new HashMap<String, Object>();
+
+        object.asMap().forEach((key, value) -> {
+            if(value.isJsonObject()) {
+
+                var obj = value.getAsJsonObject();
+
+                var val = obj.get("value");
+
+                switch (obj.getAsJsonPrimitive("type").getAsString()) {
+                    case "boolean" -> {
+                        values.put(key, val.getAsBoolean());
+                    }
+                    case "color" -> {
+                        values.put(key, MaterialReference.color(val));
+                    }
+                    case "float" -> {
+                        values.put(key, val.getAsFloat());
+                    }
+                }
+            } else if(value.isJsonPrimitive()) {
+                if(value.getAsJsonPrimitive().isBoolean()) values.put(key, value.getAsBoolean());
+                else if(value.getAsJsonPrimitive().isNumber()) values.put(key, value.getAsFloat());
+                else if(value.getAsJsonPrimitive().isString()) values.put(key, color(value));
+            } else if(value.isJsonArray()) values.put(key, color(value));
+        });
+
+        return values;
     }
 
     public static Vector3f color(JsonElement element) {

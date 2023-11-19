@@ -18,6 +18,16 @@ public enum BlendType {
         GL11.glBlendFunc(src, dst);
     }
 
+    public static BlendType from(String cull) {
+        try {
+            if (cull.equalsIgnoreCase("regular")) return Regular;
+            else return None;
+        } catch (Exception e) {
+            return None;
+        }
+    }
+
+
     public void disable() {
         GL11.glDisable(GL11.GL_BLEND);
     }

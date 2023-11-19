@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
 
-    private static float lightLevel = 0.6f;
+    private static float lightLevel = 1.0f;
 
     public final Matrix4f viewMatrix = new Matrix4f();
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();

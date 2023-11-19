@@ -1,12 +1,13 @@
 package gg.generations.rarecandy.pokeutils;
 
-public class SolidReferenceMaterial extends DiffuseMaterialReference {
-    public SolidReferenceMaterial(String texture) {
-        super(texture);
-    }
+import gg.generations.rarecandy.renderer.model.material.Material;
 
-    @Override
-    public String shader() {
-        return "solid";
+import java.util.Map;
+
+public class SolidReferenceMaterial {
+    public static Material process(String name, String texture, Map<String, String> images) {
+        var reference = images.get(texture);
+
+        return new Material(name, Map.of("diffuse", reference), Map.of(), CullType.None, BlendType.None, "solid");
     }
 }

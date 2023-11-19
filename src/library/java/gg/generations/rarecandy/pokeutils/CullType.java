@@ -18,9 +18,13 @@ public enum CullType {
     }
 
     public static CullType from(String cull) {
-        if (cull.equalsIgnoreCase("back")) return Back;
-        else if (cull.equalsIgnoreCase("forward")) return Forward;
-        else return None;
+        try {
+            if (cull.equalsIgnoreCase("back")) return Back;
+            else if (cull.equalsIgnoreCase("forward")) return Forward;
+            else return None;
+        } catch (Exception e) {
+            return None;
+        }
     }
 
     public void enable() {

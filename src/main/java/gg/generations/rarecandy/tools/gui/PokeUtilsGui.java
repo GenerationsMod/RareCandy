@@ -54,6 +54,7 @@ public class PokeUtilsGui extends JPanel {
             case "unlit" -> GuiPipelines.UNLIT;
             case "masked" -> GuiPipelines.MASKED;
             case "eye" -> GuiPipelines.EYE;
+            case "layered" -> GuiPipelines.LAYERED;
             default -> GuiPipelines.SOLID;
         });
 

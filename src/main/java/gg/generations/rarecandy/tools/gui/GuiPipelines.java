@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
+import gg.generations.rarecandy.pokeutils.tranm.Vec3f;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.GfbAnimation;
 import gg.generations.rarecandy.renderer.animation.GfbAnimationInstance;
@@ -48,16 +49,28 @@ public class GuiPipelines {
             .shader(builtin("animated/animated_eye.vs.glsl"), builtin("animated/solid.fs.glsl"))
             .build();
 
-    public static final Pipeline SOLID = new Pipeline.Builder(LIGHT)
-            .supplyUniform("eyeOffset", ctx -> {
-                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
-                    if (instance.currentAnimation instanceof GfbAnimationInstance gfbAnimation) {
-                        ctx.uniform().uploadVec2f(gfbAnimation.getEyeOffset());
-                    }
-                    else ctx.uniform().uploadMat4fs(AnimationController.NO_ANIMATION);
-                }
-                else ctx.uniform().uploadMat4fs(AnimationController.NO_ANIMATION);
+    public static final Pipeline LAYERED = new Pipeline.Builder(LIGHT)
+            .shader(builtin("animated/animated.vs.glsl"), builtin("animated/layered.fs.glsl"))
+            .supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+            .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+            .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor3") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+            .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor4") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+            .supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+            .supplyUniform("emiColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+            .supplyUniform("emiColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor3") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+            .supplyUniform("emiColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor4") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+            .supplyUniform("emiIntensity1", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity1") instanceof Float vec ? vec : 0.0f))
+            .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity2") instanceof Float vec ? vec : 0.0f))
+            .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity3") instanceof Float vec ? vec : 0.0f))
+            .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity4") instanceof Float vec ? vec : 0.0f))
+            .supplyUniform("layer", ctx -> {
+                ctx.getTexture("layer").bind(1);
+                ctx.uniform().uploadInt(1);
             })
+            .build();
+
+    private static final Vector3f ONE = new Vector3f(1,1, 1);
+    public static final Pipeline SOLID = new Pipeline.Builder(LIGHT)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/solid.fs.glsl"))
             .build();
 

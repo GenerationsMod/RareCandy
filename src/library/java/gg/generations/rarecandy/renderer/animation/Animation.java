@@ -66,13 +66,13 @@ public abstract class Animation<T> {
     }
 
     public Matrix4f[] getFrameTransform(AnimationInstance instance) {
-        var boneTransforms = new Matrix4f[this.skeleton.boneArray.length];
+        var boneTransforms = new Matrix4f[this.skeleton.jointSize];
         readNodeHierarchy(instance.getCurrentTime(), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
         return boneTransforms;
     }
 
     public Matrix4f[] getFrameTransform(double secondsPassed) {
-        var boneTransforms = new Matrix4f[this.skeleton.boneArray.length];
+        var boneTransforms = new Matrix4f[this.skeleton.jointSize];
         readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
         return boneTransforms;
     }
@@ -104,12 +104,12 @@ public abstract class Animation<T> {
         }
 
         var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
-        if (bone != null) {
-            int transformId = skeleton.getId(bone);
-            if (Float.isNaN(globalTransform.m00()))
+        if (bone != null && bone.jointId != -1) {
+            if (Float.isNaN(globalTransform.m00())) {
                 globalTransform = parentTransform.mul(bone.lastSuccessfulTransform, new Matrix4f());
+            }
 
-            boneTransforms[transformId] = globalTransform.mul(bone.inversePoseMatrix, new Matrix4f());
+            boneTransforms[bone.jointId] = globalTransform.mul(bone.inversePoseMatrix, new Matrix4f());
         }
 
         for (var child : node.children)

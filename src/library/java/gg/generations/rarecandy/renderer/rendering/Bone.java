@@ -7,14 +7,16 @@ import org.joml.Vector3f;
 
 public class Bone {
     public final String name;
+    public final int jointId;
     public final Matrix4f inversePoseMatrix;
     public final Vector3f posePosition = new Vector3f();
     public final Quaternionf poseRotation = new Quaternionf();
     public final Vector3f poseScale = new Vector3f(1, 1, 1);
     public Matrix4f lastSuccessfulTransform = new Matrix4f().identity();
 
-    public Bone(NodeModel jointNode, Matrix4f inversePoseMatrix) {
+    public Bone(NodeModel jointNode, int jointId, Matrix4f inversePoseMatrix) {
         this.name = jointNode.getName();
+        this.jointId = jointId;
         this.inversePoseMatrix = inversePoseMatrix;
 
         var pos = jointNode.getTranslation();

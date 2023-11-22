@@ -7,26 +7,41 @@ import gg.generations.rarecandy.renderer.rendering.Bone;
 import org.joml.Matrix4f;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Skeleton {
     public final Bone[] boneArray;
     public final Map<String, Bone> boneMap;
     public final ModelNode rootNode;
-    private final SkinModel raw;
 
-    public Skeleton(SkinModel skeleton) {
-        var boneCount = skeleton.getJoints().size();
-        this.raw = skeleton;
+    public final int jointSize;
+    private final SkinModel rawSkin;
+    private final List<NodeModel> rawNodes;
+
+    public Skeleton(List<NodeModel> nodes, SkinModel skeleton) {
+        var boneCount = nodes.size();
+        this.rawSkin = skeleton;
+        this.rawNodes = nodes;
         this.boneArray = new Bone[boneCount];
         this.boneMap = new HashMap<>(boneCount);
         var root = findRoot(skeleton);
         this.rootNode = new ModelNode(root, null);
         var array = new float[16];
 
-        for (var i = 0; i < skeleton.getJoints().size(); i++) {
-            var jointNode = skeleton.getJoints().get(i);
-            var bone = new Bone(jointNode, new Matrix4f().set(skeleton.getInverseBindMatrix(i, array)));
+        jointSize = skeleton.getJoints().size();
+
+        for (var i = 0; i < nodes.size(); i++) {
+            var jointNode = nodes.get(i);
+
+            var id = rawSkin.getJoints().indexOf(jointNode);
+            Matrix4f inverseBindMatrix = null;
+
+            if(id != -1) {
+                inverseBindMatrix = new Matrix4f().set(rawSkin.getInverseBindMatrix(id, array));
+            }
+
+            var bone = new Bone(jointNode, id, inverseBindMatrix);
             this.boneArray[i] = bone;
             this.boneMap.put(jointNode.getName(), bone);
         }
@@ -35,7 +50,7 @@ public class Skeleton {
     private NodeModel findRoot(SkinModel skeleton) {
         var root = skeleton.getJoints().get(0);
 
-        while(root.getParent() != null && skeleton.getJoints().contains(root.getParent())) {
+        while(root.getParent() != null) {
             root = root.getParent();
         }
 
@@ -43,7 +58,7 @@ public class Skeleton {
     }
 
     public Skeleton(Skeleton skeleton) {
-        this(skeleton.raw);
+        this(skeleton.rawNodes, skeleton.rawSkin);
     }
 
     public Bone get(String name) {

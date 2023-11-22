@@ -16,11 +16,20 @@ import java.util.function.Consumer;
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
 
 public class GuiPipelines {
-    private static final Pipeline.Builder BASE = new Pipeline.Builder()
+    private static final Pipeline.Builder ROOT = new Pipeline.Builder()
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
-            .supplyUniform("boneTransforms", ctx -> ctx.uniform().uploadMat4fs(ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION))
+            .supplyUniform("boneTransforms", ctx -> {
+                var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
+                ctx.uniform().uploadMat4fs(mats);
+            });
+
+    public static final Pipeline BONE = new Pipeline.Builder(ROOT)
+            .shader(builtin("animated/bone.vs.glsl"), builtin("animated/bone.fs.glsl"))
+            .build();
+
+    private static final Pipeline.Builder BASE = new Pipeline.Builder(ROOT)
             .supplyUniform("diffuse", ctx -> {
                 ctx.object().getVariant(ctx.instance().variant()).getDiffuseTexture().bind(0);
                 ctx.uniform().uploadInt(0);

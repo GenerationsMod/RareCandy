@@ -3,11 +3,9 @@ package gg.generations.rarecandy.tools.gui;
 import gg.generations.rarecandy.pokeutils.GlbPixelAsset;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.LoggerUtil;
-import gg.generations.rarecandy.renderer.animation.Animation;
-import gg.generations.rarecandy.renderer.animation.AnimationInstance;
-import gg.generations.rarecandy.renderer.animation.GfbAnimation;
-import gg.generations.rarecandy.renderer.animation.GfbAnimationInstance;
+import gg.generations.rarecandy.renderer.animation.*;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
+import gg.generations.rarecandy.renderer.components.BoneMesh;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
@@ -184,6 +182,25 @@ public class RareCandyCanvas extends AWTGLCanvas {
         );
     }
 
+    protected void loadBoneModel(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<BoneMesh>> onFinish) {
+        createBone(renderer, is, onFinish);
+
+//        load(renderer, is, onFinish, AnimatedMeshObject::new);
+    }
+
+    protected void createBone(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<BoneMesh>> onFinish) {
+        var loader = renderer.getLoader();
+        loader.createObject(
+                () -> is,
+                (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {
+                    var glCalls = new ArrayList<Runnable>();
+                    SkeletonLoader.createSkeleton(object, gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, glCalls);
+                    return glCalls;
+                },
+                onFinish
+        );
+    }
+
     private Pipeline getPokemonPipeline(String materialName) {
         if (materialName.equals("transparent")) {
             return GuiPipelines.TRANSPARENT;
@@ -193,7 +210,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public void setAnimation(@NotNull String animation) {
-        var object = loadedModel.objects.get(0);
+        AnimatedMeshObject object = loadedModel.objects.get(0);
 
         if (object.animations != null)
             LoggerUtil.print(animation);
@@ -292,3 +309,4 @@ public class RareCandyCanvas extends AWTGLCanvas {
         }
     }
 }
+

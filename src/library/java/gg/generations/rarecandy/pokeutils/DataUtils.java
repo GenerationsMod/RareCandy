@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -41,6 +42,14 @@ public class DataUtils {
         for (var i = 0; i < javaBuffer.capacity(); i++) {
             directBuffer.put(javaBuffer.get());
         }
+
+        return directBuffer.flip();
+    }
+
+    public static ByteBuffer makeDirect(int[] javaBuffer) {
+        var directBuffer = MemoryUtil.memAlloc(javaBuffer.length);
+
+        Arrays.stream(javaBuffer).forEach(directBuffer::putInt);
 
         return directBuffer.flip();
     }

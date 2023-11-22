@@ -42,6 +42,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ModelLoader {
     private final GltfModelReader reader = new GltfModelReader();
@@ -64,7 +65,7 @@ public class ModelLoader {
         Skeleton skeleton;
 
         if (!gltfModel.getSkinModels().isEmpty()) {
-            skeleton = new Skeleton(gltfModel.getSkinModels().get(0));
+            skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
             animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
             for (var entry : tranmFilesMap.entrySet()) {
@@ -262,7 +263,7 @@ public class ModelLoader {
         });
     }
 
-    private static Vector3f calculateDimensions(GltfModel model) {
+    public static Vector3f calculateDimensions(GltfModel model) {
         var vec = new Vector3f();
         var pos = new Vector3f();
 
@@ -348,7 +349,7 @@ public class ModelLoader {
         }
     }
 
-    private static <T extends MeshObject> void checkForRootTransformation(MultiRenderObject<T> objects, GltfModel gltfModel) {
+    public static <T extends MeshObject> void checkForRootTransformation(MultiRenderObject<T> objects, GltfModel gltfModel) {
         if (gltfModel.getSkinModels().isEmpty()) {
             var node = gltfModel.getNodeModels().get(0);
             while (node.getParent() != null) node = node.getParent();

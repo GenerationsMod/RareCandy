@@ -74,7 +74,6 @@ public class GfbAnimation extends Animation<AnimationT> {
         var animationNodes = new AnimationNode[rawAnimation.getSkeleton().getTracks().length];
 
         if (rawAnimation.getSkeleton() != null) {
-
             for (var track : rawAnimation.getSkeleton().getTracks()) {
                 var node = animationNodes[nodeIdMap.computeIfAbsent(track.getName(), this::newNode)] = new AnimationNode();
 

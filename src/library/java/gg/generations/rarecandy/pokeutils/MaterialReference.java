@@ -109,8 +109,8 @@ public class MaterialReference {
                     } else {
 
                         switch (type) {
-                            case "eye" -> {
-                                shader = "eye";
+                            case "eye", "mouth", "offset" -> {
+                                shader = "offset";
                             }
                             case "transparent" -> {
                                 shader = "transparent";

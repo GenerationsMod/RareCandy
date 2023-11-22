@@ -167,10 +167,6 @@ public class ModelLoader {
             var matMap = reverseMap(variantMaterialMap);
             var hidMap = reverseListMap(variantHideMap);
 
-//            for (NodeModel nodeModel : gltfModel.getSceneModels().get(0).getNodeModels()) {
-//                System.out.println(nodeModel.getName());
-//            }
-
             objects.dimensions.set(calculateDimensions(gltfModel));
 
             for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {

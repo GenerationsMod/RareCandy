@@ -49,7 +49,7 @@ public class GuiPipelines {
             .supplyUniform("eyeOffset", ctx -> {
                 if (ctx.instance() instanceof AnimatedObjectInstance instance) {
                     if (instance.currentAnimation instanceof GfbAnimationInstance gfbAnimation) {
-                        ctx.uniform().uploadVec2f(gfbAnimation.getEyeOffset());
+                        ctx.uniform().uploadVec2f(gfbAnimation.getEyeOffset(ctx.getMaterial().getMaterialName()));
                     }
                     else ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET);
                 }

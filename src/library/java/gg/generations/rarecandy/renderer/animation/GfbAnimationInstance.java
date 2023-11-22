@@ -2,44 +2,32 @@ package gg.generations.rarecandy.renderer.animation;
 
 import org.joml.Vector2f;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class GfbAnimationInstance extends AnimationInstance {
-    private Vector2f eyeOffset;
+    private final Map<String, Vector2f> eyeOffset = new HashMap<>();
 
     public GfbAnimationInstance(GfbAnimation animation) {
         super(animation);
+
+        animation.offsets.keySet().forEach(k -> eyeOffset.put(k, new Vector2f()));
     }
 
     @Override
     public void update(double secondsPassed) {
         super.update(secondsPassed);
 
-        eyeOffset = calcEyeOffset();
+        ((GfbAnimation) animation).offsets.forEach((k, v) -> v.calcOffset(currentTime, eyeOffset.get(k)));
     }
 
-    private Vector2f calcEyeOffset() {
-        var u = calcInterpolatedFloat(currentTime, ((GfbAnimation) animation).eyeOffsetU);
-        var v = calcInterpolatedFloat(currentTime, ((GfbAnimation) animation).eyeOffsetV);
+    public Vector2f getEyeOffset(String name) {
+        var offset = eyeOffset.get(name.replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/);
 
-        return new Vector2f(u, v);
-    }
-
-    public static Float calcInterpolatedFloat(float animTime, TransformStorage<Float> node) {
-        if (node.size() == 1) return 0.0f;
-
-        var offset = findOffset(animTime, node);
-        return offset.value();
-    }
-
-    public static TransformStorage.TimeKey<Float> findOffset(float animTime, TransformStorage<Float> keys) {
-        for (var key : keys) {
-            if (animTime < key.time())
-                return keys.getBefore(key);
+        if(offset == null) {
+            return AnimationController.NO_OFFSET;
+        } else {
+            return offset;
         }
-
-        return keys.get(0);
-    }
-
-    public Vector2f getEyeOffset() {
-        return eyeOffset;
     }
 }

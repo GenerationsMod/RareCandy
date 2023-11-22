@@ -4,15 +4,14 @@ import com.google.gson.*;
 import gg.generations.rarecandy.pokeutils.GFLib.Anim.*;
 import gg.generations.rarecandy.renderer.rendering.Bone;
 import org.apache.commons.compress.utils.Sets;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.OptionalInt;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -22,8 +21,8 @@ import static java.util.stream.Stream.of;
 
 public class GfbAnimation extends Animation<AnimationT> {
 
-    public TransformStorage<Float> eyeOffsetU;
-    public TransformStorage<Float> eyeOffsetV;
+
+    public Map<String, Offset> offsets;
 
     public GfbAnimation(String name, AnimationT rawAnimation, Skeleton skeleton) {
         super(name, FPS_60 - 95, skeleton, rawAnimation);
@@ -46,25 +45,29 @@ public class GfbAnimation extends Animation<AnimationT> {
 
     private void fillEyeOffset(AnimationT rawAnimation) {
 
-
         if(rawAnimation.getMaterial() != null) {
             var material = rawAnimation.getMaterial();
 
-            var map = Arrays.stream(material.getTracks()).filter(a -> a.getName().equals("Eye")).flatMap(a -> of(a.getValues())).collect(Collectors.toMap(ShaderEntryT::getName, ShaderEntryT::getValue));
+            offsets = new HashMap<>();
 
-            eyeOffsetU = new TransformStorage<Float>();
-            eyeOffsetV = new TransformStorage<Float>();
+            for(var track : material.getTracks()) {
+                var trackName = track.getName();
 
-            var uOffset = map.get("ColorUVTranslateU");
-            var vOffset = map.get("ColorUVTranslateV");
+                var uOffset = new TransformStorage<Float>();
+                var vOffset = new TransformStorage<Float>();
 
-            if(uOffset != null) uOffset.getValue().process(eyeOffsetU);
-            else eyeOffsetU.add(0.0, 0.0f);
+                for(var entry : track.getValues()) {
+                    if(entry.getName().equals("ColorUVTranslateU")) {
+                        entry.getValue().getValue().process(uOffset);
+                    } else if(entry.getName().equals("ColorUVTranslateV")) {
+                        entry.getValue().getValue().process(vOffset);
+                    }
+                }
 
-            if(vOffset != null) {
-                vOffset.getValue().process(eyeOffsetV);
-            } else {
-                eyeOffsetV.add(0.0, 0.0f);
+                if(uOffset.size() == 0) uOffset.add(0, 0f);
+                if(vOffset.size() == 0) uOffset.add(0, 0f);
+
+                offsets.put(trackName, new Offset(uOffset, vOffset));
             }
         }
     }
@@ -83,5 +86,30 @@ public class GfbAnimation extends Animation<AnimationT> {
             }
         }
         return animationNodes;
+    }
+
+    public record Offset(TransformStorage<Float> uStorage, TransformStorage<Float> vStorage) {
+        public void calcOffset(float animTime, Vector2f instance) {
+            var u = calcInterpolatedFloat(animTime, uStorage);
+            var v = calcInterpolatedFloat(animTime, vStorage);
+
+            instance.set(u, v);
+        }
+
+        public static Float calcInterpolatedFloat(float animTime, TransformStorage<Float> node) {
+            if (node.size() == 0) return 0.0f;
+
+            var offset = findOffset(animTime, node);
+            return offset.value();
+        }
+
+        public static TransformStorage.TimeKey<Float> findOffset(float animTime, TransformStorage<Float> keys) {
+            for (var key : keys) {
+                if (animTime < key.time())
+                    return keys.getBefore(key);
+            }
+
+            return keys.get(0);
+        }
     }
 }

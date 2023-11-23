@@ -44,11 +44,10 @@ public class GfbAnimation extends Animation<AnimationT> {
     }
 
     private void fillEyeOffset(AnimationT rawAnimation) {
+        offsets = new HashMap<>();
 
         if(rawAnimation.getMaterial() != null) {
             var material = rawAnimation.getMaterial();
-
-            offsets = new HashMap<>();
 
             for(var track : material.getTracks()) {
                 var trackName = track.getName();

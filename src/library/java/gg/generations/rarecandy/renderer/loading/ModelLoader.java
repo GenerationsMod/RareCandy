@@ -82,11 +82,17 @@ public class ModelLoader {
             for (var entry : gfbFileMap.entrySet()) {
                 var name = entry.getKey();
 
-                var gfbAnim = AnimationT.deserializeFromBinary(entry.getValue());
+                try {
+                    var gfbAnim = AnimationT.deserializeFromBinary(entry.getValue());
 
-                if(gfbAnim.getSkeleton() == null) continue;
+                    if (gfbAnim.getSkeleton() == null) continue;
 
-                animations.put(name, new GfbAnimation(name, gfbAnim, new Skeleton(skeleton)));
+                    animations.put(name, new GfbAnimation(name, gfbAnim, new Skeleton(skeleton)));
+                } catch (Exception e) {
+                    System.out.println("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
+//                    e.printStackTrace();
+                }
+
             }
 
             for (var entry : smdFileMap.entrySet()) {

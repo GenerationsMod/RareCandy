@@ -1,7 +1,5 @@
 #version 150 core
 
-#define ambientLight 0.6f
-
 in vec2 texCoord0;
 
 out vec4 outColor;
@@ -41,8 +39,8 @@ vec4 adjust(vec4 color) {
     return color;
 }
 
-vec3 screenBlend(vec3 baseColor, vec3 blendColor, float mask, float intensity) {
-    return 1.0 - (1.0 - baseColor) * (1.0 - blendColor * mask * intensity);
+vec3 emission(vec3 base, vec3 emissionColor, float intensity) {
+    return base + (emissionColor - base) * intensity;
 }
 
 vec4 getColor() {
@@ -50,19 +48,19 @@ vec4 getColor() {
     vec4 layerMasks = adjust(texture(layer, texCoord0));
     vec4 maskColor = adjust(texture(mask, texCoord0));
 
-    vec3 base = mix(vec3(1.0), baseColor1, layerMasks.r);
-    base = mix(base, baseColor2, layerMasks.g);
-    base = mix(base, baseColor3, layerMasks.b);
-    base = mix(base, baseColor4, layerMasks.a);
-    base = mix(base, baseColor5, maskColor.r);
+    vec3 base = mix(color, color * baseColor1, layerMasks.r);
+    base = mix(base, color * baseColor2, layerMasks.g);
+    base = mix(base, color * baseColor3, layerMasks.b);
+    base = mix(base, color * baseColor4, layerMasks.a);
+    base = mix(base, color * baseColor5, maskColor.r);
 
-    base = screenBlend(base, emiColor1, emiIntensity1, layerMasks.r);
-    base = screenBlend(base, emiColor2, emiIntensity2, layerMasks.g);
-    base = screenBlend(base, emiColor3, emiIntensity3, layerMasks.b);
-    base = screenBlend(base, emiColor4, emiIntensity4, layerMasks.a);
-    base = screenBlend(base, emiColor5, emiIntensity5, maskColor.r);
+    base = mix(base, emission(base, emiColor1, emiIntensity1), layerMasks.r);
+    base = mix(base, emission(base, emiColor2, emiIntensity2), layerMasks.g);
+    base = mix(base, emission(base, emiColor3, emiIntensity3), layerMasks.b);
+    base = mix(base, emission(base, emiColor4, emiIntensity4), layerMasks.a);
+    base = mix(base, emission(base, emiColor5, emiIntensity5), maskColor.r);
 
-    return vec4(base, 1.0);
+    return vec4(base, 1);
 }
 
 void main() {

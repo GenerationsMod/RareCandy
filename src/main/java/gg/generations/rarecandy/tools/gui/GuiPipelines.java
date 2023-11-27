@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
+import gg.generations.rarecandy.pokeutils.reader.TextureLoader;
 import gg.generations.rarecandy.pokeutils.tranm.Vec3f;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.GfbAnimation;
@@ -31,7 +32,14 @@ public class GuiPipelines {
 
     private static final Pipeline.Builder BASE = new Pipeline.Builder(ROOT)
             .supplyUniform("diffuse", ctx -> {
-                ctx.object().getVariant(ctx.instance().variant()).getDiffuseTexture().bind(0);
+                var texture = ctx.object().getVariant(ctx.instance().variant()).getDiffuseTexture();
+
+                if(texture == null) {
+                    System.out.println("Error! Can't find %s!".formatted());
+                    texture = TextureLoader.instance().getNuetralFallback();
+                }
+
+                texture.bind(0);
                 ctx.uniform().uploadInt(0);
             })
             .prePostDraw(material -> {
@@ -64,17 +72,32 @@ public class GuiPipelines {
             .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
             .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor3") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
             .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor4") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+            .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor5") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
             .supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
             .supplyUniform("emiColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
             .supplyUniform("emiColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor3") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
             .supplyUniform("emiColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor4") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+            .supplyUniform("emiColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor5") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
             .supplyUniform("emiIntensity1", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity1") instanceof Float vec ? vec : 0.0f))
             .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity2") instanceof Float vec ? vec : 0.0f))
             .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity3") instanceof Float vec ? vec : 0.0f))
             .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity4") instanceof Float vec ? vec : 0.0f))
+            .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity5") instanceof Float vec ? vec : 0.0f))
             .supplyUniform("layer", ctx -> {
-                ctx.getTexture("layer").bind(1);
+                var texture = ctx.getTexture("layer");
+
+                if(texture == null) texture = TextureLoader.instance().getDarkFallback();
+
+
+                texture.bind(1);
                 ctx.uniform().uploadInt(1);
+            }).supplyUniform("mask", ctx -> {
+                var texture = ctx.getTexture("mask");
+
+                if(texture == null) texture = TextureLoader.instance().getDarkFallback();
+
+                texture.bind(2);
+                ctx.uniform().uploadInt(2);
             })
             .build();
 
@@ -86,7 +109,12 @@ public class GuiPipelines {
     public static final Pipeline MASKED = new Pipeline.Builder(LIGHT)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/masked.fs.glsl"))
             .supplyUniform("mask", ctx -> {
-                ctx.object().getVariant(ctx.instance().variant()).getTexture("mask").bind(1);
+
+                var texture = ctx.getTexture("mask");
+
+                if(texture == null) texture = TextureLoader.instance().getBrightFallback();
+
+                texture.bind(1);
                 ctx.uniform().uploadInt(1);
             })
             .supplyUniform("color", ctx -> {

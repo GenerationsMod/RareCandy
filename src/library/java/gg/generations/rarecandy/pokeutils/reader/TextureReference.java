@@ -34,7 +34,6 @@ public record TextureReference(BufferedImage data, String name) {
         var width = temp.getWidth();
         var height = temp.getHeight();
         pixelData = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 int p = temp.getRGB(x, y);

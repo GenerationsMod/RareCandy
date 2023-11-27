@@ -68,7 +68,14 @@ public class MaterialReference {
             }
         }
 
-        var map = images.entrySet().stream().filter(a -> imageMap.containsKey(a.getValue())).collect(Collectors.toMap(Map.Entry::getKey, a -> imageMap.get(a.getValue())));
+        var map = new HashMap<String, String>();
+        for (Map.Entry<String, String> a : images.entrySet()) {
+            if (imageMap.containsKey(a.getValue())) {
+                if (map.put(a.getKey(), imageMap.get(a.getValue())) != null) {
+                    throw new IllegalStateException("Duplicate key");
+                }
+            }
+        }
         return new Material(name, map, values, cull, blend, shader);
     }
     public static final class Serializer implements JsonDeserializer<MaterialReference> {

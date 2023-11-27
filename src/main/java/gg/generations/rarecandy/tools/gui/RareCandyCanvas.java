@@ -76,10 +76,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
         return data;
     }
 
-    public void openFile(PixelAsset pkFile) {
+    public void openFile(PixelAsset pkFile) throws IOException {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
         renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+        if(loadedModel != null) loadedModel.close();
         loadPokemonModel(renderer, pkFile, model -> {
             var i = 0;
 
@@ -107,6 +108,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         try (var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {
             assert is != null;
+
             load(renderer, new GlbPixelAsset("plane", is.readAllBytes()), model -> {
                 plane = model;
                 renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));

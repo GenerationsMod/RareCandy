@@ -8,6 +8,7 @@ out vec4 outColor;
 
 uniform sampler2D diffuse;
 uniform sampler2D layer;
+uniform sampler2D mask;
 
 uniform float lightLevel;
 
@@ -16,47 +17,55 @@ uniform vec3 baseColor1;
 uniform vec3 baseColor2;
 uniform vec3 baseColor3;
 uniform vec3 baseColor4;
+uniform vec3 baseColor5;
 
 //emi
 uniform vec3 emiColor1;
 uniform vec3 emiColor2;
 uniform vec3 emiColor3;
 uniform vec3 emiColor4;
+uniform vec3 emiColor5;
 uniform float emiIntensity1;
 uniform float emiIntensity2;
 uniform float emiIntensity3;
 uniform float emiIntensity4;
+uniform float emiIntensity5;
 
-vec3 blendMultiply(vec3 base, vec3 blend) {
-    return base*blend;
+
+vec4 adjust(vec4 color) {
+    color.r = clamp(color.r * 2, 0.0, 1.0);
+    color.g = clamp(color.g * 2, 0.0, 1.0);
+    color.b = clamp(color.b * 2, 0.0, 1.0);
+    color.a = clamp(color.a * 2, 0.0, 1.0);
+
+    return color;
 }
 
-vec3 blendMultiply(vec3 base, vec3 blend, float opacity) {
-    return (blendMultiply(base, blend) * opacity + base * (1.0 - opacity));
+vec3 screenBlend(vec3 baseColor, vec3 blendColor, float mask, float intensity) {
+    return 1.0 - (1.0 - baseColor) * (1.0 - blendColor * mask * intensity);
 }
-
 
 vec4 getColor() {
     vec3 color = texture(diffuse, texCoord0).xyz;
-    vec4 layer = texture(layer, texCoord0);
+    vec4 layerMasks = adjust(texture(layer, texCoord0));
+    vec4 maskColor = adjust(texture(mask, texCoord0));
 
-    vec3 base = blendMultiply(color, baseColor1, layer.r);
-    base = blendMultiply(base, baseColor2, layer.g);
-    base = blendMultiply(base, baseColor3, layer.b);
-    base = blendMultiply(base, baseColor4, layer.a);
+    vec3 base = mix(vec3(1.0), baseColor1, layerMasks.r);
+    base = mix(base, baseColor2, layerMasks.g);
+    base = mix(base, baseColor3, layerMasks.b);
+    base = mix(base, baseColor4, layerMasks.a);
+    base = mix(base, baseColor5, maskColor.r);
 
-    vec3 emission = blendMultiply(color, blendMultiply(vec3(1.0), emiColor1, emiIntensity1), layer.r);
-    emission = blendMultiply(emission, blendMultiply(vec3(1.0), emiColor2, emiIntensity2), layer.g);
-    emission = blendMultiply(emission, blendMultiply(vec3(1.0), emiColor3, emiIntensity3), layer.b);
-    emission = blendMultiply(emission, blendMultiply(vec3(1.0), emiColor4, emiIntensity4), layer.a);
+    base = screenBlend(base, emiColor1, emiIntensity1, layerMasks.r);
+    base = screenBlend(base, emiColor2, emiIntensity2, layerMasks.g);
+    base = screenBlend(base, emiColor3, emiIntensity3, layerMasks.b);
+    base = screenBlend(base, emiColor4, emiIntensity4, layerMasks.a);
+    base = screenBlend(base, emiColor5, emiIntensity5, maskColor.r);
 
     return vec4(base, 1.0);
 }
 
 void main() {
     vec4 color = getColor();
-
-//    if (color.a < 0.01) discard;
-
     outColor = vec4(lightLevel, lightLevel, lightLevel, 1.0f) * color;
 }

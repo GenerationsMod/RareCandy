@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -137,6 +138,14 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
             if (object instanceof MeshObject mesh) {
                 dimensions.max(mesh.model.dimensions);
             }
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        super.close();
+        for (T object : objects) {
+            object.close();
         }
     }
 }

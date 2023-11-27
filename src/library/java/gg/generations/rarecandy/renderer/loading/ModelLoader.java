@@ -527,12 +527,15 @@ public class ModelLoader {
             var asset = is.get();
             var config = asset.getConfig();
 
+            var images = readImages(asset);
+
+            if(asset.getModelFile() == null) return;
+
             if (config != null) obj.scale = config.scale;
             var model = read(asset);
             var smdAnims = readSmdAnimations(asset);
             var gfbAnims = readGfbAnimations(asset);
             var trAnims = readtrAnimations(asset);
-            var images = readImages(asset);
             var glCalls = objectCreator.getCalls(model, smdAnims, gfbAnims, trAnims, images, config, obj);
             ThreadSafety.runOnContextThread(() -> {
                 glCalls.forEach(Runnable::run);

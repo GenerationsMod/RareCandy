@@ -5,7 +5,6 @@ import gg.generations.rarecandy.renderer.loading.ITexture;
 public abstract class TextureLoader {
     private static TextureLoader instance;
 
-
     public static TextureLoader instance() {
         return instance;
     }
@@ -21,4 +20,11 @@ public abstract class TextureLoader {
     public abstract void remove(String name);
 
     public abstract void clear();
+
+
+    public abstract ITexture getDarkFallback();
+
+    public abstract ITexture getBrightFallback();
+
+    public abstract ITexture getNuetralFallback();
 }

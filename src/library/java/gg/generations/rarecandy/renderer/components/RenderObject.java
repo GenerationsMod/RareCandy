@@ -61,7 +61,9 @@ public abstract class RenderObject implements Closeable {
     @Override
     public void close() throws IOException {
         for (Material a : variants.values()) {
-            a.close();
+            if(a != null) {
+                a.close();
+            }
         }
     }
 }

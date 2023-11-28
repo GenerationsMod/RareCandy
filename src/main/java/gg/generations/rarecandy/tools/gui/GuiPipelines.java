@@ -35,7 +35,7 @@ public class GuiPipelines {
                 var texture = ctx.object().getVariant(ctx.instance().variant()).getDiffuseTexture();
 
                 if(texture == null) {
-                    System.out.println("Error! Can't find %s!".formatted());
+                    System.out.printf("Error! Can't find %s!%n", "diffuse");
                     texture = TextureLoader.instance().getNuetralFallback();
                 }
 

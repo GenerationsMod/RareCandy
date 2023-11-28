@@ -124,10 +124,10 @@ public class MaterialReference {
                                 blend = BlendType.Regular;
                             }
                             case "cull" -> {
-                                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Forward;
+                                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Back;
                             }
                             case "unlit_cull" -> {
-                                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Forward;
+                                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Back;
                                 shader = "unlit";
                             }
                             case "unlit" -> {

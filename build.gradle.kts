@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.4.19-SNAPSHOT"
+version = "2.4.20-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -62,6 +62,8 @@ dependencies {
     shadow(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows"))
     shadow(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
 
+    shadow(implementation("com.thebombzen:jxlatte:1.1.2")!!)
+
     shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.5.26")!!)
 
     //TODO: JT need some funky gradle logic that lets us build a version does and doesn't include gson for the viewer and generations respectively
@@ -69,7 +71,6 @@ dependencies {
 //    shadow(implementation("de.javagl:jgltf-model-builder:2.0.4-SNAPSHOT")!!)
 
 
-    shadow(implementation("com.thebombzen:jxlatte:1.1.2")!!)
 }
 
 tasks {

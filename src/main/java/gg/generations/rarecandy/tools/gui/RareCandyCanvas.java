@@ -33,7 +33,7 @@ import java.util.function.Supplier;
 public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
 
-    private static float lightLevel = 1.0f;
+    private static float lightLevel = 0.6f;
 
     public final Matrix4f viewMatrix = new Matrix4f();
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
@@ -201,14 +201,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 },
                 onFinish
         );
-    }
-
-    private Pipeline getPokemonPipeline(String materialName) {
-        if (materialName.equals("transparent")) {
-            return GuiPipelines.TRANSPARENT;
-        } else {
-            return GuiPipelines.SOLID;
-        }
     }
 
     public void setAnimation(@NotNull String animation) {

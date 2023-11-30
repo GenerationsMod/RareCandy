@@ -120,7 +120,6 @@ public class MaterialReference {
                                 shader = "offset";
                             }
                             case "transparent" -> {
-                                shader = "transparent";
                                 blend = BlendType.Regular;
                             }
                             case "cull" -> {
@@ -128,10 +127,10 @@ public class MaterialReference {
                             }
                             case "unlit_cull" -> {
                                 cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Back;
-                                shader = "unlit";
+                                values.put("useLight", true);
                             }
                             case "unlit" -> {
-                                shader = "unlit";
+                                values.put("useLight", true);
                             }
                         }
                     }

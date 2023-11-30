@@ -10,10 +10,12 @@ uniform sampler2D diffuse;
 
 uniform float lightLevel;
 
+uniform bool useLight;
+
 void main() {
-    vec4 color = texture(diffuse, texCoord0);
+    outColor = texture(diffuse, texCoord0);
 
-    if (color.a < 0.01) discard;
+    if (outColor.a < 0.01) discard;
 
-    outColor = vec4(lightLevel, lightLevel, lightLevel, 1.0f) * color;
+    if(useLight) outColor.xyz *= lightLevel;
 }

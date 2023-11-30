@@ -11,6 +11,7 @@ uniform sampler2D mask;
 uniform vec3 color;
 
 uniform float lightLevel;
+uniform bool useLight;
 
 void main() {
     vec4 baseColor = texture(diffuse, texCoord0);
@@ -20,5 +21,7 @@ void main() {
 
     vec3 color1 = baseColor.xyz * mix(vec3(1.0), color, mask);
 
-    outColor = vec4(vec3(mask), 1.0f);
+    outColor = vec4(vec3(mask), baseColor.a);
+
+    if(useLight) outColor.xyz *= lightLevel;
 }

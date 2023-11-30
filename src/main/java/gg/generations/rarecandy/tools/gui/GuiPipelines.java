@@ -42,6 +42,8 @@ public class GuiPipelines {
                 texture.bind(0);
                 ctx.uniform().uploadInt(0);
             })
+            .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
+            .supplyUniform("useLight", ctx -> ctx.uniform().uploadBoolean(ctx.getValue("useLight") instanceof Boolean bool ? bool : true))
             .prePostDraw(material -> {
                 material.cullType().enable();
                 material.blendType().enable();
@@ -50,10 +52,7 @@ public class GuiPipelines {
                 material.blendType().disable();
             });
 
-    public static final Pipeline.Builder LIGHT = new Pipeline.Builder(BASE)
-            .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()));
-
-    public static final Pipeline EYE = new Pipeline.Builder(LIGHT)
+    public static final Pipeline EYE = new Pipeline.Builder(BASE)
             .supplyUniform("eyeOffset", ctx -> {
                 if (ctx.instance() instanceof AnimatedObjectInstance instance) {
                     if (instance.currentAnimation instanceof GfbAnimationInstance gfbAnimation) {
@@ -66,7 +65,7 @@ public class GuiPipelines {
             .shader(builtin("animated/animated_eye.vs.glsl"), builtin("animated/solid.fs.glsl"))
             .build();
 
-    public static final Pipeline LAYERED = new Pipeline.Builder(LIGHT)
+    public static final Pipeline LAYERED = new Pipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/layered.fs.glsl"))
             .supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
             .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
@@ -102,11 +101,11 @@ public class GuiPipelines {
             .build();
 
     private static final Vector3f ONE = new Vector3f(1,1, 1);
-    public static final Pipeline SOLID = new Pipeline.Builder(LIGHT)
+    public static final Pipeline SOLID = new Pipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/solid.fs.glsl"))
             .build();
 
-    public static final Pipeline MASKED = new Pipeline.Builder(LIGHT)
+    public static final Pipeline MASKED = new Pipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/masked.fs.glsl"))
             .supplyUniform("mask", ctx -> {
 
@@ -123,14 +122,6 @@ public class GuiPipelines {
             })
             .build();
 
-
-    public static final Pipeline TRANSPARENT = new Pipeline.Builder(LIGHT)
-            .shader(builtin("animated/animated.vs.glsl"), builtin("animated/transparent.fs.glsl"))
-            .build();
-
-    public static final Pipeline UNLIT = new Pipeline.Builder(BASE)
-            .shader(builtin("animated/animated.vs.glsl"), builtin("animated/unlit.fs.glsl"))
-            .build();
 
     public static void onInitialize() {
     }

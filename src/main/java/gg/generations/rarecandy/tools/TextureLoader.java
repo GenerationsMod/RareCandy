@@ -12,8 +12,6 @@ import java.util.Map;
 public class TextureLoader extends gg.generations.rarecandy.pokeutils.reader.TextureLoader {
     public static Map<String, Texture> MAP = new HashMap<>();
 
-    private Texture darkFallback = createFallback("dark.png");
-
     private Texture createFallback(String path) {
         try (var is = Pipeline.class.getResourceAsStream("/textures/" + path);) {
             assert is != null;
@@ -22,6 +20,8 @@ public class TextureLoader extends gg.generations.rarecandy.pokeutils.reader.Tex
             throw new RuntimeException(e);
         }
     }
+
+    private Texture darkFallback = createFallback("dark.png");
 
     private Texture neutralFallback = createFallback("neutral.png");
     private Texture brightFallback = createFallback("bright.png");

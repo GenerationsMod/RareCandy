@@ -7,6 +7,7 @@ out vec4 outColor;
 uniform sampler2D diffuse;
 uniform sampler2D layer;
 uniform sampler2D mask;
+uniform sampler2D emission;
 
 uniform float lightLevel;
 uniform bool useLight;
@@ -40,7 +41,7 @@ vec4 adjust(vec4 color) {
     return color;
 }
 
-vec3 emission(vec3 base, vec3 emissionColor, float intensity) {
+vec3 applyEmission(vec3 base, vec3 emissionColor, float intensity) {
     return base + (emissionColor - base) * intensity;
 }
 
@@ -55,11 +56,11 @@ vec4 getColor() {
     base = mix(base, color.rgb * baseColor4, layerMasks.a);
     base = mix(base, color.rgb * baseColor5, maskColor.r);
 
-    base = mix(base, emission(base, emiColor1, emiIntensity1), layerMasks.r);
-    base = mix(base, emission(base, emiColor2, emiIntensity2), layerMasks.g);
-    base = mix(base, emission(base, emiColor3, emiIntensity3), layerMasks.b);
-    base = mix(base, emission(base, emiColor4, emiIntensity4), layerMasks.a);
-    base = mix(base, emission(base, emiColor5, emiIntensity5), maskColor.r);
+    base = mix(base, applyEmission(base, emiColor1, emiIntensity1), layerMasks.r);
+    base = mix(base, applyEmission(base, emiColor2, emiIntensity2), layerMasks.g);
+    base = mix(base, applyEmission(base, emiColor3, emiIntensity3), layerMasks.b);
+    base = mix(base, applyEmission(base, emiColor4, emiIntensity4), layerMasks.a);
+    base = mix(base, applyEmission(base, emiColor5, emiIntensity5), maskColor.r);
 
     return vec4(base, color.a);
 }
@@ -67,5 +68,5 @@ vec4 getColor() {
 void main() {
     outColor = getColor();
 
-    if(useLight) outColor.xyz *= lightLevel;
+    if(useLight) outColor.xyz *= max(texture(emission, texCoord0).r, lightLevel);
 }

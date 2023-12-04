@@ -8,6 +8,7 @@ out vec4 outColor;
 
 uniform sampler2D diffuse;
 uniform sampler2D mask;
+uniform sampler2D emission;
 uniform vec3 color;
 
 uniform float lightLevel;
@@ -23,5 +24,5 @@ void main() {
 
     outColor = vec4(vec3(mask), baseColor.a);
 
-    if(useLight) outColor.xyz *= lightLevel;
+    if(useLight) outColor.xyz *= max(texture(emission, texCoord0).r, lightLevel);
 }

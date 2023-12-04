@@ -1,4 +1,4 @@
-package gg.generations.rarecandy.rarecandy.tools;
+package gg.generations.rarecandy.tools.pokemodding;
 
 import com.google.gson.*;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
@@ -53,7 +53,7 @@ public class AnimationReadout {
                 return null;
             }).create();
     public static void main(String[] args) throws IOException {
-                NativeFileDialog.NFD_Init();
+        NativeFileDialog.NFD_Init();
 
         var chosenFile = DialogueUtils.chooseFile("SMD;smd");
         if(chosenFile != null) {
@@ -74,7 +74,6 @@ public class AnimationReadout {
             for (int i = 0; i < pair.b().size(); i++) {
                 var track = new BoneTrackT();
                 track.setName(pair.b().get(i));
-
                 var node = pair.a()[i];
 
                 track.setRotate(createRotationUnion(node.rotationKeys, pair.a().length));
@@ -82,18 +81,16 @@ public class AnimationReadout {
                 track.setScale(createVectorUnion(node.scaleKeys, pair.a().length));
                 tracks[i] = track;
             }
+
             skeleton.setTracks(tracks);
 
             animation.setSkeleton(skeleton);
-
-            System.out.println();
-
 
             Files.write(Path.of(chosenFile.getFileName().toString().replace("smd", "gfbanm")), animation.serializeToBinary());
         }
     }
 
-    public static void main1(String[] args) throws IOException {
+    public static void gfbanmPrintOut(String[] args) throws IOException {
         NativeFileDialog.NFD_Init();
 
         var chosenFile = DialogueUtils.chooseFile("GFBANM;gfbanm");

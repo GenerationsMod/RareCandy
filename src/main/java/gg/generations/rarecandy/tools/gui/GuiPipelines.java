@@ -42,7 +42,17 @@ public class GuiPipelines {
                 texture.bind(0);
                 ctx.uniform().uploadInt(0);
             })
-            .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
+            .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(0.1f))//RareCandyCanvas.getLightLevel()))
+            .supplyUniform("emission", ctx -> {
+                var texture = ctx.object().getVariant(ctx.instance().variant()).getTexture("emission");
+
+                if(texture == null) {
+                    texture = TextureLoader.instance().getBrightFallback();
+                }
+
+                texture.bind(1);
+                ctx.uniform().uploadInt(1);
+            })
             .supplyUniform("useLight", ctx -> ctx.uniform().uploadBoolean(ctx.getValue("useLight") instanceof Boolean bool ? bool : true))
             .prePostDraw(material -> {
                 material.cullType().enable();
@@ -88,15 +98,15 @@ public class GuiPipelines {
                 if(texture == null) texture = TextureLoader.instance().getDarkFallback();
 
 
-                texture.bind(1);
-                ctx.uniform().uploadInt(1);
+                texture.bind(2);
+                ctx.uniform().uploadInt(2);
             }).supplyUniform("mask", ctx -> {
                 var texture = ctx.getTexture("mask");
 
                 if(texture == null) texture = TextureLoader.instance().getDarkFallback();
 
-                texture.bind(2);
-                ctx.uniform().uploadInt(2);
+                texture.bind(3);
+                ctx.uniform().uploadInt(3);
             })
             .build();
 
@@ -113,8 +123,8 @@ public class GuiPipelines {
 
                 if(texture == null) texture = TextureLoader.instance().getBrightFallback();
 
-                texture.bind(1);
-                ctx.uniform().uploadInt(1);
+                texture.bind(2);
+                ctx.uniform().uploadInt(2);
             })
             .supplyUniform("color", ctx -> {
                 var color = (Vector3f) ctx.object().getMaterial(ctx.instance().variant()).getValue("color");

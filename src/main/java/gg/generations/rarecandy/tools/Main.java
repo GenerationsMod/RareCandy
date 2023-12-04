@@ -1,5 +1,8 @@
 package gg.generations.rarecandy.tools;
 
+import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
+import gg.generations.rarecandy.tools.pokemodding.AnimationReadout;
+import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
 import gg.generations.rarecandy.tools.pkcreator.Convert;
@@ -8,10 +11,12 @@ import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 import gg.generations.rarecandy.tools.swsh.EyeTexture;
 import gg.generations.rarecandy.tools.swsh.LongBoi;
 import gg.generations.rarecandy.tools.swsh.MouthTexture;
+import org.lwjgl.util.nfd.NativeFileDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
@@ -24,9 +29,38 @@ public class Main {
             new Command("eyeFixer (swsh)", "Used to convert all pairs of iris and eye textures in a folder into the format used in Sword and Shield pokemon model eyes", Main::eyeFixer),
             new Command("mouthFixer (swsh)", "Used to convert mouth textures in a folder into the format used in Sword and Shield pokemon model mouth", Main::mouthFixer),
             new Command("longBoi (swsh)", "Used to convert all selected non eye related textures into a long boi (mirrored version of itself) that makes setting up Sword and Shield pokemon models easier the format used in Sword and Shield pokemon model eyes.", Main::longBoi),
-            new Command("Sun Convert (us/sm)", "Experimental converter for a full glb into the new config.json based form.", Main::glbConverter)
+            new Command("Sun Convert (us/sm)", "Experimental converter for a full glb into the new config.json based form.", Main::glbConverter),
+            new Command("Smd to Gfbanm Converter", "Experimental smd to gfbanm converter. (Not recommended for use right now.)", Main::smdToGfbanm),
+            new Command("Gfbanm readout", "Prints out a json readout of a selected gfbanm file.", Main::gfbanmreadout),
+            new Command("Quaterion Swizzle Test", "Used to test the swizzle alogrithm for quaterion packing used storing rotations of gfbanm and tranm animations", Main::quaterionSwizzleTest)
 
     );
+
+    private static void smdToGfbanm(String[] strings) {
+        try {
+            AnimationReadout.main(strings);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void quaterionSwizzleTest(String[] strings) {
+        try {
+            AnimationReadout.main(strings);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private static void gfbanmreadout(String[] args) {
+        try {
+            AnimationReadout.gfbanmPrintOut(args);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static DualOutputStream outStream;
 

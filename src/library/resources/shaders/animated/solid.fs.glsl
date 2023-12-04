@@ -7,6 +7,7 @@ in vec2 texCoord0;
 out vec4 outColor;
 
 uniform sampler2D diffuse;
+uniform sampler2D emission;
 
 uniform float lightLevel;
 
@@ -17,5 +18,5 @@ void main() {
 
     if (outColor.a < 0.01) discard;
 
-    if(useLight) outColor.xyz *= lightLevel;
+    if(useLight) outColor.xyz *= max(texture(emission, texCoord0).r, lightLevel);
 }

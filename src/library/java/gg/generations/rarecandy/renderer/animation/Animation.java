@@ -11,6 +11,7 @@ import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 public abstract class Animation<T> {
     public static final int FPS_60 = 1000;
@@ -28,23 +29,15 @@ public abstract class Animation<T> {
     public float ticksPerSecond;
     public boolean ignoreInstancedTime = false;
 
-    public Animation(String name, float ticksPerSecond, Skeleton skeleton, T item) {
+    public Animation(String name, int ticksPerSecond, Skeleton skeleton, T item) {
         this.name = name;
-        this.ticksPerSecond = ticksPerSecond;
+        this.ticksPerSecond = ticksPerSecond/400f;
         this.skeleton = skeleton;
         this.animationNodes = fillAnimationNodes(item);
         this.animationDuration = findLastKeyTime();
     }
 
     abstract AnimationNode[] fillAnimationNodes(T item);
-
-    private static Vector3f convertArrayToVector3f(float[] array) {
-        return new Vector3f().set(array);
-    }
-
-    private static Quaternionf convertArrayToQuaterionf(float[] array) {
-        return new Quaternionf().set(array[0], array[1], array[2], array[3]);
-    }
 
     private double findLastKeyTime() {
         var duration = 0d;
@@ -61,8 +54,8 @@ public abstract class Animation<T> {
     }
 
     public float getAnimationTime(double secondsPassed) {
-        var ticksPassed = (float) secondsPassed * 400;
-        return (float) (ticksPassed % animationDuration);
+        var ticksPassed = (float) secondsPassed * 400 * 0.5f;
+            return (float) (ticksPassed % animationDuration);
     }
 
     public Matrix4f[] getFrameTransform(AnimationInstance instance) {
@@ -76,6 +69,8 @@ public abstract class Animation<T> {
         readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
         return boneTransforms;
     }
+
+    private static final float[] matrix = new float[16];
 
     protected void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
         var name = node.name;
@@ -91,8 +86,22 @@ public abstract class Animation<T> {
                 var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
                 var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
-                if (bone != null && !Float.isNaN(nodeTransform.m00()))
-                    bone.lastSuccessfulTransform = new Matrix4f(nodeTransform);
+
+//                nodeTransform.get(matrix);
+//
+//                for (int i = 0; i < 16; i++) {
+//                    if(Float.isNaN(matrix[i])) {
+//                        System.out.println("oh no!");
+//                    }
+//                }
+
+                if (bone != null) {
+                    if (this.isNaN(nodeTransform)) {
+                        bone.lastSuccessfulTransform = new Matrix4f(nodeTransform);
+                    } else {
+                        System.out.println(bone.name + " " + "OH no!");
+                    }
+                }
             }
         } else {
             if (bone != null) {
@@ -105,7 +114,7 @@ public abstract class Animation<T> {
 
         var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
         if (bone != null && bone.jointId != -1) {
-            if (Float.isNaN(globalTransform.m00())) {
+            if (isNaN(globalTransform)) {
                 globalTransform = parentTransform.mul(bone.lastSuccessfulTransform, new Matrix4f());
             }
 
@@ -114,6 +123,25 @@ public abstract class Animation<T> {
 
         for (var child : node.children)
             readNodeHierarchy(animTime, child, globalTransform, boneTransforms);
+    }
+
+    private boolean isNaN(Matrix4f nodeTransform) {
+        return !Float.isNaN(nodeTransform.m00())
+                && !Float.isNaN(nodeTransform.m01())
+                && !Float.isNaN(nodeTransform.m02())
+                && !Float.isNaN(nodeTransform.m03())
+                && !Float.isNaN(nodeTransform.m00())
+                && !Float.isNaN(nodeTransform.m01())
+                && !Float.isNaN(nodeTransform.m02())
+                && !Float.isNaN(nodeTransform.m03())
+                && !Float.isNaN(nodeTransform.m00())
+                && !Float.isNaN(nodeTransform.m01())
+                && !Float.isNaN(nodeTransform.m02())
+                && !Float.isNaN(nodeTransform.m03())
+                && !Float.isNaN(nodeTransform.m00())
+                && !Float.isNaN(nodeTransform.m01())
+                && !Float.isNaN(nodeTransform.m02())
+                && !Float.isNaN(nodeTransform.m03());
     }
 
     protected int newNode(String nodeName) {
@@ -129,73 +157,13 @@ public abstract class Animation<T> {
         return animationNodes;
     }
 
-    public record SmdBoneStateKey(int time, Vector3f pos, Quaternionf rot) {
-    }
 
     public static class AnimationNode {
         public final TransformStorage<Vector3f> positionKeys = new TransformStorage<>();
         public final TransformStorage<Quaternionf> rotationKeys = new TransformStorage<>();
         public final TransformStorage<Vector3f> scaleKeys = new TransformStorage<>();
 
-        public AnimationNode(List<SmdBoneStateKey> keys) {
-            if (keys.isEmpty()) {
-                positionKeys.add(0, new Vector3f());
-                rotationKeys.add(0, new Quaternionf());
-            } else {
-                for (var key : keys) {
-                    positionKeys.add(key.time(), key.pos());
-                    rotationKeys.add(key.time(), key.rot());
-                }
-            }
-
-            scaleKeys.add(0, new Vector3f(1, 1, 1));
-        }
-
         public AnimationNode() {
-        }
-
-        public AnimationNode(List<AnimationModel.Channel> nodeChannels, NodeModel node) {
-            if (nodeChannels.size() > 3) throw new RuntimeException("More channels than we can handle");
-
-            for (var channel : nodeChannels) {
-                switch (channel.getPath()) {
-                    case "translation" -> {
-                        var timeBuffer = channel.getSampler().getInput().getBufferViewModel().getBufferViewData().asFloatBuffer();
-                        var translationBuffer = channel.getSampler().getOutput().getBufferViewModel().getBufferViewData().asFloatBuffer();
-
-                        for (var i = 0; i < timeBuffer.capacity(); i++) {
-                            positionKeys.add(timeBuffer.get(), new Vector3f(translationBuffer.get(), translationBuffer.get(), translationBuffer.get()));
-                        }
-                    }
-
-                    case "rotation" -> {
-                        var timeBuffer = channel.getSampler().getInput().getBufferViewModel().getBufferViewData().asFloatBuffer();
-                        var rotationBuffer = channel.getSampler().getOutput().getBufferViewModel().getBufferViewData().asFloatBuffer();
-
-                        for (var i = 0; i < timeBuffer.capacity(); i++) {
-                            rotationKeys.add(timeBuffer.get(), new Quaternionf(rotationBuffer.get(), rotationBuffer.get(), rotationBuffer.get(), rotationBuffer.get()));
-                        }
-                    }
-
-                    case "scale" -> {
-                        var timeBuffer = channel.getSampler().getInput().getBufferViewModel().getBufferViewData().asFloatBuffer();
-                        var scaleBuffer = channel.getSampler().getOutput().getBufferViewModel().getBufferViewData().asFloatBuffer();
-
-                        for (var i = 0; i < timeBuffer.capacity(); i++) {
-                            scaleKeys.add(timeBuffer.get(), new Vector3f(scaleBuffer.get(), scaleBuffer.get(), scaleBuffer.get()));
-                        }
-                    }
-
-                    default -> throw new RuntimeException("Unknown Channel Type \"" + channel.getPath() + "\"");
-                }
-            }
-
-            if (positionKeys.size() == 0)
-                positionKeys.add(0, node.getTranslation() != null ? convertArrayToVector3f(node.getTranslation()) : new Vector3f());
-            if (rotationKeys.size() == 0)
-                rotationKeys.add(0, node.getRotation() != null ? convertArrayToQuaterionf(node.getRotation()) : new Quaternionf());
-            if (scaleKeys.size() == 0)
-                scaleKeys.add(0, node.getScale() != null ? convertArrayToVector3f(node.getScale()) : new Vector3f(1, 1, 1));
         }
 
         public TransformStorage.TimeKey<Vector3f> getDefaultPosition() {

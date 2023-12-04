@@ -6,6 +6,8 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 public class TranmUtil {
+    public static final boolean useExperimentalRotation = false;
+
     private static final int[][] QUATERNION_SWIZZLES = {
             new int[]{0, 3, 2, 1}, new int[]{3, 0, 2, 1},
             new int[]{3, 2, 0, 1}, new int[]{3, 2, 1, 0}
@@ -157,5 +159,9 @@ public class TranmUtil {
             if (i < track.framesLength()) frame = track.frames(i);
             vecKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
         }
+    }
+
+    public static Quaternionf unpack(int x, int y, int z) {
+        return useExperimentalRotation ? TranmUtilExperimental.unpack(x, y, z) : packedToQuat((short) x, (short) y, (short) z);
     }
 }

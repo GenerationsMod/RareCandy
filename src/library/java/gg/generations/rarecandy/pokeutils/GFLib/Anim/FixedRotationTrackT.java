@@ -20,7 +20,7 @@ public class FixedRotationTrackT implements TrackProcesser<Quaternionf> {
 
   @Override
   public void process(TransformStorage<Quaternionf> rotationKeys) {
-    rotationKeys.add(0, TranmUtil.packedToQuat((short) co.getX(), (short) co.getY(), (short) co.getZ()));
+    rotationKeys.add(0, TranmUtil.unpack(co.getX(), co.getY(), co.getZ()));
   }
 }
 

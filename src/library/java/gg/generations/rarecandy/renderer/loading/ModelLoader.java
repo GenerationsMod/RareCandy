@@ -66,7 +66,7 @@ public class ModelLoader {
 
         if (!gltfModel.getSkinModels().isEmpty()) {
             skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
-            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null ? (int) (config.animationFpsOverride.getOrDefault(animationModel.getName(), 24) * (16.666666f)) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
             for (var entry : tranmFilesMap.entrySet()) {
                 var name = entry.getKey();
@@ -90,7 +90,7 @@ public class ModelLoader {
                     animations.put(name, new GfbAnimation(name, gfbAnim, new Skeleton(skeleton)));
                 } catch (Exception e) {
                     System.out.println("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
-//                    e.printStackTrace();
+                    e.printStackTrace();
                 }
 
             }
@@ -99,12 +99,7 @@ public class ModelLoader {
                 var key = entry.getKey();
                 var value = entry.getValue();
 
-                for (var block : value.blocks) {
-                    if (block instanceof SkeletonBlock skeletonBlock) {
-                        animations.put(key, new SmdAnimation(key, skeletonBlock, new Skeleton(skeleton), Animation.FPS_24));
-                        break;
-                    }
-                }
+                animations.put(key, new SmdAnimation(key, value, new Skeleton(skeleton), config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(key, 24) : Animation.FPS_24));
             }
         } else {
             skeleton = null;

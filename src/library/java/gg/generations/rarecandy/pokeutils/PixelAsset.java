@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.pokeutils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.jetbrains.annotations.Nullable;
 import org.tukaani.xz.XZInputStream;
@@ -10,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

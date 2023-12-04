@@ -29,7 +29,7 @@ public class Framed8RotationTrackT implements TrackProcesser<Quaternionf> {
     var frames = getFrames();
     for (int i = 0; i < getFrames().length; i++) {
       var vec = getCo()[i];
-      rotationKeys.add(frames[i], TranmUtil.packedToQuat((short) vec.getX(), (short) vec.getY(), (short) vec.getZ()));
+      rotationKeys.add(frames[i], TranmUtil.unpack(vec.getX(), vec.getY(), vec.getZ()));
     }
   }
 }

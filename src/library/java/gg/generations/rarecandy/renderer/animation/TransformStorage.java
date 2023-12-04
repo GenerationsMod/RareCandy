@@ -74,7 +74,7 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
         return keys.size();
     }
 
-    record TimeKey<T>(double time, int idx, T value) implements Comparable<TimeKey<T>> {
+    public record TimeKey<T>(double time, int idx, T value) implements Comparable<TimeKey<T>> {
 
         @Override
         public int compareTo(@NotNull TransformStorage.TimeKey<T> timeKey2) {

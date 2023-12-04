@@ -11,6 +11,8 @@ public class ModelConfig {
     public Map<String, VariantParent> variants;
     public Map<String, HideDuringAnimation> hideDuringAnimation;
 
+    public Map<String, Integer> animationFpsOverride;
+
     public record HideDuringAnimation(boolean blackList, List<String> animations) {
         public static final HideDuringAnimation NONE = new HideDuringAnimation();
 

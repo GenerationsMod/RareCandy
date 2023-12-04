@@ -22,7 +22,7 @@ public class DynamicRotationTrackT implements TrackProcesser<Quaternionf> {
   public void process(TransformStorage<Quaternionf> rotationKeys) {
     for (int i = 0; i < co.length; i++) {
       var vec = co[i];
-      rotationKeys.add(i, TranmUtil.packedToQuat((short) vec.getX(), (short) vec.getY(), (short) vec.getZ()));
+      rotationKeys.add(i, TranmUtil.unpack(vec.getX(), vec.getY(), vec.getZ()));
     }
   }
 }

@@ -13,7 +13,9 @@ public class VectorTrackUnion {
 
   public void setType(byte type) { this.type = type; }
 
-  public TrackProcesser<Vector3f> getValue() { return value; }
+  public TrackProcesser<Vector3f> getValue() {
+    return value;
+  }
 
   public void setValue(TrackProcesser<Vector3f> value) { this.value = value; }
 

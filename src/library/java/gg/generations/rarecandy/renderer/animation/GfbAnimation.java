@@ -79,9 +79,12 @@ public class GfbAnimation extends Animation<AnimationT> {
             for (var track : rawAnimation.getSkeleton().getTracks()) {
                 var node = animationNodes[nodeIdMap.computeIfAbsent(track.getName(), this::newNode)] = new AnimationNode();
 
-                track.getRotate().getValue().process(node.rotationKeys);
-                track.getScale().getValue().process(node.scaleKeys);
-                track.getTranslate().getValue().process(node.positionKeys);
+                if(track.getRotate().getValue() != null) track.getRotate().getValue().process(node.rotationKeys);
+                else node.rotationKeys.add(0, skeleton.boneMap.get(track.getName()).poseRotation);
+                if(track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
+                else node.scaleKeys.add(0, skeleton.boneMap.get(track.getName()).poseScale);
+                if(track.getTranslate().getValue() != null) track.getTranslate().getValue().process(node.positionKeys);
+                else node.positionKeys.add(0, skeleton.boneMap.get(track.getName()).posePosition);
             }
         }
         return animationNodes;

@@ -8,6 +8,7 @@ import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
 import gg.generations.rarecandy.tools.pkcreator.Convert;
 import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
+import gg.generations.rarecandy.tools.pokemodding.QuaternionConverterGUI;
 import gg.generations.rarecandy.tools.swsh.EyeTexture;
 import gg.generations.rarecandy.tools.swsh.LongBoi;
 import gg.generations.rarecandy.tools.swsh.MouthTexture;
@@ -45,11 +46,7 @@ public class Main {
     }
 
     private static void quaterionSwizzleTest(String[] strings) {
-        try {
-            AnimationReadout.main(strings);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        QuaternionConverterGUI.main(strings);
     }
 
 

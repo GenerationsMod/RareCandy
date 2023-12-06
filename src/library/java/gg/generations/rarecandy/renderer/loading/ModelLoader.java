@@ -5,10 +5,9 @@ import de.javagl.jgltf.model.io.GltfModelReader;
 import de.javagl.jgltf.model.v2.MaterialModelV2;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
-import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
-import gg.generations.rarecandy.pokeutils.reader.TextureLoader;
+import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.util.ImageUtils;
 import gg.generations.rarecandy.renderer.ThreadSafety;
@@ -42,7 +41,6 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ModelLoader {
     private final GltfModelReader reader = new GltfModelReader();
@@ -184,7 +182,7 @@ public class ModelLoader {
 
                 var image = ImageUtils.readAsBufferedImage(raw.getImageModel().getImageData());
 
-                TextureLoader.instance().register(id, new TextureReference(image, raw.getImageModel().getName()));
+                ITextureLoader.instance().register(id, new TextureReference(image, raw.getImageModel().getName()));
 
                 return id;
             }));
@@ -547,8 +545,9 @@ public class ModelLoader {
             var key = entry.getKey();
 
             try {
-                var id = asset.modelName + "-" + key;
-                TextureLoader.instance().register(id, TextureReference.read(entry.getValue(), key));
+                var id = asset.name + "-" + key;
+                System.out.println("Rawr: " + id);
+                ITextureLoader.instance().register(id, TextureReference.read(entry.getValue(), key));
 
                 map.put(key, id);
             } catch (IOException e) {

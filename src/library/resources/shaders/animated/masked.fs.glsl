@@ -15,14 +15,12 @@ uniform float lightLevel;
 uniform bool useLight;
 
 void main() {
-    vec4 baseColor = texture(diffuse, texCoord0);
-    if (baseColor.a < 0.01) discard;
+    outColor = texture(diffuse, texCoord0);
+    if (outColor.a < 0.01) discard;
 
     float mask = texture(mask, texCoord0).x;
 
-    vec3 color1 = baseColor.xyz * mix(vec3(1.0), color, mask);
-
-    outColor = vec4(vec3(mask), baseColor.a);
+    outColor.xyz = mix(outColor.xyz, color, mask);
 
     if(useLight) outColor.xyz *= max(texture(emission, texCoord0).r, lightLevel);
 }

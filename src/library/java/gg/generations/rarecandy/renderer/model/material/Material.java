@@ -2,7 +2,7 @@ package gg.generations.rarecandy.renderer.model.material;
 
 import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.CullType;
-import gg.generations.rarecandy.pokeutils.reader.TextureLoader;
+import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.loading.ITexture;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 
@@ -47,7 +47,7 @@ public class Material implements Closeable {
     }
 
     public ITexture getTexture(String imageType) {
-        return TextureLoader.instance().getTexture(images.get(imageType));
+        return ITextureLoader.instance().getTexture(images.get(imageType));
     }
 
     public Object getValue(String valueType) {
@@ -62,7 +62,7 @@ public class Material implements Closeable {
     public void close() throws IOException {
         if(images != null) {
             for (var texture : images.values()) {
-                TextureLoader.instance().remove(texture);
+                if(texture.equals(".")) ITextureLoader.instance().remove(texture);
             }
         }
     }

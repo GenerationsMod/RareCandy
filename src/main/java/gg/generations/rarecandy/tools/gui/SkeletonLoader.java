@@ -2,41 +2,13 @@ package gg.generations.rarecandy.tools.gui;
 
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.NodeModel;
-import de.javagl.jgltf.model.io.Buffers;
-import de.javagl.jgltf.model.v2.MaterialModelV2;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
-import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import gg.generations.rarecandy.pokeutils.*;
-import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
-import gg.generations.rarecandy.pokeutils.reader.TextureLoader;
-import gg.generations.rarecandy.pokeutils.reader.TextureReference;
-import gg.generations.rarecandy.pokeutils.util.ImageUtils;
-import gg.generations.rarecandy.renderer.animation.*;
-import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.BoneMesh;
-import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
-import gg.generations.rarecandy.renderer.model.GLModel;
-import gg.generations.rarecandy.renderer.model.MeshDrawCommand;
-import gg.generations.rarecandy.renderer.model.Variant;
-import gg.generations.rarecandy.renderer.model.material.Material;
 import org.joml.Matrix4f;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import static gg.generations.rarecandy.renderer.loading.ModelLoader.*;
 
 public class SkeletonLoader {
     public static void createSkeleton(MultiRenderObject<BoneMesh> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, byte[]> tranmFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls) {

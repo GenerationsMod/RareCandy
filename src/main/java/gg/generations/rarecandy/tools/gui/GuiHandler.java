@@ -117,7 +117,7 @@ public class GuiHandler implements KeyListener {
 
     public void openAsset(Path filePath) {
         try (var is = Files.newInputStream(filePath)) {
-            initializeAsset(new PixelAsset(is, filePath.toString()), filePath);
+            initializeAsset(new PixelAsset(is, filePath.getFileName().toString()), filePath);
             var title = BASE_TITLE + " - " + filePath.getFileName().toString();
             frame.setTitle(title);
             this.currentTitle = title;

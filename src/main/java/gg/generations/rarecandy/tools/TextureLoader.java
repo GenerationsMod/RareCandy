@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools;
 
+import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.renderer.loading.ITexture;
 import gg.generations.rarecandy.renderer.loading.Texture;
@@ -8,34 +9,23 @@ import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-public class TextureLoader extends gg.generations.rarecandy.pokeutils.reader.TextureLoader {
-    public static Map<String, Texture> MAP = new HashMap<>();
+public class TextureLoader extends ITextureLoader {
+    public static Map<String, ITexture> MAP = new HashMap<>();
 
-    private Texture createFallback(String path) {
-        try (var is = Pipeline.class.getResourceAsStream("/textures/" + path);) {
-            assert is != null;
-            return new Texture(TextureReference.read(is.readAllBytes(), path));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public TextureLoader() {
+        reload();
     }
-
-    private Texture darkFallback = createFallback("dark.png");
-
-    private Texture neutralFallback = createFallback("neutral.png");
-    private Texture brightFallback = createFallback("bright.png");
 
     @Override
     public ITexture getTexture(String name) {
-        var texture = MAP.getOrDefault(name, null);
-
-        return texture != null ? texture.get() : null;
+        return MAP.getOrDefault(name, null);
     }
 
     @Override
-    public void register(String name, TextureReference reference) {
-        MAP.computeIfAbsent(name, s -> new Texture(reference));
+    public void register(String name, ITexture texture) {
+        MAP.computeIfAbsent(name, s -> texture);
     }
 
     @Override
@@ -50,22 +40,22 @@ public class TextureLoader extends gg.generations.rarecandy.pokeutils.reader.Tex
     }
 
     @Override
-    public void clear() {
-        MAP.clear();
+    public TextureReference generateDirectReference(String path) {
+        try (var is = Pipeline.class.getResourceAsStream("/textures/" + path)) {
+            assert is != null;
+            return TextureReference.read(is.readAllBytes(), path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public ITexture getDarkFallback() {
-        return darkFallback.get();
+    protected ITexture loadFromReference(TextureReference reference) {
+        return new Texture(reference);
     }
 
     @Override
-    public ITexture getBrightFallback() {
-        return brightFallback.get();
-    }
-
-    @Override
-    public ITexture getNuetralFallback() {
-        return neutralFallback.get();
+    public Set<String> getTextureEntries() {
+        return MAP.keySet();
     }
 }

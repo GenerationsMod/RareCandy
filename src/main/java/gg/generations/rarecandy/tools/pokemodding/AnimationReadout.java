@@ -203,6 +203,7 @@ public class AnimationReadout {
         }
 
         var animationNodes = new AnimationNode[nodes.size()];
+
         for (var entry : nodes.entrySet()) {
             animationNodes[bonesMap.indexOf(entry.getKey())] = createNode(entry.getValue());
         }

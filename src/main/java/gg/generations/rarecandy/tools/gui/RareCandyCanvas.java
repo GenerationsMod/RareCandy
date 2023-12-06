@@ -34,6 +34,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
 
     private static float lightLevel = 0.4f;
+    private static double time;
 
     public final Matrix4f viewMatrix = new Matrix4f();
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
@@ -74,6 +75,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
         data.majorVersion = 3;
         data.minorVersion = 2;
         return data;
+    }
+
+    public static double getTime() {
+        return time;
     }
 
     public void openFile(PixelAsset pkFile) throws IOException {
@@ -132,9 +137,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
 //            System.out.println("Size: (%s, %s, %s)".formatted(size.x - (size.x % fraciton), size.y - (size.y % fraciton), size.z - (size.z % fraciton))); //TODO: For boundingbox calcuations in generations blocks
         }
 
-        if(lightLevel != previousLightLevel)
+        time = (System.currentTimeMillis() - startTime) / 16000;
 
-        renderer.render(false, (System.currentTimeMillis() - startTime) / 16000);
+        renderer.render(false, time);
         swapBuffers();
 
         if (instances.size() > 1) {

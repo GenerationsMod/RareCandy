@@ -74,6 +74,8 @@ public class MaterialReference {
                 if (map.put(a.getKey(), imageMap.get(a.getValue())) != null) {
                     throw new IllegalStateException("Duplicate key");
                 }
+            } else {
+                map.put(a.getKey(), a.getValue());
             }
         }
         return new Material(name, map, values, cull, blend, shader);
@@ -137,7 +139,7 @@ public class MaterialReference {
                 }
             } else {
                 shader = jsonObject.has("shader") ? jsonObject.getAsJsonPrimitive("shader").getAsString() : "solid";
-                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("blend").getAsString()) : CullType.None;
+                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.None;
                 blend = jsonObject.has("blend") ? BlendType.from(jsonObject.getAsJsonPrimitive("blend").getAsString()) : BlendType.None;
                 images = jsonObject.has("images") ? images(jsonObject.getAsJsonObject("images")) : new HashMap<>();
                 values = jsonObject.has("values") ? values(jsonObject.getAsJsonObject("values")) : new HashMap<>();
@@ -177,7 +179,10 @@ public class MaterialReference {
             } else if(value.isJsonPrimitive()) {
                 if(value.getAsJsonPrimitive().isBoolean()) values.put(key, value.getAsBoolean());
                 else if(value.getAsJsonPrimitive().isNumber()) values.put(key, value.getAsFloat());
-                else if(value.getAsJsonPrimitive().isString()) values.put(key, color(value));
+                else if(value.getAsJsonPrimitive().isString()) {
+                    if(key.equals("cull")) values.put(key, CullType.from(value.getAsString()));
+                    else values.put(key, color(value));
+                }
             } else if(value.isJsonArray()) values.put(key, color(value));
         });
 

@@ -11,7 +11,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.function.Supplier;
 
-public class Texture implements ITexture, Supplier<ITexture> {
+public class Texture implements ITexture {
 
     public final String name;
     public int id;
@@ -27,6 +27,8 @@ public class Texture implements ITexture, Supplier<ITexture> {
     }
 
     public void bind(int slot) {
+        initalized();
+
         assert (slot >= 0 && slot <= 31);
         GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + slot);
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, this.id);
@@ -37,8 +39,7 @@ public class Texture implements ITexture, Supplier<ITexture> {
         GL40.glDeleteTextures(id);
     }
 
-    @Override
-    public ITexture get() {
+    public void initalized() {
         if(!initalized) {
             id = GL11C.glGenTextures();
 
@@ -57,7 +58,5 @@ public class Texture implements ITexture, Supplier<ITexture> {
 
             initalized = true;
         }
-
-        return this;
     }
 }

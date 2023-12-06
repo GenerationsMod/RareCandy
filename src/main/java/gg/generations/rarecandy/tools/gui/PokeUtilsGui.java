@@ -1,8 +1,9 @@
 package gg.generations.rarecandy.tools.gui;
 
 import com.github.weisj.darklaf.LafManager;
-import gg.generations.rarecandy.pokeutils.reader.TextureLoader;
+import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
+import gg.generations.rarecandy.tools.TextureLoader;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 
 import javax.swing.*;
@@ -24,7 +25,7 @@ public class PokeUtilsGui extends JPanel {
     private JMenuItem saveAs;
     private JScrollPane scrollPane1;
     public PokeUtilsGui() {
-        TextureLoader.setInstance(new gg.generations.rarecandy.tools.TextureLoader());
+        ITextureLoader.setInstance(new TextureLoader());
         LafManager.install(LafManager.themeForPreferredStyle(LafManager.getPreferredThemeStyle()));
         initComponents();
         canvasPanel.add(renderingWindow);
@@ -53,6 +54,7 @@ public class PokeUtilsGui extends JPanel {
             case "masked" -> GuiPipelines.MASKED;
             case "offset" -> GuiPipelines.EYE;
             case "layered" -> GuiPipelines.LAYERED;
+            case "paradox" -> GuiPipelines.PARADOX;
             case "bone" -> GuiPipelines.BONE;
             default -> GuiPipelines.SOLID;
         });

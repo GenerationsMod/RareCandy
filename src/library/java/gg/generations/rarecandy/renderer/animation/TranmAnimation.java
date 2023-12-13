@@ -1,13 +1,14 @@
 package gg.generations.rarecandy.renderer.animation;
 
 import gg.generations.rarecandy.pokeutils.tranm.*;
+import org.joml.Vector3f;
 
 import java.util.Objects;
 import java.util.stream.IntStream;
 
 public class TranmAnimation extends Animation<gg.generations.rarecandy.pokeutils.tranm.Animation> {
     public TranmAnimation(String name, gg.generations.rarecandy.pokeutils.tranm.Animation rawAnimation, Skeleton skeleton) {
-        super(name, FPS_60 - 95, skeleton, rawAnimation);
+        super(name, (int) rawAnimation.meta().fps(), skeleton, rawAnimation);
 
         for (var animationNode : getAnimationNodes()) {
             if (animationNode != null) {
@@ -26,16 +27,20 @@ public class TranmAnimation extends Animation<gg.generations.rarecandy.pokeutils
     public AnimationNode[] fillAnimationNodes(gg.generations.rarecandy.pokeutils.tranm.Animation rawAnimation) {
         var animationNodes = new AnimationNode[rawAnimation.anim().bonesLength()]; // BoneGroup
 
-        System.out.println(rawAnimation.anim().initDataLength());
 
-        var initData = IntStream.rangeClosed(0, rawAnimation.anim().initDataLength()).count();
 
         System.out.println(name);
 
         for (int i = 0; i < rawAnimation.anim().bonesVector().length(); i++) {
             var boneAnim = rawAnimation.anim().bonesVector().get(i);
 
-            var node = animationNodes[nodeIdMap.computeIfAbsent(boneAnim.name().replace(".trmdl", ""), this::newNode)] = new AnimationNode();
+            var node = animationNodes[nodeIdMap.computeIfAbsent(boneAnim.name().replace(".trmdl", ""), nodeName -> {
+                var id = newNode(nodeName);
+
+                System.out.println(boneAnim.name() + " " + id);
+                return id;
+            })] = new AnimationNode();
+
 
             switch (boneAnim.rotType()) {
                 case QuatTrack.DynamicQuatTrack ->
@@ -59,15 +64,15 @@ public class TranmAnimation extends Animation<gg.generations.rarecandy.pokeutils
                         TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.scale(new Framed16VectorTrack())), node.scaleKeys);
             }
 
-            switch (boneAnim.transType()) {
-                case VectorTrack.DynamicVectorTrack ->
-                        TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.trans(new DynamicVectorTrack())), node.positionKeys);
-                case VectorTrack.FixedVectorTrack ->
-                        TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.trans(new FixedVectorTrack())), node.positionKeys);
-                case VectorTrack.Framed8VectorTrack ->
-                        TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed8VectorTrack())), node.positionKeys);
-                case VectorTrack.Framed16VectorTrack ->
-                        TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed16VectorTrack())), node.positionKeys);
+            if (!Objects.requireNonNull(boneAnim.name()).equalsIgnoreCase("origin")) {
+                switch (boneAnim.transType()) {
+                    case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.trans(new DynamicVectorTrack())), node.positionKeys);
+                    case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.trans(new FixedVectorTrack())), node.positionKeys);
+                    case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed8VectorTrack())), node.positionKeys);
+                    case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed16VectorTrack())), node.positionKeys);
+                }
+            } else {
+                node.positionKeys.add(0, new Vector3f(0, 0, 0));
             }
         }
 

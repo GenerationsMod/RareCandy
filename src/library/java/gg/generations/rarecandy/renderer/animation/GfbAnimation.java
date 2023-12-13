@@ -25,7 +25,7 @@ public class GfbAnimation extends Animation<AnimationT> {
     public Map<String, Offset> offsets;
 
     public GfbAnimation(String name, AnimationT rawAnimation, Skeleton skeleton) {
-        super(name, FPS_60 - 95, skeleton, rawAnimation);
+        super(name, (int) rawAnimation.getInfo().getFrameRate(), skeleton, rawAnimation);
 
         for (var animationNode : getAnimationNodes()) {
             if (animationNode != null) {
@@ -83,7 +83,7 @@ public class GfbAnimation extends Animation<AnimationT> {
                 else node.rotationKeys.add(0, skeleton.boneMap.get(track.getName()).poseRotation);
                 if(track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
                 else node.scaleKeys.add(0, skeleton.boneMap.get(track.getName()).poseScale);
-                if(track.getTranslate().getValue() != null) track.getTranslate().getValue().process(node.positionKeys);
+                if(track.getTranslate().getValue() != null && !track.getName().equalsIgnoreCase("origin")) track.getTranslate().getValue().process(node.positionKeys);
                 else node.positionKeys.add(0, skeleton.boneMap.get(track.getName()).posePosition);
             }
         }

@@ -20,6 +20,15 @@ public class GuiPipelines {
                 var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
                 ctx.uniform().uploadMat4fs(mats);
             })
+            .supplyUniform("offset", ctx -> {
+                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
+                    if (instance.currentAnimation instanceof GfbAnimationInstance gfbAnimation) {
+                        ctx.uniform().uploadVec2f(gfbAnimation.getEyeOffset(ctx.getMaterial().getMaterialName()));
+                    }
+                    else ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET);
+                }
+                else ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET);
+            })
             .prePostDraw(material -> {
                 material.cullType().enable();
                 material.blendType().enable();
@@ -43,25 +52,16 @@ public class GuiPipelines {
                 texture.bind(0);
                 ctx.uniform().uploadInt(0);
             })
-            .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(0.5f))//RareCandyCanvas.getLightLevel()))
+            .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
             .supplyUniform("emission", ctx -> {
                 var texture = ctx.object().getVariant(ctx.instance().variant()).getTexture("emission");
 
                 if(texture == null) {
-                    texture = ITextureLoader.instance().getBrightFallback();
+                    texture = ITextureLoader.instance().getDarkFallback();
                 }
 
                 texture.bind(1);
                 ctx.uniform().uploadInt(1);
-            })
-            .supplyUniform("offset", ctx -> {
-                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
-                    if (instance.currentAnimation instanceof GfbAnimationInstance gfbAnimation) {
-                        ctx.uniform().uploadVec2f(gfbAnimation.getEyeOffset(ctx.getMaterial().getMaterialName()));
-                    }
-                    else ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET);
-                }
-                else ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET);
             })
             .supplyUniform("useLight", ctx -> ctx.uniform().uploadBoolean(ctx.getValue("useLight") instanceof Boolean bool ? bool : true));
 

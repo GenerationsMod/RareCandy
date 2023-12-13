@@ -126,10 +126,10 @@ public class MaterialReference {
                             }
                             case "unlit_cull" -> {
                                 cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Back;
-                                values.put("useLight", true);
+                                values.put("useLight", false);
                             }
                             case "unlit" -> {
-                                values.put("useLight", true);
+                                values.put("useLight", false);
                             }
                         }
                     }

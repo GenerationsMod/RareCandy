@@ -64,7 +64,7 @@ public class ModelLoader {
 
         if (!gltfModel.getSkinModels().isEmpty()) {
             skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
-            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null ? (int) (config.animationFpsOverride.getOrDefault(animationModel.getName(), 24) * (16.666666f)) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null ? (int) (config.animationFpsOverride.getOrDefault(animationModel.getName(), 60)) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
             for (var entry : tranmFilesMap.entrySet()) {
                 var name = entry.getKey();
@@ -97,7 +97,7 @@ public class ModelLoader {
                 var key = entry.getKey();
                 var value = entry.getValue();
 
-                animations.put(key, new SmdAnimation(key, value, new Skeleton(skeleton), config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(key, 24) : Animation.FPS_24));
+                animations.put(key, new SmdAnimation(key, value, new Skeleton(skeleton), config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(key, 30) : 30));
             }
         } else {
             skeleton = null;

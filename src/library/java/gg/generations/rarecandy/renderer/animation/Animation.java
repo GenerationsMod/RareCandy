@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 public abstract class Animation<T> {
     public static final int FPS_60 = 1000;
     public static final int FPS_24 = 400;
-    public static final int GLB_SPEED = FPS_60;
+    public static final int GLB_SPEED = 60;
     public static BiConsumer<Animation, String> animationModifier = (animation, s) -> {
     };
     public final String name;
@@ -31,7 +31,7 @@ public abstract class Animation<T> {
 
     public Animation(String name, int ticksPerSecond, Skeleton skeleton, T item) {
         this.name = name;
-        this.ticksPerSecond = ticksPerSecond/400f;
+        this.ticksPerSecond = (ticksPerSecond * 16.6666667f) / (float) FPS_60;
         this.skeleton = skeleton;
         this.animationNodes = fillAnimationNodes(item);
         this.animationDuration = findLastKeyTime();
@@ -54,7 +54,7 @@ public abstract class Animation<T> {
     }
 
     public float getAnimationTime(double secondsPassed) {
-        var ticksPassed = (float) secondsPassed * 400 * 0.5f;
+        var ticksPassed = (float) secondsPassed * 400 * ticksPerSecond;
             return (float) (ticksPassed % animationDuration);
     }
 
@@ -88,20 +88,8 @@ public abstract class Animation<T> {
                 var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
 
-//                nodeTransform.get(matrix);
-//
-//                for (int i = 0; i < 16; i++) {
-//                    if(Float.isNaN(matrix[i])) {
-//                        System.out.println("oh no!");
-//                    }
-//                }
-
-                if (bone != null) {
-                    if (this.isNaN(nodeTransform)) {
-                        bone.lastSuccessfulTransform = new Matrix4f(nodeTransform);
-                    } else {
-                        System.out.println(bone.name + " " + "OH no!");
-                    }
+                if (bone != null && this.isNaN(nodeTransform)) {
+                    bone.lastSuccessfulTransform = new Matrix4f(nodeTransform);
                 }
             }
         } else {
@@ -127,22 +115,7 @@ public abstract class Animation<T> {
     }
 
     private boolean isNaN(Matrix4f nodeTransform) {
-        return !Float.isNaN(nodeTransform.m00());
-//                && !Float.isNaN(nodeTransform.m01())
-//                && !Float.isNaN(nodeTransform.m02())
-//                && !Float.isNaN(nodeTransform.m03())
-//                && !Float.isNaN(nodeTransform.m00())
-//                && !Float.isNaN(nodeTransform.m01())
-//                && !Float.isNaN(nodeTransform.m02())
-//                && !Float.isNaN(nodeTransform.m03())
-//                && !Float.isNaN(nodeTransform.m00())
-//                && !Float.isNaN(nodeTransform.m01())
-//                && !Float.isNaN(nodeTransform.m02())
-//                && !Float.isNaN(nodeTransform.m03())
-//                && !Float.isNaN(nodeTransform.m00())
-//                && !Float.isNaN(nodeTransform.m01())
-//                && !Float.isNaN(nodeTransform.m02())
-//                && !Float.isNaN(nodeTransform.m03());
+        return Float.isNaN(nodeTransform.m00());
     }
 
     protected int newNode(String nodeName) {

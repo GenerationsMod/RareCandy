@@ -84,6 +84,7 @@ public abstract class Animation<T> {
             if (animNode != null) {
                 var scale = AnimationMath.calcInterpolatedScaling(animTime, animNode);
                 var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
+
                 var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
 
@@ -126,22 +127,22 @@ public abstract class Animation<T> {
     }
 
     private boolean isNaN(Matrix4f nodeTransform) {
-        return !Float.isNaN(nodeTransform.m00())
-                && !Float.isNaN(nodeTransform.m01())
-                && !Float.isNaN(nodeTransform.m02())
-                && !Float.isNaN(nodeTransform.m03())
-                && !Float.isNaN(nodeTransform.m00())
-                && !Float.isNaN(nodeTransform.m01())
-                && !Float.isNaN(nodeTransform.m02())
-                && !Float.isNaN(nodeTransform.m03())
-                && !Float.isNaN(nodeTransform.m00())
-                && !Float.isNaN(nodeTransform.m01())
-                && !Float.isNaN(nodeTransform.m02())
-                && !Float.isNaN(nodeTransform.m03())
-                && !Float.isNaN(nodeTransform.m00())
-                && !Float.isNaN(nodeTransform.m01())
-                && !Float.isNaN(nodeTransform.m02())
-                && !Float.isNaN(nodeTransform.m03());
+        return !Float.isNaN(nodeTransform.m00());
+//                && !Float.isNaN(nodeTransform.m01())
+//                && !Float.isNaN(nodeTransform.m02())
+//                && !Float.isNaN(nodeTransform.m03())
+//                && !Float.isNaN(nodeTransform.m00())
+//                && !Float.isNaN(nodeTransform.m01())
+//                && !Float.isNaN(nodeTransform.m02())
+//                && !Float.isNaN(nodeTransform.m03())
+//                && !Float.isNaN(nodeTransform.m00())
+//                && !Float.isNaN(nodeTransform.m01())
+//                && !Float.isNaN(nodeTransform.m02())
+//                && !Float.isNaN(nodeTransform.m03())
+//                && !Float.isNaN(nodeTransform.m00())
+//                && !Float.isNaN(nodeTransform.m01())
+//                && !Float.isNaN(nodeTransform.m02())
+//                && !Float.isNaN(nodeTransform.m03());
     }
 
     protected int newNode(String nodeName) {

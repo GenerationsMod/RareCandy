@@ -54,10 +54,7 @@ public class GuiPipelines {
                 texture.bind(1);
                 ctx.uniform().uploadInt(1);
             })
-            .supplyUniform("useLight", ctx -> ctx.uniform().uploadBoolean(ctx.getValue("useLight") instanceof Boolean bool ? bool : true));
-
-    public static final Pipeline EYE = new Pipeline.Builder(BASE)
-            .supplyUniform("eyeOffset", ctx -> {
+            .supplyUniform("offset", ctx -> {
                 if (ctx.instance() instanceof AnimatedObjectInstance instance) {
                     if (instance.currentAnimation instanceof GfbAnimationInstance gfbAnimation) {
                         ctx.uniform().uploadVec2f(gfbAnimation.getEyeOffset(ctx.getMaterial().getMaterialName()));
@@ -66,8 +63,7 @@ public class GuiPipelines {
                 }
                 else ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET);
             })
-            .shader(builtin("animated/animated_eye.vs.glsl"), builtin("animated/solid.fs.glsl"))
-            .build();
+            .supplyUniform("useLight", ctx -> ctx.uniform().uploadBoolean(ctx.getValue("useLight") instanceof Boolean bool ? bool : true));
 
     public static final Pipeline LAYERED = new Pipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/layered.fs.glsl"))

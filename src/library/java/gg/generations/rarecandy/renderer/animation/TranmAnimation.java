@@ -3,6 +3,7 @@ package gg.generations.rarecandy.renderer.animation;
 import gg.generations.rarecandy.pokeutils.tranm.*;
 
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 public class TranmAnimation extends Animation<gg.generations.rarecandy.pokeutils.tranm.Animation> {
     public TranmAnimation(String name, gg.generations.rarecandy.pokeutils.tranm.Animation rawAnimation, Skeleton skeleton) {
@@ -23,21 +24,18 @@ public class TranmAnimation extends Animation<gg.generations.rarecandy.pokeutils
     }
 
     public AnimationNode[] fillAnimationNodes(gg.generations.rarecandy.pokeutils.tranm.Animation rawAnimation) {
-        var animationNodes = new AnimationNode[skeleton.boneMap.size()]; // BoneGroup
+        var animationNodes = new AnimationNode[rawAnimation.anim().bonesLength()]; // BoneGroup
 
-        int trueIndex = -1;
+        System.out.println(rawAnimation.anim().initDataLength());
+
+        var initData = IntStream.rangeClosed(0, rawAnimation.anim().initDataLength()).count();
+
+        System.out.println(name);
 
         for (int i = 0; i < rawAnimation.anim().bonesVector().length(); i++) {
             var boneAnim = rawAnimation.anim().bonesVector().get(i);
-            if(!skeleton.boneMap.containsKey(boneAnim.name())) {
-                continue;
-            }
 
-            trueIndex++;
-
-            nodeIdMap.put(Objects.requireNonNull(boneAnim.name()).replace(".trmdl", ""), trueIndex);
-
-            var node = animationNodes[trueIndex] = new AnimationNode();
+            var node = animationNodes[nodeIdMap.computeIfAbsent(boneAnim.name().replace(".trmdl", ""), this::newNode)] = new AnimationNode();
 
             switch (boneAnim.rotType()) {
                 case QuatTrack.DynamicQuatTrack ->

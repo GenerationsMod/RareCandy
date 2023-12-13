@@ -48,6 +48,8 @@ public class Skeleton {
     }
 
     private NodeModel findRoot(SkinModel skeleton) {
+        if(skeleton.getSkeleton() != null) return skeleton.getSkeleton();
+
         var root = skeleton.getJoints().get(0);
 
         while(root.getParent() != null) {

@@ -18,6 +18,7 @@ out vec3 normal;
 uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 uniform mat4 projectionMatrix;
+uniform vec2 offset;
 
 uniform mat4 boneTransforms[MAX_BONES];
 
@@ -36,7 +37,7 @@ void main() {
     vec4 worldPosition = modelTransform * vec4(positions, 1.0);
 
     normal = (modelMatrix * vec4(normals, 0.0)).xyz;
-    texCoord0 = vec2(texcoords.x, texcoords.y);
+    texCoord0 = vec2(texcoords.x, texcoords.y) + offset;
     gl_Position = worldSpace * worldPosition;
 
     toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;

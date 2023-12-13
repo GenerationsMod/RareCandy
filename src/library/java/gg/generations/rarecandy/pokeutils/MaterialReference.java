@@ -118,9 +118,6 @@ public class MaterialReference {
                     } else {
 
                         switch (type) {
-                            case "eye", "mouth", "offset" -> {
-                                shader = "offset";
-                            }
                             case "transparent" -> {
                                 blend = BlendType.Regular;
                             }

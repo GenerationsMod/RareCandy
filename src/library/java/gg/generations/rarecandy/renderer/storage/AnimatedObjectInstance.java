@@ -23,14 +23,13 @@ public class AnimatedObjectInstance extends ObjectInstance {
     }
 
     public Map<String, Animation> getAnimationsIfAvailable() {
-        var animations = new HashMap<String, Animation>();
 
         try {
             return getAnimatedMesh().animations;
         } catch (Exception ignored) {
         }
 
-        return animations;
+        return new HashMap<String, Animation>();
     }
 
     public AnimatedMeshObject getAnimatedMesh() {

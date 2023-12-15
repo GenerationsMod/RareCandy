@@ -42,46 +42,49 @@ public class GuiPipelines {
             .build();
 
     private static final Pipeline.Builder BASE = new Pipeline.Builder(ROOT)
-            .supplyUniform("diffuse", ctx -> {
-                var texture = ctx.object().getVariant(ctx.instance().variant()).getDiffuseTexture();
+            .configure(GuiPipelines::addDiffuse)
+            .configure(GuiPipelines::addLight);
 
-                if(texture == null) {
-                    texture = ITextureLoader.instance().getNuetralFallback();
-                }
+    private static void addDiffuse(Pipeline.Builder builder) {
+        builder.supplyUniform("diffuse", ctx -> {
+            var texture = ctx.object().getVariant(ctx.instance().variant()).getDiffuseTexture();
 
-                texture.bind(0);
-                ctx.uniform().uploadInt(0);
-            })
-            .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
-            .supplyUniform("emission", ctx -> {
-                var texture = ctx.object().getVariant(ctx.instance().variant()).getTexture("emission");
+            if(texture == null) {
+                texture = ITextureLoader.instance().getNuetralFallback();
+            }
 
-                if(texture == null) {
-                    texture = ITextureLoader.instance().getDarkFallback();
-                }
+            texture.bind(0);
+            ctx.uniform().uploadInt(0);
+        });
+    }
 
-                texture.bind(1);
-                ctx.uniform().uploadInt(1);
-            })
-            .supplyUniform("useLight", ctx -> ctx.uniform().uploadBoolean(ctx.getValue("useLight") instanceof Boolean bool ? bool : true));
+    private static void baseColors(Pipeline.Builder builder) {
+        builder.supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+                .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+                .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor3") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+                .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor4") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+                .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor5") instanceof Vector3f vec ? vec : GuiPipelines.ONE));
+    }
 
-    public static final Pipeline LAYERED = new Pipeline.Builder(BASE)
+    private static void addLight(Pipeline.Builder builder) {
+        builder.supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
+                .supplyUniform("emission", ctx -> {
+                    var texture = ctx.object().getVariant(ctx.instance().variant()).getTexture("emission");
+
+                    if(texture == null) {
+                        texture = ITextureLoader.instance().getDarkFallback();
+                    }
+
+                    texture.bind(1);
+                    ctx.uniform().uploadInt(1);
+                })
+                .supplyUniform("useLight", ctx -> ctx.uniform().uploadBoolean(ctx.getValue("useLight") instanceof Boolean bool ? bool : true));
+    }
+
+    public static final Pipeline.Builder LAYERED_BASE = new Pipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/layered.fs.glsl"))
-            .supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-            .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-            .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor3") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-            .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor4") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-            .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor5") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-            .supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-            .supplyUniform("emiColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-            .supplyUniform("emiColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor3") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-            .supplyUniform("emiColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor4") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-            .supplyUniform("emiColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor5") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-            .supplyUniform("emiIntensity1", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity1") instanceof Float vec ? vec : 0.0f))
-            .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity2") instanceof Float vec ? vec : 0.0f))
-            .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity3") instanceof Float vec ? vec : 0.0f))
-            .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity4") instanceof Float vec ? vec : 0.0f))
-            .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity5") instanceof Float vec ? vec : 0.0f))
+            .configure(GuiPipelines::baseColors)
+            .configure(GuiPipelines::emissionColors)
             .supplyUniform("layer", ctx -> {
                 var texture = ctx.getTexture("layer");
 
@@ -97,8 +100,26 @@ public class GuiPipelines {
 
                 texture.bind(3);
                 ctx.uniform().uploadInt(3);
+            });
+
+    public static final Pipeline LAYERED = new Pipeline.Builder(LAYERED_BASE)
+            .supplyUniform("frame", ctx -> {
+                ctx.uniform().uploadInt(-1);
             })
             .build();
+
+    private static void emissionColors(Pipeline.Builder builder) {
+        builder.supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+                .supplyUniform("emiColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+                .supplyUniform("emiColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor3") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+                .supplyUniform("emiColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor4") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+                .supplyUniform("emiColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor5") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+                .supplyUniform("emiIntensity1", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity1") instanceof Float vec ? vec : 0.0f))
+                .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity2") instanceof Float vec ? vec : 0.0f))
+                .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity3") instanceof Float vec ? vec : 0.0f))
+                .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity4") instanceof Float vec ? vec : 0.0f))
+                .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity5") instanceof Float vec ? vec : 0.0f));
+    }
 
     private static final Vector3f ONE = new Vector3f(1,1, 1);
     public static final Pipeline SOLID = new Pipeline.Builder(BASE)
@@ -132,32 +153,7 @@ public class GuiPipelines {
             })
             .build();
 
-    public static final Pipeline PARADOX = new Pipeline.Builder(ROOT)
-            .shader(builtin("animated/animated.vs.glsl"), builtin("animated/paradox.fs.glsl"))
-            .supplyUniform("backgroundAlb", ctx -> {
-
-                var texture = ctx.getTexture("backgroundAlb");
-
-                if(texture == null) texture = ITextureLoader.instance().getTexture("bright");
-
-                texture.bind(1);
-                ctx.uniform().uploadInt(1);
-            })
-            .supplyUniform("effectMask", ctx -> {
-
-                var texture = ctx.getTexture("effectMask");
-
-                if(texture == null) texture = ITextureLoader.instance().getTexture("paradox_mask");
-
-                texture.bind(2);
-                ctx.uniform().uploadInt(2);
-            })
-            .supplyUniform("backgroundColor", ctx -> {
-                ctx.uniform().uploadVec3f(ctx.getValue("backgroundColor") instanceof Vector3f vec ? vec : GuiPipelines.ONE);
-            })
-            .supplyUniform("effectColor", ctx -> {
-                ctx.uniform().uploadVec3f(ctx.getValue("effectColor") instanceof Vector3f vec ? vec : GuiPipelines.ONE);
-            })
+    public static final Pipeline PARADOX = new Pipeline.Builder(LAYERED_BASE)
             .supplyUniform("frame", ctx -> ctx.uniform().uploadInt((int) ((RareCandyCanvas.getTime() * 200) % 16)))
             .build();
 

@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -44,8 +46,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
     private RareCandy renderer;
     private MultiRenderObject<MeshObject> plane;
 
-    private MultiRenderObject<AnimatedMeshObject> loadedModel;
-    private AnimatedObjectInstance loadedModelInstance;
+    public MultiRenderObject<AnimatedMeshObject> loadedModel;
+    public AnimatedObjectInstance loadedModelInstance;
     private static float previousLightLevel;
 
     public static void setLightLevel(float lightLevel) {
@@ -82,10 +84,17 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public void openFile(PixelAsset pkFile) throws IOException {
+        openFile(pkFile, () -> {});
+    }
+
+    public void openFile(PixelAsset pkFile, Runnable runnable) throws IOException {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
         renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
         if(loadedModel != null) loadedModel.close();
+
+        if(pkFile == null) return;
+
         loadPokemonModel(renderer, pkFile, model -> {
             var i = 0;
 
@@ -96,8 +105,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
             var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
             instance.transformationMatrix().scale(loadedModel.scale);
             loadedModelInstance = renderer.objectManager.add(model, instance);
-
             model.updateDimensions();
+            runnable.run();
         });
     }
 
@@ -231,15 +240,18 @@ public class RareCandyCanvas extends AWTGLCanvas {
         this.addMouseMotionListener(arcballOrbit);
         this.addMouseWheelListener(arcballOrbit);
         this.addMouseListener(arcballOrbit);
+        this.addKeyListener(arcballOrbit);
     }
 
-    public static class ArcballOrbit implements MouseMotionListener, MouseWheelListener, MouseListener {
+    public static class ArcballOrbit implements MouseMotionListener, MouseWheelListener, MouseListener, KeyListener {
         private final Matrix4f viewMatrix;
         private float radius;
         private float angleX;
         private float angleY;
         private int lastX, lastY;
         private float offsetX, offsetY;
+
+        private final Vector3f centerOffset = new Vector3f();
 
         public ArcballOrbit(Matrix4f viewMatrix, float radius, float angleX, float angleY) {
             this.viewMatrix = viewMatrix;
@@ -250,7 +262,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         }
 
         public void update() {
-            viewMatrix.identity().arcball(radius, 0, 0, 0, (angleY + offsetY) * (float) Math.PI * 2f, (angleX + offsetX) * (float) Math.PI * 2f);
+            viewMatrix.identity().arcball(radius, centerOffset.x, centerOffset.y, centerOffset.z, (angleY + offsetY) * (float) Math.PI * 2f, (angleX + offsetX) * (float) Math.PI * 2f);
         }
 
         @Override
@@ -305,6 +317,31 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         @Override
         public void mouseExited(MouseEvent e) {
+        }
+
+        @Override
+        public void keyTyped(KeyEvent e) {
+
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            float lateralStep = 0.001f; // Adjust the step size as needed
+
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_LEFT -> centerOffset.x -= lateralStep;
+                case KeyEvent.VK_RIGHT -> centerOffset.x += lateralStep;
+                case KeyEvent.VK_UP -> centerOffset.z += lateralStep;
+                case KeyEvent.VK_DOWN -> centerOffset.z -= lateralStep;
+                case KeyEvent.VK_PAGE_UP -> centerOffset.y += lateralStep;
+                case KeyEvent.VK_PAGE_DOWN -> centerOffset.y -= lateralStep;
+            }
+
+            update();
+        }
+        @Override
+        public void keyReleased(KeyEvent e) {
+
         }
     }
 }

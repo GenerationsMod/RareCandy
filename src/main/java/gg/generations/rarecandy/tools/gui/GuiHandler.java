@@ -22,7 +22,7 @@ import java.util.List;
 import static gg.generations.rarecandy.renderer.LoggerUtil.print;
 
 public class GuiHandler implements KeyListener {
-    private static final LZMA2Options OPTIONS = new LZMA2Options();
+    public static final LZMA2Options OPTIONS = new LZMA2Options();
     private static final String BASE_TITLE = "Pk Explorer";
     private final PokeUtilsGui gui;
     private final JFrame frame;

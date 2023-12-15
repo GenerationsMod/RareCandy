@@ -11,13 +11,16 @@ import org.tukaani.xz.LZMA2Options;
 import org.tukaani.xz.XZInputStream;
 import org.tukaani.xz.XZOutputStream;
 
+import javax.swing.*;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.util.HashMap;
+import java.util.Map;
 
+import static gg.generations.rarecandy.renderer.LoggerUtil.print;
 import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
 
 /**
@@ -27,22 +30,40 @@ public class PixelConverter {
     private static final LZMA2Options OPTIONS = new LZMA2Options();
 
     public static void convertToPk(Path pkFile, Path output) {
-        try {
-            if (!Files.exists(output)) {
-                Files.createDirectories(output.getParent());
-                Files.createFile(output);
-            }
+        var map = filesToBytes(pkFile);
 
-            try (var xzWriter = new XZOutputStream(Files.newOutputStream(output), OPTIONS)) {
+        try (var xzWriter = new XZOutputStream(Files.newOutputStream(output), OPTIONS)) {
                 try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
-                    tarWriter.putArchiveEntry(new TarArchiveEntry(pkFile, pkFile.getFileName().toString()));
-                    IOUtils.copy(new BufferedInputStream(Files.newInputStream(pkFile)), tarWriter);
-                    tarWriter.closeArchiveEntry();
+                    print(tarWriter.getBytesWritten());
+                    for (var file : map.entrySet()) {
+                        var entry = new TarArchiveEntry(file.getKey());
+                        entry.setSize(file.getValue().length);
+                        tarWriter.putArchiveEntry(entry);
+//                                tarWriter.write(file.getValue());
+                        IOUtils.copy(new BufferedInputStream(new ByteArrayInputStream(file.getValue())), tarWriter);
+                        tarWriter.closeArchiveEntry();
+                    }
+
+                    print(tarWriter.getBytesWritten());
                 }
-            }
         } catch (IOException e) {
             printError(e);
         }
+    }
+
+    public static Map<String, byte[]> filesToBytes(Path dir) {
+        Map<String, byte[]> filesInBytes = new HashMap<>();
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+            for (Path entry : stream) {
+                if (!Files.isDirectory(entry)) {
+                    byte[] fileBytes = Files.readAllBytes(entry);
+                    filesInBytes.put(entry.getFileName().toString(), fileBytes);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return filesInBytes;
     }
 
     public static void main(String[] args) throws IOException {
@@ -70,7 +91,7 @@ public class PixelConverter {
         });
     }
 
-    private static void unpackPk(Path path, Path outputPath) {
+    public static void unpackPk(Path path, Path outputPath) {
         try (var xzReader = new XZInputStream(Files.newInputStream(path))) {
             try (var tarReader = new TarArchiveInputStream(xzReader)) {
                 extractTarArchive(tarReader, outputPath);

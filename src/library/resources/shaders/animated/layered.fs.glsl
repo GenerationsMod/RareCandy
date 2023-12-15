@@ -31,36 +31,55 @@ uniform float emiIntensity3;
 uniform float emiIntensity4;
 uniform float emiIntensity5;
 
+uniform int frame;
+
+float adjustScalar(float color) {
+    return clamp(color * 2, 0.0, 1.0);
+}
 
 vec4 adjust(vec4 color) {
-    color.r = clamp(color.r * 2, 0.0, 1.0);
-    color.g = clamp(color.g * 2, 0.0, 1.0);
-    color.b = clamp(color.b * 2, 0.0, 1.0);
-    color.a = clamp(color.a * 2, 0.0, 1.0);
+//    color.r = adjustScalar(color.r * 2, 0.0, 1.0);
+//    color.g = adjustScalar(color.g * 2, 0.0, 1.0);
+//    color.b = adjustScalar(color.b * 2, 0.0, 1.0);
+//    color.a = adjustScalar(color.a * 2, 0.0, 1.0);
 
-    return color;
+    return clamp(color * 2, 0, 1);
+
+//    return color;
 }
 
 vec3 applyEmission(vec3 base, vec3 emissionColor, float intensity) {
     return base + (emissionColor - base) * intensity;
 }
 
+float getMaskIntensity() {
+    vec2 effectTexCoord = vec2(texCoord0);
+
+    if(frame >= 0) {
+        effectTexCoord *= 0.25;
+        effectTexCoord.x += (frame % 4)/4f;
+        effectTexCoord.y +=  (frame/4)/4f;
+    }
+
+    return texture(mask, effectTexCoord).r;
+}
+
 vec4 getColor() {
     vec4 color = texture(diffuse, texCoord0);
     vec4 layerMasks = adjust(texture(layer, texCoord0));
-    vec4 maskColor = adjust(texture(mask, texCoord0));
+    float maskColor = adjustScalar(getMaskIntensity());
 
     vec3 base = mix(color.rgb, color.rgb * baseColor1, layerMasks.r);
     base = mix(base, color.rgb * baseColor2, layerMasks.g);
     base = mix(base, color.rgb * baseColor3, layerMasks.b);
     base = mix(base, color.rgb * baseColor4, layerMasks.a);
-    base = mix(base, color.rgb * baseColor5, maskColor.r);
+    base = mix(base, color.rgb * baseColor5, maskColor);
 
     base = mix(base, applyEmission(base, emiColor1, emiIntensity1), layerMasks.r);
     base = mix(base, applyEmission(base, emiColor2, emiIntensity2), layerMasks.g);
     base = mix(base, applyEmission(base, emiColor3, emiIntensity3), layerMasks.b);
     base = mix(base, applyEmission(base, emiColor4, emiIntensity4), layerMasks.a);
-    base = mix(base, applyEmission(base, emiColor5, emiIntensity5), maskColor.r);
+    base = mix(base, applyEmission(base, emiColor5, emiIntensity5), maskColor);
 
     return vec4(base, color.a);
 }

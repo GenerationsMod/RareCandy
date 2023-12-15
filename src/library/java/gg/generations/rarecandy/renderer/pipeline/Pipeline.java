@@ -130,5 +130,10 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
 
             return new Pipeline(uniformSuppliers, uniforms, preDrawBatch, postDrawRunBatch, program);
         }
+
+        public Builder configure(Consumer<Builder> consumer) {
+            consumer.accept(this);
+            return this;
+        }
     }
 }

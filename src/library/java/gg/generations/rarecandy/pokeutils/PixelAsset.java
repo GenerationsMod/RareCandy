@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +38,36 @@ public class PixelAsset {
         files.put(modelName, glbFile);
     }
 
+    public PixelAsset(Path path) {
+        this.name = path.getFileName().toString() + ".pk";
+        load(path);
+    }
+
+    public void load(Path dir) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+            for (Path entry : stream) {
+                if (!Files.isDirectory(entry)) {
+
+                    if (entry.getFileName().toString().endsWith(".glb")) this.modelName = entry.getFileName().toString();
+
+                    try {
+                        files.put(entry.getFileName().toString(), Files.readAllBytes(entry));
+                    } catch (IOException e) {
+
+                    }
+                }
+            }
+
+            if (files.containsKey("config.json")) {
+                config = GSON.fromJson(new InputStreamReader(new ByteArrayInputStream(files.get("config.json"))), ModelConfig.class);
+            }
+
+            updateSettings();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public PixelAsset(InputStream is, @Nullable String debugName) {
         this.name = debugName;
 
@@ -42,6 +75,8 @@ public class PixelAsset {
             var tarFile = getTarFile(Objects.requireNonNull(is, "Input Stream is null"));
 
             for (var entry : tarFile.getEntries()) {
+                if(entry.getName().endsWith("/")) continue;
+
                 if (entry.getName().endsWith(".glb")) this.modelName = entry.getName();
 
                 files.put(entry.getName(), tarFile.getInputStream(entry).readAllBytes());
@@ -51,17 +86,17 @@ public class PixelAsset {
                 config = GSON.fromJson(new InputStreamReader(new ByteArrayInputStream(files.get("config.json"))), ModelConfig.class);
             }
 
+            updateSettings();
         } catch (IOException | NullPointerException e) {
             throw new RuntimeException("Failed to load " + debugName, e);
         }
 
-        updateSettings();
     }
 
     public void updateSettings() {
     }
 
-    private TarFile getTarFile(InputStream inputStream) {
+    public static TarFile getTarFile(InputStream inputStream) {
         try {
             var xzInputStream = new XZInputStream(inputStream);
             return new TarFile(xzInputStream.readAllBytes());

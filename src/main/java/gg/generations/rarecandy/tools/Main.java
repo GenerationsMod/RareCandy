@@ -1,6 +1,8 @@
 package gg.generations.rarecandy.tools;
 
 import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
+import gg.generations.rarecandy.pokeutils.Pair;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.tools.pokemodding.AnimationReadout;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
@@ -31,11 +33,31 @@ public class Main {
             new Command("mouthFixer (swsh)", "Used to convert mouth textures in a folder into the format used in Sword and Shield pokemon model mouth", Main::mouthFixer),
             new Command("longBoi (swsh)", "Used to convert all selected non eye related textures into a long boi (mirrored version of itself) that makes setting up Sword and Shield pokemon models easier the format used in Sword and Shield pokemon model eyes.", Main::longBoi),
             new Command("Sun Convert (us/sm)", "Experimental converter for a full glb into the new config.json based form.", Main::glbConverter),
-            new Command("Smd to Gfbanm Converter", "Experimental smd to gfbanm converter. (Not recommended for use right now.)", Main::smdToGfbanm),
-            new Command("Gfbanm readout", "Prints out a json readout of a selected gfbanm file.", Main::gfbanmreadout),
-            new Command("Quaterion Swizzle Test", "Used to test the swizzle alogrithm for quaterion packing used storing rotations of gfbanm and tranm animations", Main::quaterionSwizzleTest)
+            new Command("Model Viewer", "Simplified viewer for opening and reviewing models before packaging", Main::modelViewer)
+            );
 
-    );
+    private static void modelViewer(String[] strings) {
+        NativeFileDialog.NFD_Init();
+
+        new ModelViewer(pairConsumer -> ModelViewer.createFrame("Load pk or folder?", "PK", () -> {
+            var path = DialogueUtils.chooseFile("PK;pk");
+
+            if (path != null) {
+                try (var is = Files.newInputStream(path)) {
+                    return new Pair<>(path, new PixelAsset(is, path.getFileName().toString()));
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            } else {
+                return null;
+            }
+            }, "Folder", () -> {
+            var path = DialogueUtils.chooseFolder();
+
+                return path != null ? new Pair<>(path, new PixelAsset(path)) : null;
+            }, pairConsumer), true);
+
+    }
 
     private static void smdToGfbanm(String[] strings) {
         try {

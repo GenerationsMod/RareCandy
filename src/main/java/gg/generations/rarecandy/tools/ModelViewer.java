@@ -27,6 +27,7 @@ import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
 import static gg.generations.rarecandy.tools.gui.GuiHandler.OPTIONS;
 
 public class ModelViewer extends JFrame {
+    private final boolean moveToTemp;
     private Path path;
     private PixelAsset asset;
 
@@ -40,6 +41,7 @@ public class ModelViewer extends JFrame {
     private final Button loadButton;
 
     public ModelViewer(Consumer<Consumer<Pair<Path, PixelAsset>>> consumer, boolean moveToTemp) {
+        this.moveToTemp = moveToTemp;
         setSize(new Dimension(700, 600));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -188,16 +190,19 @@ public class ModelViewer extends JFrame {
 
 
             if (path != null) {
-                (asset = pair.b()).files.forEach((s, bytes) -> {
-                    try {
-                        System.out.println(s);
-                        Files.write(temp.resolve(s), bytes);
-                    } catch (IOException ex) {
-                        printError(ex);
-                    }
-                });
+                if(moveToTemp) {
 
-                canvas.openFile(asset, this::updateTrees);
+                    (asset = pair.b()).files.forEach((s, bytes) -> {
+                        try {
+                            System.out.println(s);
+                            Files.write(temp.resolve(s), bytes);
+                        } catch (IOException ex) {
+                            printError(ex);
+                        }
+                    });
+
+                    canvas.openFile(asset, this::updateTrees);
+                }
 
                 ModelViewer.this.setTitle("ModelViewer - " + asset.name);
                 loadButton.setLabel("Complete");

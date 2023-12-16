@@ -20,7 +20,7 @@ void main() {
 
     float mask = texture(mask, texCoord0).x;
 
-    outColor.xyz = mix(outColor.xyz, color, mask);
+    outColor.xyz = mix(outColor.xyz, outColor.xyz * color, mask);
 
     if(useLight) outColor.xyz *= max(texture(emission, texCoord0).r, lightLevel);
 }

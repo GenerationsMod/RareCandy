@@ -20,11 +20,11 @@ public class GuiPipelines {
                 var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
                 ctx.uniform().uploadMat4fs(mats);
             })
-            .supplyUniform("uvOffset", ctx -> {
+            .supplyUniform("offset", ctx -> {
                 var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName()) != null ? instance.getOffset(ctx.getMaterial().getMaterialName()) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
                 ctx.uniform().uploadVec2f(offsets.offset());
             })
-            .supplyUniform("uvScale", ctx -> {
+            .supplyUniform("scale", ctx -> {
                 var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName()) != null ? instance.getOffset(ctx.getMaterial().getMaterialName()) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
                 ctx.uniform().uploadVec2f(offsets.scale());
             })

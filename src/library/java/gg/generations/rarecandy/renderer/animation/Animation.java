@@ -165,28 +165,15 @@ public abstract class Animation<T> {
         }
     }
 
-    public record Offset(TransformStorage<Transform> transformStorage) {
-        public void calcOffset(float animTime, Transform instance) {
-            var transform = calcInterpolatedFloat(animTime, transformStorage);
+    public interface Offset {
+        void calcOffset(float animTime, Transform instance);
 
-            instance.offset().set(transform.offset());
-            instance.scale().set(transform.scale());
-        }
-
-        public static Transform calcInterpolatedFloat(float animTime, TransformStorage<Transform> node) {
-            if (node.size() == 0) return AnimationController.NO_OFFSET;
-
-            var offset = findOffset(animTime, node);
-            return offset.value();
-        }
-
-        public static TransformStorage.TimeKey<Transform> findOffset(float animTime, TransformStorage<Transform> keys) {
-            for (var key : keys) {
-                if (animTime < key.time())
-                    return keys.getBefore(key);
+        public static class Default {
+            public static final Default INSTANCE = new Default();
+            void calcOffset(float animTime, Transform instance) {
+                instance.offset().set(0,0);
+                instance.scale().set(1,1);
             }
-
-            return keys.get(0);
         }
     }
 }

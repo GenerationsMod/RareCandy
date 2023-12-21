@@ -37,6 +37,8 @@ public class GfbAnimation extends Animation<AnimationT> {
 
                 var uOffset = new TransformStorage<Float>();
                 var vOffset = new TransformStorage<Float>();
+                var uScale = new TransformStorage<Float>();
+                var vScale = new TransformStorage<Float>();
 
                 for(var entry : track.getValues()) {
                     if(entry.getName().equals("ColorUVTranslateU")) {
@@ -49,13 +51,41 @@ public class GfbAnimation extends Animation<AnimationT> {
                 if(uOffset.size() == 0) uOffset.add(0, 0f);
                 if(vOffset.size() == 0) uOffset.add(0, 0f);
 
-                
-
-                offsets.put(trackName, new Offset(uOffset, vOffset));
+                offsets.put(trackName, new GfbOffset(uOffset, vOffset, uScale, vScale));
             }
         }
 
         return offsets;
+    }
+
+    public static record GfbOffset(TransformStorage<Float> uOffset, TransformStorage<Float> vOffset, TransformStorage<Float> uScale, TransformStorage<Float> vScale) implements Offset {
+        public static <T> T calcInterpolatedFloat(float animTime, TransformStorage<T> node, T defaultVal) {
+            if (node.size() == 0) return defaultVal;
+
+            var offset = findOffset(animTime, node);
+            return offset.value();
+        }
+
+        public static <T> TransformStorage.TimeKey<T> findOffset(float animTime, TransformStorage<T> keys) {
+            for (var key : keys) {
+                if (animTime < key.time())
+                    return keys.getBefore(key);
+            }
+
+            return keys.get(0);
+        }
+
+        @Override
+        public void calcOffset(float animTime, Transform instance) {
+
+            var uOffset = calcInterpolatedFloat(animTime, this.uOffset(), 0f);
+            var vOffset = calcInterpolatedFloat(animTime, this.vOffset(), 0f);
+            var uScale = calcInterpolatedFloat(animTime, this.uScale(), 1f);
+            var vScale = calcInterpolatedFloat(animTime, this.vScale(), 1f);
+
+            instance.offset().set(uOffset, vOffset);
+            instance.scale().set(uScale, vScale);
+        }
     }
 
     public static AnimationNode[] fillAnimationNodes(Animation<AnimationT> animation, AnimationT rawAnimation) {

@@ -9,22 +9,21 @@ import java.util.List;
 
 public class GlbAnimation extends Animation<AnimationModel> {
     public GlbAnimation(AnimationModel rawAnimation, Skeleton skeleton, int speed) {
-        super(rawAnimation.getName(), speed, skeleton, rawAnimation);
+        super(rawAnimation.getName(), speed, skeleton, rawAnimation, GlbAnimation::fillAnimationNodes, Animation::fillOffsets);
 
         animationModifier.accept(this, "glb");
     }
 
-    @Override
-    AnimationNode[] fillAnimationNodes(AnimationModel item) {
-        return fillAnimationNodesGlb(item.getChannels());
+    public static AnimationNode[] fillAnimationNodes(Animation<AnimationModel> animation, AnimationModel item) {
+        return fillAnimationNodesGlb(animation, item.getChannels());
     }
 
-    private AnimationNode[] fillAnimationNodesGlb(List<AnimationModel.Channel> channels) {
+    private static AnimationNode[] fillAnimationNodesGlb(Animation<AnimationModel> animation, List<AnimationModel.Channel> channels) {
         var animationNodes = new AnimationNode[channels.size()];
 
         for (var channel : channels) {
             var node = channel.getNodeModel();
-            animationNodes[nodeIdMap.computeIfAbsent(node.getName(), this::newNode)] = createNode(channels.stream().filter(c -> c.getNodeModel().equals(node)).toList(), node);
+            animationNodes[animation.nodeIdMap.computeIfAbsent(node.getName(), animation::newNode)] = createNode(channels.stream().filter(c -> c.getNodeModel().equals(node)).toList(), node);
         }
 
         return animationNodes;

@@ -3,11 +3,13 @@ package gg.generations.rarecandy.renderer.storage;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
+import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,5 +50,9 @@ public class AnimatedObjectInstance extends ObjectInstance {
     public void changeAnimation(AnimationInstance newAnimation) {
         if (currentAnimation != null) currentAnimation.destroy();
         this.currentAnimation = newAnimation;
+    }
+
+    public Transform getOffset(String material) {
+        return currentAnimation != null ? currentAnimation.getOffset(material) : AnimationController.NO_OFFSET;
     }
 }

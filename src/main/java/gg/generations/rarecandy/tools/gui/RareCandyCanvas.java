@@ -174,7 +174,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 //            System.out.println("Size: (%s, %s, %s)".formatted(size.x - (size.x % fraciton), size.y - (size.y % fraciton), size.z - (size.z % fraciton))); //TODO: For boundingbox calcuations in generations blocks
         }
 
-        time = (System.currentTimeMillis() - startTime) / 16000;
+        time = (System.currentTimeMillis() - startTime) / 1000f;
 
         renderer.render(false, time);
         swapBuffers();
@@ -202,11 +202,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public AnimationInstance createInstance(Animation animation) {
-        if(animation instanceof GfbAnimation gfbAnimation) {
-            return new GfbAnimationInstance(gfbAnimation);
-        } else {
-            return new AnimationInstance(animation);
-        }
+        return new AnimationInstance(animation);
     }
 
     protected void loadPokemonModel(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {

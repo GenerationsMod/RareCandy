@@ -11,7 +11,7 @@ import org.joml.Matrix4f;
 import java.util.*;
 
 public class SkeletonLoader {
-    public static void createSkeleton(MultiRenderObject<BoneMesh> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, byte[]> tranmFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls) {
+    public static void createSkeleton(MultiRenderObject<BoneMesh> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> tranmFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls) {
 //        checkForRootTransformation(objects, gltfModel);
 //        if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
 //

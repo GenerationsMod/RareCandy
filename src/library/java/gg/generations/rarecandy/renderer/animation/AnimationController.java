@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class AnimationController {
     public static final Matrix4f[] NO_ANIMATION = new Matrix4f[220];
-    public static final Vector2f NO_OFFSET = new Vector2f().zero();
+    public static final Transform NO_OFFSET = new Transform();
 
     static {
         var identity = new Matrix4f().identity();
@@ -42,6 +42,7 @@ public class AnimationController {
             if (playingInstance.startTime == -1) playingInstance.startTime = globalSecondsPassed;
             playingInstance.update(globalSecondsPassed);
             playingInstance.matrixTransforms = playingInstance.animation.getFrameTransform(playingInstance);
+            playingInstance.animation.getFrameOffset(playingInstance);
         }
 
         playingInstances.removeAll(instancesToRemove);

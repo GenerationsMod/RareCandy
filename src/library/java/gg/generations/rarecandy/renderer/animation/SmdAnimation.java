@@ -13,12 +13,11 @@ import java.util.stream.Collectors;
 public class SmdAnimation extends Animation<SMDFile> {
 
     public SmdAnimation(String name, SMDFile smdFile, Skeleton bones, int ticksPerSecond) {
-        super(name, ticksPerSecond, bones, smdFile);
+        super(name, ticksPerSecond, bones, smdFile, SmdAnimation::fillAnimationNodes, Animation::fillOffsets);
         animationModifier.accept(this, "smd");
     }
 
-    @Override
-    AnimationNode[] fillAnimationNodes(SMDFile item) {
+    public static AnimationNode[] fillAnimationNodes(Animation<SMDFile> animation, SMDFile item) {
         @NotNull List<SkeletonBlock.@NotNull Keyframe> skeletonBlock = null;
         Map<Integer, String> nodesMap = null;
 
@@ -33,10 +32,10 @@ public class SmdAnimation extends Animation<SMDFile> {
 
         if(skeletonBlock == null || nodesMap == null) throw new RuntimeException("Error!");
 
-        return fillAnimationNodesSmdx(skeletonBlock, nodesMap);
+        return fillAnimationNodesSmdx(animation, skeletonBlock, nodesMap);
     }
 
-    private AnimationNode[] fillAnimationNodesSmdx(@NotNull List<SkeletonBlock.Keyframe> keyframes, Map<Integer, String> nodeMap) {
+    private static AnimationNode[] fillAnimationNodesSmdx(Animation<SMDFile> animation, @NotNull List<SkeletonBlock.Keyframe> keyframes, Map<Integer, String> nodeMap) {
         var nodes = new HashMap<String, List<SmdBoneStateKey>>();
 
         for (var keyframe : keyframes) {
@@ -44,7 +43,7 @@ public class SmdAnimation extends Animation<SMDFile> {
             var states = keyframe.states;
 
             for (var boneState : states) {
-                if (boneState.bone < skeleton.boneArray.length - 1) {
+                if (boneState.bone < animation.skeleton.boneArray.length - 1) {
                     var id = nodeMap.get(boneState.bone);
                     var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
                     list.add(new SmdBoneStateKey(time, new Vector3f(boneState.posX, boneState.posY, boneState.posZ), new Quaternionf().rotateZYX(boneState.rotZ, boneState.rotY, boneState.rotX)));
@@ -56,7 +55,7 @@ public class SmdAnimation extends Animation<SMDFile> {
 
         var animationNodes = new AnimationNode[nodes.size()];
         for (var entry : nodes.entrySet()) {
-            animationNodes[nodeIdMap.computeIfAbsent(entry.getKey(), this::newNode)] = createNode(entry.getValue());
+            animationNodes[animation.nodeIdMap.computeIfAbsent(entry.getKey(), animation::newNode)] = createNode(entry.getValue());
         }
 
         return animationNodes;

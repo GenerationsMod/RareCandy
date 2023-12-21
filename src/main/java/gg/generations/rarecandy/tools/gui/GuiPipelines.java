@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
-import gg.generations.rarecandy.renderer.animation.GfbAnimationInstance;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import org.joml.Vector3f;
@@ -21,14 +20,13 @@ public class GuiPipelines {
                 var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
                 ctx.uniform().uploadMat4fs(mats);
             })
-            .supplyUniform("offset", ctx -> {
-                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
-                    if (instance.currentAnimation instanceof GfbAnimationInstance gfbAnimation) {
-                        ctx.uniform().uploadVec2f(gfbAnimation.getEyeOffset(ctx.getMaterial().getMaterialName()));
-                    }
-                    else ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET);
-                }
-                else ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET);
+            .supplyUniform("uvOffset", ctx -> {
+                var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName()) != null ? instance.getOffset(ctx.getMaterial().getMaterialName()) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
+                ctx.uniform().uploadVec2f(offsets.offset());
+            })
+            .supplyUniform("uvScale", ctx -> {
+                var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName()) != null ? instance.getOffset(ctx.getMaterial().getMaterialName()) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
+                ctx.uniform().uploadVec2f(offsets.scale());
             })
             .prePostDraw(material -> {
                 material.cullType().enable();

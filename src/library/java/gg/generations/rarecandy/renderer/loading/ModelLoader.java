@@ -9,6 +9,7 @@ import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
+import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.util.ImageUtils;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.*;
@@ -42,6 +43,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static gg.generations.rarecandy.pokeutils.tranm.Animation.getRootAsAnimation;
+
 public class ModelLoader {
     private final GltfModelReader reader = new GltfModelReader();
     private final ExecutorService modelLoadingPool;
@@ -50,11 +53,11 @@ public class ModelLoader {
         this.modelLoadingPool = Executors.newFixedThreadPool(2);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, byte[]> tranmFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
-        create2(objects, gltfModel, smdFileMap, gfbFileMap, tranmFilesMap, images, config, glCalls, supplier, Animation.GLB_SPEED);
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
+        create2(objects, gltfModel, smdFileMap, gfbFileMap, trFilesMap, images, config, glCalls, supplier, Animation.GLB_SPEED);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, byte[]> tranmFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
         checkForRootTransformation(objects, gltfModel);
         if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
 
@@ -66,15 +69,12 @@ public class ModelLoader {
             skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
             animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null ? (int) (config.animationFpsOverride.getOrDefault(animationModel.getName(), 60)) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
-            for (var entry : tranmFilesMap.entrySet()) {
+            for (var entry : trFilesMap.entrySet()) {
                 var name = entry.getKey();
-                var buffer = ByteBuffer.wrap(entry.getValue());
+                var tranm = entry.getValue().a() != null ? getRootAsAnimation(ByteBuffer.wrap(entry.getValue().a())) : null;
+                var tracm = entry.getValue().b() != null ? TRACM.getRootAsTRACM(ByteBuffer.wrap(entry.getValue().b())) : null;
 
-                var gfbAnim = gg.generations.rarecandy.pokeutils.tranm.Animation.getRootAsAnimation(buffer);
-
-                if(gfbAnim.anim() == null) continue;
-
-                animations.put(name, new TranmAnimation(name, gfbAnim, new Skeleton(skeleton)));
+                animations.put(name, new TranmAnimation(name, new Pair<>(tranm, tracm), new Skeleton(skeleton)));
             }
 
             for (var entry : gfbFileMap.entrySet()) {
@@ -564,10 +564,41 @@ public class ModelLoader {
                 .collect(Collectors.toMap(this::cleanAnimName, Map.Entry::getValue));
     }
 
-    private Map<String, byte[]> readtrAnimations(PixelAsset asset) {
-        return asset.files.entrySet().stream()
-                .filter(entry -> entry.getKey().endsWith(".tranm"))
-                .collect(Collectors.toMap(this::cleanAnimName, Map.Entry::getValue));
+    private HashMap<String, Pair<byte[], byte[]>> readtrAnimations(PixelAsset asset) {
+        var map = new HashMap<String, Pair<byte[], byte[]>>();
+
+        var list = asset.files.keySet().stream().filter(a -> a.endsWith("tranm") || a.endsWith("tracm")).collect(Collectors.toCollection(ArrayList::new));
+
+        while (!list.isEmpty()) {
+            var a = list.remove(0);
+
+            if (a.endsWith(".tranm")) {
+                var index = list.indexOf(a.replace(".tranm", ".tracm"));
+
+                if (index != -1) {
+                    var b = list.remove(index);
+
+                    map.put(a.replace(".tranm", ""), new Pair<>(asset.files.get(a), asset.files.get(b)));
+                } else {
+                    map.put(a.replace(".tranm", ""), new Pair<>(asset.files.get(a), null));
+                }
+            } else {
+                if (a.endsWith(".tracm")) {
+                    var index = list.indexOf(a.replace(".tracm", ".tranm"));
+
+                    if (index != -1) {
+                        var b = list.remove(index);
+
+                        map.put(a.replace(".tracm", ""), new Pair<>(asset.files.get(b), asset.files.get(a)));
+                    } else {
+                        map.put(a.replace(".tracm", ""), new Pair<>(null, asset.files.get(a)));
+                    }
+                }
+            }
+
+        }
+
+        return map;
     }
 
 

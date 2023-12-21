@@ -90,7 +90,12 @@ public class PixelAssetTree extends JTree {
         List<String> animationStrings = new ArrayList<>();
 
         for (var s : asset.files.keySet()) {
-            if (s.endsWith("tranm") || s.endsWith("gfbanm") || s.endsWith("smd")) animationStrings.add(s);
+            if (s.endsWith("gfbanm") || s.endsWith("smd")) animationStrings.add(s);
+            else if(s.endsWith("tranm") || s.endsWith("tracm")) {
+                if(!animationStrings.contains(s)) {
+                    animationStrings.add(s.replace(".tracm", "").replace(".tranm", ""));
+                }
+            }
             else if (s.endsWith("glb")) {
                 var glbNode = node(s);
                 try {

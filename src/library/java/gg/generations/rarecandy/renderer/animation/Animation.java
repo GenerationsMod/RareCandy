@@ -1,17 +1,15 @@
 package gg.generations.rarecandy.renderer.animation;
 
-import de.javagl.jgltf.model.AnimationModel;
-import de.javagl.jgltf.model.NodeModel;
-import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import gg.generations.rarecandy.pokeutils.ModelNode;
-import gg.generations.rarecandy.pokeutils.tranm.*;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.stream.Stream;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public abstract class Animation<T> {
     public static final int FPS_60 = 1000;
@@ -25,19 +23,23 @@ public abstract class Animation<T> {
     public Map<String, Integer> nodeIdMap = new HashMap<>();
 
     private final AnimationNode[] animationNodes;
+    public Map<String, Offset> offsets;
 
     public float ticksPerSecond;
     public boolean ignoreInstancedTime = false;
 
-    public Animation(String name, int ticksPerSecond, Skeleton skeleton, T item) {
+    public Animation(String name, int ticksPerSecond, Skeleton skeleton, T value, BiFunction<Animation<T>, T, AnimationNode[]> animationNodes, Function<T, Map<String, Offset>> offsets) {
         this.name = name;
-        this.ticksPerSecond = (ticksPerSecond * 16.6666667f) / (float) FPS_60;
+        this.ticksPerSecond = ticksPerSecond;
         this.skeleton = skeleton;
-        this.animationNodes = fillAnimationNodes(item);
+        this.animationNodes = animationNodes.apply(this, value);
+        this.offsets = offsets.apply(value);
         this.animationDuration = findLastKeyTime();
     }
 
-    abstract AnimationNode[] fillAnimationNodes(T item);
+    public static <T> Map<String, GfbAnimation.Offset> fillOffsets(T item) {
+        return new HashMap<>();
+    }
 
     private double findLastKeyTime() {
         var duration = 0d;
@@ -54,7 +56,7 @@ public abstract class Animation<T> {
     }
 
     public float getAnimationTime(double secondsPassed) {
-        var ticksPassed = (float) secondsPassed * 400 * ticksPerSecond;
+        var ticksPassed = (float) secondsPassed * ticksPerSecond;
             return (float) (ticksPassed % animationDuration);
     }
 
@@ -62,6 +64,16 @@ public abstract class Animation<T> {
         var boneTransforms = new Matrix4f[this.skeleton.jointSize];
         readNodeHierarchy(instance.getCurrentTime(), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
         return boneTransforms;
+    }
+
+    public void getFrameOffset(AnimationInstance<?> instance) {
+        this.offsets.forEach((k, v) -> {
+            var offsetInstance = instance.offsets.computeIfAbsent(k, a -> new Transform());
+            offsetInstance.offset().zero();
+            offsetInstance.scale().set(1, 1);
+
+            offsets.get(k).calcOffset(instance.getCurrentTime(), offsetInstance);
+        });
     }
 
     public Matrix4f[] getFrameTransform(double secondsPassed) {
@@ -150,6 +162,31 @@ public abstract class Animation<T> {
 
         public TransformStorage.TimeKey<Vector3f> getDefaultScale() {
             return scaleKeys.get(0);
+        }
+    }
+
+    public record Offset(TransformStorage<Transform> transformStorage) {
+        public void calcOffset(float animTime, Transform instance) {
+            var transform = calcInterpolatedFloat(animTime, transformStorage);
+
+            instance.offset().set(transform.offset());
+            instance.scale().set(transform.scale());
+        }
+
+        public static Transform calcInterpolatedFloat(float animTime, TransformStorage<Transform> node) {
+            if (node.size() == 0) return AnimationController.NO_OFFSET;
+
+            var offset = findOffset(animTime, node);
+            return offset.value();
+        }
+
+        public static TransformStorage.TimeKey<Transform> findOffset(float animTime, TransformStorage<Transform> keys) {
+            for (var key : keys) {
+                if (animTime < key.time())
+                    return keys.getBefore(key);
+            }
+
+            return keys.get(0);
         }
     }
 }

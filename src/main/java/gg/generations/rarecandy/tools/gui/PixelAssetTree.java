@@ -3,9 +3,6 @@ package gg.generations.rarecandy.tools.gui;
 import de.javagl.jgltf.model.NamedModelElement;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
-import gg.generations.modelconfigviewer.ComponentProviderEditor;
-import gg.generations.modelconfigviewer.ModelConfigTree;
-
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellEditor;
@@ -35,19 +32,19 @@ public class PixelAssetTree extends JTree {
         setTransferHandler(new FilesystemTransferHandler());
         setModel(null);
 
-        var renderer = new DefaultTreeCellRenderer() {
-            @Override
-            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-                if (((DefaultMutableTreeNode) value).getUserObject() instanceof ModelConfigTree.ComponentProvider provider)
-                    return provider.getComponent();
-
-                return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-            }
-        };
+//        var renderer = new DefaultTreeCellRenderer() {
+//            @Override
+//            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+//                if (((DefaultMutableTreeNode) value).getUserObject() instanceof ModelConfigTree.ComponentProvider provider)
+//                    return provider.getComponent();
+//
+//                return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+//            }
+//        };
 
         // Create the JTree with custom cell renderer and editor
-        setCellRenderer(renderer);
-        setCellEditor(new DefaultTreeCellEditor(this, renderer, new ComponentProviderEditor()));
+//        setCellRenderer(renderer);
+//        setCellEditor(new DefaultTreeCellEditor(this, renderer, new ComponentProviderEditor()));
 
         addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {

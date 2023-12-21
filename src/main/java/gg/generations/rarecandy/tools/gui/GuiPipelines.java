@@ -8,6 +8,7 @@ import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import org.joml.Vector3f;
 
 import java.io.IOException;
+import java.util.List;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
 
@@ -156,7 +157,6 @@ public class GuiPipelines {
     public static final Pipeline PARADOX = new Pipeline.Builder(LAYERED_BASE)
             .supplyUniform("frame", ctx -> ctx.uniform().uploadInt((int) ((RareCandyCanvas.getTime() * 200) % 16)))
             .build();
-
 
     public static void onInitialize() {
     }

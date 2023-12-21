@@ -154,27 +154,8 @@ public class ModelViewer extends JFrame {
         setVisible(true);
         pack();
         transferFocus();
-        canvas.attachArcBall();
 
-        ITextureLoader.setInstance(new TextureLoader());
-
-        PipelineRegistry.setFunction(s-> switch(s) {
-            case "masked" -> GuiPipelines.MASKED;
-            case "layered" -> GuiPipelines.LAYERED;
-            case "paradox" -> GuiPipelines.PARADOX;
-            case "bone" -> GuiPipelines.BONE;
-            default -> GuiPipelines.SOLID;
-        });
-
-            var renderLoop = new Runnable() {
-                @Override
-                public void run() {
-                    if (canvas.isValid()) canvas.render();
-                    SwingUtilities.invokeLater(this);
-                }
-            };
-
-            SwingUtilities.invokeLater(renderLoop);
+        RareCandyCanvas.setup(canvas);
 
             consumer.accept(this::processPath);
 

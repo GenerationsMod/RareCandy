@@ -13,16 +13,16 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public class MaterialReference {
-    private String parent;
-    private String shader;
+    public String parent;
+    public String shader;
 
-    private CullType cull;
+    public CullType cull;
 
-    private BlendType blend;
+    public BlendType blend;
 
-    private Map<String, String> images;
+    public Map<String, String> images;
 
-    private Map<String, Object> values;
+    public Map<String, Object> values;
 
     protected MaterialReference(String parent, String shader, CullType cull, BlendType blend, Map<String, String> images, Map<String, Object> values) {
         this.parent = parent;

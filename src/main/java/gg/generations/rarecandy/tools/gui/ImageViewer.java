@@ -1,4 +1,4 @@
-package gg.generations.modelconfigviewer;
+package gg.generations.rarecandy.tools.gui;
 
 import javax.swing.*;
 import java.awt.*;

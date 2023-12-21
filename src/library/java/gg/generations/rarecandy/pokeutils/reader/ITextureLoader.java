@@ -30,7 +30,6 @@ public abstract class ITextureLoader {
 
     public void reload() {
         register("dark", generateDirectReference("dark.png"));
-
         register("neutral", generateDirectReference("neutral.png"));
         register("bright", generateDirectReference("bright.png"));
         register("paradox_mask", generateDirectReference("paradox_mask_tiled.png"));

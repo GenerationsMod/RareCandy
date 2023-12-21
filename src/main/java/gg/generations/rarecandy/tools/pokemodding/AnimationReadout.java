@@ -7,6 +7,9 @@ import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import gg.generations.rarecandy.pokeutils.GFLib.Anim.*;
 import gg.generations.rarecandy.pokeutils.Pair;
+import gg.generations.rarecandy.pokeutils.tracm.TRACM;
+import gg.generations.rarecandy.pokeutils.tracm.TrackMaterial;
+import gg.generations.rarecandy.pokeutils.tracm.TrackMaterialAnim;
 import gg.generations.rarecandy.pokeutils.tranm.*;
 import gg.generations.rarecandy.pokeutils.tranm.Animation;
 import gg.generations.rarecandy.pokeutils.tranm.DynamicVectorTrack;
@@ -27,6 +30,7 @@ import org.lwjgl.util.nfd.NativeFileDialog;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -55,38 +59,46 @@ public class AnimationReadout {
     public static void main(String[] args) throws IOException {
         NativeFileDialog.NFD_Init();
 
-        var chosenFile = DialogueUtils.chooseFile("SMD;smd");
+        var chosenFile = DialogueUtils.chooseFile("TRACM;tracm");
         if(chosenFile != null) {
-            var pair = fillAnimationNodes(new SMDTextReader().read(Files.readString(chosenFile)));
+            var tracm = TRACM.getRootAsTRACM(ByteBuffer.wrap(Files.readAllBytes(chosenFile)));
 
-            var animation = new AnimationT();
+            var map = IntStream.range(0, 3).mapToObj(tracm::tracks).map(a -> IntStream.range(0, a.materialAnimation().materialTrackLength()).mapToObj(b -> a.materialAnimation().materialTrack(b)).collect(Collectors.toMap(TrackMaterial::name, b -> IntStream.range(0, b.animValuesLength()).mapToObj(b::animValues).map(TrackMaterialAnim::name).collect(Collectors.toList())))).toList();
 
-            var info = new InfoT();
-            info.setDoesLoop(0);
-            info.setFrameRate(30);
-            info.setKeyFrames(Stream.of(pair.a()).flatMapToDouble(a -> DoubleStream.concat(Stream.of(a.rotationKeys.values).mapToDouble(b -> b.time()), DoubleStream.concat(Stream.of(a.rotationKeys.values).mapToDouble(TransformStorage.TimeKey::time), Stream.of(a.rotationKeys.values).mapToDouble(TransformStorage.TimeKey::time)))).mapToInt(a -> (int) a).max().getAsInt());
-            animation.setInfo(info);
+            System.out.println(map);
 
-            var skeleton = new BoneAnimationT();
+//            var pair = fillAnimationNodes(new SMDTextReader().read(Files.readString(chosenFile)));
 
-            var tracks = new BoneTrackT[pair.a().length];
 
-            for (int i = 0; i < pair.b().size(); i++) {
-                var track = new BoneTrackT();
-                track.setName(pair.b().get(i));
-                var node = pair.a()[i];
 
-                track.setRotate(createRotationUnion(node.rotationKeys, pair.a().length));
-                track.setTranslate(createVectorUnion(node.positionKeys, pair.a().length));
-                track.setScale(createVectorUnion(node.scaleKeys, pair.a().length));
-                tracks[i] = track;
-            }
-
-            skeleton.setTracks(tracks);
-
-            animation.setSkeleton(skeleton);
-
-            Files.write(Path.of(chosenFile.getFileName().toString().replace("smd", "gfbanm")), animation.serializeToBinary());
+//            var animation = new AnimationT();
+//
+//            var info = new InfoT();
+//            info.setDoesLoop(0);
+//            info.setFrameRate(30);
+//            info.setKeyFrames(Stream.of(pair.a()).flatMapToDouble(a -> DoubleStream.concat(Stream.of(a.rotationKeys.values).mapToDouble(b -> b.time()), DoubleStream.concat(Stream.of(a.rotationKeys.values).mapToDouble(TransformStorage.TimeKey::time), Stream.of(a.rotationKeys.values).mapToDouble(TransformStorage.TimeKey::time)))).mapToInt(a -> (int) a).max().getAsInt());
+//            animation.setInfo(info);
+//
+//            var skeleton = new BoneAnimationT();
+//
+//            var tracks = new BoneTrackT[pair.a().length];
+//
+//            for (int i = 0; i < pair.b().size(); i++) {
+//                var track = new BoneTrackT();
+//                track.setName(pair.b().get(i));
+//                var node = pair.a()[i];
+//
+//                track.setRotate(createRotationUnion(node.rotationKeys, pair.a().length));
+//                track.setTranslate(createVectorUnion(node.positionKeys, pair.a().length));
+//                track.setScale(createVectorUnion(node.scaleKeys, pair.a().length));
+//                tracks[i] = track;
+//            }
+//
+//            skeleton.setTracks(tracks);
+//
+//            animation.setSkeleton(skeleton);
+//
+//            Files.write(Path.of(chosenFile.getFileName().toString().replace("smd", "gfbanm")), animation.serializeToBinary());
         }
     }
 

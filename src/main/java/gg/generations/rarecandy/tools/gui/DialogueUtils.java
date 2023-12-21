@@ -71,6 +71,8 @@ public class DialogueUtils {
             var result = NativeFileDialog.NFD_OpenDialog(outPath, filters, (CharSequence) null);
             if (result == NativeFileDialog.NFD_OKAY) {
                 return Paths.get(outPath.getStringUTF8(0));
+            } else {
+                System.out.println("Rawr? " + result);
             }
         } catch (Exception e) {
             e.printStackTrace();

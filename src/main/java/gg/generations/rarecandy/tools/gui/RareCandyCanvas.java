@@ -2,6 +2,7 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.GlbPixelAsset;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.animation.*;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
@@ -9,10 +10,12 @@ import gg.generations.rarecandy.renderer.components.BoneMesh;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.tools.TextureLoader;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -21,6 +24,7 @@ import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 import org.lwjgl.opengl.awt.GLData;
 
+import javax.swing.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -81,6 +85,30 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     public static double getTime() {
         return time;
+    }
+
+    public static void setup(RareCandyCanvas canvas) {
+        canvas.attachArcBall();
+
+        ITextureLoader.setInstance(new TextureLoader());
+
+        PipelineRegistry.setFunction(s-> switch(s) {
+            case "masked" -> GuiPipelines.MASKED;
+            case "layered" -> GuiPipelines.LAYERED;
+            case "paradox" -> GuiPipelines.PARADOX;
+            case "bone" -> GuiPipelines.BONE;
+            default -> GuiPipelines.SOLID;
+        });
+
+        var renderLoop = new Runnable() {
+            @Override
+            public void run() {
+                if (canvas.isValid()) canvas.render();
+                SwingUtilities.invokeLater(this);
+            }
+        };
+
+        SwingUtilities.invokeLater(renderLoop);
     }
 
     public void openFile(PixelAsset pkFile) throws IOException {

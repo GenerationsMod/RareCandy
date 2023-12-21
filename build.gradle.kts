@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.4.26-SNAPSHOT"
+version = "2.4.27-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -16,13 +16,9 @@ sourceSets {
         compileClasspath += main.get().compileClasspath
     }
 
-    val rendering = create("renderer") {
-        compileClasspath += main.get().compileClasspath + assetLoading.output
-    }
-
     main {
-        this.compileClasspath += assetLoading.output + rendering.output
-        this.runtimeClasspath += assetLoading.output + rendering.output
+        this.compileClasspath += assetLoading.output
+        this.runtimeClasspath += assetLoading.output
     }
 }
 
@@ -39,7 +35,7 @@ dependencies {
     shadow(implementation("org.tukaani", "xz", "1.9"))
     shadow(implementation("org.apache.commons", "commons-compress", "1.23.0"))
     shadow(implementation("org.joml", "joml", "1.10.5"))
-    shadow(implementation("de.javagl", "jgltf-model", "2.0.3"))
+    shadow(implementation("de.javagl", "jgltf-model", "2.0.5"))
 
     shadow(implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))!!)
     shadow(implementation("org.lwjgl", "lwjgl"))
@@ -77,20 +73,18 @@ tasks {
     shadowJar {
         archiveBaseName.set("RareCandyTools")
         from(sourceSets.getByName("library").output.classesDirs)
-        from(sourceSets.getByName("library").output.resourcesDir)
+        from(sourceSets.getByName("main").output.resourcesDir)
         manifest.attributes(mapOf("Main-Class" to "gg.generations.rarecandy.tools.Main"))
     }
 
     jar {
+        archiveBaseName.set("RareCandy")
         from(sourceSets.getByName("library").output.classesDirs)
-        from(sourceSets.getByName("library").output.resourcesDir)
+        exclude("src/main/**")
     }
+
 
     build.get().dependsOn(shadowJar)
-
-    processResources {
-        dependsOn("processLibraryResources")
-    }
 }
 
 publishing {

@@ -1,16 +1,16 @@
-package gg.generations.modelconfigviewer;
-
-import gg.generations.rarecandy.pokeutils.MaterialReference;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
-
-public class ConfigEditorGUI extends JFrame {
-
+//package gg.generations.modelconfigviewer;
+//
+//import gg.generations.rarecandy.pokeutils.MaterialReference;
+//
+//import javax.swing.*;
+//import javax.swing.tree.DefaultMutableTreeNode;
+//import javax.swing.tree.DefaultTreeCellRenderer;
+//import java.awt.*;
+//import java.util.HashMap;
+//import java.util.Map;
+//
+//public class ConfigEditorGUI extends JFrame {
+//
 //    private JTree materialsTree;
 //
 //    public ConfigEditorGUI() {
@@ -42,17 +42,17 @@ public class ConfigEditorGUI extends JFrame {
 //            DefaultMutableTreeNode materialNode = new DefaultMutableTreeNode(key);
 //
 //            JPanel panel = new JPanel(new GridLayout(2, 2));
-//            JTextField textureTextField = new JTextField(materialReference.texture(), 10);
-//            JTextField typeTextField = new JTextField(materialReference.type(), 10);
-//
-//            textureTextField.addActionListener(e -> materialReference.setTexture(textureTextField.getText()));
-//
-//            typeTextField.addActionListener(e -> materialReference.setType(typeTextField.getText()));
-//
-//            panel.add(new JLabel("Texture:"));
-//            panel.add(textureTextField);
-//            panel.add(new JLabel("Type:"));
-//            panel.add(typeTextField);
+////            JTextField textureTextField = new JTextField(materialReference.texture(), 10);
+////            JTextField typeTextField = new JTextField(materialReference.type(), 10);
+////
+////            textureTextField.addActionListener(e -> materialReference.setTexture(textureTextField.getText()));
+////
+////            typeTextField.addActionListener(e -> materialReference.setType(typeTextField.getText()));
+////
+////            panel.add(new JLabel("Texture:"));
+////            panel.add(textureTextField);
+////            panel.add(new JLabel("Type:"));
+////            panel.add(typeTextField);
 //
 //            DefaultMutableTreeNode panelNode = new DefaultMutableTreeNode(panel);
 //            materialNode.add(panelNode);
@@ -66,9 +66,9 @@ public class ConfigEditorGUI extends JFrame {
 //    private Map<String, MaterialReference> createSampleMaterials() {
 //        Map<String, MaterialReference> materials = new HashMap<>();
 //
-//        materials.put("Material 1", new MaterialReference("Texture 1", "Type 1"));
-//        materials.put("Material 2", new MaterialReference("Texture 2", "Type 2"));
-//        materials.put("Material 3", new MaterialReference("Texture 3", "Type 3"));
+////        materials.put("Material 1", new MaterialReference("Texture 1", "Type 1"));
+////        materials.put("Material 2", new MaterialReference("Texture 2", "Type 2"));
+////        materials.put("Material 3", new MaterialReference("Texture 3", "Type 3"));
 //
 //        return materials;
 //    }
@@ -94,4 +94,4 @@ public class ConfigEditorGUI extends JFrame {
 //            return renderer;
 //        }
 //    }
-}
+//}

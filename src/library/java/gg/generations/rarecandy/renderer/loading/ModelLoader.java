@@ -546,7 +546,6 @@ public class ModelLoader {
 
             try {
                 var id = asset.name + "-" + key;
-                System.out.println("Rawr: " + id);
                 ITextureLoader.instance().register(id, TextureReference.read(entry.getValue(), key));
 
                 map.put(key, id);

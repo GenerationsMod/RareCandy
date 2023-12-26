@@ -148,7 +148,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClearColor(lightLevel, lightLevel, lightLevel, 1);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        try (var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {
+        try (var is = Pipeline.class.getResourceAsStream("/models/reference.glb")) {
             assert is != null;
 
             load(renderer, new GlbPixelAsset("plane", is.readAllBytes()), model -> {

@@ -67,7 +67,7 @@ public class ModelLoader {
 
         if (!gltfModel.getSkinModels().isEmpty()) {
             skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
-            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null ? (int) (config.animationFpsOverride.getOrDefault(animationModel.getName(), 60)) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(animationModel.getName(), 30) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
             for (var entry : trFilesMap.entrySet()) {
                 var name = entry.getKey();
@@ -254,7 +254,7 @@ public class ModelLoader {
     private static void applyVariant(Map<String, Material> materials, Map<String, Material> matMap, List<String> hideMap, Map<String, VariantDetails> variantMap) {
         variantMap.forEach((k, v) -> {
             matMap.put(k, materials.get(v.material()));
-            if (v.hide()) hideMap.add(k);
+            if (v.hide() != null && v.hide()) hideMap.add(k);
         });
     }
 
@@ -464,7 +464,7 @@ public class ModelLoader {
                 data.getByteOffset());
     }
 
-    private static List<String> getVariants(GltfModel model) {
+    public static List<String> getVariants(GltfModel model) {
         try {
             if (model.getExtensions() == null || model.getExtensions().isEmpty() || !model.getExtensions().containsKey("KHR_materials_variants"))
                 return null;
@@ -483,14 +483,14 @@ public class ModelLoader {
         }
     }
 
-    private static Map<String, Material> createMeshVariantMap(MeshPrimitiveModel primitiveModel, List<Material> materials, List<String> variantsList) {
+    public static <T> Map<String, T> createMeshVariantMap(MeshPrimitiveModel primitiveModel, List<T> materials, List<String> variantsList) {
         if (variantsList == null) {
             var materialId = primitiveModel.getMaterialModel().getName();
-            return Collections.singletonMap("default", materials.stream().filter(a -> a.getMaterialName().equals(materialId)).findAny().get());
+            return Collections.singletonMap("default", materials.stream().filter(a -> a.toString().equals(materialId)).findAny().get());
         } else {
             var map = (Map<String, Object>) primitiveModel.getExtensions().get("KHR_materials_variants");
             var mappings = (List<Map<String, Object>>) map.get("mappings");
-            var variantMap = new HashMap<String, Material>();
+            var variantMap = new HashMap<String, T>();
 
             for (var mapping : mappings) {
                 if (!mapping.containsKey("material")) continue;

@@ -32,7 +32,7 @@ public class Main {
             new Command("eyeFixer (swsh)", "Used to convert all pairs of iris and eye textures in a folder into the format used in Sword and Shield pokemon model eyes", Main::eyeFixer),
             new Command("mouthFixer (swsh)", "Used to convert mouth textures in a folder into the format used in Sword and Shield pokemon model mouth", Main::mouthFixer),
             new Command("longBoi (swsh)", "Used to convert all selected non eye related textures into a long boi (mirrored version of itself) that makes setting up Sword and Shield pokemon models easier the format used in Sword and Shield pokemon model eyes.", Main::longBoi),
-            new Command("Sun Convert (us/sm)", "Experimental converter for a full glb into the new config.json based form.", Main::glbConverter),
+            new Command("Glb Convert", "Experimental converter for a full glb into the new config.json based form.", Main::glbConverter),
             new Command("Model Viewer", "Simplified viewer for opening and reviewing models before packaging", Main::modelViewer)
             );
 
@@ -136,7 +136,11 @@ public class Main {
     }
 
     private static void glbConverter(String[] args) {
-//        GlbReader.main(args);
+        try {
+            GlbReader.main(args);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void archiveExplorer(String[] args) {

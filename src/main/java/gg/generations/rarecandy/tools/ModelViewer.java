@@ -20,6 +20,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -139,7 +141,7 @@ public class ModelViewer extends JFrame {
         reloadButton.addActionListener(e -> {
             if (path != null) {
                 try {
-                    canvas.openFile(asset = new PixelAsset(path), this::updateTrees);
+                    canvas.openFile(asset = new PixelAsset(temp, path.getFileName().toString()), this::updateTrees);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -219,7 +221,7 @@ public class ModelViewer extends JFrame {
     }
 
     public void updateTrees() {
-        var animations = canvas.loadedModelInstance.getAnimationsIfAvailable().keySet();
+        var animations = canvas.loadedModelInstance.getAnimationsIfAvailable() != null ? canvas.loadedModelInstance.getAnimationsIfAvailable().keySet() : new ArrayList<>();
         var variants = canvas.loadedModel.availableVariants();
 
         animationNode.removeAllChildren();

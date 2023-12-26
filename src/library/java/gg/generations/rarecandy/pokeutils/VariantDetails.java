@@ -1,5 +1,11 @@
 package gg.generations.rarecandy.pokeutils;
 
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.Map;
+
 public record VariantDetails(String material, Boolean hide) {
     public VariantDetails fillIn(VariantDetails filler) {
         var newMaterial = material;

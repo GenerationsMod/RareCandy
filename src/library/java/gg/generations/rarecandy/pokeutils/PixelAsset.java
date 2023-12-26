@@ -22,7 +22,7 @@ import java.util.Objects;
  * Pixelmon Asset (.pk) file.
  */
 public class PixelAsset {
-    public static final Gson GSON = new GsonBuilder()
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting()
             .registerTypeAdapter(VariantParent.class, new VariantParent.Serializer())
             .registerTypeAdapter(MaterialReference.class, new MaterialReference.Serializer())
             .create();
@@ -39,7 +39,11 @@ public class PixelAsset {
     }
 
     public PixelAsset(Path path) {
-        this.name = path.getFileName().toString() + ".pk";
+        this(path, path.getFileName().toString() + ".pk");
+    }
+
+    public PixelAsset(Path path, String name) {
+        this.name = name;
         load(path);
     }
 

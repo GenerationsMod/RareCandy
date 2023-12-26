@@ -59,6 +59,11 @@ public class Material implements Closeable {
     }
 
     @Override
+    public String toString() {
+        return materialName;
+    }
+
+    @Override
     public void close() throws IOException {
         if(images != null) {
             for (var texture : images.values()) {

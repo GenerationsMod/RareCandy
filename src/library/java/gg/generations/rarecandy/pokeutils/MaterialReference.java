@@ -24,7 +24,7 @@ public class MaterialReference {
 
     public Map<String, Object> values;
 
-    protected MaterialReference(String parent, String shader, CullType cull, BlendType blend, Map<String, String> images, Map<String, Object> values) {
+    public MaterialReference(String parent, String shader, CullType cull, BlendType blend, Map<String, String> images, Map<String, Object> values) {
         this.parent = parent;
         this.shader = shader;
         this.cull = cull;

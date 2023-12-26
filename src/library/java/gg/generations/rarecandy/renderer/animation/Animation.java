@@ -14,7 +14,7 @@ import java.util.function.Function;
 public abstract class Animation<T> {
     public static final int FPS_60 = 1000;
     public static final int FPS_24 = 400;
-    public static final int GLB_SPEED = 60;
+    public static final int GLB_SPEED = 30;
     public static BiConsumer<Animation, String> animationModifier = (animation, s) -> {
     };
     public final String name;

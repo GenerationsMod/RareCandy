@@ -34,6 +34,13 @@ public abstract class ITextureLoader {
         register("bright", generateDirectReference("bright.png"));
         register("paradox_mask", generateDirectReference("paradox_mask_tiled.png"));
         register("blank", generateDirectReference("blank.png"));
+        register("burnt_concrete", generateDirectReference("burnt_concrete.png"));
+        register("concrete", generateDirectReference("concrete.png"));
+        register("glass", generateDirectReference("glass.png"));
+        register("metal", generateDirectReference("metal.png"));
+        register("silver", generateDirectReference("silver.png"));
+
+
     }
     public void register(String name, TextureReference reference) {
         register(name, loadFromReference(reference));

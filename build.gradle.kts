@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.jetbrains:annotations:24.0.1")
+    compileOnly("org.jetbrains:annotations:24.1.0")
 
     shadow(implementation("org.tukaani", "xz", "1.9"))
     shadow(implementation("org.apache.commons", "commons-compress", "1.23.0"))

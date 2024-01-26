@@ -149,7 +149,13 @@ public class ImageUtils {
         try (InputStream inputStream =
                      Buffers.createByteBufferInputStream(byteBuffer.slice()))
         {
-            return ImageIO.read(inputStream);
+            var image = ImageIO.read(inputStream);
+
+            if (image.getType() != BufferedImage.TYPE_INT_ARGB) {
+                image = convertToARGB(image);
+            }
+
+            return image;
         }
         catch (IOException e)
         {

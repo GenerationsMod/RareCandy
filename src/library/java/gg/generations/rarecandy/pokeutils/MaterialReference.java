@@ -122,10 +122,10 @@ public class MaterialReference {
                                 blend = BlendType.Regular;
                             }
                             case "cull" -> {
-                                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Back;
+                                cull = CullType.Forward;
                             }
                             case "unlit_cull" -> {
-                                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.Back;
+                                cull = CullType.Forward;
                                 values.put("useLight", false);
                             }
                             case "unlit" -> {

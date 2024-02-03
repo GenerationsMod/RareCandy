@@ -21,11 +21,11 @@ public class GuiPipelines {
                 ctx.uniform().uploadMat4fs(mats);
             })
             .supplyUniform("offset", ctx -> {
-                var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName()) != null ? instance.getOffset(ctx.getMaterial().getMaterialName()) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
+                var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName(), 0) != null ? instance.getOffset(ctx.getMaterial().getMaterialName(), 0) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
                 ctx.uniform().uploadVec2f(offsets.offset());
             })
             .supplyUniform("scale", ctx -> {
-                var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName()) != null ? instance.getOffset(ctx.getMaterial().getMaterialName()) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
+                var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName(), 0) != null ? instance.getOffset(ctx.getMaterial().getMaterialName(), 0) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
                 ctx.uniform().uploadVec2f(offsets.scale());
             })
             .prePostDraw(material -> {
@@ -107,6 +107,28 @@ public class GuiPipelines {
             })
             .build();
 
+    public static final Pipeline LAYERED_EYE = new Pipeline.Builder(LAYERED_BASE)
+            .shader(builtin("animated/animated.vs.glsl"), builtin("animated/layered_eye.fs.glsl"))
+            .supplyUniform("frame", ctx -> {
+                ctx.uniform().uploadInt(-1);
+            })
+            .supplyUniform("upperEyelid", ctx -> {
+                var texture = ctx.getTexture("upper_eyelid");
+
+                if(texture == null) texture = ITextureLoader.instance().getDarkFallback();
+
+                texture.bind(4);
+                ctx.uniform().uploadInt(4);
+            })
+
+            .supplyUniform("upperEyelidOffset", ctx -> {
+                var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName(), 2) != null ? instance.getOffset(ctx.getMaterial().getMaterialName(), 2) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
+                ctx.uniform().uploadVec2f(offsets.offset());
+            })
+            .supplyUniform("eyelidColor", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("eyelidColor") instanceof Vector3f vec ? vec : GuiPipelines.ZERO))
+            .build();
+
+
     public static final Pipeline SOLID = new Pipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/solid.fs.glsl"))
             .build();
@@ -153,6 +175,7 @@ public class GuiPipelines {
                 .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity5") instanceof Float vec ? vec : 1.0f));
     }
     private static final Vector3f ONE = new Vector3f(1,1, 1);
+    private static final Vector3f ZERO = new Vector3f(0, 0, 0);
 
 
 

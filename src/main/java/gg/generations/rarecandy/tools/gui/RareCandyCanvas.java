@@ -176,7 +176,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         time = (System.currentTimeMillis() - startTime) / 1000f;
 
-        renderer.render(false, time);
+        renderer.render(viewMatrix, false, time);
         swapBuffers();
 
         if (instances.size() > 1) {

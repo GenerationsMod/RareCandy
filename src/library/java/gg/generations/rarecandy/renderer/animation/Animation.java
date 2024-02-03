@@ -23,12 +23,12 @@ public abstract class Animation<T> {
     public Map<String, Integer> nodeIdMap = new HashMap<>();
 
     private final AnimationNode[] animationNodes;
-    public Map<String, Offset> offsets;
+    public Map<String, List<Offset>> offsets;
 
     public float ticksPerSecond;
     public boolean ignoreInstancedTime = false;
 
-    public Animation(String name, int ticksPerSecond, Skeleton skeleton, T value, BiFunction<Animation<T>, T, AnimationNode[]> animationNodes, Function<T, Map<String, Offset>> offsets) {
+    public Animation(String name, int ticksPerSecond, Skeleton skeleton, T value, BiFunction<Animation<T>, T, AnimationNode[]> animationNodes, Function<T, Map<String, List<Offset>>> offsets) {
         this.name = name;
         this.ticksPerSecond = ticksPerSecond;
         this.skeleton = skeleton;
@@ -37,7 +37,7 @@ public abstract class Animation<T> {
         this.animationDuration = findLastKeyTime();
     }
 
-    public static <T> Map<String, GfbAnimation.Offset> fillOffsets(T item) {
+    public static <T> Map<String, List<GfbAnimation.Offset>> fillOffsets(T item) {
         return new HashMap<>();
     }
 
@@ -68,11 +68,21 @@ public abstract class Animation<T> {
 
     public void getFrameOffset(AnimationInstance<?> instance) {
         this.offsets.forEach((k, v) -> {
-            var offsetInstance = instance.offsets.computeIfAbsent(k, a -> new Transform());
-            offsetInstance.offset().zero();
-            offsetInstance.scale().set(1, 1);
+            var list = instance.offsets.computeIfAbsent(k, a -> new ArrayList<>());
 
-            offsets.get(k).calcOffset(instance.getCurrentTime(), offsetInstance);
+            for (int i = 0; i < v.size(); i++) {
+                var offsetInstance = list.get(0);
+
+                if(offsetInstance == null) {
+                    offsetInstance = new Transform();
+                    list.set(0, offsetInstance);
+                }
+
+                offsetInstance.offset().zero();
+                offsetInstance.scale().set(1, 1);
+
+                offsets.get(k).get(i).calcOffset(instance.getCurrentTime(), offsetInstance);
+            }
         });
     }
 

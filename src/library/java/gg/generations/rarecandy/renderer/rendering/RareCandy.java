@@ -4,6 +4,7 @@ import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.storage.ObjectManager;
+import org.joml.Matrix4f;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -29,7 +30,7 @@ public class RareCandy {
         TASKS.add(r);
     }
 
-    public void render(boolean clearInstances, double secondsPassed) {
+    public void render(Matrix4f cameraPos, boolean clearInstances, double secondsPassed) {
         var task = TASKS.poll();
         while (task != null) {
             task.run();
@@ -37,7 +38,7 @@ public class RareCandy {
         }
 
         objectManager.update(secondsPassed);
-        objectManager.render();
+        objectManager.render(cameraPos);
 
         if (clearInstances) {
             this.objectManager.clearObjects();

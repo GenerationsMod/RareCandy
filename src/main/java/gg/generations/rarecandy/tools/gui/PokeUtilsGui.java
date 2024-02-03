@@ -53,6 +53,7 @@ public class PokeUtilsGui extends JPanel {
         PipelineRegistry.setFunction(s-> switch(s) {
             case "masked" -> GuiPipelines.MASKED;
             case "layered" -> GuiPipelines.LAYERED;
+            case "layered_eye" -> GuiPipelines.LAYERED_EYE;
             case "paradox" -> GuiPipelines.PARADOX;
             case "bone" -> GuiPipelines.BONE;
             default -> GuiPipelines.SOLID;

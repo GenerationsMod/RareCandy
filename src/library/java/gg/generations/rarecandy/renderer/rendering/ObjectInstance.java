@@ -43,4 +43,8 @@ public class ObjectInstance {
     public void setVariant(String variant) {
         this.variant = variant;
     }
+
+    public void render() {
+        this.object.render(this);
+    }
 }

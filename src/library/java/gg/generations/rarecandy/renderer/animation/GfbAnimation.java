@@ -26,8 +26,8 @@ public class GfbAnimation extends Animation<AnimationT> {
         animationModifier.accept(this, "gfb");
     }
 
-    public static Map<String, Offset> fillGfbOffsets(AnimationT rawAnimation) {
-        var offsets = new HashMap<String, Offset>();
+    public static Map<String, List<Offset>> fillGfbOffsets(AnimationT rawAnimation) {
+        var offsets = new HashMap<String, List<Offset>>();
 
         if(rawAnimation.getMaterial() != null) {
             var material = rawAnimation.getMaterial();
@@ -51,7 +51,7 @@ public class GfbAnimation extends Animation<AnimationT> {
                 if(uOffset.size() == 0) uOffset.add(0, 0f);
                 if(vOffset.size() == 0) uOffset.add(0, 0f);
 
-                offsets.put(trackName, new GfbOffset(uOffset, vOffset, uScale, vScale));
+                offsets.put(trackName, Collections.singletonList(new GfbOffset(uOffset, vOffset, uScale, vScale)));
             }
         }
 

@@ -1,8 +1,14 @@
 package gg.generations.rarecandy.tools;
 
-import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
+import com.google.gson.GsonBuilder;
+import de.javagl.jgltf.model.io.GltfModelReader;
+import de.javagl.jgltf.model.io.GltfModelWriter;
 import gg.generations.rarecandy.pokeutils.Pair;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.tracm.*;
+import gg.generations.rarecandy.renderer.animation.Animation;
+import gg.generations.rarecandy.renderer.animation.GfbAnimation;
+import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import gg.generations.rarecandy.tools.pokemodding.AnimationReadout;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
@@ -19,8 +25,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
 
@@ -33,8 +46,81 @@ public class Main {
             new Command("mouthFixer (swsh)", "Used to convert mouth textures in a folder into the format used in Sword and Shield pokemon model mouth", Main::mouthFixer),
             new Command("longBoi (swsh)", "Used to convert all selected non eye related textures into a long boi (mirrored version of itself) that makes setting up Sword and Shield pokemon models easier the format used in Sword and Shield pokemon model eyes.", Main::longBoi),
             new Command("Glb Convert", "Experimental converter for a full glb into the new config.json based form.", Main::glbConverter),
-            new Command("Model Viewer", "Simplified viewer for opening and reviewing models before packaging", Main::modelViewer)
+            new Command("Model Viewer", "Simplified viewer for opening and reviewing models before packaging", Main::modelViewer),
+            new Command("Tranm Printer", "Simplified viewer for opening and reviewing models before packaging", Main::tranmPrinter)
             );
+
+    private static void tranmPrinter(String[] strings) {
+        NativeFileDialog.NFD_Init();
+
+        var path = DialogueUtils.chooseFile("TRACM;tracm");
+
+        if(path == null) {
+            return;
+        }
+
+        try {
+            var tracm = TRACM.getRootAsTRACM(ByteBuffer.wrap(Files.readAllBytes(path)));
+
+//            IntStream.range(0, tracm.tracksLength()).mapToObj(tracm::tracks).forEach(track -> {
+//                var string = new StringBuilder();
+//                string.append(track.trackPath() + ":").append("\n");
+//
+//                if(track.materialAnimation() != null) {
+//                    IntStream.range(0, track.materialAnimation().materialTrackLength()).mapToObj(b -> track.materialAnimation()).forEach(trackMaterialTimeline -> IntStream.range(0, trackMaterialTimeline.materialTrackLength()).mapToObj(trackMaterialTimeline::materialTrack).forEach(trackMaterial -> {
+//                        string.append("\t").append(trackMaterial.name()).append("\n");
+//
+//                        IntStream.range(0, trackMaterial.animValuesLength()).mapToObj(b -> trackMaterial.animValues(b)).forEach(a -> {
+//                            string.append("\t\t" + a.name() + "\n");
+//
+//                            string.append("\t\t\t" + a.name() + "\n");
+//                        });
+//                    }));
+//                } else {
+//                    string.append("\tNone\n");
+//                }
+                var offset = fillTrOffsets(tracm);
+
+                System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(offset));
+//            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static HashMap<String, Map<String, Animation.Offset>> fillTrOffsets(TRACM animationPair) {
+        var offsets = new HashMap<String, Map<String, Animation.Offset>>();
+
+        if(animationPair != null) {
+            IntStream.range(0, animationPair.tracksLength()).mapToObj(animationPair::tracks).filter(a -> a.materialAnimation() != null).flatMap(a -> IntStream.range(0, a.materialAnimation().materialTrackLength()).mapToObj(b -> a.materialAnimation().materialTrack(b))).collect(Collectors.toMap(b -> b.name(), b -> IntStream.range(0, b.animValuesLength()).mapToObj(b::animValues).collect(Collectors.toMap(TrackMaterialAnim::name, c -> {
+                return new GfbAnimation.GfbOffset(toStorage(c.list().blue()), toStorage(c.list().alpha()), toStorage(c.list().red()), toStorage(c.list().green()));
+            })))).forEach((k, v) -> {
+                var map = offsets.computeIfAbsent(k, a -> new HashMap<>());
+
+                if(map != null) map.putAll(v);
+
+
+
+//                if(v.containsKey("UVScaleOffset")) offsets.put(k, v.get("UVScaleOffset"));
+            });
+        }
+
+        return offsets;
+    }
+
+    private static TransformStorage<Float> toStorage(TrackMaterialValueList value) {
+        var storage = new TransformStorage<Float>();
+
+        for (int i = 0; i < value.valuesLength(); i++) {
+            var val = value.values(i);
+
+            storage.add(val.time(), val.value());
+        }
+
+        return storage;
+    }
+
+
 
     private static void modelViewer(String[] strings) {
         NativeFileDialog.NFD_Init();
@@ -148,19 +234,42 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
+
+
         try {
+
+            if(args.length == 2 && args[0].equals("gltfconvert")) {
+                var root = Path.of(args[1]);
+
+                var reader = new GltfModelReader();
+                var writer= new GltfModelWriter();
+
+                Files.walk(root, 4).filter(a -> a.getFileName().toString().endsWith(".glb")).forEach(path -> {
+                    try {
+                        var gltf = reader.readWithoutReferences(Files.newInputStream(path));
+                        writer.write(gltf, Path.of(path.toString().replace(".glb", ".gltf")).toFile());
+                        System.out.println("<3");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                });
+
+                return;
+            }
+
             new CommandGUI(Main.ARGUMENTS, args);
-//        if (args.length == 0 || args[0].equals("help")) {
-//            System.err.println("Please specify which tool you want to use. Options: ");
+        if (args.length == 0 || args[0].equals("help")) {
+            System.err.println("Please specify which tool you want to use. Options: ");
 //            ARGUMENTS.forEach(command -> Main.print(command.name() + " - " + command.description()));
-//        } else {
-//            var command = ARGUMENTS.stream()
-//                    .filter(cmd -> cmd.name().equals(args[0]))
-//                    .findAny();
-//
-//            if (command.isEmpty()) System.err.println("No command with the name \"" + args[0] + "\"");
-//            else command.get().consumer().accept(Arrays.copyOfRange(args, 1, args.length));
-//        }
+        } else {
+            var command = ARGUMENTS.stream()
+                    .filter(cmd -> cmd.name().equals(args[0]))
+                    .findAny();
+
+            if (command.isEmpty()) System.err.println("No command with the name \"" + args[0] + "\"");
+            else command.get().consumer().accept(Arrays.copyOfRange(args, 1, args.length));
+        }
         } catch (Exception e) {
             printError(e);
         }

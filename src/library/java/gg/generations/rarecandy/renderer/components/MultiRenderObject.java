@@ -91,7 +91,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public <V extends RenderObject> void render(List<ObjectInstance> instances, V obj) {
+    public <V extends RenderObject> void render(ObjectInstance instance, V obj) {
 //        if (dirty) {
 //            pipeline = null;
 //            smartRender = true;
@@ -129,7 +129,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 //                pl.unbind();
 //            });
 //        } else {
-        this.objects.forEach(object -> object.render(instances, object));
+        this.objects.forEach(object -> object.render(instance, object));
 //        }
     }
 

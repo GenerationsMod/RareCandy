@@ -8,9 +8,8 @@ import gg.generations.rarecandy.pokeutils.tranm.*;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -89,15 +88,37 @@ public class TranmAnimation extends Animation<Pair<gg.generations.rarecandy.poke
         }
     }
 
-    public static Map<String, Offset> fillTrOffsets(Pair<gg.generations.rarecandy.pokeutils.tranm.Animation, TRACM> animationPair) {
-        var offsets = new HashMap<String, Offset>();
+    public static Map<String, List<Offset>> fillTrOffsets(Pair<gg.generations.rarecandy.pokeutils.tranm.Animation, TRACM> animationPair) {
+        var offsets = new HashMap<String, List<Offset>>();
 
         if(animationPair.b() != null) {
             IntStream.range(0, animationPair.b().tracksLength()).mapToObj(a -> animationPair.b().tracks(a)).filter(a -> a.materialAnimation() != null).flatMap(a -> IntStream.range(0, a.materialAnimation().materialTrackLength()).mapToObj(b -> a.materialAnimation().materialTrack(b))).collect(Collectors.toMap(b -> b.name(), b -> IntStream.range(0, b.animValuesLength()).mapToObj(b::animValues).collect(Collectors.toMap(TrackMaterialAnim::name, c -> {
 
-                return new GfbAnimation.GfbOffset(toStorage(c.list().red()), toStorage(c.list().green()), toStorage(c.list().blue()), toStorage(c.list().alpha()));
+                return new GfbAnimation.GfbOffset(toStorage(c.list().blue()), toStorage(c.list().alpha()), toStorage(c.list().red()), toStorage(c.list().green()));
             })))).forEach((k, v) -> {
-                if(v.containsKey("UVScaleOffset")) offsets.put(k, v.get("UVScaleOffset"));
+                var length = v.keySet().stream().filter(a -> a.startsWith("UVScaleOffset")).map(a -> a.replace("UVScaleOffset", "")).mapToInt(a -> a.isEmpty() ? 1 : Integer.parseInt(a)).findFirst();
+
+                if(length.isPresent()) {
+
+                    var map = new Offset[length.getAsInt()];
+
+
+                    v.forEach(new BiConsumer<String, GfbAnimation.GfbOffset>() {
+                        @Override
+                        public void accept(String s, GfbAnimation.GfbOffset gfbOffset) {
+                            if (!s.contains("UVScaleOffset")) return;
+                            int index = -1;
+
+                            var k1 = s.replace("UVScaleOffset", "");
+
+                            index = (k1.isEmpty() ? 1 : Integer.parseInt(k1)) - 1;
+
+                            map[index] =gfbOffset;
+                        }
+                    });
+
+                    offsets.put(k, List.of(map));
+                }
             });
         }
 

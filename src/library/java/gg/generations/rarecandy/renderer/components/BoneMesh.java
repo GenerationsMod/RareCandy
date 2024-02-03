@@ -26,18 +26,18 @@ public class BoneMesh extends AnimatedMeshObject {
     }
 
     @Override
-    public <T extends RenderObject> void render(List<ObjectInstance> instances, T object) {
-        if(object instanceof BoneMesh) {
-            for(var instance : instances) {
-
-                var pipeline = PipelineRegistry.get("bone");
-                pipeline.bind(null);
-                pipeline.updateOtherUniforms(instance, object);
-                pipeline.updateTexUniforms(instance, object);
-                model.runDrawCalls();
-                pipeline.unbind(null);
-            }
-        }
+    public <T extends RenderObject> void render(ObjectInstance instances, T object) {
+//        if(object instanceof BoneMesh) {
+//            for(var instance : instances) {
+//
+//                var pipeline = PipelineRegistry.get("bone");
+//                pipeline.bind(null);
+//                pipeline.updateOtherUniforms(instance, object);
+//                pipeline.updateTexUniforms(instance, object);
+//                model.runDrawCalls();
+//                pipeline.unbind(null);
+//            }
+//        }
     }
 
     @Override

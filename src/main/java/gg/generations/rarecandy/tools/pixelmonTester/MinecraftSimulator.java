@@ -47,7 +47,7 @@ public class MinecraftSimulator {
         while (!window.shouldClose()) {
             window.pollEvents();
             GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-            scene.render(false, ((System.currentTimeMillis() - START_TIME)));
+            scene.render(viewMatrix, false, ((System.currentTimeMillis() - START_TIME)));
             window.swapBuffers();
         }
 

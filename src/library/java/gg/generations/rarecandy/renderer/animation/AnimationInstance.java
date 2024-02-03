@@ -3,7 +3,9 @@ package gg.generations.rarecandy.renderer.animation;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,7 +15,7 @@ public class AnimationInstance<T> {
 
     public double startTime = -1;
     public Matrix4f[] matrixTransforms;
-    public final Map<String, Transform> offsets = new HashMap<>();
+    public final Map<String, List<Transform>> offsets = new HashMap<>();
 
 
     protected Animation<T> animation;
@@ -26,7 +28,7 @@ public class AnimationInstance<T> {
     public AnimationInstance(Animation<T> animation) {
         this.animation = animation;
 
-        animation.offsets.keySet().forEach(k -> offsets.put(k, new Transform()));
+        animation.offsets.keySet().forEach(k -> offsets.put(k, new ArrayList<>()));
     }
 
     public void update(double secondsPassed) {
@@ -78,8 +80,11 @@ public class AnimationInstance<T> {
         return animation;
     }
 
-    public Transform getOffset(String name) {
-        var offset = offsets.get(name.replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/);
+    public Transform getOffset(String name, int index) {
+        if (index < 0 || index >= offsets.size()) {
+            return AnimationController.NO_OFFSET;
+        }
+        var offset = offsets.get(name.replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/).get(index);
 
         if(offset == null) {
             return AnimationController.NO_OFFSET;

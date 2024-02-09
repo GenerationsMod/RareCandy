@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.renderer.animation;
 
 import gg.generations.rarecandy.pokeutils.GFLib.Anim.*;
+import gg.generations.rarecandy.pokeutils.ModelConfig;
 
 import java.util.*;
 
@@ -8,10 +9,8 @@ import static java.util.stream.Stream.of;
 
 public class GfbAnimation extends Animation<AnimationT> {
 
-    public Map<String, Offset> offsets;
-
-    public GfbAnimation(String name, AnimationT rawAnimation, Skeleton skeleton) {
-        super(name, (int) rawAnimation.getInfo().getFrameRate(), skeleton, rawAnimation, GfbAnimation::fillAnimationNodes, GfbAnimation::fillGfbOffsets);
+    public GfbAnimation(String name, AnimationT rawAnimation, Skeleton skeleton, ModelConfig config) {
+        super(name, (int) rawAnimation.getInfo().getFrameRate(), skeleton, rawAnimation, GfbAnimation::fillAnimationNodes, rawAnimation1 -> fillGfbOffsets(rawAnimation1, config));
 
         for (var animationNode : getAnimationNodes()) {
             if (animationNode != null) {
@@ -26,7 +25,7 @@ public class GfbAnimation extends Animation<AnimationT> {
         animationModifier.accept(this, "gfb");
     }
 
-    public static Map<String, Offset> fillGfbOffsets(AnimationT rawAnimation) {
+    public static Map<String, Offset> fillGfbOffsets(AnimationT rawAnimation, ModelConfig config) {
         var offsets = new HashMap<String, Offset>();
 
         if(rawAnimation.getMaterial() != null) {
@@ -51,7 +50,9 @@ public class GfbAnimation extends Animation<AnimationT> {
                 if(uOffset.size() == 0) uOffset.add(0, 0f);
                 if(vOffset.size() == 0) uOffset.add(0, 0f);
 
-                offsets.put(trackName, new GfbOffset(uOffset, vOffset, uScale, vScale));
+                var offset = new GfbOffset(uOffset, vOffset, uScale, vScale);
+
+                config.getMaterialsForAnimation(trackName).forEach(a -> offsets.put(a, offset));
             }
         }
 

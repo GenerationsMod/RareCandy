@@ -5,6 +5,7 @@ import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import org.joml.Vector3f;
+import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,9 +30,17 @@ public class GuiPipelines {
                 ctx.uniform().uploadVec2f(offsets.scale());
             })
             .prePostDraw(material -> {
+                if(material.getBoolean("disableDepth")) {
+                    GL11.glDisable(GL11.GL_DEPTH_TEST);
+                }
+
                 material.cullType().enable();
                 material.blendType().enable();
             }, material -> {
+                if(material.getBoolean("disableDepth")) {
+                    GL11.glEnable(GL11.GL_DEPTH_TEST);
+                }
+
                 material.cullType().disable();
                 material.blendType().disable();
             });

@@ -53,7 +53,7 @@ public class GlbReader {
     public static void main(String[] args) throws IOException {
         NativeFileDialog.NFD_Init();
 
-        var path = DialogueUtils.chooseFile("PK;pk");
+        var path = DialogueUtils.chooseFile("GLB;glb");
 
         while(path != null) {
             if(path.toString().endsWith("pk")) {

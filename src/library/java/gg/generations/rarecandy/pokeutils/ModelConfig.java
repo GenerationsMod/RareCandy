@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.pokeutils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +13,21 @@ public class ModelConfig {
     public Map<String, HideDuringAnimation> hideDuringAnimation;
 
     public Map<String, Integer> animationFpsOverride;
+
+    public Map<String, List<String>> materialsWithSameMaterialAnimation;
+
+    public List<String> getMaterialsForAnimation(String trackName) {
+        var list = new ArrayList<String>();
+        list.add(trackName);
+
+        if(materialsWithSameMaterialAnimation != null) {
+            if(materialsWithSameMaterialAnimation.containsKey(trackName)) {
+                list.addAll(materialsWithSameMaterialAnimation.get(trackName));
+            }
+        }
+
+        return list;
+    }
 
     public record HideDuringAnimation(boolean blackList, List<String> animations) {
         public static final HideDuringAnimation NONE = new HideDuringAnimation();

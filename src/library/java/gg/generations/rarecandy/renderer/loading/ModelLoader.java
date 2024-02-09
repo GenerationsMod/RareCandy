@@ -85,7 +85,7 @@ public class ModelLoader {
 
                     if (gfbAnim.getSkeleton() == null) continue;
 
-                    animations.put(name, new GfbAnimation(name, gfbAnim, new Skeleton(skeleton)));
+                    animations.put(name, new GfbAnimation(name, gfbAnim, new Skeleton(skeleton), config));
                 } catch (Exception e) {
                     System.out.println("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
                     e.printStackTrace();

@@ -71,4 +71,8 @@ public class Material implements Closeable {
             }
         }
     }
+
+    public boolean getBoolean(String value) {
+        return getValue(value) instanceof Boolean bool ? bool : false;
+    }
 }

@@ -1,8 +1,10 @@
 package gg.generations.rarecandy.arceus.core;
 
+import gg.generations.rarecandy.arceus.model.Material;
 import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.arceus.model.SmartObject;
+import gg.generations.rarecandy.arceus.model.lowlevel.RenderData;
 import gg.generations.rarecandy.arceus.model.lowlevel.VertexData;
 import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
 
@@ -20,8 +22,8 @@ public class DefaultRenderGraph {
 
     private final RareCandyScene<RenderingInstance> scene;
     private final List<SmartObject> updatableObjects = new ArrayList<>();
-    private final Map<ShaderProgram, Map<Model, Map<VertexData, List<RenderingInstance>>>> instanceMap = new HashMap<>();
-    private final Map<Model, Boolean> modelHasNoInstanceVariants = new HashMap<>(); // TODO: check if the instances share the same material as the model. if so, do the rendering thing faster TM
+    private final Map<ShaderProgram, Map<Model, Map<Material, Map<VertexData, List<RenderingInstance>>>>> instanceMap = new HashMap<>();
+    private final Map<RenderData, Boolean> modelHasNoInstanceVariants = new HashMap<>(); // TODO: check if the instances share the same material as the model. if so, do the rendering thing faster TM
 
     public DefaultRenderGraph(RareCandyScene<RenderingInstance> scene) {
         this.scene = scene;
@@ -41,14 +43,23 @@ public class DefaultRenderGraph {
                 var data = model.data();
                 program.updateModelUniforms(model); // TODO: add this
 
-                for (var layoutEntry : modelEntry.getValue().entrySet()) {
-                    layoutEntry.getKey().bind();
-                    data.bind();
+                for (var materialEntry : modelEntry.getValue().entrySet()) {
+                    var material = materialEntry.getKey();
+                    program.preMaterial().accept(material);
 
-                    for (var instance : layoutEntry.getValue()) {
-                        program.updateInstanceUniforms(instance, model);
-                        glDrawElements(data.mode.glType, data.indexCount, data.indexType.glType, 0);
+                    program.updateMaterialUniforms(model, material);
+
+                    for (var layoutEntry : materialEntry.getValue().entrySet()) {
+                        layoutEntry.getKey().bind();
+                        data.bind();
+
+                        for (var instance : layoutEntry.getValue()) {
+                            program.updateInstanceUniforms(instance, material, model);
+                            glDrawElements(data.mode.glType, data.indexCount, data.indexType.glType, 0);
+                        }
                     }
+
+                    program.postMaterial().accept(material);
                 }
             }
         }
@@ -65,16 +76,18 @@ public class DefaultRenderGraph {
 
     private void addInstance(RenderingInstance instance) {
         if (instance instanceof SmartObject object) updatableObjects.add(object);
-        instanceMap.computeIfAbsent(instance.getModel().program(), layout -> new HashMap<>())
+        instanceMap.computeIfAbsent(instance.getMaterial().getProgram(), layout -> new HashMap<>())
                 .computeIfAbsent(instance.getModel(), shaderProgram -> new HashMap<>())
+                .computeIfAbsent(instance.getMaterial(), material -> new HashMap<>())
                 .computeIfAbsent(instance.getModel().data().vertexData, program -> new ArrayList<>())
                 .add(instance);
     }
 
     private void removeInstance(RenderingInstance instance) {
         if (instance instanceof SmartObject) updatableObjects.remove(instance);
-        instanceMap.get(instance.getModel().program())
+        instanceMap.get(instance.getMaterial().getProgram())
                 .get(instance.getModel())
+                .get(instance.getMaterial())
                 .get(instance.getModel().data().vertexData)
                 .remove(instance);
     }

@@ -6,7 +6,7 @@ import gg.generationsmod.rarecandy.model.Model;
 import gg.generationsmod.rarecandy.model.animation.BoneNode;
 import gg.generationsmod.rarecandy.model.animation.Skeleton;
 import gg.generationsmod.rarecandy.model.animation.Bone;
-import gg.generationsmod.rarecandy.model.config.ModelConfig;
+import gg.generationsmod.rarecandy.model.config.pk.ModelConfig;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static gg.generationsmod.rarecandy.model.config.pk.ModelConfig.*;
 import static java.util.Objects.requireNonNull;
 
 public class AssimpModelLoader {
@@ -72,8 +73,8 @@ public class AssimpModelLoader {
     }
 
     private static ModelConfig readConfig(FileLocator locator) {
-        var json = new String(locator.getFile("model.config.json"));
-        return ModelConfig.GSON.fromJson(json, ModelConfig.class);
+        var json = new String(locator.getFile("config.json"));
+        return GSON.fromJson(json, ModelConfig.class);
     }
 
     private static Mesh[] readMeshData(Skeleton skeleton, AIScene scene, Map<String, Bone> boneMap) {

@@ -1,5 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
+import gg.generationsmod.rarecandy.FileLocator;
+
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellEditor;
@@ -53,19 +55,19 @@ public class PixelAssetTree extends JTree {
         });
     }
 
-    public void initializeAsset(Path modelDir) throws IOException {
-        var tree = node(modelDir.getFileName().toString());
+    public void initializeAsset(FileLocator modelDir) throws IOException {
+        var tree = node(modelDir.getPath().getFileName().toString());
         var animationsNode = node("animations");
         var imagesNode = node("images");
 
         List<String> animationStrings = new ArrayList<>();
-        List<Path> files = Files.list(modelDir).filter(Files::isRegularFile).toList();
+        List<String> files = modelDir.getFiles();
 
         for (var s : files) {
             if (s.endsWith("tranm") || s.endsWith("gfbanm") || s.endsWith("smd"))
-                animationStrings.add(s.getFileName().toString());
+                animationStrings.add(s);
             else if (s.endsWith("gltf")) {
-                var glbNode = node(s.getFileName().toString());
+                var glbNode = node(s);
                 if (!animationStrings.isEmpty()) {
                     var modelAnimationsNode = node("animations");
                     for (var name : animationStrings) modelAnimationsNode.add(node(name));
@@ -73,11 +75,11 @@ public class PixelAssetTree extends JTree {
                 }
                 tree.add(glbNode);
             } else if (s.endsWith("jxl")) {
-                imagesNode.add(node(s.getFileName().toString()));
-            } else if(s.equals("model.config.json")) {
+                imagesNode.add(node(s));
+            } else if(s.equals("config.json")) {
                 // TODO: water
 //                tree.add(new ModConfigTreeNode(asset.getConfig()));
-            } else tree.add(node(s.getFileName().toString()));
+            } else tree.add(node(s));
         }
 
         animationStrings.stream().sorted().map(this::node).forEach(animationsNode::add);

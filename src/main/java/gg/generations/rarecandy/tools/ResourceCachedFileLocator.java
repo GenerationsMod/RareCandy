@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ResourceCachedFileLocator implements FileLocator {
@@ -23,6 +24,15 @@ public class ResourceCachedFileLocator implements FileLocator {
     }
 
     @Override
+    public List<String> getFiles() {
+        try {
+            return Files.list(root).filter(Files::isRegularFile).map(Path::getFileName).map(Path::toString).toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public byte[] getFile(String name) {
         return fileCache.computeIfAbsent(name, s -> {
             try {
@@ -31,6 +41,11 @@ public class ResourceCachedFileLocator implements FileLocator {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    @Override
+    public Path getPath() {
+        return root;
     }
 
     public BufferedImage read(byte[] imageBytes) throws IOException {

@@ -1,7 +1,9 @@
 package gg.generations.rarecandy.legacy.pipeline;
 
+import gg.generations.rarecandy.arceus.model.Material;
 import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
+import gg.generations.rarecandy.arceus.model.lowlevel.RenderData;
 import gg.generations.rarecandy.arceus.util.RareCandyException;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL20;
@@ -16,9 +18,14 @@ public record ShaderProgram(
         Map<String, Consumer<UniformUploadContext>> sharedUniformSuppliers,
         Map<String, Consumer<UniformUploadContext>> instanceUniformSuppliers,
         Map<String, Consumer<UniformUploadContext>> modelUniformSuppliers,
+        Map<String, Consumer<UniformUploadContext>> materialUniformSuppliers,
         Map<String, Uniform> uniforms,
         Runnable preDrawBatch,
         Runnable postDrawBatch,
+
+        Consumer<Material> preMaterial,
+        Consumer<Material> postMaterial,
+
         int program
 ) {
     public void bind() {
@@ -34,16 +41,25 @@ public record ShaderProgram(
         for (var name : uniforms.keySet()) {
             if (sharedUniformSuppliers.containsKey(name)) {
                 var uniform = uniforms.get(name);
-                sharedUniformSuppliers.get(name).accept(new UniformUploadContext(null, null, uniform));
+                sharedUniformSuppliers.get(name).accept(new UniformUploadContext(null, null, null, uniform));
             }
         }
     }
 
-    public void updateInstanceUniforms(RenderingInstance instance, Model renderObject) {
+    public void updateInstanceUniforms(RenderingInstance instance, Material material, Model renderObject) {
         for (var name : uniforms.keySet()) {
             if (instanceUniformSuppliers.containsKey(name)) {
                 var uniform = uniforms.get(name);
-                instanceUniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
+                instanceUniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, material, instance, uniform));
+            }
+        }
+    }
+
+    public void updateMaterialUniforms(Model renderObject, Material material) {
+        for (var name : uniforms.keySet()) {
+            if (materialUniformSuppliers.containsKey(name)) {
+                var uniform = uniforms.get(name);
+                materialUniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, material, null, uniform));
             }
         }
     }
@@ -52,14 +68,15 @@ public record ShaderProgram(
         for (var name : uniforms.keySet()) {
             if (modelUniformSuppliers.containsKey(name)) {
                 var uniform = uniforms.get(name);
-                modelUniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, null, uniform));
+                modelUniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, null, null, uniform));
             }
         }
     }
 
+
     public static class Builder {
         public enum UniformType {
-            SHARED, INSTANCE, MODEL
+            SHARED, INSTANCE, MODEL, MATERIAL
         }
 
         public Map<String, Uniform> uniforms = new HashMap<>();
@@ -68,6 +85,11 @@ public record ShaderProgram(
         private Map<String, Consumer<UniformUploadContext>> sharedUniformSuppliers = new HashMap<>();
         private Map<String, Consumer<UniformUploadContext>> instanceUniformSuppliers = new HashMap<>();
         private Map<String, Consumer<UniformUploadContext>> modelUniformSuppliers = new HashMap<>();
+
+        private Map<String, Consumer<UniformUploadContext>> materialUniformSuppliers = new HashMap<>();
+
+        Consumer<Material> preMaterial = mat -> {};
+        Consumer<Material> postMaterial = mat -> {};
         private int program;
 
         public Builder() {
@@ -77,6 +99,7 @@ public record ShaderProgram(
             this.sharedUniformSuppliers = new HashMap<>(base.sharedUniformSuppliers);
             this.instanceUniformSuppliers = new HashMap<>(base.instanceUniformSuppliers);
             this.modelUniformSuppliers = new HashMap<>(base.modelUniformSuppliers);
+            this.materialUniformSuppliers = new HashMap<>(base.materialUniformSuppliers);
             this.program = base.program;
             this.uniforms = new HashMap<>(base.uniforms);
             this.preDrawBatch = base.preDrawBatch;
@@ -113,6 +136,7 @@ public record ShaderProgram(
                 case SHARED -> sharedUniformSuppliers.put(name, provider);
                 case INSTANCE -> instanceUniformSuppliers.put(name, provider);
                 case MODEL -> modelUniformSuppliers.put(name, provider);
+                case MATERIAL -> materialUniformSuppliers.put(name, provider);
             }
             return this;
         }
@@ -148,7 +172,7 @@ public record ShaderProgram(
 
         public ShaderProgram build() {
             if (this.program == 0) throw new RuntimeException("Shader not created");
-            return new ShaderProgram(sharedUniformSuppliers, instanceUniformSuppliers, modelUniformSuppliers, uniforms, preDrawBatch, postDrawRunBatch, program);
+            return new ShaderProgram(sharedUniformSuppliers, instanceUniformSuppliers, modelUniformSuppliers, materialUniformSuppliers, uniforms, preDrawBatch, postDrawRunBatch, preMaterial, postMaterial, program);
         }
     }
 }

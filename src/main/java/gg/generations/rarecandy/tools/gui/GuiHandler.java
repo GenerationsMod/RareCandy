@@ -1,6 +1,8 @@
 package gg.generations.rarecandy.tools.gui;
 
+import gg.generations.rarecandy.tools.PkFileLocator;
 import gg.generations.rarecandy.tools.ResourceCachedFileLocator;
+import gg.generationsmod.rarecandy.FileLocator;
 import gg.generationsmod.rarecandy.assimp.AssimpModelLoader;
 
 import javax.swing.*;
@@ -36,9 +38,9 @@ public class GuiHandler implements KeyListener {
         return (RareCandyCanvas) gui.canvasPanel.getComponents()[0];
     }
 
-    public void initializeAsset(Path path) {
+    public void initializeAsset(FileLocator path) {
         try {
-            this.assetPath = path;
+            this.assetPath = path.getPath();
             ((PixelAssetTree) gui.fileViewer).initializeAsset(path);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -108,11 +110,12 @@ public class GuiHandler implements KeyListener {
     }
 
     public void openAsset(Path filePath) {
-        initializeAsset(filePath);
+        var locator = new PkFileLocator(filePath);
+        initializeAsset(locator);
         var title = BASE_TITLE + " - " + filePath.getFileName().toString();
         frame.setTitle(title);
         this.currentTitle = title;
-        getCanvas().openFile(AssimpModelLoader.load("model.gltf", new ResourceCachedFileLocator(filePath), 0));
+        getCanvas().openFile(AssimpModelLoader.load("model.glb", locator, 0));
     }
 
     @Override

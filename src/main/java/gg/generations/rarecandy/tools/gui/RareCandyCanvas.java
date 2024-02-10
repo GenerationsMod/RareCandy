@@ -3,6 +3,8 @@ package gg.generations.rarecandy.tools.gui;
 import gg.generations.rarecandy.arceus.core.DefaultRenderGraph;
 import gg.generations.rarecandy.arceus.core.RareCandyScene;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
+import gg.generations.rarecandy.arceus.model.lowlevel.DrawMode;
+import gg.generations.rarecandy.arceus.model.lowlevel.RenderData;
 import gg.generations.rarecandy.tools.util.SimpleRenderingInstance;
 import gg.generationsmod.rarecandy.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +28,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public String currentAnimation = null;
     private RareCandyScene<RenderingInstance> scene = new RareCandyScene<>();
     private DefaultRenderGraph graph = new DefaultRenderGraph(scene);
-    private RenderingInstance displayModel;
+    private MultiRenderObject<RenderingInstance> displayModel;
 
     public RareCandyCanvas() {
         super(defaultData());
@@ -50,20 +52,16 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     public void openFile(Model model) {
         currentAnimation = null;
-        scene.removeInstance(displayModel);
-        this.displayModel = new SimpleRenderingInstance(load(model));
-        scene.addInstance(displayModel);
-    }
-
-    private gg.generations.rarecandy.arceus.model.Model load(Model model) {
-        throw new RuntimeException("Fix");
+        displayModel.remove(scene);
+        this.displayModel = new MultiRenderObject<RenderingInstance>(model);
+        displayModel.add(scene);
     }
 
     @Override
     public void initGL() {
         RareCandyCanvas.projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) getWidth() / getHeight(), 0.1f, 100.0f);
         GL.createCapabilities(true);
-        GL11C.glClearColor(60 / 255f, 63 / 255f, 65 / 255f, 1);
+        GL11C.glClearColor(255 / 255f, 255 / 255f, 255 / 255f, 1);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
     }
 

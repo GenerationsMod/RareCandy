@@ -8,24 +8,29 @@ import org.joml.Vector3f;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
-public class Animation {
+public class Animation<T> {
     public final String name;
     public final double animationDuration;
     public Map<String, Integer> nodeIdMap = new HashMap<>();
     public final AnimationNode[] animationNodes;
+
+    public  Map<String, Offset> offsets;
     public float ticksPerSecond;
     public final Skeleton skeleton;
     public boolean ignoreInstancedTime = false;
 
-    public Animation(String name, gg.generationsmod.rarecandy.model.animation.tranm.Animation rawAnimation, Skeleton skeleton) {
+    public Animation(String name, int ticksPerSecond, Skeleton skeleton, T value, BiFunction<Animation<T>, T, AnimationNode[]> animationNodes, Function<T, Map<String, Offset>> offsets) {
         this.name = name;
-        this.ticksPerSecond = 60;
+        this.ticksPerSecond = ticksPerSecond;
         this.skeleton = skeleton;
-        this.animationNodes = fillAnimationNodesTrinity(rawAnimation);
+        this.animationNodes = animationNodes.apply(this, value);
+        this.offsets = offsets.apply(value);
         this.animationDuration = findLastKeyTime();
 
-        for (var animationNode : animationNodes) {
+        for (var animationNode : this.animationNodes) {
             if (animationNode != null) {
                 if (animationNode.positionKeys.getAtTime((int) animationDuration - 10) == null)
                     animationNode.positionKeys.add(animationDuration, animationNode.positionKeys.get(0).value());
@@ -41,9 +46,11 @@ public class Animation {
         var duration = 0d;
 
         for (var value : this.animationNodes) {
-            if (value != null)
-                for (var key : value.positionKeys) //noinspection ManualMinMaxCalculation
-                    duration = key.time() > duration ? key.time() : duration;
+            if (value != null) {
+                for (var key : value.positionKeys) duration = Math.max(key.time(), duration);
+                for (var key : value.rotationKeys) duration = Math.max(key.time(), duration);
+                for (var key : value.scaleKeys) duration = Math.max(key.time(), duration);
+            }
         }
 
         return duration;
@@ -150,7 +157,11 @@ public class Animation {
         }
     }
 
-    @Override
+    public interface Offset {
+        void calcOffset(float animTime, Transform instance);
+    }
+
+        @Override
     public String toString() {
         return this.name;
     }

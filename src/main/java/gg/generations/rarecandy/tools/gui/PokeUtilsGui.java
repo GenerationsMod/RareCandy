@@ -27,7 +27,7 @@ public class PokeUtilsGui extends JPanel {
         fileViewer.setFocusable(true);
         canvasPanel.setFocusable(true);
         openArchive.addActionListener(e -> {
-            var chosenFile = DialogueUtils.chooseFolder();
+            var chosenFile = DialogueUtils.chooseFile("PK;pk");
             if (chosenFile != null) handler.openAsset(chosenFile);
         });
 //        createArchive.addActionListener(e -> {

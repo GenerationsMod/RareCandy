@@ -24,12 +24,18 @@ public class VertexData implements Closeable, Bindable {
      */
     public VertexData(ByteBuffer vertexBuffer, List<Attribute> layout) {
         this.vao = glGenVertexArrays();
+
+        System.out.println("VAO: " + vao + " " + glGetError());
+
         bind();
         var stride = calculateVertexSize(layout);
         var attribPtr = 0;
 
         // I hate openGL. why cant I keep the vertex data and vertex layout separate :(
         var vbo = glGenBuffers();
+        System.out.println("VBo: " + vbo + " " + glGetError());
+
+
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
 

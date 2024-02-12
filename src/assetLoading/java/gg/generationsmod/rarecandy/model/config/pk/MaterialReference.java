@@ -30,54 +30,6 @@ public class MaterialReference {
         this.values = values;
     }
 
-    //TODO: Materials
-//    public static Material process(String name, @NotNull Map<String, MaterialReference> materialreferences, @NotNull Map<String, String> imageMap) {
-//        var reference = materialreferences.get(name);
-//
-//        var cull = reference.cull;
-//        var blend = reference.blend;
-//        var shader = reference.shader;
-//        var images = new HashMap<>(reference.images);
-//        var values = new HashMap<>(reference.values);
-//        var parent = reference.parent;
-//
-//        while (parent != null) {
-//            reference = materialreferences.get(parent);
-//
-//            if(reference == null) parent = null;
-//            else {
-//
-//                if (!shader.equals(reference.shader)) {
-//                    shader = reference.shader;
-//                }
-//
-//                if (!cull.equals(reference.cull)) {
-//                    cull = reference.cull;
-//                }
-//
-//                if (!blend.equals(reference.blend)) {
-//                    blend = reference.blend;
-//                }
-//
-//                reference.images.forEach((key, value) -> images.merge(key, value, (old, value1) -> old));
-//                reference.values.forEach((key, value) -> values.merge(key, value, (old, value1) -> old));
-//
-//                parent = reference.parent;
-//            }
-//        }
-//
-//        var map = new HashMap<String, String>();
-//        for (Map.Entry<String, String> a : images.entrySet()) {
-//            if (imageMap.containsKey(a.getValue())) {
-//                if (map.put(a.getKey(), imageMap.get(a.getValue())) != null) {
-//                    throw new IllegalStateException("Duplicate key");
-//                }
-//            } else {
-//                map.put(a.getKey(), a.getValue());
-//            }
-//        }
-//        return new Material(name, map, values, cull, blend, shader);
-//    }
     public static final class Serializer implements JsonDeserializer<MaterialReference> {
 
 

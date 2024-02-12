@@ -10,10 +10,12 @@ import org.joml.Matrix4f;
 public class SimpleRenderingInstance implements RenderingInstance {
 
     private Model model;
+    private final Material material;
     public final Matrix4f transform = new Matrix4f();
 
-    public SimpleRenderingInstance(MultiRenderObject<?> multiRenderObject, Model model) {
+    public SimpleRenderingInstance(Model model, Material material) {
         this.model = model;
+        this.material = material;
     }
 
     @Override
@@ -23,7 +25,7 @@ public class SimpleRenderingInstance implements RenderingInstance {
 
     @Override
     public Material getMaterial() {
-        return null;
+        return material;
     }
 
     @Override

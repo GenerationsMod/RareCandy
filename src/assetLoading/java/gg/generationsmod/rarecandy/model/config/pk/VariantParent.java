@@ -21,7 +21,7 @@ public record VariantParent(String inherits, Map<String, VariantDetails> details
                 inherits = jsonObject.remove("inherits").getAsJsonPrimitive().getAsString();
             }
 
-            System.out.println("Blep: " + jsonObject);
+//            System.out.println("Blep: " + jsonObject);
 
             Map<String, VariantDetails> details = new HashMap<>();
             if(!jsonObject.isEmpty()) {

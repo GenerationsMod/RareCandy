@@ -24,6 +24,11 @@ public class RenderData implements Bindable, Closeable {
     public RenderData(DrawMode mode, VertexData vertexData, ByteBuffer indices, IndexType type, int indexCount) {
         // Generate Index Buffer Data
         this.ebo = glGenBuffers();
+
+        var error = glGetError();
+
+        System.out.println("EBO: " + ebo + " " + error);
+
         glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
         this.indexType = type;

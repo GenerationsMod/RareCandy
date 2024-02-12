@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class ModelConfig {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting()
-//            .registerTypeAdapter(VariantParent.class, new VariantParent.Serializer())
+            .registerTypeAdapter(VariantParent.class, new VariantParent.Serializer())
             .registerTypeAdapter(MaterialReference.class, new MaterialReference.Serializer())
             .create();
 

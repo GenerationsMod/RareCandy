@@ -14,4 +14,6 @@ public record Mesh(
         List<Vector2f> uvs,
         List<Vector3f> normals,
         List<Bone> bones
-) {}
+) {
+
+}

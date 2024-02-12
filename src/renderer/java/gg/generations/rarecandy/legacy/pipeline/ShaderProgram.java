@@ -88,8 +88,8 @@ public record ShaderProgram(
 
         private Map<String, Consumer<UniformUploadContext>> materialUniformSuppliers = new HashMap<>();
 
-        Consumer<Material> preMaterial = mat -> {};
-        Consumer<Material> postMaterial = mat -> {};
+        private Consumer<Material> preMaterial = mat -> {};
+        private Consumer<Material> postMaterial = mat -> {};
         private int program;
 
         public Builder() {
@@ -130,6 +130,13 @@ public record ShaderProgram(
             this.postDrawRunBatch = postDrawRunBatch;
             return this;
         }
+
+        public Builder prePostMaterial(Consumer<Material> preMaterial, Consumer<Material> postMaterial) {
+            this.preMaterial = preMaterial;
+            this.postMaterial = postMaterial;
+            return this;
+        }
+
 
         public Builder supplyUniform(UniformType type, String name, Consumer<UniformUploadContext> provider) {
             switch (type) {

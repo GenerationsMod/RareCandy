@@ -2,7 +2,7 @@ package gg.generationsmod.rarecandy.assimp;
 
 import gg.generationsmod.rarecandy.FileLocator;
 import gg.generationsmod.rarecandy.model.Mesh;
-import gg.generationsmod.rarecandy.model.Model;
+import gg.generationsmod.rarecandy.model.RawModel;
 import gg.generationsmod.rarecandy.model.animation.BoneNode;
 import gg.generationsmod.rarecandy.model.animation.Skeleton;
 import gg.generationsmod.rarecandy.model.animation.Bone;
@@ -16,13 +16,14 @@ import org.lwjgl.system.MemoryUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static gg.generationsmod.rarecandy.model.config.pk.ModelConfig.*;
 import static java.util.Objects.requireNonNull;
 
 public class AssimpModelLoader {
 
-    public static Model load(String name, FileLocator locator, int extraFlags) {
+    public static RawModel load(String name, FileLocator locator, int extraFlags) {
         var fileIo = AIFileIO.create()
                 .OpenProc((pFileIO, pFileName, openMode) -> {
                     var fileName = MemoryUtil.memUTF8(pFileName);
@@ -64,12 +65,30 @@ public class AssimpModelLoader {
         return result;
     }
 
-    private static Model readScene(AIScene scene, FileLocator locator) {
+    private static RawModel readScene(AIScene scene, FileLocator locator) {
         var skeleton = new Skeleton(BoneNode.create(scene.mRootNode()));
         var config = readConfig(locator);
         var materials = readMaterialData(scene);
+        var images = readImages(locator);
         var meshes = readMeshData(skeleton, scene, new HashMap<>());
-        return new Model(materials, meshes, skeleton, config);
+        return new RawModel(materials, meshes, skeleton, config, images);
+    }
+
+    private static Map<String, String> readImages(FileLocator locator) {
+        var images = locator.getFiles().stream().filter(key -> key.endsWith("jxl") || key.endsWith("jpg") || key.endsWith("png")).collect(Collectors.toMap(a -> a, locator::readImage));
+        var name = locator.getPath().getFileName().toString();
+
+        var map = new HashMap<String, String>();
+        for (var entry : images.entrySet()) {
+            var key = entry.getKey();
+
+            var id = name + "-" + key;
+//                ITextureLoader.instance().register(id, TextureReference.read(entry.getValue(), key, true));
+
+            map.put(key, id);
+        }
+
+        return map;
     }
 
     private static ModelConfig readConfig(FileLocator locator) {

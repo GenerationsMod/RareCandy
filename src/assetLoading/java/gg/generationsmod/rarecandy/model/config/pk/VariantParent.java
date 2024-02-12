@@ -21,8 +21,6 @@ public record VariantParent(String inherits, Map<String, VariantDetails> details
                 inherits = jsonObject.remove("inherits").getAsJsonPrimitive().getAsString();
             }
 
-//            System.out.println("Blep: " + jsonObject);
-
             Map<String, VariantDetails> details = new HashMap<>();
             if(!jsonObject.isEmpty()) {
                 for(var entry : jsonObject.asMap().entrySet()) {
@@ -31,7 +29,7 @@ public record VariantParent(String inherits, Map<String, VariantDetails> details
                     var value = entry.getValue().getAsJsonObject();
 
                     var material = value.has("material") ? value.getAsJsonPrimitive("material").getAsString() : null;
-                    var hide = value.has("hide") ? value.getAsJsonPrimitive("hid").getAsBoolean() : null;
+                    var hide = value.has("hide") ? value.getAsJsonPrimitive("hide").getAsBoolean() : null;
 
                     details.put(key, new VariantDetails(material, hide));
                 }

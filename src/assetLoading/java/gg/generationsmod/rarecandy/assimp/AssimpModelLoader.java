@@ -13,15 +13,23 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.assimp.*;
 import org.lwjgl.system.MemoryUtil;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static gg.generationsmod.rarecandy.model.config.pk.ModelConfig.*;
 import static java.util.Objects.requireNonNull;
 
 public class AssimpModelLoader {
+    private static BiConsumer<String, BufferedImage> consumer;
+
+    public static void setImageConsumer(BiConsumer<String, BufferedImage> consumer) {
+
+        AssimpModelLoader.consumer = consumer;
+    }
 
     public static RawModel load(String name, FileLocator locator, int extraFlags) {
         var fileIo = AIFileIO.create()
@@ -83,8 +91,7 @@ public class AssimpModelLoader {
             var key = entry.getKey();
 
             var id = name + "-" + key;
-//                ITextureLoader.instance().register(id, TextureReference.read(entry.getValue(), key, true));
-
+            consumer.accept(id, entry.getValue());
             map.put(key, id);
         }
 

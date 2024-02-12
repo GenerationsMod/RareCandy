@@ -1,10 +1,15 @@
 package gg.generations.rarecandy.tools.gui;
 
 import com.github.weisj.darklaf.LafManager;
+import gg.generations.rarecandy.arceus.model.pk.PipelineRegistry;
+import gg.generations.rarecandy.arceus.model.pk.TextureLoader;
+import gg.generationsmod.rarecandy.assimp.AssimpModelLoader;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.function.BiConsumer;
 
 public class PokeUtilsGui extends JPanel {
 
@@ -26,6 +31,7 @@ public class PokeUtilsGui extends JPanel {
         canvasPanel.add(renderingWindow);
         fileViewer.setFocusable(true);
         canvasPanel.setFocusable(true);
+
         openArchive.addActionListener(e -> {
             var chosenFile = DialogueUtils.chooseFile("PK;pk");
             if (chosenFile != null) handler.openAsset(chosenFile);

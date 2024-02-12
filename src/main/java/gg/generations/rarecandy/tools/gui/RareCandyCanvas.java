@@ -3,6 +3,9 @@ package gg.generations.rarecandy.tools.gui;
 import gg.generations.rarecandy.arceus.core.DefaultRenderGraph;
 import gg.generations.rarecandy.arceus.core.RareCandyScene;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
+import gg.generations.rarecandy.arceus.model.pk.PipelineRegistry;
+import gg.generations.rarecandy.arceus.model.pk.TextureLoader;
+import gg.generationsmod.rarecandy.assimp.AssimpModelLoader;
 import gg.generationsmod.rarecandy.model.RawModel;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -12,8 +15,11 @@ import org.lwjgl.opengl.awt.AWTGLCanvas;
 import org.lwjgl.opengl.awt.GLData;
 
 import java.awt.event.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static gg.generations.rarecandy.tools.gui.PlaneGenerator.generatePlane;
 
 public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
@@ -33,6 +39,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 RareCandyCanvas.projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
             }
         });
+
+        AssimpModelLoader.setImageConsumer((s, image)-> TextureLoader.instance().register(s, image));
     }
 
     private static GLData defaultData() {
@@ -49,7 +57,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         runnables.add(() -> {
             currentAnimation = null;
 //            if (displayModel != null) displayModel.remove(scene);
-            this.displayModel = new MultiRenderObject.MultiRenderObjectInstance(new MultiRenderObject<RenderingInstance>(rawModel), new Matrix4f(), null);
+            this.displayModel = new MultiRenderObject.MultiRenderObjectInstance(new MultiRenderObject<RenderingInstance>(rawModel), new Matrix4f().scale(rawModel.config().scale), null);
             displayModel.addToScene(scene);
         });
     }
@@ -58,14 +66,17 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public void initGL() {
         RareCandyCanvas.projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) getWidth() / getHeight(), 0.1f, 100.0f);
         GL.createCapabilities(true);
+
+        PipelineRegistry.setFunction(GuiPipelines.of(() -> projectionMatrix, viewMatrix));
+
         GL11C.glClearColor(255 / 255f, 255 / 255f, 255 / 255f, 1);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-//        try {
-//            scene.addInstance(generatePlane(projectionMatrix, viewMatrix, 10, 10));
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
+        try {
+            scene.addInstance(generatePlane(projectionMatrix, viewMatrix, 10, 10));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

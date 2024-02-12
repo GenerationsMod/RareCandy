@@ -75,23 +75,24 @@ public record ShaderProgram(
 
 
     public static class Builder {
-        public enum UniformType {
-            SHARED, INSTANCE, MODEL, MATERIAL
-        }
 
+
+        public enum UniformType {
+            SHARED, INSTANCE, MODEL, MATERIAL;
+        }
         public Map<String, Uniform> uniforms = new HashMap<>();
+
         public Runnable preDrawBatch = () -> {};
         public Runnable postDrawRunBatch = () -> {};
         private Map<String, Consumer<UniformUploadContext>> sharedUniformSuppliers = new HashMap<>();
         private Map<String, Consumer<UniformUploadContext>> instanceUniformSuppliers = new HashMap<>();
         private Map<String, Consumer<UniformUploadContext>> modelUniformSuppliers = new HashMap<>();
-
         private Map<String, Consumer<UniformUploadContext>> materialUniformSuppliers = new HashMap<>();
 
         private Consumer<Material> preMaterial = mat -> {};
+
         private Consumer<Material> postMaterial = mat -> {};
         private int program;
-
         public Builder() {
         }
 
@@ -137,6 +138,11 @@ public record ShaderProgram(
             return this;
         }
 
+
+        public Builder configure(Consumer<Builder> consumer) {
+            consumer.accept(this);
+            return this;
+        }
 
         public Builder supplyUniform(UniformType type, String name, Consumer<UniformUploadContext> provider) {
             switch (type) {

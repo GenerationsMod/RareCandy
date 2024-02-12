@@ -18,12 +18,16 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class Texture implements Closeable {
+public record Texture(int id) implements Closeable {
 
-    public final int id;
+    public void bind(int slot) {
+        assert (slot >= 0 && slot <= 31);
+        GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + slot);
+        GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, id);
+    }
 
-    public Texture(ByteBuffer rgbaBytes, int width, int height) {
-        this.id = GL11C.glGenTextures();
+    public static Texture of(ByteBuffer rgbaBytes, int width, int height) {
+        var id = GL11C.glGenTextures();
 
         GL13C.glActiveTexture(GL13C.GL_TEXTURE0);
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, id);
@@ -35,14 +39,15 @@ public class Texture implements Closeable {
         GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_NEAREST);
         GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_NEAREST);
 
+        return new Texture(id);
     }
 
-    public Texture(BufferedImage image) {
-        this(read(image), image.getWidth(), image.getHeight());
+    public static Texture of(BufferedImage image) {
+        return of(read(image), image.getWidth(), image.getHeight());
     }
 
-    public Texture(Path of) throws IOException {
-        this(readImage(of));
+    public static Texture of(Path of) throws IOException {
+        return of(readImage(of));
     }
 
     public static ByteBuffer read(BufferedImage image) {
@@ -83,8 +88,6 @@ public class Texture implements Closeable {
             var rawData = dataBufferByte.getData();
             readyData = MemoryUtil.memAlloc(rawData.length);
 
-            System.out.println(rawData.length / 4f);
-
             for (int i = 0; i < rawData.length; i += 4) {
                 readyData
                         .put(rawData[i+3])
@@ -101,12 +104,6 @@ public class Texture implements Closeable {
 
     private static int hdrToRgb(float hdr) {
         return (int) Math.min(Math.max(Math.pow(hdr, 1.0 / 2.2) * 255, 0), 255);
-    }
-
-    public void bind(int slot) {
-        assert (slot >= 0 && slot <= 31);
-        GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + slot);
-        GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, id);
     }
 
     @Override

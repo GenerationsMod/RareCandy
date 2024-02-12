@@ -158,7 +158,7 @@ public class MultiRenderObject<T extends RenderingInstance> {
     }
 
     private static Model fromMesh(Mesh mesh, Skeleton skeleton) {
-        var length = (Float.BYTES * 3) + (Float.BYTES * 2) + (Float.BYTES * 3);
+        var length = 8;
         var amount = mesh.positions().size();
 
         var vertices = new float[length * amount];

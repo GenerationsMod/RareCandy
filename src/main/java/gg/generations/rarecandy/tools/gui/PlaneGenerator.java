@@ -18,7 +18,7 @@ import java.util.Arrays;
 
 public class PlaneGenerator {
     public static ShaderProgram simple(Matrix4f projectionMatrix, Matrix4f viewMatrix) throws IOException {
-        var texture = new Texture(Path.of("grid.png"));
+        var texture = Texture.of(Path.of("grid.png"));
 
         return new ShaderProgram.Builder()
                 .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "viewMatrix", ctx -> ctx.uniform().uploadMat4f(viewMatrix))
@@ -48,10 +48,6 @@ public class PlaneGenerator {
 
     public static RenderingInstance generatePlane(Matrix4f projection, Matrix4f view, float width, float length) throws IOException {
         var material = new SimpleMaterial(simple(projection, view));
-        new SimpleRenderingInstance(new Model("Cube", PlaneGenerator.generatePlaneRenderData(width, length)), material);
-        new SimpleRenderingInstance(new Model("Cube", PlaneGenerator.generatePlaneRenderData(width, length)), material);
-        new SimpleRenderingInstance(new Model("Cube", PlaneGenerator.generatePlaneRenderData(width, length)), material);
-        new SimpleRenderingInstance(new Model("Cube", PlaneGenerator.generatePlaneRenderData(width, length)), material);
         return new SimpleRenderingInstance(new Model("Cube", PlaneGenerator.generatePlaneRenderData(width, length)), material);
     }
 

@@ -1,6 +1,9 @@
 package gg.generations.rarecandy.legacy.animation;
 
 import gg.generationsmod.rarecandy.model.animation.Animation;
+import gg.generationsmod.rarecandy.model.animation.GfbAnimation;
+import gg.generationsmod.rarecandy.model.animation.Transform;
+import org.joml.Matrix2f;
 import org.joml.Matrix4f;
 
 import java.util.*;
@@ -10,6 +13,7 @@ import java.util.*;
  */
 public class AnimationController {
     public static final Matrix4f[] NO_ANIMATION = new Matrix4f[220];
+    public static final Transform NO_OFFSET = new Transform();
 
     static {
         var identity = new Matrix4f().identity();

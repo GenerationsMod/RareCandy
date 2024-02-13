@@ -39,8 +39,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 RareCandyCanvas.projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
             }
         });
-
-        AssimpModelLoader.setImageConsumer((s, image)-> TextureLoader.instance().register(s, image));
     }
 
     private static GLData defaultData() {
@@ -57,7 +55,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         runnables.add(() -> {
             currentAnimation = null;
 //            if (displayModel != null) displayModel.remove(scene);
-            this.displayModel = new MultiRenderObject.MultiRenderObjectInstance(new MultiRenderObject<RenderingInstance>(rawModel), new Matrix4f().scale(rawModel.config().scale), null);
+            this.displayModel = new MultiRenderObject.MultiRenderObjectInstance(new MultiRenderObject<RenderingInstance>(rawModel), new Matrix4f(), null);
             displayModel.addToScene(scene);
         });
     }
@@ -66,6 +64,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public void initGL() {
         RareCandyCanvas.projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) getWidth() / getHeight(), 0.1f, 100.0f);
         GL.createCapabilities(true);
+
+        AssimpModelLoader.setImageConsumer((s, image)-> TextureLoader.instance().register(s, image));
 
         PipelineRegistry.setFunction(GuiPipelines.of(() -> projectionMatrix, viewMatrix));
 
@@ -118,7 +118,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public void attachArcBall() {
-        var arcballOrbit = new ArcBallOrbit(viewMatrix, 3f, 0.125f, 0f);
+        var arcballOrbit = new ArcBallOrbit(viewMatrix, 6f, 0.125f, 0.125f);
         this.addMouseMotionListener(arcballOrbit);
         this.addMouseWheelListener(arcballOrbit);
         this.addMouseListener(arcballOrbit);

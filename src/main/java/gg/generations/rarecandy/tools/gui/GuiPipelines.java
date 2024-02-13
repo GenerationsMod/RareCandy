@@ -106,10 +106,17 @@ public class GuiPipelines {
                 .supplyUniform(SHARED, "frame", ctx -> ctx.uniform().uploadInt((int) ((/*RareCandyCanvas.getTime() * 200) % 16*/0))))
                 .build();
 
+//        try {
+//            var simple = PlaneGenerator.simple(projectionMatrix.get(), viewMatrix);
+//            return s -> simple;
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//
         return s -> switch (s) {
-            case "masked" -> MASKED;
-            case "paradox" -> PARADOX;
-            case "layered" -> LAYERED;
+//            case "masked" -> MASKED;
+//            case "paradox" -> PARADOX;
+//            case "layered" -> LAYERED;
             default -> SOLID;
         };
     }
@@ -136,16 +143,16 @@ public class GuiPipelines {
 
     private static void addLight(ShaderProgram.Builder builder) {
         builder.supplyUniform(SHARED, "lightLevel", ctx -> ctx.uniform().uploadFloat(/*RareCandyCanvas.getLightLevel()*/0.5f))
-                .supplyUniform(MATERIAL, "emission", ctx -> {
-                    var texture = ((PkMaterial) ctx.material()).getTexture("emission");
-
-                    if(texture == null) {
-                        texture = TextureLoader.instance().getDarkFallback();
-                    }
-
-                    texture.bind(1);
-                    ctx.uniform().uploadInt(1);
-                })
+//                .supplyUniform(MATERIAL, "emission", ctx -> {
+//                    var texture = ((PkMaterial) ctx.material()).getTexture("emission");
+//
+//                    if(texture == null) {
+//                        texture = TextureLoader.instance().getDarkFallback();
+//                    }
+//
+//                    texture.bind(1);
+//                    ctx.uniform().uploadInt(1);
+//                })
                 .supplyUniform(MATERIAL, "useLight", ctx -> ctx.uniform().uploadBoolean(((PkMaterial) ctx.material()).getValue("useLight") instanceof Boolean bool ? bool : true));
     }
 

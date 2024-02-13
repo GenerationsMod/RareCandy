@@ -1,8 +1,12 @@
 package gg.generations.rarecandy.arceus.model.lowlevel;
 
+import org.lwjgl.opengl.GL20C;
+
 import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.function.IntConsumer;
+import java.util.stream.IntStream;
 
 import static org.lwjgl.opengl.GL11C.*;
 import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
@@ -48,6 +52,7 @@ public class VertexData implements Closeable, Bindable {
             );
             attribPtr += calculateAttributeSize(attrib);
         }
+
         unbind();
     }
 

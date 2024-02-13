@@ -6,7 +6,7 @@
 
 layout(location = 0) in vec3 positions;
 layout(location = 1) in vec2 texcoords;
-layout(location = 2) in vec3 normals;
+//layout(location = 2) in vec3 normals;
 //layout(location = 3) in vec4 joints;
 //layout(location = 4) in vec4 weights;
 
@@ -34,10 +34,10 @@ uniform mat4 boneTransforms[MAX_BONES];
 
 void main() {
     mat4 worldSpace = projectionMatrix * viewMatrix;
-    mat4 modelTransform = modelMatrix/* * getBoneTransform()*/;
+    mat4 modelTransform = modelMatrix; // * getBoneTransform();
     vec4 worldPosition = modelTransform * vec4(positions, 1.0);
 
-    normal = (modelMatrix * vec4(normals, 0.0)).xyz;
+    normal = vec3(0); // (modelMatrix * vec4(normals, 0.0)).xyz;
     texCoord0 = (texcoords * scale) + offset;
     gl_Position = worldSpace * worldPosition;
 

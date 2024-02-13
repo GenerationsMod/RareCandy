@@ -15,9 +15,11 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 
 import static gg.generationsmod.rarecandy.model.config.pk.ModelConfig.*;
@@ -66,7 +68,7 @@ public class AssimpModelLoader {
                     aiFile.FileSizeProc().free();
                 });
 
-        var scene = Assimp.aiImportFileEx(name, Assimp.aiProcess_Triangulate | Assimp.aiProcess_JoinIdenticalVertices | Assimp.aiProcess_ImproveCacheLocality | extraFlags, fileIo);
+        var scene = Assimp.aiImportFileEx(name, Assimp.aiProcess_Triangulate | Assimp.aiProcess_ImproveCacheLocality | extraFlags, fileIo);
         if (scene == null) throw new RuntimeException(Assimp.aiGetErrorString());
         var result = readScene(scene, locator);
         Assimp.aiReleaseImport(scene);
@@ -107,8 +109,10 @@ public class AssimpModelLoader {
         var meshes = new Mesh[scene.mNumMeshes()];
 
         for (int i = 0; i < scene.mNumMeshes(); i++) {
+
             var mesh = AIMesh.create(scene.mMeshes().get(i));
             var name = mesh.mName().dataString();
+            System.out.println(name + " " + mesh.mNumVertices());
             var material = mesh.mMaterialIndex();
             var indices = new ArrayList<Integer>();
             var positions = new ArrayList<Vector3f>();
@@ -118,6 +122,7 @@ public class AssimpModelLoader {
 
             // Indices
             var aiFaces = mesh.mFaces();
+
             for (int j = 0; j < mesh.mNumFaces(); j++) {
                 var aiFace = aiFaces.get(j);
                 indices.add(aiFace.mIndices().get(0));
@@ -127,8 +132,10 @@ public class AssimpModelLoader {
 
             // Positions
             var aiVert = mesh.mVertices();
-            for (int j = 0; j < mesh.mNumVertices(); j++)
+            for (int j = 0; j < mesh.mNumVertices(); j++) {
                 positions.add(new Vector3f(aiVert.get(j).x(), aiVert.get(j).y(), aiVert.get(j).z()));
+            }
+
 
             // UV's
             var aiUV = mesh.mTextureCoords(0);

@@ -158,24 +158,26 @@ public class MultiRenderObject<T extends RenderingInstance> {
     }
 
     private static Model fromMesh(Mesh mesh, Skeleton skeleton) {
-        var length = 8;
+        var length = 5;
         var amount = mesh.positions().size();
 
         var vertices = new float[length * amount];
 
-        for (int i = 0; i < amount; i += length) {
+        for (int i = 0; i < amount; i++) {
+            var index = i * length;
+
             var position = mesh.positions().get(i);
             var uv = mesh.uvs().get(i);
             var normal = mesh.normals().get(i);
 
-            vertices[i] = position.x;
-            vertices[i+1] = position.y;
-            vertices[i+2] = position.z;
-            vertices[i+3] = uv.x;
-            vertices[i+4] = uv.y;
-            vertices[i+5] = normal.x;
-            vertices[i+6] = normal.y;
-            vertices[i+7] = normal.z;
+            vertices[index] = position.x;
+            vertices[index+1] = position.y;
+            vertices[index+2] = position.z;
+            vertices[index+3] = uv.x;
+            vertices[index+4] = uv.y;
+//            vertices[index+5] = normal.x;
+//            vertices[index+6] = normal.y;
+//            vertices[index+7] = normal.z;
         }
 
         var vertexBuffer = MemoryUtil.memAlloc(vertices.length * 4);
@@ -191,7 +193,7 @@ public class MultiRenderObject<T extends RenderingInstance> {
 
     private static List<Attribute> ATTRIBUTES = List.of(
             Attribute.POSITION,
-            Attribute.TEXCOORD,
+            Attribute.TEXCOORD/*,
             Attribute.NORMAL/*,
             Attribute.BONE_IDS,
             Attribute.BONE_WEIGHTS*/

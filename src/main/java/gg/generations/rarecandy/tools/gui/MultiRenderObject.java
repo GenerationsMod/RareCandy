@@ -210,11 +210,9 @@ public class MultiRenderObject<T extends RenderingInstance> {
             this.object = object;
             this.transform = transform;
             this.variant = varaint;
-
-            materialSuppliers = new HashMap<>();
+            this.materialSuppliers = new HashMap<>();
 
             for (var pair : object.meshes.keySet()) {
-
                 materialSuppliers.put(pair, () -> object.getMapForVariants(this.getVariant()).get(pair));
             }
         }

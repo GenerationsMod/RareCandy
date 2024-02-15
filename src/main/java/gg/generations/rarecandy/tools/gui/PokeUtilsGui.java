@@ -11,6 +11,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.function.BiConsumer;
 
+import static gg.generations.rarecandy.legacy.pipeline.Texture.checkError;
+import static org.lwjgl.opengl.GL11C.glEnable;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_OUTPUT;
+import static org.lwjgl.opengl.GL43C.glDebugMessageCallback;
+
 public class PokeUtilsGui extends JPanel {
 
     public GuiHandler handler;
@@ -25,6 +30,8 @@ public class PokeUtilsGui extends JPanel {
     private JMenuItem save;
     private JMenuItem saveAs;
     private JScrollPane scrollPane1;
+    private boolean enabledWaterFuckUpTesting;
+
     public PokeUtilsGui() {
         LafManager.install(LafManager.themeForPreferredStyle(LafManager.getPreferredThemeStyle()));
         initComponents();
@@ -55,7 +62,10 @@ public class PokeUtilsGui extends JPanel {
         var renderLoop = new Runnable() {
             @Override
             public void run() {
-                if (renderingWindow.isValid()) renderingWindow.render();
+                if (renderingWindow.isValid()) {
+                    renderingWindow.render();
+                    checkError();
+                }
                 SwingUtilities.invokeLater(this);
             }
         };

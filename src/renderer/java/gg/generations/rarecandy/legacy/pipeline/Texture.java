@@ -2,8 +2,10 @@ package gg.generations.rarecandy.legacy.pipeline;
 
 import com.thebombzen.jxlatte.JXLDecoder;
 import com.thebombzen.jxlatte.JXLOptions;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL13C;
+import org.lwjgl.opengl.GL45C;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;
@@ -27,6 +29,7 @@ public record Texture(int id) implements Closeable {
     }
 
     public static Texture of(ByteBuffer rgbaBytes, int width, int height) {
+        checkError();
         var id = GL11C.glGenTextures();
 
         GL13C.glActiveTexture(GL13C.GL_TEXTURE0);
@@ -40,6 +43,16 @@ public record Texture(int id) implements Closeable {
         GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_NEAREST);
 
         return new Texture(id);
+    }
+
+    /**
+     * I could not give a single fuck at this point im doing this unpaid so i can be left alone
+     */
+    public static void checkError() {
+//        var error = GL11C.glGetError();
+//        if(error != GL11.GL_NO_ERROR) {
+//            throw new RuntimeException("GL ERROR: 0x" + Integer.toHexString(error));
+//        }
     }
 
     public static Texture of(BufferedImage image) {
@@ -90,9 +103,9 @@ public record Texture(int id) implements Closeable {
 
             for (int i = 0; i < rawData.length; i += 4) {
                 readyData
-                        .put(rawData[i+3])
-                        .put(rawData[i+2])
-                        .put(rawData[i+1])
+                        .put(rawData[i + 3])
+                        .put(rawData[i + 2])
+                        .put(rawData[i + 1])
                         .put(rawData[i]);
             }
 

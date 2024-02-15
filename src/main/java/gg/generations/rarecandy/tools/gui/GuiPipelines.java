@@ -16,7 +16,7 @@ import static gg.generations.rarecandy.legacy.pipeline.ShaderProgram.Builder.Uni
 
 public class GuiPipelines {
     public static Function<String, ShaderProgram> of(Supplier<Matrix4f> projectionMatrix, Matrix4f viewMatrix) {
-        ShaderProgram.Builder ROOT = new ShaderProgram.Builder()
+        var ROOT = new ShaderProgram.Builder()
                 .supplyUniform(SHARED, "viewMatrix", ctx -> ctx.uniform().uploadMat4f(viewMatrix))
                 .supplyUniform(INSTANCE, "modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().getTransform()))
                 .supplyUniform(SHARED, "projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix.get()))
@@ -53,11 +53,11 @@ public class GuiPipelines {
                     }
                 });
 
-        ShaderProgram.Builder BASE = new ShaderProgram.Builder(ROOT)
+        var BASE = new ShaderProgram.Builder(ROOT)
                 .configure(GuiPipelines::addDiffuse)
                 .configure(GuiPipelines::addLight);
 
-        ShaderProgram.Builder LAYERED_BASE = new ShaderProgram.Builder(BASE)
+        var LAYERED_BASE = new ShaderProgram.Builder(BASE)
                 .shader(builtin("animated/animated.vs.glsl"), builtin("animated/layered.fs.glsl"))
                 .configure(GuiPipelines::baseColors)
                 .configure(GuiPipelines::emissionColors)
@@ -78,16 +78,16 @@ public class GuiPipelines {
                     ctx.uniform().uploadInt(3);
                 });
 
-        ShaderProgram LAYERED = new ShaderProgram.Builder(LAYERED_BASE)
+        var LAYERED = new ShaderProgram.Builder(LAYERED_BASE)
                 .supplyUniform(SHARED, "frame", ctx -> {
                     ctx.uniform().uploadInt(-1);
                 })
                 .build();
 
-        ShaderProgram SOLID = new ShaderProgram.Builder(BASE)
+        var SOLID = new ShaderProgram.Builder(BASE)
                 .shader(builtin("animated/animated.vs.glsl"), builtin("animated/solid.fs.glsl"))
                 .build();
-        ShaderProgram MASKED = new ShaderProgram.Builder(BASE)
+        var MASKED = new ShaderProgram.Builder(BASE)
                 .shader(builtin("animated/animated.vs.glsl"), builtin("animated/masked.fs.glsl"))
                 .supplyUniform(MATERIAL, "mask", ctx -> {
 
@@ -102,7 +102,7 @@ public class GuiPipelines {
                     ctx.uniform().uploadVec3f(color);
                 })
                 .build();
-        ShaderProgram PARADOX = new ShaderProgram.Builder(LAYERED_BASE)
+        var PARADOX = new ShaderProgram.Builder(LAYERED_BASE)
                 .supplyUniform(SHARED, "frame", ctx -> ctx.uniform().uploadInt((int) ((/*RareCandyCanvas.getTime() * 200) % 16*/0))))
                 .build();
 
@@ -114,9 +114,9 @@ public class GuiPipelines {
 //        }
 //
         return s -> switch (s) {
-//            case "masked" -> MASKED;
-//            case "paradox" -> PARADOX;
-//            case "layered" -> LAYERED;
+            case "masked" -> MASKED;
+            case "paradox" -> PARADOX;
+            case "layered" -> LAYERED;
             default -> SOLID;
         };
     }

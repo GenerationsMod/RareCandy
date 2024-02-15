@@ -140,13 +140,10 @@ public class GuiPipelines {
                 texture.bind(2);
                 ctx.uniform().uploadInt(2);
             })
-            .supplyUniform("color", ctx -> {
-                var color = (Vector3f) ctx.object().getMaterial(ctx.instance().variant()).getValue("color");
-                ctx.uniform().uploadVec3f(color);
-            })
+            .supplyUniform("color", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("color") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
             .build();
     public static final Pipeline PARADOX = new Pipeline.Builder(LAYERED_BASE)
-            .supplyUniform("frame", ctx -> ctx.uniform().uploadInt((int) ((RareCandyCanvas.getTime() * 200) % 16)))
+            .supplyUniform("frame", ctx -> ctx.uniform().uploadInt((int) ((RareCandyCanvas.getTime() * 25) % 16)))
             .build();
 
     private static void emissionColors(Pipeline.Builder builder) {

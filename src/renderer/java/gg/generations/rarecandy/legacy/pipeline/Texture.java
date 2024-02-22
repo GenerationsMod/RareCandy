@@ -21,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public record Texture(int id) implements ITexture, Closeable {
-
     public void bind(int slot) {
         assert (slot >= 0 && slot <= 31);
         GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + slot);
@@ -32,10 +31,10 @@ public record Texture(int id) implements ITexture, Closeable {
      * I could not give a single fuck at this point im doing this unpaid so i can be left alone
      */
     public static void checkError() {
-        var error = GL11C.glGetError();
-        if(error != GL11.GL_NO_ERROR) {
-            System.out.println("GL ERROR: 0x" + Integer.toHexString(error));
-        }
+//        var error = GL11C.glGetError();
+//        if(error != GL11.GL_NO_ERROR) {
+//            System.out.println("GL ERROR: 0x" + Integer.toHexString(error));
+//        }
     }
 
 

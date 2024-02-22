@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 import static gg.generations.rarecandy.legacy.pipeline.ShaderProgram.Builder.UniformType.*;
 
 public class GuiPipelines {
-    public static Function<String, ShaderProgram> of(Supplier<Matrix4f> projectionMatrix, Matrix4f viewMatrix) {
+    public static Function<String, ShaderProgram> of(Supplier<Matrix4f> projectionMatrix, Matrix4f viewMatrix, RareCandyCanvas candyCanvas) {
         var ROOT = new ShaderProgram.Builder()
                 .supplyUniform(SHARED, "viewMatrix", ctx -> ctx.uniform().uploadMat4f(viewMatrix))
                 .supplyUniform(INSTANCE, "modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().getTransform()))
@@ -103,7 +103,7 @@ public class GuiPipelines {
                 })
                 .build();
         var PARADOX = new ShaderProgram.Builder(LAYERED_BASE)
-                .supplyUniform(SHARED, "frame", ctx -> ctx.uniform().uploadInt((int) ((/*RareCandyCanvas.getTime() * 200) % 16*/0))))
+                .supplyUniform(SHARED, "frame", ctx -> ctx.uniform().uploadInt((int)((candyCanvas.time * 25) % 16)))
                 .build();
 
 //        try {

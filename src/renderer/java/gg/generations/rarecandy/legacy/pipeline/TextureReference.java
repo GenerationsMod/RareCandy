@@ -93,24 +93,15 @@ public record TextureReference(ByteBuffer rgbaBytes, int width, int height) impl
     }
 
     public Texture create() {
-//        checkError();
         var id = GL11C.glGenTextures();
 
-        System.out.println("Blep: " + id);
-
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, id);
-//        checkError();
         GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, width, height, 0, GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, rgbaBytes);
-//        checkError();
         GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_S, GL11C.GL_REPEAT);
-//        checkError();
         GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_T, GL11C.GL_REPEAT);
-//        checkError();
 
         GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_NEAREST);
-//        checkError();
         GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_NEAREST);
-//        checkError();
 
         return new Texture(id);
     }

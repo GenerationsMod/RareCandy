@@ -31,6 +31,7 @@ public class DefaultRenderGraph {
 
     public void render() {
         if (scene.isDirty()) updateCache();
+
         updatableObjects.forEach(SmartObject::update);
 
         for (var shaderEntry : instanceMap.entrySet()) {
@@ -71,6 +72,8 @@ public class DefaultRenderGraph {
     private void updateCache() {
         scene.removedInstances.forEach(this::removeInstance);
         scene.addedInstances.forEach(this::addInstance);
+        scene.removedInstances.clear();
+        scene.addedInstances.clear();
         scene.markClean();
     }
 
@@ -85,10 +88,21 @@ public class DefaultRenderGraph {
 
     private void removeInstance(RenderingInstance instance) {
         if (instance instanceof SmartObject) updatableObjects.remove(instance);
-        instanceMap.get(instance.getMaterial().getProgram())
-                .get(instance.getModel())
-                .get(instance.getMaterial())
-                .get(instance.getModel().data().vertexData)
-                .remove(instance);
+
+        var program = instanceMap.get(instance.getMaterial().getProgram());
+
+        //Needed to prevent explosion
+        if(program != null) {
+            var model = program.get(instance.getModel());
+            if(model != null) {
+                var material = model.get(instance.getMaterial());
+                if(material != null) {
+                    var data = material.get(instance.getModel().data().vertexData);
+                    if(data != null) data.remove(instance);
+                }
+            }
+        }
+
+        instance.postRemove();
     }
 }

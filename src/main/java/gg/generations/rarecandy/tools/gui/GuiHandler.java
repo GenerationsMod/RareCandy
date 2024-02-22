@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class GuiHandler implements KeyListener {
     private static final String BASE_TITLE = "Rare Candy Model Explorer (RKS Version)";
@@ -38,10 +39,10 @@ public class GuiHandler implements KeyListener {
         return (RareCandyCanvas) gui.canvasPanel.getComponents()[0];
     }
 
-    public void initializeAsset(FileLocator path) {
+    public void initializeAsset(FileLocator path, Set<String> variants) {
         try {
             this.assetPath = path.getPath();
-            ((PixelAssetTree) gui.fileViewer).initializeAsset(path);
+            ((PixelAssetTree) gui.fileViewer).initializeAsset(path, variants);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -111,11 +112,12 @@ public class GuiHandler implements KeyListener {
 
     public void openAsset(Path filePath) {
         var locator = new PkFileLocator(filePath);
-        initializeAsset(locator);
         var title = BASE_TITLE + " - " + filePath.getFileName().toString();
         frame.setTitle(title);
         this.currentTitle = title;
-        getCanvas().openFile(AssimpModelLoader.load("model.glb", locator, 0));
+        var model = AssimpModelLoader.load("model.glb", locator, 0);
+        initializeAsset(locator, model.config().variants.keySet());
+        getCanvas().openFile(model);
     }
 
     @Override

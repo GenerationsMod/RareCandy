@@ -10,4 +10,6 @@ public interface RenderingInstance {
     Material getMaterial();
 
     Matrix4f getTransform();
+
+    default void postRemove() {}
 }

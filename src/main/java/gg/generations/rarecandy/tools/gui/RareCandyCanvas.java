@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static gg.generations.rarecandy.legacy.pipeline.Texture.checkError;
 import static gg.generations.rarecandy.tools.gui.PlaneGenerator.generatePlane;
 import static org.lwjgl.opengl.GL11C.glEnable;
 import static org.lwjgl.opengl.GL43C.*;
@@ -33,6 +32,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
     public final Matrix4f viewMatrix = new Matrix4f();
     public double startTime = System.currentTimeMillis();
+    public double time;
+
     public String currentAnimation = null;
     private RareCandyScene<RenderingInstance> scene = new RareCandyScene<>();
     private DefaultRenderGraph graph = new DefaultRenderGraph(scene);
@@ -78,8 +79,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public void openFile(RawModel rawModel) {
         runnables.add(() -> {
             currentAnimation = null;
-//            if (displayModel != null) displayModel.remove(scene);
-            this.displayModel = new MultiRenderObject.MultiRenderObjectInstance(new MultiRenderObject<RenderingInstance>(rawModel), new Matrix4f(), null);
+            if (displayModel != null) displayModel.removeFromScene();
+            this.displayModel = new MultiRenderObject.MultiRenderObjectInstance(new MultiRenderObject<RenderingInstance>(rawModel), new Matrix4f());
             displayModel.addToScene(scene);
         });
     }
@@ -91,7 +92,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         AssimpModelLoader.setImageConsumer((s, image) -> TextureLoader.instance().register(s, image));
 
-        PipelineRegistry.setFunction(GuiPipelines.of(() -> projectionMatrix, viewMatrix));
+        PipelineRegistry.setFunction(GuiPipelines.of(() -> projectionMatrix, viewMatrix, this));
 
         GL11C.glClearColor(255 / 255f, 255 / 255f, 255 / 255f, 1);
         glEnable(GL11C.GL_DEPTH_TEST);
@@ -100,7 +101,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         this.debugCallbackKeepAroundAlways = GLUtil.setupDebugMessageCallback();
 
         try {
-            scene.addInstance(generatePlane(projectionMatrix, viewMatrix, 10, 10));
+            scene.addInstance(generatePlane(projectionMatrix, viewMatrix, 6, 6));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -114,6 +115,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         runnables.forEach(Runnable::run);
         runnables.clear();
 //        checkError();
+        time = (System.currentTimeMillis() - startTime) / 1000f;
 
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
         graph.render();
@@ -146,7 +148,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public void setVariant(String variant) {
-//        loadedModelInstance.setVariant(variant);
+        displayModel.setVariant(variant);
     }
 
     public void attachArcBall() {

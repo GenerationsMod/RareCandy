@@ -18,15 +18,9 @@ import java.util.Set;
 
 import static gg.generations.rarecandy.legacy.pipeline.TextureReference.read;
 
-public class TextureLoader {
+public class TextureLoader extends ITextureLoader {
 
     public static Map<String, ITexture> MAP = new HashMap<>();
-
-    private static TextureLoader instance = new TextureLoader();
-
-    public static TextureLoader instance() {
-        return instance;
-    }
 
     public TextureLoader() {
         reload();
@@ -60,11 +54,6 @@ public class TextureLoader {
         }
     }
 
-    public void clear() {
-        getTextureEntries().forEach(this::remove);
-        reload();
-    }
-
     public TextureReference generateDirectReference(String path) {
         try(var is = ShaderProgram.class.getResourceAsStream("/images/" + path)) {
             var image = path.endsWith(".jxl") ? read(is.readAllBytes()) : ImageIO.read(is);
@@ -89,41 +78,6 @@ public class TextureLoader {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public void reload() {
-        register("dark", generateDirectReference("dark.png"));
-        register("neutral", generateDirectReference("neutral.png"));
-        register("bright", generateDirectReference("bright.png"));
-        register("paradox_mask", generateDirectReference("paradox_mask_tiled.png"));
-        register("blank", generateDirectReference("blank.png"));
-        register("burnt_concrete", generateDirectReference("burnt_concrete.png"));
-        register("concrete", generateDirectReference("concrete.png"));
-        register("glass", generateDirectReference("glass.png"));
-        register("metal", generateDirectReference("metal.png"));
-        register("silver", generateDirectReference("silver.png"));
-
-    }
-    public void register(String name, BufferedImage reference) {
-        System.out.println("Blorp: "+ name);
-
-        register(name, loadFromReference(reference));
-    }
-
-    protected ITexture loadFromReference(BufferedImage reference) {
-        return TextureReference.of(reference);
-    }
-
-
-    public ITexture getDarkFallback() {
-        return getTexture("dark");
-    }
-
-    public ITexture getBrightFallback() {
-        return getTexture("neutral");
-    }
-    public ITexture getNuetralFallback() {
-        return getTexture("bright");
     }
 
     public Set<String> getTextureEntries() {

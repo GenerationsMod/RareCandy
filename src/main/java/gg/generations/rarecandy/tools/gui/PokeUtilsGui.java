@@ -1,20 +1,12 @@
 package gg.generations.rarecandy.tools.gui;
 
 import com.github.weisj.darklaf.LafManager;
-import gg.generations.rarecandy.arceus.model.pk.PipelineRegistry;
+import gg.generations.rarecandy.arceus.model.pk.ITextureLoader;
 import gg.generations.rarecandy.arceus.model.pk.TextureLoader;
-import gg.generationsmod.rarecandy.assimp.AssimpModelLoader;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.function.BiConsumer;
-
-import static gg.generations.rarecandy.legacy.pipeline.Texture.checkError;
-import static org.lwjgl.opengl.GL11C.glEnable;
-import static org.lwjgl.opengl.GL43C.GL_DEBUG_OUTPUT;
-import static org.lwjgl.opengl.GL43C.glDebugMessageCallback;
 
 public class PokeUtilsGui extends JPanel {
 
@@ -33,6 +25,7 @@ public class PokeUtilsGui extends JPanel {
     private boolean enabledWaterFuckUpTesting;
 
     public PokeUtilsGui() {
+        ITextureLoader.setInstance(new TextureLoader());
         LafManager.install(LafManager.themeForPreferredStyle(LafManager.getPreferredThemeStyle()));
         initComponents();
         canvasPanel.add(renderingWindow);

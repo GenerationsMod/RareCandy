@@ -20,7 +20,7 @@ import java.util.Arrays;
 
 public class PlaneGenerator {
     public static ShaderProgram simple(Matrix4f projectionMatrix, Matrix4f viewMatrix) throws IOException {
-        TextureLoader.instance().register("grid", TextureReference.of(Path.of("grid.png")));
+        TextureLoader.instance().register("grid", TextureLoader.instance().generateDirectReference("grid.png"));
 
         return new ShaderProgram.Builder()
                 .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "viewMatrix", ctx -> ctx.uniform().uploadMat4f(viewMatrix))

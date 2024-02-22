@@ -112,7 +112,6 @@ public class AssimpModelLoader {
 
             var mesh = AIMesh.create(scene.mMeshes().get(i));
             var name = mesh.mName().dataString();
-            System.out.println(name + " " + mesh.mNumVertices());
             var material = mesh.mMaterialIndex();
             var indices = new ArrayList<Integer>();
             var positions = new ArrayList<Vector3f>();

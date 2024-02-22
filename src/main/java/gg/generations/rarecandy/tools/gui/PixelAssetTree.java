@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class PixelAssetTree extends JTree {
 
@@ -55,10 +56,13 @@ public class PixelAssetTree extends JTree {
         });
     }
 
-    public void initializeAsset(FileLocator modelDir) throws IOException {
+    public void initializeAsset(FileLocator modelDir, Set<String> variants) throws IOException {
         var tree = node(modelDir.getPath().getFileName().toString());
         var animationsNode = node("animations");
         var imagesNode = node("images");
+        var variantsNode = node("variants");
+        for (var name : variants) variantsNode.add(node(name));
+
 
         List<String> animationStrings = new ArrayList<>();
         List<String> files = modelDir.getFiles();
@@ -86,6 +90,7 @@ public class PixelAssetTree extends JTree {
 
         if (animationsNode.getChildCount() > 0) tree.add(animationsNode);
         if (imagesNode.getChildCount() > 0) tree.add(imagesNode);
+        if (variantsNode.getChildCount() > 0) tree.add(variantsNode);
 
         setEditable(true);
         setModel(new DefaultTreeModel(tree));
@@ -95,6 +100,10 @@ public class PixelAssetTree extends JTree {
         var node = new DefaultMutableTreeNode(name);
         for (var child : children) node.add(child);
         return node;
+    }
+
+    public void initializeVariants(Set<String> strings) {
+
     }
 
     private static class FilesystemTransferHandler extends TransferHandler {

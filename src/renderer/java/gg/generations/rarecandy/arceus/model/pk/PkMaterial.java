@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.arceus.model.pk;
 
 import gg.generations.rarecandy.arceus.model.Material;
+import gg.generations.rarecandy.legacy.pipeline.ITexture;
 import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
 import gg.generations.rarecandy.legacy.pipeline.Texture;
 import gg.generationsmod.rarecandy.model.config.pk.BlendType;
@@ -32,7 +33,7 @@ public class PkMaterial implements Material {
         this.values = values;
     }
 
-    public Texture getDiffuseTexture() {
+    public ITexture getDiffuseTexture() {
         return getTexture("diffuse");
     }
 
@@ -48,7 +49,7 @@ public class PkMaterial implements Material {
         return blendType;
     }
 
-    public Texture getTexture(String imageType) {
+    public ITexture getTexture(String imageType) {
         return TextureLoader.instance().getTexture(images.get(imageType));
     }
 

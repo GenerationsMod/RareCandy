@@ -110,14 +110,14 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     @Override
     public void paintGL() {
-        checkError();
+//        checkError();
         runnables.forEach(Runnable::run);
         runnables.clear();
-        checkError();
+//        checkError();
 
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
         graph.render();
-        checkError();
+//        checkError();
         swapBuffers();
 
 //        if (instances.size() > 1) {

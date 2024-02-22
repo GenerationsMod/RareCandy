@@ -1,7 +1,9 @@
 package gg.generations.rarecandy.arceus.model.pk;
 
+import gg.generations.rarecandy.legacy.pipeline.ITexture;
 import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
 import gg.generations.rarecandy.legacy.pipeline.Texture;
+import gg.generations.rarecandy.legacy.pipeline.TextureReference;
 import gg.generationsmod.rarecandy.FileLocator;
 
 import javax.imageio.ImageIO;
@@ -14,11 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static gg.generations.rarecandy.legacy.pipeline.Texture.read;
+import static gg.generations.rarecandy.legacy.pipeline.TextureReference.read;
 
 public class TextureLoader {
 
-    public static Map<String, Texture> MAP = new HashMap<>();
+    public static Map<String, ITexture> MAP = new HashMap<>();
 
     private static TextureLoader instance = new TextureLoader();
 
@@ -31,19 +33,30 @@ public class TextureLoader {
     }
 
 
-    public Texture getTexture(String name) {
+    public ITexture getTexture(String name) {
         var texture = MAP.getOrDefault(name, null);
+
+        if(texture instanceof TextureReference) {
+            texture = ((TextureReference) texture).create();
+            MAP.put(name, texture);
+
+        }
+
         return texture;
     }
 
-    public void register(String name, Texture texture) {
+    public void register(String name, ITexture texture) {
         MAP.computeIfAbsent(name, s -> texture);
     }
 
     public void remove(String name) {
         var value = MAP.remove(name);
         if(value != null) {
-            value.close();
+            try {
+                value.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -52,7 +65,7 @@ public class TextureLoader {
         reload();
     }
 
-    public BufferedImage generateDirectReference(String path) {
+    public TextureReference generateDirectReference(String path) {
         try(var is = ShaderProgram.class.getResourceAsStream("/images/" + path)) {
             var image = path.endsWith(".jxl") ? read(is.readAllBytes()) : ImageIO.read(is);
             int height = image.getHeight();
@@ -72,7 +85,7 @@ public class TextureLoader {
                 image = mirror;
             }
 
-            return image;
+            return TextureReference.read(image);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -92,22 +105,24 @@ public class TextureLoader {
 
     }
     public void register(String name, BufferedImage reference) {
+        System.out.println("Blorp: "+ name);
+
         register(name, loadFromReference(reference));
     }
 
-    protected Texture loadFromReference(BufferedImage reference) {
-        return Texture.of(reference);
+    protected ITexture loadFromReference(BufferedImage reference) {
+        return TextureReference.of(reference);
     }
 
 
-    public Texture getDarkFallback() {
+    public ITexture getDarkFallback() {
         return getTexture("dark");
     }
 
-    public Texture getBrightFallback() {
+    public ITexture getBrightFallback() {
         return getTexture("neutral");
     }
-    public Texture getNuetralFallback() {
+    public ITexture getNuetralFallback() {
         return getTexture("bright");
     }
 

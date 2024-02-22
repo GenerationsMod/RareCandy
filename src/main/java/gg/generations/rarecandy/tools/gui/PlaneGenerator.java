@@ -4,8 +4,10 @@ import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.arceus.model.SimpleMaterial;
 import gg.generations.rarecandy.arceus.model.lowlevel.*;
+import gg.generations.rarecandy.arceus.model.pk.TextureLoader;
 import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
 import gg.generations.rarecandy.legacy.pipeline.Texture;
+import gg.generations.rarecandy.legacy.pipeline.TextureReference;
 import gg.generations.rarecandy.tools.util.SimpleRenderingInstance;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
@@ -18,13 +20,13 @@ import java.util.Arrays;
 
 public class PlaneGenerator {
     public static ShaderProgram simple(Matrix4f projectionMatrix, Matrix4f viewMatrix) throws IOException {
-        var texture = Texture.of(Path.of("grid.png"));
+        TextureLoader.instance().register("grid", TextureReference.of(Path.of("grid.png")));
 
         return new ShaderProgram.Builder()
                 .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "viewMatrix", ctx -> ctx.uniform().uploadMat4f(viewMatrix))
                 .supplyUniform(ShaderProgram.Builder.UniformType.INSTANCE, "modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().getTransform()))
                 .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
-                .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "textureSampler", ctx -> ctx.bindAndUploadTex(texture, 0))
+                .supplyUniform(ShaderProgram.Builder.UniformType.SHARED, "textureSampler", ctx -> ctx.bindAndUploadTex(TextureLoader.instance().getTexture("grid"), 0))
                 .shader(builtin("simple/simple.vs.glsl"), builtin("simple/simple.fs.glsl"))
                             .prePostDraw(() -> {
                 GL11.glEnable(GL11.GL_BLEND);

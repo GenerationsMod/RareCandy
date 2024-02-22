@@ -12,7 +12,7 @@ public record UniformUploadContext(
         Uniform uniform
 ) {
 
-    public void bindAndUploadTex(Texture texture, int slot) {
+    public void bindAndUploadTex(ITexture texture, int slot) {
         texture.bind(slot);
         uniform.uploadInt(slot);
     }

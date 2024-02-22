@@ -6,6 +6,7 @@ import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.arceus.model.lowlevel.RenderData;
 import gg.generations.rarecandy.arceus.util.RareCandyException;
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryStack;

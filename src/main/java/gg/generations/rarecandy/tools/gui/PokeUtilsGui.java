@@ -64,7 +64,7 @@ public class PokeUtilsGui extends JPanel {
             public void run() {
                 if (renderingWindow.isValid()) {
                     renderingWindow.render();
-                    checkError();
+//                    checkError();
                 }
                 SwingUtilities.invokeLater(this);
             }

@@ -15,12 +15,15 @@ import gg.generationsmod.rarecandy.model.config.pk.VariantParent;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MultiRenderObject<T extends RenderingInstance> {
+public class MultiRenderObject<T extends RenderingInstance> implements Closeable {
     private final Map<String, Model> meshes;
 
     private final Map<String, Map<String, PkMaterial>> materials;
@@ -205,6 +208,29 @@ public class MultiRenderObject<T extends RenderingInstance> {
         return scale;
     }
 
+    @Override
+    public void close() throws IOException {
+        Set<PkMaterial> closedMaterials = new HashSet<>();
+        for(var map : materials.values()) {
+            for(var material : map.values()) {
+                if(closedMaterials.contains(material)) continue;
+                material.close();
+                closedMaterials.add(material);
+            }
+        }
+
+        for(var material : defaultMaterials.values()) {
+            if(closedMaterials.contains(material)) continue;
+            material.close();
+            closedMaterials.add(material);
+        }
+
+        for (Model value : meshes.values()) {
+            value.data().close();
+        }
+    }
+
+
     public static class MultiRenderObjectInstance {
         private final MultiRenderObject<?> object;
         private final Matrix4f transform;
@@ -255,7 +281,7 @@ public class MultiRenderObject<T extends RenderingInstance> {
             proxies.stream().filter(a -> !a.isChanging()).forEach(instance -> {
                 instance.setChanging();
                 scene.removeInstance(instance);
-                if(hideNew.contains(instance.getName())) scene.addInstance(instance);
+                if(!hideNew.contains(instance.getName())) scene.addInstance(instance);
             });
             this.variant = variant == null ? "" : variant;
         }

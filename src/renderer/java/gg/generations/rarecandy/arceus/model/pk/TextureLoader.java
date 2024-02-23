@@ -8,6 +8,7 @@ import gg.generationsmod.rarecandy.FileLocator;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -57,24 +58,8 @@ public class TextureLoader extends ITextureLoader {
     public TextureReference generateDirectReference(String path) {
         try(var is = ShaderProgram.class.getResourceAsStream("/images/" + path)) {
             var image = path.endsWith(".jxl") ? read(is.readAllBytes()) : ImageIO.read(is);
-            int height = image.getHeight();
-            int width = image.getWidth();
 
-            // Mirror image if not square. TODO: maybe do this in the shader to save gpu memory and upload time in general
-            if (height / width == 2) {
-                var mirror = new BufferedImage(width * 2, height, BufferedImage.TYPE_INT_ARGB);
-                for (int y = 0; y < height; y++) {
-                    for (int lx = 0, rx = width * 2 - 1; lx < width; lx++, rx--) {
-                        int p = image.getRGB(lx, y);
-                        mirror.setRGB(lx, y, p);
-                        mirror.setRGB(rx, y, p);
-                    }
-                }
-
-                image = mirror;
-            }
-
-            return TextureReference.read(image);
+            return TextureReference.read(TextureReference.process(image));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

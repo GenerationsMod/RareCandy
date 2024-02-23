@@ -115,7 +115,8 @@ public class GuiHandler implements KeyListener {
         var title = BASE_TITLE + " - " + filePath.getFileName().toString();
         frame.setTitle(title);
         this.currentTitle = title;
-        var model = AssimpModelLoader.load("model.glb", locator, 0);
+
+        var model = AssimpModelLoader.load(locator.getModelName(), locator, 0);
         initializeAsset(locator, model.config().variants.keySet());
         getCanvas().openFile(model);
     }

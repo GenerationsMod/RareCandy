@@ -6,10 +6,7 @@ import org.lwjgl.opengl.GL11C;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferFloat;
-import java.awt.image.DataBufferInt;
+import java.awt.image.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -41,6 +38,10 @@ public record TextureReference(ByteBuffer rgbaBytes, int width, int height) impl
 //            ImageUtils.warning("Could not read image from image data");
             return null;
         }
+
+        System.out.println(image);
+
+        image = process(image);
 
         var buffer = image.getData().getDataBuffer();
 
@@ -119,27 +120,39 @@ public record TextureReference(ByteBuffer rgbaBytes, int width, int height) impl
     public static BufferedImage readImage(Path path) {
         try {
             var is = Files.newInputStream(path);
-            var image = path.toString().endsWith(".jxl") ? read(is.readAllBytes()) : ImageIO.read(is);
-            int height = image.getHeight();
-            int width = image.getWidth();
 
-            // Mirror image if not square. TODO: maybe do this in the shader to save gpu memory and upload time in general
-            if (height / width == 2) {
-                var mirror = new BufferedImage(width * 2, height, BufferedImage.TYPE_INT_ARGB);
-                for (int y = 0; y < height; y++) {
-                    for (int lx = 0, rx = width * 2 - 1; lx < width; lx++, rx--) {
-                        int p = image.getRGB(lx, y);
-                        mirror.setRGB(lx, y, p);
-                        mirror.setRGB(rx, y, p);
-                    }
-                }
-
-                image = mirror;
-            }
-
-            return image;
+            return process(path.toString().endsWith(".jxl") ? read(is.readAllBytes()) : ImageIO.read(is));
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static BufferedImage process(BufferedImage image) {
+        int height = image.getHeight();
+        int width = image.getWidth();
+
+        // Mirror image if not square. TODO: maybe do this in the shader to save gpu memory and upload time in general
+        if (height / width == 2) {
+            var mirror = new BufferedImage(width * 2, height, BufferedImage.TYPE_INT_ARGB);
+            for (int y = 0; y < height; y++) {
+                for (int lx = 0, rx = width * 2 - 1; lx < width; lx++, rx--) {
+                    int p = image.getRGB(lx, y);
+                    mirror.setRGB(lx, y, p);
+                    mirror.setRGB(rx, y, p);
+                }
+            }
+
+            return mirror;
+        } else {
+            var mirror = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    int p = image.getRGB(x, y);
+                    mirror.setRGB(x, y, p);
+                }
+            }
+
+            return mirror;
         }
     }
 }

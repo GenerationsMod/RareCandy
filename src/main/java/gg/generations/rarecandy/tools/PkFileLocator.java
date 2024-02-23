@@ -23,18 +23,32 @@ public class PkFileLocator implements FileLocator {
     private final Map<String, byte[]> fileCache = new HashMap<>();
     private final Path path;
 
+    private String modelName;
+
     public PkFileLocator(Path path) {
         this.path = path;
+
+        var glbCount = 0;
+
+
         try(var is = Files.newInputStream(path)) {
             var tarFile = getTarFile(Objects.requireNonNull(is, "Input Stream is null"));
 
             for (var entry : tarFile.getEntries()) {
                 if(entry.getName().endsWith("/")) continue;
 
+                if(entry.getName().endsWith("glb")) {
+                    if(glbCount > 1) throw new RuntimeException("Too many glb files");
+                    modelName = entry.getName();
+                    glbCount++;
+                }
+
                 fileCache.put(entry.getName(), tarFile.getInputStream(entry).readAllBytes());
             }
 
-        } catch (IOException | NullPointerException e) {
+            if(modelName == null) throw new RuntimeException("No glb.");
+
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -56,6 +70,10 @@ public class PkFileLocator implements FileLocator {
     @Override
     public byte[] getFile(String name) {
         return fileCache.get(name);
+    }
+
+    public String getModelName() {
+        return modelName;
     }
 
     @Override

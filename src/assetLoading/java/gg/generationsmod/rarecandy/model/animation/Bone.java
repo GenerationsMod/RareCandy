@@ -49,5 +49,12 @@ public class Bone {
             this.vertexId = vertexId;
             this.weight = weight;
         }
+
+        @Override
+        public String toString() {
+            return "(" + vertexId +
+                    ", " + weight +
+                    ")";
+        }
     }
 }

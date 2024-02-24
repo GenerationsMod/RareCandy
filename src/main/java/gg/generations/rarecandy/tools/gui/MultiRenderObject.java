@@ -1,17 +1,21 @@
 package gg.generations.rarecandy.tools.gui;
 
+import com.google.gson.GsonBuilder;
 import gg.generations.rarecandy.arceus.core.RareCandyScene;
 import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.arceus.model.lowlevel.*;
 import gg.generations.rarecandy.arceus.model.pk.PkMaterial;
 import gg.generations.rarecandy.arceus.model.pk.Variant;
+import gg.generationsmod.rarecandy.Pair;
 import gg.generationsmod.rarecandy.model.Mesh;
 import gg.generationsmod.rarecandy.model.RawModel;
+import gg.generationsmod.rarecandy.model.animation.Bone;
 import gg.generationsmod.rarecandy.model.animation.Skeleton;
 import gg.generationsmod.rarecandy.model.config.pk.ModelConfig;
 import gg.generationsmod.rarecandy.model.config.pk.VariantDetails;
 import gg.generationsmod.rarecandy.model.config.pk.VariantParent;
+import org.joml.Matrix2d;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
@@ -21,6 +25,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class MultiRenderObject<T extends RenderingInstance> implements Closeable {
@@ -57,7 +62,7 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
         var variantMaterialMap = new HashMap<String, Map<String, PkMaterial>>();
         var variantHideMap = new HashMap<String, List<String>>();
 
-        if(config.hideDuringAnimation != null) {
+        if (config.hideDuringAnimation != null) {
             hideDuringAnimation = config.hideDuringAnimation;
         }
 
@@ -68,7 +73,7 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
             if (variant.hide()) defaultHidden.add(s1);
         });
 
-        if(config.variants != null) {
+        if (config.variants != null) {
             for (Map.Entry<String, VariantParent> entry : config.variants.entrySet()) {
                 String variantKey = entry.getKey();
                 VariantParent variantParent = entry.getValue();
@@ -149,7 +154,7 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
             String k = entry.getKey();
             VariantDetails v = entry.getValue();
             appliee.compute(k, (s, variantDetails) -> {
-                if(variantDetails == null) return v;
+                if (variantDetails == null) return v;
                 return variantDetails.fillIn(v);
             });
         }
@@ -163,30 +168,63 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
     }
 
     private static Model fromMesh(Mesh mesh, Skeleton skeleton) {
-        var length = 5;
+        var length = 52;
         var amount = mesh.positions().size();
 
-        var vertices = new float[length * amount];
+        var vertexBuffer = MemoryUtil.memAlloc(length * amount);
+
+        var bones = IntStream.range(0, amount).mapToObj(a -> new ArrayList<Pair<Integer, Float>>()).toList();
+
+
+        mesh.bones().forEach(bone -> {
+            var boneId = skeleton.getId(bone);
+
+            for(var weight : bone.weights) {
+                if(weight.weight == 0.0) return;
+                else {
+                    bones.get(weight.vertexId).add(new Pair<>(boneId, weight.weight));
+                }
+            }
+        });
+
+        var zero = new Pair<Integer, Float>(0, 0.0f);
+
+        for (ArrayList<Pair<Integer, Float>> bone : bones) {
+            if()
+        }
+
+//        var bones = organizeBones(mesh.bones());
+
+        System.out.println("Warp: " +bones.stream().map(ArrayList::size).max(Comparator.naturalOrder()));
+
+        var max = -1;
 
         for (int i = 0; i < amount; i++) {
-            var index = i * length;
 
             var position = mesh.positions().get(i);
             var uv = mesh.uvs().get(i);
             var normal = mesh.normals().get(i);
+            var bone = bones.get(i);
 
-            vertices[index] = position.x;
-            vertices[index+1] = position.y;
-            vertices[index+2] = position.z;
-            vertices[index+3] = uv.x;
-            vertices[index+4] = uv.y;
-//            vertices[index+5] = normal.x;
-//            vertices[index+6] = normal.y;
-//            vertices[index+7] = normal.z;
+            vertexBuffer.putFloat(position.x);
+            vertexBuffer.putFloat(position.y);
+            vertexBuffer.putFloat(position.z);
+            vertexBuffer.putFloat(uv.x);
+            vertexBuffer.putFloat(uv.y);
+            vertexBuffer.putFloat(normal.x);
+            vertexBuffer.putFloat(normal.y);
+            vertexBuffer.putFloat(normal.z);
+
+            vertexBuffer.put((bone.size() >= 1 ? bone.get(0).a().byteValue() : 0));
+            vertexBuffer.put((bone.size() >= 2 ? bone.get(1).a().byteValue() : 0));
+            vertexBuffer.put((bone.size() >= 3 ? bone.get(2).a().byteValue() : 0));
+            vertexBuffer.put((bone.size() >= 4 ? bone.get(3).a().byteValue() : 0));
+            vertexBuffer.putFloat((bone.size() >= 1 ? bone.get(0).b() : 0.0f));
+            vertexBuffer.putFloat((bone.size() >= 2 ? bone.get(1).b() : 0.0f));
+            vertexBuffer.putFloat((bone.size() >= 3 ? bone.get(2).b() : 0.0f));
+            vertexBuffer.putFloat((bone.size() >= 4 ? bone.get(3).b() : 0.0f));
         }
 
-        var vertexBuffer = MemoryUtil.memAlloc(vertices.length * 4);
-        vertexBuffer.asFloatBuffer().put(vertices).flip();
 
         var indexBuffer = MemoryUtil.memAlloc(mesh.indices().size() * 4);
         indexBuffer.asIntBuffer().put(mesh.indices().stream().mapToInt(a -> a).toArray()).flip();
@@ -198,10 +236,10 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
 
     private static List<Attribute> ATTRIBUTES = List.of(
             Attribute.POSITION,
-            Attribute.TEXCOORD/*,
-            Attribute.NORMAL/*,
+            Attribute.TEXCOORD,
+            Attribute.NORMAL,
             Attribute.BONE_IDS,
-            Attribute.BONE_WEIGHTS*/
+            Attribute.BONE_WEIGHTS
     );
 
     public float getScale() {
@@ -211,16 +249,16 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
     @Override
     public void close() throws IOException {
         Set<PkMaterial> closedMaterials = new HashSet<>();
-        for(var map : materials.values()) {
-            for(var material : map.values()) {
-                if(closedMaterials.contains(material)) continue;
+        for (var map : materials.values()) {
+            for (var material : map.values()) {
+                if (closedMaterials.contains(material)) continue;
                 material.close();
                 closedMaterials.add(material);
             }
         }
 
-        for(var material : defaultMaterials.values()) {
-            if(closedMaterials.contains(material)) continue;
+        for (var material : defaultMaterials.values()) {
+            if (closedMaterials.contains(material)) continue;
             material.close();
             closedMaterials.add(material);
         }
@@ -258,7 +296,7 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
         public void addToScene(RareCandyScene<RenderingInstance> scene) {
             var hide = object.shouldHide(variant);
 
-            if(this.scene != null && this.scene != scene) {
+            if (this.scene != null && this.scene != scene) {
                 proxies.stream().filter(a -> !hide.contains(a.getName())).forEach(instance -> {
                     this.scene.removeInstance(instance);
                     scene.addInstance(instance);
@@ -271,23 +309,24 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
                 proxies.stream().filter(a -> !hide.contains(a.getName())).forEach(instance -> this.scene.addInstance(instance));
             }
         }
-        public String getVariant () {
+
+        public String getVariant() {
             return variant;
         }
 
-        public void setVariant (String variant) {
+        public void setVariant(String variant) {
             var hideNew = object.shouldHide(variant);
 
             proxies.stream().filter(a -> !a.isChanging()).forEach(instance -> {
                 instance.setChanging();
                 scene.removeInstance(instance);
-                if(!hideNew.contains(instance.getName())) scene.addInstance(instance);
+                if (!hideNew.contains(instance.getName())) scene.addInstance(instance);
             });
             this.variant = variant == null ? "" : variant;
         }
 
         public void removeFromScene() {
-            if(this.scene != null) {
+            if (this.scene != null) {
                 proxies.forEach(this.scene::removeInstance);
                 this.scene = null;
             }
@@ -347,5 +386,30 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
         public String getName() {
             return name;
         }
+    }
+
+    public static List<Set<Pair<Bone, Float>>> organizeBones(List<Bone> bones) {
+        // Determine the maximum vertex ID
+        int maxVertexId = bones.stream()
+                .flatMap(bone -> Arrays.stream(bone.weights))
+                .mapToInt(weight -> weight.vertexId)
+                .max()
+                .orElse(-1);
+
+        // Create a list of sets with the required size
+        List<Set<Pair<Bone, Float>>> boneList = new ArrayList<>(Collections.nCopies(maxVertexId + 1, new HashSet<>()));
+
+        // Populate the list of sets with distinct bone-weight pairs
+        bones.forEach(bone ->
+                Arrays.stream(bone.weights)
+                        .forEach(vertexWeight -> {
+                            if(vertexWeight.weight != 0.0) {
+                                Pair<Bone, Float> pair = new Pair<>(bone, vertexWeight.weight);
+                                boneList.get(vertexWeight.vertexId).add(pair);
+                            }
+                        })
+        );
+
+        return boneList;
     }
 }

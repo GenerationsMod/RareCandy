@@ -11,6 +11,11 @@ public record SimpleMaterial(ShaderProgram program) implements Material {
     }
 
     @Override
+    public String name() {
+        return "simple";
+    }
+
+    @Override
     public void close() throws IOException {
 
     }

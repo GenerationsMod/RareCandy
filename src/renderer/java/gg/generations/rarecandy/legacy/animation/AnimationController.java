@@ -45,6 +45,8 @@ public class AnimationController {
             if (playingInstance.startTime == -1) playingInstance.startTime = globalSecondsPassed;
             playingInstance.update(globalSecondsPassed);
             playingInstance.matrixTransforms = playingInstance.animation.getFrameTransform(globalSecondsPassed);
+
+            System.out.println("Blep");
         }
 
         playingInstances.removeAll(instancesToRemove);

@@ -1,7 +1,11 @@
 package gg.generations.rarecandy.legacy.animation;
 
 import gg.generationsmod.rarecandy.model.animation.Animation;
+import gg.generationsmod.rarecandy.model.animation.Transform;
 import org.joml.Matrix4f;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Instance of an animation.
@@ -10,7 +14,9 @@ public class AnimationInstance {
 
     public double startTime = -1;
     public Matrix4f[] matrixTransforms;
-    protected Animation animation;
+    public final Map<String, Transform> offsets = new HashMap<>();
+
+    protected Animation<?> animation;
     protected float currentTime;
     protected double timeAtPause;
     protected double timeAtUnpause;
@@ -68,5 +74,15 @@ public class AnimationInstance {
 
     public Animation getAnimation() {
         return animation;
+    }
+
+    public Transform getOffset(String name) {
+        var offset = offsets.get(name.replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/);
+
+        if(offset == null) {
+            return AnimationController.NO_OFFSET;
+        } else {
+            return offset;
+        }
     }
 }

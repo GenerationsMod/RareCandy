@@ -23,21 +23,21 @@ uniform vec2 scale;
 
 uniform mat4 boneTransforms[MAX_BONES];
 
-//mat4 getBoneTransform() {
-//    mat4 boneTransform =
-//    boneTransforms[uint(joints.x)] * weights.x +// Bone 1 Transform (Bone Transform * Weight)
-//    boneTransforms[uint(joints.y)] * weights.y +// Bone 2 Transform (Bone Transform * Weight)
-//    boneTransforms[uint(joints.z)] * weights.z +// Bone 3 Transform (Bone Transform * Weight)
-//    boneTransforms[uint(joints.w)] * weights.w;// Bone 4 Transform (Bone Transform * Weight)
-//    return boneTransform;
-//}
+mat4 getBoneTransform() {
+    mat4 boneTransform =
+    boneTransforms[uint(joints.x)] * weights.x; // Bone 1 Transform (Bone Transform * Weight)
+    boneTransforms[uint(joints.y)] * weights.y; // Bone 2 Transform (Bone Transform * Weight)
+    boneTransforms[uint(joints.z)] * weights.z; // Bone 3 Transform (Bone Transform * Weight)
+    boneTransforms[uint(joints.w)] * weights.w; // Bone 4 Transform (Bone Transform * Weight)
+    return boneTransform;
+}
 
 void main() {
     mat4 worldSpace = projectionMatrix * viewMatrix;
-    mat4 modelTransform = modelMatrix; // * getBoneTransform();
+    mat4 modelTransform = modelMatrix * getBoneTransform();
     vec4 worldPosition = modelTransform * vec4(positions, 1.0);
 
-    normal = vec3(0); // (modelMatrix * vec4(normals, 0.0)).xyz;
+    normal = (modelMatrix * vec4(normals, 0.0)).xyz;
     texCoord0 = (texcoords * scale) + offset;
     gl_Position = worldSpace * worldPosition;
 

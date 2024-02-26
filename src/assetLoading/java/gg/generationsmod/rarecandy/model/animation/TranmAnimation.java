@@ -7,6 +7,7 @@ import gg.generationsmod.rarecandy.model.animation.tracm.TrackMaterialValueList;
 import gg.generationsmod.rarecandy.model.animation.tranm.*;
 import org.joml.Vector3f;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -16,6 +17,9 @@ import java.util.stream.IntStream;
 import static gg.generationsmod.rarecandy.model.animation.GfbAnimation.GfbOffset.calcInterpolatedFloat;
 
 public class TranmAnimation extends Animation<Pair<gg.generationsmod.rarecandy.model.animation.tranm.Animation, TRACM>> {
+    public TranmAnimation(String name, byte[] tranm, byte[] tracm, Skeleton skeleton) {
+        this(name, new Pair<>(tranm != null ? gg.generationsmod.rarecandy.model.animation.tranm.Animation.getRootAsAnimation(ByteBuffer.wrap(tranm)) : null, tracm != null ? TRACM.getRootAsTRACM(ByteBuffer.wrap(tracm)) : null), skeleton);
+    }
     public TranmAnimation(String name, Pair<gg.generationsmod.rarecandy.model.animation.tranm.Animation, TRACM> rawAnimation, Skeleton skeleton) {
         super(name, (int) getFps(rawAnimation), skeleton, rawAnimation, TranmAnimation::fillAnimationNodes, TranmAnimation::fillTrOffsets);
     }

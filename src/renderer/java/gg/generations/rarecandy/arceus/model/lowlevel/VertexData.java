@@ -56,13 +56,13 @@ public class VertexData implements Closeable, Bindable {
         unbind();
     }
 
-    private int calculateVertexSize(List<Attribute> layout) {
+    public static int calculateVertexSize(List<Attribute> layout) {
         var size = 0;
         for (var attrib : layout) size += calculateAttributeSize(attrib);
         return size;
     }
 
-    private int calculateAttributeSize(Attribute attrib) {
+    public static int calculateAttributeSize(Attribute attrib) {
         return switch (attrib.glType()) {
             case GL_FLOAT, GL_UNSIGNED_INT, GL_INT -> 4;
             case GL_BYTE, GL_UNSIGNED_BYTE -> 1;

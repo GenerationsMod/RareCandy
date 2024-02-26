@@ -9,6 +9,9 @@ import java.util.Map;
 
 public class GfbAnimation extends Animation<AnimationT> {
 
+    public GfbAnimation(String name, byte[] rawAnimation, Skeleton skeleton, ModelConfig config) {
+        this(name, AnimationT.deserializeFromBinary(rawAnimation), skeleton, config);
+    }
     public GfbAnimation(String name, AnimationT rawAnimation, Skeleton skeleton, ModelConfig config) {
         super(name, (int) rawAnimation.getInfo().getFrameRate(), skeleton, rawAnimation, GfbAnimation::fillAnimationNodes, rawAnimation1 -> fillGfbOffsets(rawAnimation1, config));
     }

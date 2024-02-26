@@ -1,25 +1,24 @@
 package gg.generationsmod.rarecandy.assimp;
 
+import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
+import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import gg.generationsmod.rarecandy.FileLocator;
 import gg.generationsmod.rarecandy.model.Mesh;
 import gg.generationsmod.rarecandy.model.RawModel;
-import gg.generationsmod.rarecandy.model.animation.BoneNode;
-import gg.generationsmod.rarecandy.model.animation.Skeleton;
-import gg.generationsmod.rarecandy.model.animation.Bone;
+import gg.generationsmod.rarecandy.model.animation.*;
 import gg.generationsmod.rarecandy.model.config.pk.ModelConfig;
+import org.apache.commons.compress.utils.FileNameUtils;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.assimp.*;
 import org.lwjgl.system.MemoryUtil;
+import org.msgpack.core.MessagePack;
 
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 
 import static gg.generationsmod.rarecandy.model.config.pk.ModelConfig.*;
@@ -81,7 +80,36 @@ public class AssimpModelLoader {
         var materials = readMaterialData(scene);
         var images = readImages(locator);
         var meshes = readMeshData(skeleton, scene, new HashMap<>());
-        return new RawModel(materials, meshes, skeleton, config, images);
+        var animations = readAnimations(locator, skeleton, config);
+        return new RawModel(materials, meshes, skeleton, config, images, animations);
+    }
+
+    private static Map<String, Animation<?>> readAnimations(FileLocator locator, Skeleton skeleton, ModelConfig config) {
+        var map = new HashMap<String, Animation<?>>();
+
+        for(var file : locator.getFiles()) {
+            var base = FileNameUtils.getBaseName(file);
+            var ext = FileNameUtils.getExtension(file);
+
+
+            try {
+                Animation<?> anim = switch (FileNameUtils.getExtension(file)) {
+                    case "tranm" -> new TranmAnimation(base, locator.getFile(file), locator.getFile(base + ".tracm"), skeleton);
+//                    case "tracm" -> new TranmAnimation(base, locator.getFile(file), locator.getFile(base + ".tranm"), skeleton);
+                    case "gfbanm" -> new GfbAnimation(base, locator.getFile(file), skeleton, config);
+                    case "smd" -> new SmdAnimation(base, new SMDBinaryReader().read(MessagePack.newDefaultUnpacker(locator.getFile(file))), skeleton, config.animationFpsOverride.getOrDefault(base, 30));
+                    case "smdx" -> new SmdAnimation(base, new SMDTextReader().read(new String(locator.getFile(file))), skeleton, config.animationFpsOverride.getOrDefault(base, 30));
+                    default -> null;
+                };
+                if(anim != null) map.put(base, anim);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Failed to load " + file);
+            }
+        }
+
+        return map;
     }
 
     private static Map<String, String> readImages(FileLocator locator) {

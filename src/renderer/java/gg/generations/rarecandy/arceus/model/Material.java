@@ -6,4 +6,5 @@ import java.io.Closeable;
 
 public interface Material extends Closeable {
     ShaderProgram getProgram();
+    String name();
 }

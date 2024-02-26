@@ -6,6 +6,7 @@ import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.arceus.model.SmartObject;
 import gg.generations.rarecandy.arceus.model.lowlevel.RenderData;
 import gg.generations.rarecandy.arceus.model.lowlevel.VertexData;
+import gg.generations.rarecandy.legacy.animation.AnimationController;
 import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
 
 import java.util.ArrayList;
@@ -19,7 +20,6 @@ import static org.lwjgl.opengl.GL11C.glDrawElements;
  * simple (and probably naive) Render Graph for handling objects in a scene.
  */
 public class DefaultRenderGraph {
-
     private final RareCandyScene<RenderingInstance> scene;
     private final List<SmartObject> updatableObjects = new ArrayList<>();
     private final Map<ShaderProgram, Map<Model, Map<Material, Map<VertexData, List<RenderingInstance>>>>> instanceMap = new HashMap<>();

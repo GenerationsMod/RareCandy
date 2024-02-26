@@ -5,6 +5,9 @@ import gg.generations.rarecandy.arceus.core.RareCandyScene;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.arceus.model.pk.PipelineRegistry;
 import gg.generations.rarecandy.arceus.model.pk.TextureLoader;
+import gg.generations.rarecandy.legacy.LoggerUtil;
+import gg.generations.rarecandy.legacy.animation.AnimationController;
+import gg.generations.rarecandy.legacy.animation.AnimationInstance;
 import gg.generationsmod.rarecandy.assimp.AssimpModelLoader;
 import gg.generationsmod.rarecandy.model.RawModel;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +26,7 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static gg.generations.rarecandy.tools.gui.PlaneGenerator.generatePlane;
 import static org.lwjgl.opengl.GL11C.glEnable;
@@ -33,6 +37,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public final Matrix4f viewMatrix = new Matrix4f();
     public double startTime = System.currentTimeMillis();
     public double time;
+
+    public AnimationController animationController = new AnimationController();
 
     public String currentAnimation = null;
     private RareCandyScene<RenderingInstance> scene = new RareCandyScene<>();
@@ -118,33 +124,21 @@ public class RareCandyCanvas extends AWTGLCanvas {
         time = (System.currentTimeMillis() - startTime) / 1000f;
 
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
+        animationController.render(time);
         graph.render();
 //        checkError();
         swapBuffers();
-
-//        if (instances.size() > 1) {
-//            ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
-//                for (var instance : instances) {
-//                    if(a.animations != null) {
-//                        var newAnimation = a.animations.get(currentAnimation);
-//
-//                        if(newAnimation != null) {
-//                            instance.changeAnimation(new AnimationInstance(newAnimation));
-//                        }
-//                    }
-//                }
-//            });
-//        }
     }
 
     public void setAnimation(@NotNull String animation) {
-//        var object = loadedModel.objects.get(0);
-//
-//        if (object.animations != null)
-//            LoggerUtil.print(animation);
-//        if (Objects.requireNonNull(object.animations).containsKey(animation)) {
-//            loadedModelInstance.changeAnimation(new AnimationInstance(object.animations.get(animation)));
-//        }
+        var animations = displayModel.getAnimationsIfAvailable();
+
+        LoggerUtil.print(animation);
+        if (animations.containsKey(animation)) {
+            var instance = new AnimationInstance(animations.get(animation));
+            animationController.playingInstances.add(instance);
+            displayModel.changeAnimation(instance);
+        }
     }
 
     public void setVariant(String variant) {

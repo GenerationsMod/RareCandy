@@ -4,11 +4,13 @@ import gg.generations.rarecandy.arceus.model.pk.PkMaterial;
 import gg.generations.rarecandy.arceus.model.pk.TextureLoader;
 import gg.generations.rarecandy.legacy.animation.AnimationController;
 import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
+import gg.generationsmod.rarecandy.model.animation.Transform;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -21,16 +23,16 @@ public class GuiPipelines {
                 .supplyUniform(INSTANCE, "modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().getTransform()))
                 .supplyUniform(SHARED, "projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix.get()))
                 .supplyUniform(INSTANCE, "boneTransforms", ctx -> {
-//                var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
-                    ctx.uniform().uploadMat4fs(AnimationController.NO_ANIMATION);
+                    Matrix4f[] mats = ctx.instance() instanceof MultiRenderObject.MultiRenderObjectInstance.MultiRenderingInstance instance ? instance.object().getTransforms() : AnimationController.NO_ANIMATION;
+                    ctx.uniform().uploadMat4fs(mats);
                 })
                 .supplyUniform(INSTANCE, "offset", ctx -> {
-//                var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName()) != null ? instance.getOffset(ctx.getMaterial().getMaterialName()) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
-                    ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET.offset());
+                    Transform offsets = ctx.instance() instanceof MultiRenderObject.MultiRenderObjectInstance.MultiRenderingInstance instance ? instance.object().getOffset(ctx.material().name()) : AnimationController.NO_OFFSET;
+                    ctx.uniform().uploadVec2f(offsets.offset());
                 })
                 .supplyUniform(INSTANCE, "scale", ctx -> {
-//                var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName()) != null ? instance.getOffset(ctx.getMaterial().getMaterialName()) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
-                    ctx.uniform().uploadVec2f(AnimationController.NO_OFFSET.scale());
+                    Transform offsets = ctx.instance() instanceof MultiRenderObject.MultiRenderObjectInstance.MultiRenderingInstance instance ? instance.object().getOffset(ctx.material().name()) : AnimationController.NO_OFFSET;
+                    ctx.uniform().uploadVec2f(offsets.scale());
                 })
                 .prePostMaterial(material -> {
                     if (material instanceof PkMaterial pkMaterial) {

@@ -41,6 +41,11 @@ public class PkMaterial implements Material {
         return PipelineRegistry.get(shader);
     }
 
+    @Override
+    public String name() {
+        return materialName;
+    }
+
     public CullType cullType() {
         return cullType;
     }

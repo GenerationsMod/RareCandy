@@ -1,4 +1,4 @@
-package gg.generations.rarecandy.tools;
+package gg.generations.rarecandy.arceus.model.pk;
 
 import com.thebombzen.jxlatte.JXLDecoder;
 import com.thebombzen.jxlatte.JXLOptions;

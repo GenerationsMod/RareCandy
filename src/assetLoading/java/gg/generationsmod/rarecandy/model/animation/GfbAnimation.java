@@ -81,8 +81,6 @@ public class GfbAnimation extends Animation<AnimationT> {
 
             instance.offset().set(uOffset, vOffset);
             instance.scale().set(uScale, vScale);
-
-            System.out.println(instance);
         }
     }
 
@@ -98,12 +96,12 @@ public class GfbAnimation extends Animation<AnimationT> {
                 var node = animationNodes[i] = new AnimationNode();
 
                 if (track.getRotate().getValue() != null) track.getRotate().getValue().process(node.rotationKeys);
-                else node.positionKeys.add(0, new Vector3f(0, 0, 0));
+                else node.rotationKeys.add(0, new Quaternionf());
                 if (track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
                 else node.scaleKeys.add(0, new Vector3f(1, 1, 1));
                 if (!track.getName().equalsIgnoreCase("origin")) {
                     if (track.getTranslate().getValue() != null && !track.getName().equalsIgnoreCase("origin")) track.getTranslate().getValue().process(node.positionKeys);
-                    else node.rotationKeys.add(0, new Quaternionf());
+                    else node.positionKeys.add(0, new Vector3f(0, 0, 0));
                 }
 
             }

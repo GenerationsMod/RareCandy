@@ -1,37 +1,28 @@
-package gg.generations.rarecandy.tools.gui;
+package gg.generations.rarecandy.arceus.model.pk;
 
-import gg.generations.rarecandy.arceus.core.RareCandyScene;
 import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.arceus.model.lowlevel.*;
-import gg.generations.rarecandy.arceus.model.pk.PkMaterial;
-import gg.generations.rarecandy.arceus.model.pk.Variant;
-import gg.generations.rarecandy.legacy.animation.AnimationController;
-import gg.generations.rarecandy.legacy.animation.AnimationInstance;
 import gg.generationsmod.rarecandy.Pair;
 import gg.generationsmod.rarecandy.model.Mesh;
 import gg.generationsmod.rarecandy.model.RawModel;
 import gg.generationsmod.rarecandy.model.animation.Animation;
 import gg.generationsmod.rarecandy.model.animation.Bone;
 import gg.generationsmod.rarecandy.model.animation.Skeleton;
-import gg.generationsmod.rarecandy.model.animation.Transform;
 import gg.generationsmod.rarecandy.model.config.pk.ModelConfig;
 import gg.generationsmod.rarecandy.model.config.pk.VariantDetails;
 import gg.generationsmod.rarecandy.model.config.pk.VariantParent;
-import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class MultiRenderObject<T extends RenderingInstance> implements Closeable {
-    private final Map<String, Model> meshes;
+    public final Map<String, Model> meshes;
 
     private final Map<String, Map<String, PkMaterial>> materials;
 
@@ -39,7 +30,7 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
     private final Map<String, PkMaterial> defaultMaterials;
     private final List<String> defaultHidden;
 
-    private final Map<String, Animation<?>> animations;
+    public final Map<String, Animation<?>> animations;
 
     private final float scale;
 
@@ -265,156 +256,6 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
         }
     }
 
-
-    public static class MultiRenderObjectInstance {
-        private final MultiRenderObject<?> object;
-        private final Matrix4f transform;
-
-        private final List<MultiRenderingInstance> proxies;
-        private String variant;
-
-        private String materialName;
-        private RareCandyScene<RenderingInstance> scene;
-
-        public AnimationInstance currentAnimation;
-
-        public MultiRenderObjectInstance(MultiRenderObject<?> object, Matrix4f transform) {
-            this(object, transform.scale(object.scale), "");
-        }
-
-        public MultiRenderObjectInstance(MultiRenderObject<?> object, Matrix4f transform, String varaint) {
-            this.object = object;
-            this.transform = transform;
-            this.variant = varaint;
-            this.proxies = new ArrayList<>();
-
-            object.meshes.forEach((key, value) -> {
-
-                proxies.add(new MultiRenderingInstance(key, value, () -> object.getMapForVariants(this.getVariant()).get(key), transform));
-            });
-        }
-
-        public void addToScene(RareCandyScene<RenderingInstance> scene) {
-            var hide = object.shouldHide(variant);
-
-            if (this.scene != null && this.scene != scene) {
-                proxies.stream().filter(a -> !hide.contains(a.getName())).forEach(instance -> {
-                    this.scene.removeInstance(instance);
-                    scene.addInstance(instance);
-                });
-                this.scene = scene;
-
-            } else {
-                this.scene = scene;
-
-                proxies.stream().filter(a -> !hide.contains(a.getName())).forEach(instance -> this.scene.addInstance(instance));
-            }
-        }
-
-        public String getVariant() {
-            return variant;
-        }
-
-        public void setVariant(String variant) {
-            var hideNew = object.shouldHide(variant);
-
-            proxies.stream().filter(a -> !a.isChanging()).forEach(instance -> {
-                instance.setChanging();
-                scene.removeInstance(instance);
-                if (!hideNew.contains(instance.getName())) scene.addInstance(instance);
-            });
-            this.variant = variant == null ? "" : variant;
-        }
-
-        public void removeFromScene() {
-            if (this.scene != null) {
-                proxies.forEach(this.scene::removeInstance);
-                this.scene = null;
-            }
-        }
-
-        public Map<String, Animation<?>> getAnimationsIfAvailable() {
-            return object.animations;
-        }
-
-        public Matrix4f[] getTransforms() {
-            if (currentAnimation == null || currentAnimation.matrixTransforms == null)
-                return AnimationController.NO_ANIMATION;
-            return currentAnimation.matrixTransforms;
-        }
-
-        public void changeAnimation(AnimationInstance newAnimation) {
-            if (currentAnimation != null) currentAnimation.destroy();
-            this.currentAnimation = newAnimation;
-        }
-
-        public Transform getOffset(String material) {
-            return currentAnimation != null ? currentAnimation.getOffset(material) : AnimationController.NO_OFFSET;
-        }
-
-        public MultiRenderObject<?> object() {
-            return object;
-        }
-
-        public final class MultiRenderingInstance implements RenderingInstance {
-            private final String name;
-            private final Model model;
-            private final Supplier<PkMaterial> materialSupplier;
-            private PkMaterial material;
-            private final Matrix4f transform;
-            private boolean changing = false;
-
-            public MultiRenderingInstance(String name, Model model, Supplier<PkMaterial> materialSupplier, Matrix4f transform) {
-                this.name = name;
-                this.model = model;
-                this.materialSupplier = materialSupplier;
-                this.material = materialSupplier.get();
-                this.transform = transform;
-            }
-
-            @Override
-            public Model getModel() {
-                return model;
-            }
-
-            @Override
-            public PkMaterial getMaterial() {
-                return material;
-            }
-
-
-            @Override
-            public Matrix4f getTransform() {
-                return transform;
-            }
-
-            public Model model() {
-                return model;
-            }
-
-            @Override
-            public void postRemove() {
-                material = materialSupplier.get();
-                changing = false;
-            }
-
-            public void setChanging() {
-                this.changing = true;
-            }
-
-            public boolean isChanging() {
-                return changing;
-            }
-
-            public String getName() {
-                return name;
-            }
-
-            public MultiRenderObjectInstance object() {
-                return MultiRenderObjectInstance.this;
-            }
-        }
-    }
 
     public static List<Set<Pair<Bone, Float>>> organizeBones(List<Bone> bones) {
         // Determine the maximum vertex ID

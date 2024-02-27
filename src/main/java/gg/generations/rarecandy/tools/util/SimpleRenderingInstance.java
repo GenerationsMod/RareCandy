@@ -3,8 +3,6 @@ package gg.generations.rarecandy.tools.util;
 import gg.generations.rarecandy.arceus.model.Material;
 import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
-import gg.generations.rarecandy.arceus.model.lowlevel.RenderData;
-import gg.generations.rarecandy.tools.gui.MultiRenderObject;
 import org.joml.Matrix4f;
 
 public class SimpleRenderingInstance implements RenderingInstance {

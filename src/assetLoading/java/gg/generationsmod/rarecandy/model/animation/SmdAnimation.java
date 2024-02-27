@@ -58,21 +58,25 @@ public class SmdAnimation extends Animation<SMDFile> {
         for (int i = 0; i < entries.size(); i++) {
             var entry = entries.get(i);
             animation.nodeIdMap.put(entry.getKey(), i);
-            animationNodes[i] = createNode(entry.getValue());
+            animationNodes[i] = createNode(entry.getKey(), entry.getValue());
         }
 
         return animationNodes;
     }
 
-    public static AnimationNode createNode(List<SmdBoneStateKey> keys) {
+    public static AnimationNode createNode(String bone, List<SmdBoneStateKey> keys) {
         var animationNode = new AnimationNode();
 
         if (keys.isEmpty()) {
             animationNode.positionKeys.add(0, new Vector3f());
             animationNode.rotationKeys.add(0, new Quaternionf());
         } else {
+            var isOrigin = bone.equalsIgnoreCase("origin");
+
+            if(isOrigin) animationNode.positionKeys.add(0, new Vector3f());
+
             for (var key : keys) {
-                animationNode.positionKeys.add(key.time(), key.pos());
+                if(!isOrigin) animationNode.positionKeys.add(key.time(), key.pos());
                 animationNode.rotationKeys.add(key.time(), key.rot());
             }
         }

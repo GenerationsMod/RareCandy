@@ -3,6 +3,8 @@ package gg.generations.rarecandy.tools.gui;
 import gg.generations.rarecandy.arceus.core.DefaultRenderGraph;
 import gg.generations.rarecandy.arceus.core.RareCandyScene;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
+import gg.generations.rarecandy.arceus.model.pk.MultiRenderObject;
+import gg.generations.rarecandy.arceus.model.pk.MultiRenderObjectInstance;
 import gg.generations.rarecandy.arceus.model.pk.PipelineRegistry;
 import gg.generations.rarecandy.arceus.model.pk.TextureLoader;
 import gg.generations.rarecandy.legacy.LoggerUtil;
@@ -10,6 +12,7 @@ import gg.generations.rarecandy.legacy.animation.AnimationController;
 import gg.generations.rarecandy.legacy.animation.AnimationInstance;
 import gg.generationsmod.rarecandy.assimp.AssimpModelLoader;
 import gg.generationsmod.rarecandy.model.RawModel;
+import gg.generationsmod.rarecandy.model.animation.Animation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL;
@@ -26,7 +29,7 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
 import static gg.generations.rarecandy.tools.gui.PlaneGenerator.generatePlane;
 import static org.lwjgl.opengl.GL11C.glEnable;
@@ -43,7 +46,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public String currentAnimation = null;
     private RareCandyScene<RenderingInstance> scene = new RareCandyScene<>();
     private DefaultRenderGraph graph = new DefaultRenderGraph(scene);
-    private MultiRenderObject.MultiRenderObjectInstance displayModel;
+    private MultiRenderObjectInstance displayModel;
     private List<Runnable> runnables = new ArrayList<>();
     private Callback debugCallbackKeepAroundAlways;
 
@@ -86,7 +89,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         runnables.add(() -> {
             currentAnimation = null;
             if (displayModel != null) displayModel.removeFromScene();
-            this.displayModel = new MultiRenderObject.MultiRenderObjectInstance(new MultiRenderObject<RenderingInstance>(rawModel), new Matrix4f());
+            this.displayModel = new MultiRenderObjectInstance(new MultiRenderObject<RenderingInstance>(rawModel), new Matrix4f());
             displayModel.addToScene(scene);
         });
     }
@@ -131,7 +134,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public void setAnimation(@NotNull String animation) {
-        var animations = displayModel.getAnimationsIfAvailable();
+        Map<String, Animation<?>> animations = displayModel.getAnimationsIfAvailable();
 
         LoggerUtil.print(animation);
         if (animations.containsKey(animation)) {

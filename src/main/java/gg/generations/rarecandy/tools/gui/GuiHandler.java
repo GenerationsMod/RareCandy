@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.tools.PkFileLocator;
-import gg.generations.rarecandy.tools.ResourceCachedFileLocator;
+import gg.generations.rarecandy.arceus.model.pk.PkFileLocator;
 import gg.generationsmod.rarecandy.FileLocator;
 import gg.generationsmod.rarecandy.assimp.AssimpModelLoader;
 

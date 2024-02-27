@@ -1,4 +1,4 @@
-package gg.generations.rarecandy.tools.gui;
+package gg.generations.rarecandy.arceus.model.pk;
 
 import java.util.stream.IntStream;
 

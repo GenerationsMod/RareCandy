@@ -39,8 +39,6 @@ public record TextureReference(ByteBuffer rgbaBytes, int width, int height) impl
             return null;
         }
 
-        System.out.println(image);
-
         image = process(image);
 
         var buffer = image.getData().getDataBuffer();

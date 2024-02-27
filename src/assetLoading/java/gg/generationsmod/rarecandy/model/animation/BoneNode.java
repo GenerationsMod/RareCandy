@@ -15,6 +15,7 @@ public class BoneNode {
 
     private BoneNode(AINode aiNode, BoneNode parent) {
         this.name = aiNode.mName().dataString();
+
         this.parent = parent;
         this.transform = from(aiNode.mTransformation());
 
@@ -32,6 +33,10 @@ public class BoneNode {
     }
 
     public static Matrix4f from(AIMatrix4x4 aiMat4) {
-        return new Matrix4f().m00(aiMat4.a1()).m10(aiMat4.a2()).m20(aiMat4.a3()).m30(aiMat4.a4()).m01(aiMat4.b1()).m11(aiMat4.b2()).m21(aiMat4.b3()).m31(aiMat4.b4()).m02(aiMat4.c1()).m12(aiMat4.c2()).m22(aiMat4.c3()).m32(aiMat4.c4()).m03(aiMat4.d1()).m13(aiMat4.d2()).m23(aiMat4.d3()).m33(aiMat4.d4());
+        return new Matrix4f()
+                .m00(aiMat4.a1()).m10(aiMat4.a2()).m20(aiMat4.a3()).m30(aiMat4.a4())
+                .m01(aiMat4.b1()).m11(aiMat4.b2()).m21(aiMat4.b3()).m31(aiMat4.b4())
+                .m02(aiMat4.c1()).m12(aiMat4.c2()).m22(aiMat4.c3()).m32(aiMat4.c4())
+                .m03(aiMat4.d1()).m13(aiMat4.d2()).m23(aiMat4.d3()).m33(aiMat4.d4());
     }
 }

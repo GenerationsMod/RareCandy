@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -174,12 +175,12 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
 
     private static Model fromMesh(Mesh mesh, Skeleton skeleton) {
 
-        var length = 52;
+        var length = VertexData.calculateVertexSize(ATTRIBUTES);
         var amount = mesh.positions().size();
 
         var vertexBuffer = MemoryUtil.memAlloc(length * amount);
 
-        var bones = IntStream.range(0, amount).mapToObj(a -> new ArrayList<Pair<Integer, Float>>()).toList();
+        var bones = IntStream.range(0, amount).mapToObj(a -> new VertexBoneData()).toList();
 
 
         mesh.bones().forEach(bone -> {
@@ -188,7 +189,7 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
             for(var weight : bone.weights) {
                 if(weight.weight == 0.0) return;
                 else {
-                    bones.get(weight.vertexId).add(new Pair<>(boneId, weight.weight));
+                    bones.get(weight.vertexId).addBoneData(boneId, weight.weight);
                 }
             }
         });
@@ -209,14 +210,15 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
             vertexBuffer.putFloat(normal.y);
             vertexBuffer.putFloat(normal.z);
 
-            vertexBuffer.put((bone.size() >= 1 ? bone.get(0).a().byteValue() : (byte) 0));
-            vertexBuffer.put((bone.size() >= 2 ? bone.get(1).a().byteValue() : (byte) 0));
-            vertexBuffer.put((bone.size() >= 3 ? bone.get(2).a().byteValue() : (byte) 0));
-            vertexBuffer.put((bone.size() >= 4 ? bone.get(3).a().byteValue() : (byte) 0));
-            vertexBuffer.putFloat((bone.size() >= 1 ? bone.get(0).b() : 0.0f));
-            vertexBuffer.putFloat((bone.size() >= 2 ? bone.get(1).b() : 0.0f));
-            vertexBuffer.putFloat((bone.size() >= 3 ? bone.get(2).b() : 0.0f));
-            vertexBuffer.putFloat((bone.size() >= 4 ? bone.get(3).b() : 0.0f));
+            vertexBuffer.put((byte) bone.ids()[0]);
+            vertexBuffer.put((byte) bone.ids()[1]);
+            vertexBuffer.put((byte) bone.ids()[2]);
+            vertexBuffer.put((byte) bone.ids()[3]);
+
+            vertexBuffer.putFloat(bone.weights()[0]);
+            vertexBuffer.putFloat(bone.weights()[1]);
+            vertexBuffer.putFloat(bone.weights()[2]);
+            vertexBuffer.putFloat(bone.weights()[3]);
         }
 
         vertexBuffer.flip();

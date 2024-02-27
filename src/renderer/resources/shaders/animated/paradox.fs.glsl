@@ -18,7 +18,7 @@ void main() {
     outColor.xyz *= backgroundColor;
 
     vec2 effectTexCoord = vec2(texCoord0);
-    effectTexCoord *= 0.25;
+    effectTexCoord *= 4;
     effectTexCoord.x += (frame % 4)/4f;
     effectTexCoord.y +=  (frame/4)/4f;
 

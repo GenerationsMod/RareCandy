@@ -1,6 +1,8 @@
 package gg.generationsmod.rarecandy.model.animation;
 
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.lwjgl.assimp.AIBone;
 
 import java.util.Objects;
@@ -12,7 +14,16 @@ public class Bone {
 
     public String name;
     public VertexWeight[] weights;
+
+    public int jointId;
     public Matrix4f inverseBindMatrix;
+    public Matrix4f restPose;
+
+    public final Vector3f posePosition = new Vector3f();
+    public final Quaternionf poseRotation = new Quaternionf();
+    public final Vector3f poseScale = new Vector3f(1, 1, 1);
+
+    public Matrix4f lastSuccessfulTransform = new Matrix4f().identity();
 
     @Override
     public String toString() {
@@ -27,6 +38,7 @@ public class Bone {
     public static Bone from(AIBone bone) {
         var b = new Bone();
         b.inverseBindMatrix = BoneNode.from(bone.mOffsetMatrix());
+        b.restPose = new Matrix4f().set(b.inverseBindMatrix).invert();
         b.name = bone.mName().dataString();
 
         var aiWeights = Objects.requireNonNull(bone.mWeights());

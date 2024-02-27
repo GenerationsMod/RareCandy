@@ -3,6 +3,8 @@ package gg.generationsmod.rarecandy.model.animation;
 import gg.generationsmod.rarecandy.model.animation.gfbanm.AnimationT;
 import gg.generationsmod.rarecandy.model.animation.gfbanm.BoneTrackT;
 import gg.generationsmod.rarecandy.model.config.pk.ModelConfig;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,6 +42,8 @@ public class GfbAnimation extends Animation<AnimationT> {
 
                 if(uOffset.size() == 0) uOffset.add(0, 0f);
                 if(vOffset.size() == 0) uOffset.add(0, 0f);
+                if(vScale.size() == 0) uScale.add(0, 1f);
+                if(vScale.size() == 0) uScale.add(0, 1f);
 
                 var offset = new GfbOffset(uOffset, vOffset, uScale, vScale);
 
@@ -77,6 +81,8 @@ public class GfbAnimation extends Animation<AnimationT> {
 
             instance.offset().set(uOffset, vOffset);
             instance.scale().set(uScale, vScale);
+
+            System.out.println(instance);
         }
     }
 
@@ -92,8 +98,14 @@ public class GfbAnimation extends Animation<AnimationT> {
                 var node = animationNodes[i] = new AnimationNode();
 
                 if (track.getRotate().getValue() != null) track.getRotate().getValue().process(node.rotationKeys);
+                else node.positionKeys.add(0, new Vector3f(0, 0, 0));
                 if (track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
-                if (track.getTranslate().getValue() != null && !track.getName().equalsIgnoreCase("origin")) track.getTranslate().getValue().process(node.positionKeys);
+                else node.scaleKeys.add(0, new Vector3f(1, 1, 1));
+                if (!track.getName().equalsIgnoreCase("origin")) {
+                    if (track.getTranslate().getValue() != null && !track.getName().equalsIgnoreCase("origin")) track.getTranslate().getValue().process(node.positionKeys);
+                    else node.rotationKeys.add(0, new Quaternionf());
+                }
+
             }
         }
         return animationNodes;

@@ -97,8 +97,8 @@ public class AssimpModelLoader {
                     case "tranm" -> new TranmAnimation(base, locator.getFile(file), locator.getFile(base + ".tracm"), skeleton);
 //                    case "tracm" -> new TranmAnimation(base, locator.getFile(file), locator.getFile(base + ".tranm"), skeleton);
                     case "gfbanm" -> new GfbAnimation(base, locator.getFile(file), skeleton, config);
-                    case "smd" -> new SmdAnimation(base, new SMDBinaryReader().read(MessagePack.newDefaultUnpacker(locator.getFile(file))), skeleton, config.animationFpsOverride.getOrDefault(base, 30));
-                    case "smdx" -> new SmdAnimation(base, new SMDTextReader().read(new String(locator.getFile(file))), skeleton, config.animationFpsOverride.getOrDefault(base, 30));
+                    case "smdx" -> new SmdAnimation(base, new SMDBinaryReader().read(MessagePack.newDefaultUnpacker(locator.getFile(file))), skeleton, config.animationFpsOverride == null ? 30 : config.animationFpsOverride.getOrDefault(base, 30));
+                    case "smd" -> new SmdAnimation(base, new SMDTextReader().read(new String(locator.getFile(file))), skeleton, config.animationFpsOverride == null ? 30 : config.animationFpsOverride.getOrDefault(base, 30));
                     default -> null;
                 };
                 if(anim != null) map.put(base, anim);
@@ -185,10 +185,11 @@ public class AssimpModelLoader {
                 var aiBones = requireNonNull(mesh.mBones());
 
                 for (int j = 0; j < aiBones.capacity(); j++) {
+
+
                     var aiBone = AIBone.create(aiBones.get(j));
                     var bone = Bone.from(aiBone);
                     bones.add(bone);
-                    boneMap.put(bone.name, bone);
                 }
             }
 

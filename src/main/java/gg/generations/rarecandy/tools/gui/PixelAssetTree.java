@@ -1,6 +1,8 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generationsmod.rarecandy.FileLocator;
+import org.apache.commons.compress.compressors.FileNameUtil;
+import org.apache.commons.compress.utils.FileNameUtils;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -69,7 +71,7 @@ public class PixelAssetTree extends JTree {
 
         for (var s : files) {
             if (s.endsWith("tranm") || s.endsWith("gfbanm") || s.endsWith("smd"))
-                animationStrings.add(s);
+                animationStrings.add(FileNameUtils.getBaseName(s));
             else if (s.endsWith("gltf")) {
                 var glbNode = node(s);
                 if (!animationStrings.isEmpty()) {

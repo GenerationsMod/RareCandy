@@ -23,8 +23,11 @@ public class AnimationInstance {
     private boolean paused;
     private boolean unused;
 
-    public AnimationInstance(Animation animation) {
+    public AnimationInstance(Animation<?> animation) {
         this.animation = animation;
+
+        animation.offsets.keySet().forEach(k -> offsets.put(k, new Transform()));
+
     }
 
     public void update(double secondsPassed) {

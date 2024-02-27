@@ -46,7 +46,10 @@ public class SmdAnimation extends Animation<SMDFile> {
                 if (boneState.bone < animation.skeleton.boneArray.length - 1) {
                     var id = nodeMap.get(boneState.bone);
                     var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
-                    list.add(new SmdBoneStateKey(time, new Vector3f(boneState.posX, boneState.posY, boneState.posZ), new Quaternionf().rotateZYX(boneState.rotZ, boneState.rotY, boneState.rotX)));
+
+                    var pos = id.equals("origin") ? new Vector3f() : new Vector3f(boneState.posX, boneState.posY, boneState.posZ);
+
+                    list.add(new SmdBoneStateKey(time, pos, new Quaternionf().rotateZYX(boneState.rotZ, boneState.rotY, boneState.rotX)));
                 }
             }
 

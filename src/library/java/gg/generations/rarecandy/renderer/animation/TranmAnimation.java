@@ -5,9 +5,11 @@ import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.tracm.TrackMaterialAnim;
 import gg.generations.rarecandy.pokeutils.tracm.TrackMaterialValueList;
 import gg.generations.rarecandy.pokeutils.tranm.*;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -16,9 +18,9 @@ import java.util.stream.IntStream;
 
 import static gg.generations.rarecandy.renderer.animation.GfbAnimation.GfbOffset.calcInterpolatedFloat;
 
-public class TranmAnimation extends Animation<Pair<gg.generations.rarecandy.pokeutils.tranm.Animation, TRACM>> {
-    public TranmAnimation(String name, Pair<gg.generations.rarecandy.pokeutils.tranm.Animation, TRACM> rawAnimation, Skeleton skeleton) {
-        super(name, (int) getFps(rawAnimation), skeleton, rawAnimation, TranmAnimation::fillAnimationNodes, TranmAnimation::fillTrOffsets);
+public class TranmAnimation extends Animation<Pair<gg.generations.rarecandy.pokeutils.tranm.TRANMT, TRACM>> {
+    public TranmAnimation(String name, Pair<gg.generations.rarecandy.pokeutils.tranm.TRANMT, TRACM> rawAnimation, Skeleton skeleton) {
+        super(name, (int) getFps(rawAnimation), skeleton, rawAnimation, (animation, animationPair) -> fillAnimationNodes(animation, animationPair, skeleton), TranmAnimation::fillTrOffsets);
 
         for (var animationNode : getAnimationNodes()) {
             if (animationNode != null) {
@@ -34,9 +36,9 @@ public class TranmAnimation extends Animation<Pair<gg.generations.rarecandy.poke
         animationModifier.accept(this, "gfb");
     }
 
-    private static long getFps(Pair<gg.generations.rarecandy.pokeutils.tranm.Animation, TRACM> rawAnimation) {
+    private static long getFps(Pair<gg.generations.rarecandy.pokeutils.tranm.TRANMT, TRACM> rawAnimation) {
         if(rawAnimation.a() != null) {
-            return rawAnimation.a().meta().fps();
+            return rawAnimation.a().getInfo().getAnimationRate();
         } else if(rawAnimation.b() != null) {
             return rawAnimation.b().config().framerate();
         } else {
@@ -44,44 +46,47 @@ public class TranmAnimation extends Animation<Pair<gg.generations.rarecandy.poke
         }
     }
 
-    public static <T> AnimationNode[] fillAnimationNodes(Animation<Pair<gg.generations.rarecandy.pokeutils.tranm.Animation, TRACM>> animation, Pair<gg.generations.rarecandy.pokeutils.tranm.Animation, TRACM> animationPair) {
+    public static <T> AnimationNode[] fillAnimationNodes(Animation<Pair<gg.generations.rarecandy.pokeutils.tranm.TRANMT, TRACM>> animation, Pair<gg.generations.rarecandy.pokeutils.tranm.TRANMT, TRACM> animationPair, Skeleton skeleton) {
         var rawAnimation = animationPair.a();
 
         if (rawAnimation != null) {
+            var animationNodes = new AnimationNode[rawAnimation.getTrack().getTracks().length]; // BoneGroup
 
-            var animationNodes = new AnimationNode[rawAnimation.anim().bonesLength()]; // BoneGroup
+            for (int i = 0; i < rawAnimation.getTrack().getTracks().length; i++) {
+                var boneAnim = rawAnimation.getTrack().getTracks()[i];
 
-            for (int i = 0; i < rawAnimation.anim().bonesVector().length(); i++) {
-                var boneAnim = rawAnimation.anim().bonesVector().get(i);
+                var node = animationNodes[animation.nodeIdMap.computeIfAbsent(boneAnim.getBoneName().replace(".trmdl", ""), animation::newNode)] = new AnimationNode();
 
-                var node = animationNodes[animation.nodeIdMap.computeIfAbsent(boneAnim.name().replace(".trmdl", ""), animation::newNode)] = new AnimationNode();
+                var rotate = boneAnim.getRotate();
 
-
-                switch (boneAnim.rotType()) {
-                    case QuatTrack.DynamicQuatTrack -> TranmUtil.processDynamicQuatTrack((DynamicQuatTrack) Objects.requireNonNull(boneAnim.rot(new DynamicQuatTrack())), node.rotationKeys);
-                    case QuatTrack.FixedQuatTrack -> TranmUtil.processFixedQuatTrack((FixedQuatTrack) Objects.requireNonNull(boneAnim.rot(new FixedQuatTrack())), node.rotationKeys);
-                    case QuatTrack.Framed8QuatTrack -> TranmUtil.processFramed8QuatTrack((Framed8QuatTrack) Objects.requireNonNull(boneAnim.rot(new Framed8QuatTrack())), node.rotationKeys);
-                    case QuatTrack.Framed16QuatTrack -> TranmUtil.processFramed16QuatTrack((Framed16QuatTrack) Objects.requireNonNull(boneAnim.rot(new Framed16QuatTrack())), node.rotationKeys);
+                switch (boneAnim.getRotate().getType()) {
+                    case QuatTrack.DynamicQuatTrack -> TranmUtil.processDynamicQuatTrack(rotate.asDynamicRotationTrack(), node.rotationKeys);
+                    case QuatTrack.FixedQuatTrack -> TranmUtil.processFixedQuatTrack(rotate.asFixedRotationTrack(), node.rotationKeys);
+                    case QuatTrack.Framed8QuatTrack -> TranmUtil.processFramed8QuatTrack(rotate.asFramed8RotationTrack(), node.rotationKeys);
+                    case QuatTrack.Framed16QuatTrack -> TranmUtil.processFramed16QuatTrack(rotate.asFramed16RotationTrack(), node.rotationKeys);
                 }
 
-                switch (boneAnim.scaleType()) {
-                    case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.scale(new DynamicVectorTrack())), node.scaleKeys);
-                    case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.scale(new FixedVectorTrack())), node.scaleKeys);
-                    case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.scale(new Framed8VectorTrack())), node.scaleKeys);
-                    case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.scale(new Framed16VectorTrack())), node.scaleKeys);
+                var scale = boneAnim.getScale();
+                switch (scale.getType()) {
+                    case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack(scale.asDynamicVectorTrack(), node.scaleKeys);
+                    case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack(scale.asFixedVectorTrack(), node.scaleKeys);
+                    case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack(scale.asFramed8VectorTrack(), node.scaleKeys);
+                    case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack(scale.asFramed16VectorTrack(), node.scaleKeys);
                 }
 
-                if (!Objects.requireNonNull(boneAnim.name()).equalsIgnoreCase("origin")) {
-                    switch (boneAnim.transType()) {
-                        case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack((DynamicVectorTrack) Objects.requireNonNull(boneAnim.trans(new DynamicVectorTrack())), node.positionKeys);
-                        case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack((FixedVectorTrack) Objects.requireNonNull(boneAnim.trans(new FixedVectorTrack())), node.positionKeys);
-                        case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack((Framed8VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed8VectorTrack())), node.positionKeys);
-                        case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack((Framed16VectorTrack) Objects.requireNonNull(boneAnim.trans(new Framed16VectorTrack())), node.positionKeys);
+                if (!Objects.requireNonNull(boneAnim.getBoneName()).equalsIgnoreCase("origin")) {
+                    var translate = boneAnim.getTranslate();
+                    switch (translate.getType()) {
+                        case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack(translate.asDynamicVectorTrack(), node.positionKeys);
+                        case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack(translate.asFixedVectorTrack(), node.positionKeys);
+                        case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack(translate.asFramed8VectorTrack(), node.positionKeys);
+                        case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack(translate.asFramed16VectorTrack(), node.positionKeys);
                     }
                 } else {
                     node.positionKeys.add(0, new Vector3f(0, 0, 0));
                 }
             }
+
 
             return animationNodes;
         } else {
@@ -89,7 +94,7 @@ public class TranmAnimation extends Animation<Pair<gg.generations.rarecandy.poke
         }
     }
 
-    public static Map<String, Offset> fillTrOffsets(Pair<gg.generations.rarecandy.pokeutils.tranm.Animation, TRACM> animationPair) {
+    public static Map<String, Offset> fillTrOffsets(Pair<gg.generations.rarecandy.pokeutils.tranm.TRANMT, TRACM> animationPair) {
         var offsets = new HashMap<String, Offset>();
 
         if(animationPair.b() != null) {

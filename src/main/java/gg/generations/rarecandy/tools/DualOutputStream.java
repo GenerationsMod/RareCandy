@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools;
 
+import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedOutputStream;
@@ -54,4 +55,5 @@ public class DualOutputStream extends PrintStream {
         super.write(b);
         consolePrintStream.write(b);
     }
+
 }

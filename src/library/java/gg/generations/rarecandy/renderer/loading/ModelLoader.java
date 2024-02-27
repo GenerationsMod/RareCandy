@@ -10,6 +10,7 @@ import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
+import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
 import gg.generations.rarecandy.pokeutils.util.ImageUtils;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.*;
@@ -71,9 +72,8 @@ public class ModelLoader {
 
             for (var entry : trFilesMap.entrySet()) {
                 var name = entry.getKey();
-                var tranm = entry.getValue().a() != null ? getRootAsAnimation(ByteBuffer.wrap(entry.getValue().a())) : null;
+                var tranm = entry.getValue().a() != null ? TRANMT.deserializeFromBinary(entry.getValue().a()) : null;
                 var tracm = entry.getValue().b() != null ? TRACM.getRootAsTRACM(ByteBuffer.wrap(entry.getValue().b())) : null;
-
                 animations.put(name, new TranmAnimation(name, new Pair<>(tranm, tracm), new Skeleton(skeleton)));
             }
 
@@ -619,7 +619,7 @@ public class ModelLoader {
 
         for (var entry : files) {
             var smdFile = reader.read(new String(entry.getValue()));
-            map.put(cleanAnimName(entry.getKey()), smdFile);
+            map.put(cleanAnimName(entry.getKey().replace(".smd", "")), smdFile);
         }
 
         return map;

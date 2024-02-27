@@ -1,11 +1,15 @@
 package gg.generations.rarecandy.renderer.animation;
 
 import gg.generations.rarecandy.pokeutils.ModelNode;
+import org.apache.commons.compress.utils.Lists;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -35,6 +39,57 @@ public abstract class Animation<T> {
         this.animationNodes = animationNodes.apply(this, value);
         this.offsets = offsets.apply(value);
         this.animationDuration = findLastKeyTime();
+
+//        var boneList = List.of(this.skeleton.boneArray);
+
+//        StringBuilder builder = new StringBuilder();
+//
+//        builder.append("version 1\n");
+//        builder.append("nodes\n");
+//
+//        for (int i = 0; i < boneList.size(); i++) {
+//            var bone = boneList.get(i);
+//            builder.append("%s \"%s\" %s\n".formatted(i, bone.name, bone.parent));
+//        }
+//
+//        builder.append("end\n");
+//        builder.append("skeleton\n");
+//
+//        for (float i = 0; i < animationDuration; i++) {
+//            builder.append("time " + i + "\n");
+//
+//            for (int j = 0; j < boneList.size(); j++) {
+//                var bone = boneList.get(j);
+//                var index = nodeIdMap.get(bone.name);
+//
+//                var position = bone.posePosition;
+//                var rotation = bone.poseRotation;
+//                var scale = bone.poseScale;
+//
+//                try {
+//                    var animationNode = getAnimationNodes()[index];
+//
+//                    position = AnimationMath.calcInterpolatedPosition(i, animationNode);
+//                    rotation = AnimationMath.calcInterpolatedRotation(i, animationNode);
+//                    scale = AnimationMath.calcInterpolatedScaling(i, animationNode);
+//                } catch (Exception e) {
+//                }
+//
+//                var translate = position;
+//                var rotate = rotation.getEulerAnglesZYX(new Vector3f());
+//
+//                builder.append("%s  %.6f %.6f %.6f  %.6f %.6f %.6f  %.6f %.6f %.6f\n".formatted(j, translate.x, translate.y, translate.z, rotate.x, rotate.y, rotate.z, scale.x, scale.y, scale.z));
+//            }
+//
+//        }
+//
+//        builder.append("end");
+//
+//        try {
+//            Files.writeString(Path.of(name + ".smd"), builder);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     public static <T> Map<String, GfbAnimation.Offset> fillOffsets(T item) {
@@ -51,6 +106,7 @@ public abstract class Animation<T> {
                 for (var key : value.scaleKeys) duration = Math.max(key.time(), duration);
             }
         }
+
 
         return duration;
     }
@@ -168,12 +224,5 @@ public abstract class Animation<T> {
     public interface Offset {
         void calcOffset(float animTime, Transform instance);
 
-        public static class Default {
-            public static final Default INSTANCE = new Default();
-            void calcOffset(float animTime, Transform instance) {
-                instance.offset().set(0,0);
-                instance.scale().set(1,1);
-            }
-        }
     }
 }

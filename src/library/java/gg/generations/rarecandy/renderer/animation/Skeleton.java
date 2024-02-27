@@ -35,6 +35,8 @@ public class Skeleton {
             var jointNode = nodes.get(i);
 
             var id = rawSkin.getJoints().indexOf(jointNode);
+
+
             Matrix4f inverseBindMatrix = null;
 
             if(id != -1) {

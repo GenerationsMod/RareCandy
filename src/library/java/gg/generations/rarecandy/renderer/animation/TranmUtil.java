@@ -95,69 +95,69 @@ public class TranmUtil {
         return q;
     }
 
-    public static void processDynamicQuatTrack(DynamicQuatTrack track, TransformStorage<Quaternionf> rotationKeys) {
-        for (int i = 0; i < track.vecLength(); i++) {
-            var vec = track.vec(i);
-            rotationKeys.add(i, TranmUtil.packedToQuat((short) vec.x(), (short) vec.y(), (short) vec.z()));
+    public static void processDynamicQuatTrack(DynamicRotationTrackT track, TransformStorage<Quaternionf> rotationKeys) {
+        for (int i = 0; i < track.getCo().length; i++) {
+            var vec = track.getCo()[i];
+            rotationKeys.add(i, TranmUtil.packedToQuat((short) vec.getX(), (short) vec.getY(), (short) vec.getZ()));
         }
     }
 
-    public static void processFixedQuatTrack(FixedQuatTrack track, TransformStorage<Quaternionf> rotationKeys) {
-        var vec = track.vec();
-        rotationKeys.add(0, TranmUtil.packedToQuat((short) vec.x(), (short) vec.y(), (short) vec.z()));
+    public static void processFixedQuatTrack(FixedRotationTrackT track, TransformStorage<Quaternionf> rotationKeys) {
+        var vec = track.getCo();
+        rotationKeys.add(0, TranmUtil.packedToQuat((short) vec.getX(), (short) vec.getY(), (short) vec.getZ()));
     }
 
-    public static void processFramed8QuatTrack(Framed8QuatTrack track, TransformStorage<Quaternionf> rotationKeys) {
-        var frames = track.framesVector();
-        for (int i = 0; i < track.vecLength(); i++) {
+    public static void processFramed8QuatTrack(Framed8RotationTrackT track, TransformStorage<Quaternionf> rotationKeys) {
+        var frames = track.getFrames();
+        for (int i = 0; i < track.getCo().length; i++) {
             int frame = i;
-            var vec = track.vec(i);
+            var vec = track.getCo()[i];
 
-            if (i < frames.length()) frame = frames.getAsUnsigned(i);
-            rotationKeys.add(frame, TranmUtil.packedToQuat((short) vec.x(), (short) vec.y(), (short) vec.z()));
+            if (i < frames.length) frame = frames[i];
+            rotationKeys.add(frame, TranmUtil.packedToQuat((short) vec.getX(), (short) vec.getY(), (short) vec.getZ()));
         }
     }
 
-    public static void processFramed16QuatTrack(Framed16QuatTrack track, TransformStorage<Quaternionf> rotationKeys) {
-        var frames = track.framesVector();
-        for (int i = 0; i < track.vecLength(); i++) {
+    public static void processFramed16QuatTrack(Framed16RotationTrackT track, TransformStorage<Quaternionf> rotationKeys) {
+        var frames = track.getFrames();
+        for (int i = 0; i < track.getCo().length; i++) {
             int frame = i;
-            var vec = track.vec(i);
+            var vec = track.getCo()[i];
 
-            if (i < frames.length()) frame = frames.getAsUnsigned(i);
-            rotationKeys.add(frame, TranmUtil.packedToQuat((short) vec.x(), (short) vec.y(), (short) vec.z()));
+            if (i < frames.length) frame = frames[i];
+            rotationKeys.add(frame, TranmUtil.packedToQuat((short) vec.getX(), (short) vec.getY(), (short) vec.getZ()));
         }
     }
 
-    public static void processDynamicVecTrack(DynamicVectorTrack track, TransformStorage<Vector3f> vecKeys) {
-        for (int i = 0; i < track.vecLength(); i++) {
-            var vec = track.vec(i);
-            vecKeys.add(i, new Vector3f(vec.x(), vec.y(), vec.z()));
+    public static void processDynamicVecTrack(DynamicVectorTrackT track, TransformStorage<Vector3f> vecKeys) {
+        for (int i = 0; i < track.getCo().length; i++) {
+            var vec = track.getCo()[i];
+            vecKeys.add(i, new Vector3f(vec.getX(), vec.getY(), vec.getZ()));
         }
     }
 
-    public static void processFixedVecTrack(FixedVectorTrack track, TransformStorage<Vector3f> vecKeys) {
-        var vec = track.vec();
-        vecKeys.add(0, new Vector3f(vec.x(), vec.y(), vec.z()));
+    public static void processFixedVecTrack(FixedVectorTrackT track, TransformStorage<Vector3f> vecKeys) {
+        var vec = track.getCo();
+        vecKeys.add(0, new Vector3f(vec.getX(), vec.getY(), vec.getZ()));
     }
 
-    public static void processFramed8VecTrack(Framed8VectorTrack track, TransformStorage<Vector3f> vecKeys) {
-        for (int i = 0; i < track.vecLength(); i++) {
+    public static void processFramed8VecTrack(Framed8VectorTrackT track, TransformStorage<Vector3f> vecKeys) {
+        for (int i = 0; i < track.getCo().length; i++) {
             int frame = i;
-            var vec = track.vec(i);
+            var vec = track.getCo()[i];
 
-            if (i < track.framesLength()) frame = track.frames(i);
-            vecKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
+            if (i < track.getFrames().length) frame = track.getFrames()[i];
+            vecKeys.add(frame, new Vector3f(vec.getX(), vec.getY(), vec.getZ()));
         }
     }
 
-    public static void processFramed16VecTrack(Framed16VectorTrack track, TransformStorage<Vector3f> vecKeys) {
-        for (int i = 0; i < track.vecLength(); i++) {
+    public static void processFramed16VecTrack(Framed16VectorTrackT track, TransformStorage<Vector3f> vecKeys) {
+        for (int i = 0; i < track.getCo().length; i++) {
             int frame = i;
-            var vec = track.vec(i);
+            var vec = track.getCo()[i];
 
-            if (i < track.framesLength()) frame = track.frames(i);
-            vecKeys.add(frame, new Vector3f(vec.x(), vec.y(), vec.z()));
+            if (i < track.getFrames().length) frame = track.getFrames()[i];
+            vecKeys.add(frame, new Vector3f(vec.getX(), vec.getY(), vec.getZ()));
         }
     }
 

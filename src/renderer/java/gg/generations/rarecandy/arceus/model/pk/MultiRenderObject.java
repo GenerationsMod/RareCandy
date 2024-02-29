@@ -3,28 +3,30 @@ package gg.generations.rarecandy.arceus.model.pk;
 import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.arceus.model.lowlevel.*;
+import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
 import gg.generationsmod.rarecandy.Pair;
 import gg.generationsmod.rarecandy.model.Mesh;
 import gg.generationsmod.rarecandy.model.RawModel;
 import gg.generationsmod.rarecandy.model.animation.Animation;
 import gg.generationsmod.rarecandy.model.animation.Bone;
-import gg.generationsmod.rarecandy.model.animation.Skeleton;
 import gg.generationsmod.rarecandy.model.config.pk.ModelConfig;
 import gg.generationsmod.rarecandy.model.config.pk.VariantDetails;
 import gg.generationsmod.rarecandy.model.config.pk.VariantParent;
+import org.joml.*;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class MultiRenderObject<T extends RenderingInstance> implements Closeable {
-    public final Map<String, Model> meshes;
+public class MultiRenderObject<T extends MultiRenderingInstance<?>> implements Closeable {
+    public final MultiModel meshes;
 
-    private final Map<String, Map<String, PkMaterial>> materials;
+    private final Map<String, PkMaterial> materials;
 
     private final Map<String, List<String>> hidden;
     private final Map<String, PkMaterial> defaultMaterials;
@@ -102,11 +104,15 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
         this.materials = variantMaterialMap;
         this.hidden = variantHideMap;
 
-        meshes = Stream.of(rawModel.meshes()).collect(Collectors.toMap(Mesh::name, a -> fromMesh(a, rawModel.skeleton())));
+        meshes = fromMesh(rawModel.meshes());
     }
 
     public Map<String, PkMaterial> getMapForVariants(String variant) {
         return materials.getOrDefault(variant, defaultMaterials);
+    }
+
+    public Set<String> availableVariants() {
+        return materials.keySet();
     }
 
     public List<String> shouldHide(String variant) {
@@ -164,62 +170,88 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
         });
     }
 
-    private static Model fromMesh(Mesh mesh, Skeleton skeleton) {
-
+    private static MultiModel fromMesh(Mesh[] meshes) {
         var length = VertexData.calculateVertexSize(ATTRIBUTES);
-        var amount = mesh.positions().size();
 
-        var vertexBuffer = MemoryUtil.memAlloc(length * amount);
+        var indices = new ArrayList<Integer>();
 
-        var bones = IntStream.range(0, amount).mapToObj(a -> new VertexBoneData()).toList();
+        var vertices = new ArrayList<Vertex>();
+
+        var details = new ArrayList<MultiModel.MeshDetail>();
+        List<String> materialNames = new ArrayList<>();
 
 
-        mesh.bones().forEach(bone -> {
-            var boneId = skeleton.getId(bone);
+        var currentOffset = 0;
 
-            for(var weight : bone.weights) {
-                if(weight.weight == 0.0) return;
-                else {
-                    bones.get(weight.vertexId).addBoneData(boneId, weight.weight);
+        for (int j = 0, meshesLength = meshes.length; j < meshesLength; j++) {
+            Mesh mesh = meshes[j];
+            var amount = mesh.positions().size();
+
+            var trueIndex = new int[mesh.positions().size()];
+
+            for (int i = 0; i < amount; i++) {
+
+                var position = mesh.positions().get(i);
+                var uv = mesh.uvs().get(i);
+                var normal = mesh.normals().get(i);
+                var boneId = mesh.boneIds().get(i);
+                var boneWeight = mesh.boneWeights().get(i);
+
+                var vertex = new Vertex(position, uv, normal, boneId, boneWeight);
+
+                var index = vertices.indexOf(vertex);
+
+                if (index != 0) {
+                    trueIndex[i] = index;
+                } else {
+                    trueIndex[i] = vertices.size();
+                    vertices.add(vertex);
                 }
+
             }
-        });
 
-        for (int i = 0; i < amount; i++) {
+            mesh.indices().stream().mapToInt(a -> trueIndex[a]).forEach(indices::add);
 
-            var position = mesh.positions().get(i);
-            var uv = mesh.uvs().get(i);
-            var normal = mesh.normals().get(i);
-            var bone = bones.get(i);
+            details.add(new MultiModel.MeshDetail(amount, j == 0 ? 0 : currentOffset + amount));
+            materialNames.add(mesh.name());
 
-            vertexBuffer.putFloat(position.x);
-            vertexBuffer.putFloat(position.y);
-            vertexBuffer.putFloat(position.z);
-            vertexBuffer.putFloat(uv.x);
-            vertexBuffer.putFloat(uv.y);
-            vertexBuffer.putFloat(normal.x);
-            vertexBuffer.putFloat(normal.y);
-            vertexBuffer.putFloat(normal.z);
-
-            vertexBuffer.put((byte) bone.ids()[0]);
-            vertexBuffer.put((byte) bone.ids()[1]);
-            vertexBuffer.put((byte) bone.ids()[2]);
-            vertexBuffer.put((byte) bone.ids()[3]);
-
-            vertexBuffer.putFloat(bone.weights()[0]);
-            vertexBuffer.putFloat(bone.weights()[1]);
-            vertexBuffer.putFloat(bone.weights()[2]);
-            vertexBuffer.putFloat(bone.weights()[3]);
+            currentOffset += amount;
         }
+        var vertexBuffer = MemoryUtil.memAlloc(length * vertices.size());
+
+        for (var vertex : vertices) {
+            vertexBuffer
+                    .putFloat(vertex.position().x)
+                    .putFloat(vertex.position().y)
+                    .putFloat(vertex.position().z)
+                    .putFloat(vertex.uv().x)
+                    .putFloat(vertex.uv().y)
+                    .putFloat(vertex.normal().x)
+                    .putFloat(vertex.normal().y)
+                    .putFloat(vertex.normal().z)
+                    .put((byte) vertex.boneId().x)
+                    .put((byte) vertex.boneId().y)
+                    .put((byte) vertex.boneId().z)
+                    .put((byte) vertex.boneId().w)
+                    .putFloat(vertex.boneWeight().x)
+                    .putFloat(vertex.boneWeight().y)
+                    .putFloat(vertex.boneWeight().z)
+                    .putFloat(vertex.boneWeight().w);
+        }
+
 
         vertexBuffer.flip();
 
-        var indexBuffer = MemoryUtil.memAlloc(mesh.indices().size() * 4);
-        indexBuffer.asIntBuffer().put(mesh.indices().stream().mapToInt(a -> a).toArray()).flip();
+        var indexBuffer = MemoryUtil.memAlloc(indices.size() * 4);
+        indexBuffer.asIntBuffer().put(indices.stream().mapToInt(a -> a).toArray()).flip();
 
         var vertexData = new VertexData(vertexBuffer, ATTRIBUTES);
 
-        return new Model(mesh.name(), new RenderData(DrawMode.TRIANGLES, vertexData, indexBuffer, IndexType.UNSIGNED_INT, mesh.indices().size()));
+        return new MultiModel(materialNames, new MultiRenderData(DrawMode.TRIANGLES, vertexData, indexBuffer, IndexType.UNSIGNED_INT, details));
+    }
+
+    public record Vertex(Vector3f position, Vector2f uv, Vector3f normal, Vector4i boneId, Vector4f boneWeight) {
+
     }
 
     private static List<Attribute> ATTRIBUTES = List.of(
@@ -251,9 +283,7 @@ public class MultiRenderObject<T extends RenderingInstance> implements Closeable
             closedMaterials.add(material);
         }
 
-        for (Model value : meshes.values()) {
-            value.data().close();
-        }
+        meshes.renderData().close();
     }
 
 

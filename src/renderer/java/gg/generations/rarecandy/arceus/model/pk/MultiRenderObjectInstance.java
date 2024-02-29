@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.arceus.model.pk;
 
 import gg.generations.rarecandy.arceus.core.RareCandyScene;
+import gg.generations.rarecandy.arceus.model.Material;
 import gg.generations.rarecandy.arceus.model.Model;
 import gg.generations.rarecandy.arceus.model.RenderingInstance;
 import gg.generations.rarecandy.legacy.animation.AnimationController;
@@ -10,21 +11,23 @@ import gg.generationsmod.rarecandy.model.animation.Transform;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class MultiRenderObjectInstance<T extends MultiRenderObject<?>> {
-    private final T object;
+public class MultiRenderObjectInstance<T extends MultiRenderObject<?>> implements RenderingInstance {
+    private T object;
     private final Matrix4f transform;
 
-    private final List<MultiRenderingInstance<?>> proxies;
     private String variant;
 
-    private String materialName;
+    private Map<String, PkMaterial> materials = new HashMap<>();
     private RareCandyScene<RenderingInstance> scene;
 
     public AnimationInstance currentAnimation;
+    private List<String> hidden;
 
     public MultiRenderObjectInstance(T object, Matrix4f transform) {
         this(object, transform.scale(object.getScale()), "");
@@ -34,20 +37,13 @@ public class MultiRenderObjectInstance<T extends MultiRenderObject<?>> {
         this.object = object;
         this.transform = transform;
         this.variant = varaint;
-        this.proxies = new ArrayList<>();
-
-        object.meshes.forEach((key, value) -> {
-
-            proxies.add(createInstance(key, value, () -> object.getMapForVariants(this.getVariant()).get(key), transform));
-        });
-    }
-
-    protected MultiRenderingInstance<?> createInstance(String name, Model model, Supplier<PkMaterial> materialSupplier, Matrix4f transform) {
-        return new MultiRenderingInstance<>(name, model, this, materialSupplier, transform);
+        updateMaterials();
     }
 
     public void addToScene(RareCandyScene<RenderingInstance> scene) {
-        var hide = object.shouldHide(variant);
+        hidden = object.shouldHide(variant);
+
+
 
         if (this.scene != null && this.scene != scene) {
             proxies.stream().filter(a -> !hide.contains(a.getName())).forEach(instance -> {
@@ -63,19 +59,24 @@ public class MultiRenderObjectInstance<T extends MultiRenderObject<?>> {
         }
     }
 
+    public void setObject(T object) {
+        this.object = object;
+        updateMaterials();
+    }
+
+    private void updateMaterials() {
+        materials.clear();
+        materials = object.getMapForVariants(getVariant());
+    }
+
     public String getVariant() {
         return variant;
     }
 
     public void setVariant(String variant) {
-        var hideNew = object.shouldHide(variant);
-
-        proxies.stream().filter(a -> !a.isChanging()).forEach(instance -> {
-            instance.setChanging();
-            scene.removeInstance(instance);
-            if (!hideNew.contains(instance.getName())) scene.addInstance(instance);
-        });
         this.variant = variant == null ? "" : variant;
+        materials = object.getMapForVariants(getVariant());
+        hidden = object.shouldHide(variant);
     }
 
     public void removeFromScene() {
@@ -108,4 +109,18 @@ public class MultiRenderObjectInstance<T extends MultiRenderObject<?>> {
         return object;
     }
 
+    @Override
+    public Model getModel() {
+        return null;
+    }
+
+    @Override
+    public Material getMaterial() {
+        return null;
+    }
+
+    @Override
+    public Matrix4f getTransform() {
+        return null;
+    }
 }

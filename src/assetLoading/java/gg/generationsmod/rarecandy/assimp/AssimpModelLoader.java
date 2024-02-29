@@ -10,6 +10,8 @@ import gg.generationsmod.rarecandy.model.config.pk.ModelConfig;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
+import org.joml.Vector4i;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.assimp.*;
 import org.lwjgl.system.MemoryUtil;
@@ -19,6 +21,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static gg.generationsmod.rarecandy.model.config.pk.ModelConfig.*;
@@ -136,6 +139,10 @@ public class AssimpModelLoader {
     private static Mesh[] readMeshData(Skeleton skeleton, AIScene scene, Map<String, Bone> boneMap) {
         var meshes = new Mesh[scene.mNumMeshes()];
 
+        var bones = new ArrayList<List<Bone>>(scene.mNumMeshes());
+
+        var skip = new boolean[scene.mNumMeshes()];
+
         for (int i = 0; i < scene.mNumMeshes(); i++) {
 
             var mesh = AIMesh.create(scene.mMeshes().get(i));
@@ -145,7 +152,8 @@ public class AssimpModelLoader {
             var positions = new ArrayList<Vector3f>();
             var uvs = new ArrayList<Vector2f>();
             var normals = new ArrayList<Vector3f>();
-            var bones = new ArrayList<Bone>();
+            var boneIds = new ArrayList<Vector4i>();
+            var boneWeights = new ArrayList<Vector4f>();
 
             // Indices
             var aiFaces = mesh.mFaces();
@@ -180,8 +188,11 @@ public class AssimpModelLoader {
                     normals.add(new Vector3f(aiNormals.get(j).x(), aiNormals.get(j).y(), aiNormals.get(j).z()));
             }
 
+            var bonesTemp = new ArrayList<Bone>();
+
             // Bones
             if (mesh.mBones() != null) {
+
                 var aiBones = requireNonNull(mesh.mBones());
 
                 for (int j = 0; j < aiBones.capacity(); j++) {
@@ -189,16 +200,76 @@ public class AssimpModelLoader {
 
                     var aiBone = AIBone.create(aiBones.get(j));
                     var bone = Bone.from(aiBone);
-                    bones.add(bone);
+                    bonesTemp.add(bone);
                 }
+
+                skip[i] = false;
             }
 
-            skeleton.store(bones.toArray(Bone[]::new));
-            meshes[i] = new Mesh(name, material, indices, positions, uvs, normals, bones);
+            for (int j = 0; j < mesh.mNumVertices(); j++) {
+                boneIds.add(new Vector4i());
+                boneWeights.add(new Vector4f());
+            }
+
+
+
+            bones.add(bonesTemp);
+
+            skeleton.store(bonesTemp.toArray(Bone[]::new));
+
+            meshes[i] = new Mesh(name, material, indices, positions, uvs, normals, boneIds, boneWeights);
         }
 
         skeleton.calculateBoneData();
+        for (int i = 0; i < bones.size(); i++) {
+            List<Bone> boneList = bones.get(i);
+
+            var mesh = meshes[i];
+            var boneIds = mesh.boneIds();
+            var boneWeights = mesh.boneWeights();
+
+            for (Bone bone : boneList) {
+                var boneId = skeleton.getId(bone);
+                processBone(bone, boneId, boneIds, boneWeights);
+            }
+
+
+        }
+
         return meshes;
+    }
+
+    private static void processBone(Bone bone, int boneId, List<Vector4i> boneIds, List<Vector4f> boneWeights) {
+        for(var weight : bone.weights) {
+            if(weight.weight == 0.0) return;
+            else {
+                System.out.println(boneIds.size());
+                var ids = boneIds.get(weight.vertexId);
+                var weights = boneWeights.get(weight.vertexId);
+
+                addBoneData(ids, weights, boneId, weight.weight);
+            }
+        }
+    }
+
+    public static void addBoneData(Vector4i boneIds, Vector4f boneWeights, int boneId, float weight) {
+        for (var i = 0 ; i < 4; i++) {
+            if (boneWeights.get(i) == 0.0) {
+                boneIds.setComponent(i , boneId);
+                boneWeights.setComponent(i, weight);
+                return;
+            }
+        }
+    }
+
+    private static <T> T getOrCreateElement(List<T> list, int id, Supplier<T> supplier) {
+        var element = list.get(id);
+        if(element == null) {
+            element = supplier.get();
+            list.set(id, element);
+        }
+
+        return element;
     }
 
     private static String[] readMaterialData(AIScene scene) {

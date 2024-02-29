@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.arceus.model.pk.MultiRenderingInstance;
+import gg.generations.rarecandy.arceus.model.pk.MultiRenderObjectInstance;
 import gg.generations.rarecandy.arceus.model.pk.PkMaterial;
 import gg.generations.rarecandy.arceus.model.pk.TextureLoader;
 import gg.generations.rarecandy.legacy.animation.AnimationController;
@@ -23,7 +23,7 @@ public class GuiPipelines {
                 .supplyUniform(INSTANCE, "modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().getTransform()))
                 .supplyUniform(SHARED, "projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix.get()))
                 .supplyUniform(INSTANCE, "boneTransforms", ctx -> {
-                    Matrix4f[] mats = ctx.instance() instanceof MultiRenderingInstance instance ? instance.object().getTransforms() : AnimationController.NO_ANIMATION;
+                    Matrix4f[] mats = ctx.instance() instanceof MultiRenderObjectInstance instance ? instance.object().getTransforms() : AnimationController.NO_ANIMATION;
                     ctx.uniform().uploadMat4fs(mats);
                 })
                 .supplyUniform(INSTANCE, "offset", ctx -> {

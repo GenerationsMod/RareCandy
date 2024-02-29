@@ -9,10 +9,7 @@ import gg.generations.rarecandy.arceus.model.lowlevel.VertexData;
 import gg.generations.rarecandy.legacy.animation.AnimationController;
 import gg.generations.rarecandy.legacy.pipeline.ShaderProgram;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.lwjgl.opengl.GL11C.glDrawElements;
 
@@ -23,6 +20,9 @@ public class DefaultRenderGraph {
     private final RareCandyScene<RenderingInstance> scene;
     private final List<SmartObject> updatableObjects = new ArrayList<>();
     private final Map<ShaderProgram, Map<Model, Map<Material, Map<VertexData, List<RenderingInstance>>>>> instanceMap = new HashMap<>();
+
+    private final Set<RenderingInstance> instances = new HashSet<>();
+
     private final Map<RenderData, Boolean> modelHasNoInstanceVariants = new HashMap<>(); // TODO: check if the instances share the same material as the model. if so, do the rendering thing faster TM
 
     public DefaultRenderGraph(RareCandyScene<RenderingInstance> scene) {
@@ -84,10 +84,13 @@ public class DefaultRenderGraph {
                 .computeIfAbsent(instance.getMaterial(), material -> new HashMap<>())
                 .computeIfAbsent(instance.getModel().data().vertexData, program -> new ArrayList<>())
                 .add(instance);
+        instances.add(instance);
     }
 
     private void removeInstance(RenderingInstance instance) {
         if (instance instanceof SmartObject) updatableObjects.remove(instance);
+
+        instances.removeIf(instance::equals);
 
         var program = instanceMap.get(instance.getMaterial().getProgram());
 
@@ -104,5 +107,10 @@ public class DefaultRenderGraph {
         }
 
         instance.postRemove();
+    }
+
+    public void clear() {
+        scene.removedInstances.addAll(instances);
+        updateCache();
     }
 }

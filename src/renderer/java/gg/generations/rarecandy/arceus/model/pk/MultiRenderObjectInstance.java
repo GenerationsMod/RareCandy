@@ -70,11 +70,16 @@ public class MultiRenderObjectInstance<T extends MultiRenderObject<?>> {
     public void setVariant(String variant) {
         var hideNew = object.shouldHide(variant);
 
-        proxies.stream().filter(a -> !a.isChanging()).forEach(instance -> {
-            instance.setChanging();
-            scene.removeInstance(instance);
-            if (!hideNew.contains(instance.getName())) scene.addInstance(instance);
-        });
+        if(scene != null) {
+
+            proxies.stream().filter(a -> !a.isChanging()).forEach(instance -> {
+
+                instance.setChanging();
+                scene.removeInstance(instance);
+                if (!hideNew.contains(instance.getName())) scene.addInstance(instance);
+
+            });
+        }
         this.variant = variant == null ? "" : variant;
     }
 

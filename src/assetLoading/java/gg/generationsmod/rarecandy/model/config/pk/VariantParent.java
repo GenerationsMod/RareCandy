@@ -22,7 +22,7 @@ public record VariantParent(String inherits, Map<String, VariantDetails> details
             }
 
             Map<String, VariantDetails> details = new HashMap<>();
-            if(!jsonObject.isEmpty()) {
+            if(!jsonObject.asMap().isEmpty()) {
                 for(var entry : jsonObject.asMap().entrySet()) {
                     var key = entry.getKey();
 

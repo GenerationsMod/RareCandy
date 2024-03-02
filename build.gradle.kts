@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "3.0.2-SNAPSHOT"
+version = "3.0.3-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -65,7 +65,7 @@ dependencies {
     shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.5.26")!!)
 
     //TODO: JT need some funky gradle logic that lets us build a version does and doesn't include gson for the viewer and generations respectively
-    shadow(implementation("com.google.code.gson:gson:2.10.1")!!)
+    shadow(implementation("com.google.code.gson:gson:2.10")!!)
 
     shadow(implementation("com.thebombzen:jxlatte:1.1.2")!!)
 }

@@ -11,4 +11,5 @@ public record RawModel(
         Mesh[] meshes,
         Skeleton skeleton,
         ModelConfig config,
-        Map<String, String> images, Map<String, Animation<?>> animations) {}
+        Map<String, String> images,
+        Map<String, Animation<?>> animations) {}

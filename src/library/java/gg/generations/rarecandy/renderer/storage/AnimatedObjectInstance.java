@@ -24,14 +24,14 @@ public class AnimatedObjectInstance extends ObjectInstance {
         super(transformationMatrix, viewMatrix, materialId);
     }
 
-    public Map<String, Animation> getAnimationsIfAvailable() {
+    public Map<String, Animation<?>> getAnimationsIfAvailable() {
 
         try {
             return getAnimatedMesh().animations;
         } catch (Exception ignored) {
         }
 
-        return new HashMap<String, Animation>();
+        return new HashMap<String, Animation<?>>();
     }
 
     public AnimatedMeshObject getAnimatedMesh() {

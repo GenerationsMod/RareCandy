@@ -12,11 +12,11 @@ import java.util.List;
 import java.util.Map;
 
 public class AnimatedMeshObject extends MeshObject {
-    public Map<String, Animation> animations;
+    public Map<String, Animation<?>> animations;
     public Skeleton skeleton;
     private ModelConfig.HideDuringAnimation hideDuringAnimation;
 
-    public void setup(Map<String, Material> variants, List<String> shouldRender, GLModel model, String name, Skeleton skeleton, Map<String, Animation> animations, ModelConfig.HideDuringAnimation hideDuringAnimation) {
+    public void setup(Map<String, Material> variants, List<String> shouldRender, GLModel model, String name, Skeleton skeleton, Map<String, Animation<?>> animations, ModelConfig.HideDuringAnimation hideDuringAnimation) {
         setup(variants, shouldRender, model, name);
         this.hideDuringAnimation = hideDuringAnimation;
         this.animations = animations;

@@ -21,6 +21,7 @@ public abstract class Animation<T> {
     public static final int GLB_SPEED = 30;
     public static BiConsumer<Animation, String> animationModifier = (animation, s) -> {
     };
+    protected static Vector3f TRANSLATE = new Vector3f();
     public final String name;
     public final double animationDuration;
     protected final Skeleton skeleton;
@@ -117,7 +118,7 @@ public abstract class Animation<T> {
     }
 
     public Matrix4f[] getFrameTransform(AnimationInstance instance) {
-        var boneTransforms = new Matrix4f[this.skeleton.jointSize];
+        var boneTransforms = new Matrix4f[this.skeleton.bones.length];
         readNodeHierarchy(instance.getCurrentTime(), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
         return boneTransforms;
     }
@@ -133,26 +134,26 @@ public abstract class Animation<T> {
     }
 
     public Matrix4f[] getFrameTransform(double secondsPassed) {
-        var boneTransforms = new Matrix4f[this.skeleton.jointSize];
+        var boneTransforms = new Matrix4f[this.skeleton.bones.length];
         readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
         return boneTransforms;
     }
 
     private static final float[] matrix = new float[16];
 
-    protected void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
+    public void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
         var name = node.name;
         var nodeTransform = node.transform;
-        if (node.id == -1) node.id = nodeIdMap.getOrDefault(name, -1);
+
+        var animationNodeId = nodeIdMap.getOrDefault(name, -1);
         var bone = skeleton.get(name);
 
-        if (node.id != -1) {
-            var animNode = getAnimationNodes()[node.id];
+        if (animationNodeId != -1) {
+            var animNode = animationNodes[animationNodeId];
 
             if (animNode != null) {
                 var scale = AnimationMath.calcInterpolatedScaling(animTime, animNode);
                 var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
-
                 var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
 
@@ -160,22 +161,17 @@ public abstract class Animation<T> {
                     bone.lastSuccessfulTransform = new Matrix4f(nodeTransform);
                 }
             }
-        } else {
-            if (bone != null) {
-                var scale = bone.poseScale;
-                var rotation = bone.poseRotation;
-                var translation = bone.posePosition;
-                nodeTransform.identity().translationRotateScale(translation, rotation, scale);
-            }
         }
 
         var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
-        if (bone != null && bone.jointId != -1) {
+
+        if (bone != null) {
+
             if (isNaN(globalTransform)) {
                 globalTransform = parentTransform.mul(bone.lastSuccessfulTransform, new Matrix4f());
             }
 
-            boneTransforms[bone.jointId] = globalTransform.mul(bone.inversePoseMatrix, new Matrix4f());
+            boneTransforms[skeleton.getId(bone)] = globalTransform.mul(bone.inverseBindMatrix, new Matrix4f());
         }
 
         for (var child : node.children)

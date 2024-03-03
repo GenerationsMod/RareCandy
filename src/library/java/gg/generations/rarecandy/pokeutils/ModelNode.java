@@ -2,6 +2,8 @@ package gg.generations.rarecandy.pokeutils;
 
 import de.javagl.jgltf.model.NodeModel;
 import org.joml.Matrix4f;
+import org.lwjgl.assimp.AIMatrix4x4;
+import org.lwjgl.assimp.AINode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,18 +18,31 @@ public class ModelNode {
     public final List<ModelNode> children = new ArrayList<>();
     public int id = -1;
 
-    public ModelNode(NodeModel rootNodeModel, ModelNode parent) {
-        this.parent = parent;
-        this.name = rootNodeModel.getName().replace(".trmdl", "");
-        this.transform = new Matrix4f().add(DataUtils.convert(rootNodeModel.getTranslation(), rootNodeModel.getRotation(), rootNodeModel.getScale()));
+    private ModelNode(AINode aiNode, ModelNode parent) {
+        this.name = aiNode.mName().dataString();
 
-        for (var child : rootNodeModel.getChildren()) {
-            children.add(new ModelNode(child, this));
-        }
+        this.parent = parent;
+        this.transform = from(aiNode.mTransformation());
+
+        for (int i = 0; i < aiNode.mNumChildren(); i++)
+            children.add(new ModelNode(AINode.create(aiNode.mChildren().get(i)), this));
     }
 
     @Override
     public String toString() {
-        return this.name;
+        return "Joint{" + "name='" + name + '\'' + '}';
+    }
+
+    public static ModelNode create(AINode aiRoot) {
+        return new ModelNode(aiRoot, null);
+    }
+
+
+    public static Matrix4f from(AIMatrix4x4 aiMat4) {
+        return new Matrix4f()
+                .m00(aiMat4.a1()).m10(aiMat4.a2()).m20(aiMat4.a3()).m30(aiMat4.a4())
+                .m01(aiMat4.b1()).m11(aiMat4.b2()).m21(aiMat4.b3()).m31(aiMat4.b4())
+                .m02(aiMat4.c1()).m12(aiMat4.c2()).m22(aiMat4.c3()).m32(aiMat4.c4())
+                .m03(aiMat4.d1()).m13(aiMat4.d2()).m23(aiMat4.d3()).m33(aiMat4.d4());
     }
 }

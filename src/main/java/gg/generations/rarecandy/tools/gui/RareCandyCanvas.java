@@ -118,7 +118,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public void openFile(PixelAsset pkFile, Runnable runnable) throws IOException {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
-        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+//        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
         if(loadedModel != null) loadedModel.close();
 
         if(pkFile == null) return;
@@ -148,16 +148,17 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClearColor(lightLevel, lightLevel, lightLevel, 1);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        try (var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {
-            assert is != null;
-
-            load(renderer, new GlbPixelAsset("plane", is.readAllBytes()), model -> {
-                plane = model;
-                renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));
-            }, MeshObject::new);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+//TODO: Fix
+//        try (var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {
+//            assert is != null;
+//
+//            load(renderer, new GlbPixelAsset("plane", is.readAllBytes()), model -> {
+//                plane = model;
+//                renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+//            }, MeshObject::new);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     private Vector3f size = new Vector3f();

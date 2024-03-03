@@ -43,7 +43,7 @@ public class SmdAnimation extends Animation<SMDFile> {
             var states = keyframe.states;
 
             for (var boneState : states) {
-                if (boneState.bone < animation.skeleton.boneArray.length - 1) {
+                if (boneState.bone < animation.skeleton.bones.length - 1) {
                     var id = nodeMap.get(boneState.bone);
                     var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
 

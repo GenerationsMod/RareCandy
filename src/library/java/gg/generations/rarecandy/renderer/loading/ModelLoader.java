@@ -2,7 +2,6 @@ package gg.generations.rarecandy.renderer.loading;
 
 import de.javagl.jgltf.model.*;
 import de.javagl.jgltf.model.io.GltfModelReader;
-import de.javagl.jgltf.model.v2.MaterialModelV2;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import gg.generations.rarecandy.pokeutils.*;
@@ -11,7 +10,6 @@ import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
-import gg.generations.rarecandy.pokeutils.util.ImageUtils;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.*;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
@@ -27,14 +25,12 @@ import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL15C;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.assimp.*;
+import org.lwjgl.opengl.*;
+import org.lwjgl.system.MemoryUtil;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -43,32 +39,53 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static gg.generations.rarecandy.pokeutils.tranm.Animation.getRootAsAnimation;
+import static java.util.Objects.requireNonNull;
+import static org.lwjgl.opengl.GL11C.*;
+import static org.lwjgl.opengl.GL15C.*;
+import static org.lwjgl.opengl.GL15C.GL_STATIC_DRAW;
+import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
+import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
+import static org.lwjgl.opengl.GL30C.*;
 
 public class ModelLoader {
-    private final GltfModelReader reader = new GltfModelReader();
     private final ExecutorService modelLoadingPool;
 
     public ModelLoader() {
         this.modelLoadingPool = Executors.newFixedThreadPool(2);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, PixelAsset gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
         create2(objects, gltfModel, smdFileMap, gfbFileMap, trFilesMap, images, config, glCalls, supplier, Animation.GLB_SPEED);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
-        checkForRootTransformation(objects, gltfModel);
-        if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
+    private static List<Attribute> ATTRIBUTES = List.of(
+            Attribute.POSITION,
+            Attribute.TEXCOORD,
+            Attribute.NORMAL,
+            Attribute.BONE_IDS,
+            Attribute.BONE_WEIGHTS
+    );
 
-        Map<String, Animation> animations = null;
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, PixelAsset asset, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
+        if (config == null) throw new RuntimeException("config.json can't be null.");
+//        checkForRootTransformation(objects, gltfModel);
 
-        Skeleton skeleton;
+        Map<String, Animation<?>> animations = new HashMap<>();
 
-        if (!gltfModel.getSkinModels().isEmpty()) {
-            skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
-            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(animationModel.getName(), 30) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+        var gltfModel = ModelLoader.read(asset);
+
+        var rootNode = ModelNode.create(gltfModel.mRootNode());
+
+        Skeleton skeleton = new Skeleton(rootNode);
+
+        var meshes = Mesh.readMeshData(skeleton, gltfModel);
+
+//        if (!gltfModel.getSkinModels().isEmpty()) {
+//            skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
+//            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(animationModel.getName(), 30) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
             for (var entry : trFilesMap.entrySet()) {
                 var name = entry.getKey();
@@ -97,146 +114,93 @@ public class ModelLoader {
                 var key = entry.getKey();
                 var value = entry.getValue();
 
-                animations.put(key, new SmdAnimation(key, value, new Skeleton(skeleton), config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(key, 30) : 30));
+                animations.put(key, new SmdAnimation(key, value, new Skeleton(skeleton), config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(key, 30) : 30));
             }
-        } else {
-            skeleton = null;
-        }
+//        } else {
+//            skeleton = null;
+//        }
 
         Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation = new HashMap<>();
 
-        if (config != null) {
+        var materials = new HashMap<String, Material>();
 
+        config.materials.forEach((k, v) -> {
+            var material = MaterialReference.process(k, config.materials, images);
 
-            var materials = new HashMap<String, Material>();
+            materials.put(k, material);
+        });
 
-            config.materials.forEach((k, v) -> {
-                var material = MaterialReference.process(k, config.materials, images);
+        var defaultVariant = new HashMap<String, Variant>();
+        config.defaultVariant.forEach((k, v) -> {
+            var variant = new Variant(materials.get(v.material()), v.hide());
+            defaultVariant.put(k, variant);
+        });
 
-                materials.put(k, material);
-            });
+        var variantMaterialMap = new HashMap<String, Map<String, Material>>();
+        var variantHideMap = new HashMap<String, List<String>>();
 
-            var defaultVariant = new HashMap<String, Variant>();
-            config.defaultVariant.forEach((k, v) -> {
-                var variant = new Variant(materials.get(v.material()), v.hide());
-                defaultVariant.put(k, variant);
-            });
+        if(config.hideDuringAnimation != null) {
+            hideDuringAnimation = config.hideDuringAnimation;
+        }
 
-            var variantMaterialMap = new HashMap<String, Map<String, Material>>();
-            var variantHideMap = new HashMap<String, List<String>>();
+        if(config.variants != null) {
+            for (Map.Entry<String, VariantParent> entry : config.variants.entrySet()) {
+                String variantKey = entry.getKey();
+                VariantParent variantParent = entry.getValue();
 
-            if(config.hideDuringAnimation != null) {
-                hideDuringAnimation = config.hideDuringAnimation;
-            }
+                VariantParent child = config.variants.get(variantParent.inherits());
 
-            if(config.variants != null) {
-                for (Map.Entry<String, VariantParent> entry : config.variants.entrySet()) {
-                    String variantKey = entry.getKey();
-                    VariantParent variantParent = entry.getValue();
+                var map = variantParent.details();
 
-                    VariantParent child = config.variants.get(variantParent.inherits());
+                while (child != null) {
+                     var details = child.details();
 
-                    var map = variantParent.details();
+                     applyVariantDetails(details, map);
 
-                    while (child != null) {
-                         var details = child.details();
-
-                         applyVariantDetails(details, map);
-
-                        child = config.variants.get(child.inherits());
-                    }
-
-                    applyVariantDetails(config.defaultVariant, map);
-
-                    var matMap = variantMaterialMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
-                    var hideMap = variantHideMap.computeIfAbsent(variantKey, s3 -> new ArrayList<>());
-
-                    applyVariant(materials, matMap, hideMap, map);
+                    child = config.variants.get(child.inherits());
                 }
-            } else {
-                var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
-                var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
 
-                defaultVariant.forEach((s1, variant) -> {
-                    matMap.put(s1, variant.material());
-                    if (variant.hide()) hideMap.add(s1);
-                });
-            }
+                applyVariantDetails(config.defaultVariant, map);
 
-            var matMap = reverseMap(variantMaterialMap);
-            var hidMap = reverseListMap(variantHideMap);
+                var matMap = variantMaterialMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
+                var hideMap = variantHideMap.computeIfAbsent(variantKey, s3 -> new ArrayList<>());
 
-            objects.dimensions.set(calculateDimensions(gltfModel));
-
-            for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
-                var transform = new Matrix4f();
-
-                traverseTree(transform, node, objects, supplier, matMap, hidMap, glCalls, skeleton, animations, hideDuringAnimation);
+                applyVariant(materials, matMap, hideMap, map);
             }
         } else {
+            var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
+            var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
 
-            //Original model loading code
-
-            var textures = gltfModel.getTextureModels().stream().collect(Collectors.toMap(textureModel -> textureModel.getImageModel().getName(), raw -> {
-                var id = gltfModel.getNodeModels().get(0).getName() + "-" + raw.getImageModel().getName();
-
-                var image = ImageUtils.readAsBufferedImage(raw.getImageModel().getImageData());
-
-                ITextureLoader.instance().register(id, new TextureReference(image, raw.getImageModel().getName()));
-
-                return id;
-            }));
-
-            var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
-                var textureName = raw.getBaseColorTexture().getImageModel().getName();
-                return SolidReferenceMaterial.process(raw.getName(), textureName, textures);
-            }).toList();
-            var variants = getVariants(gltfModel);
-
-            objects.dimensions.set(calculateDimensions(gltfModel));
-            objects.scale = 1f / objects.scale;
-
-            // gltfModel.getSceneModels().get(0).getNodeModels().get(0).getScale()
-            for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
-                var transform = new Matrix4f();
-                applyTransforms(transform, node);
-
-                if (node.getChildren().isEmpty()) {
-                    // Model Loading Method #1
-                    objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
-
-                    for (var meshModel : node.getMeshModels()) {
-                        var showList = collectShownVariants(meshModel, variants);
-
-                        processPrimitiveModels(objects, supplier, meshModel, materials, variants, showList, glCalls, skeleton, animations);
-                    }
-                } else {
-                    // Model Loading Method #2
-                    for (var child : node.getChildren()) {
-                        applyTransforms(transform, child);
-                        objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
-
-                        for (var meshModel : child.getMeshModels()) {
-                            var showList = collectShownVariants(meshModel, variants);
-                            processPrimitiveModels(objects, supplier, meshModel, materials, variants, showList, glCalls, skeleton, animations);
-                        }
-                    }
-                }
-            }
+            defaultVariant.forEach((s1, variant) -> {
+                matMap.put(s1, variant.material());
+                if (variant.hide()) hideMap.add(s1);
+            });
         }
+
+        var matMap = reverseMap(variantMaterialMap);
+        var hidMap = reverseListMap(variantHideMap);
+
+        objects.dimensions.set(calculateDimensions(meshes));
+
+        for (var meshModel : meshes) {
+            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, glCalls, skeleton, animations, hideDuringAnimation);
+        }
+
+        var transform = new Matrix4f();
+
+        traverseTree(transform, rootNode, objects);
+
+        Assimp.aiReleaseImport(gltfModel);
+
     }
 
-    private static <T extends MeshObject> void traverseTree(Matrix4f transform, NodeModel node, MultiRenderObject<T> objects, Supplier<T> supplier, Map<String, Map<String, Material>> matMap, Map<String, List<String>> hidMap, List<Runnable> glCalls, Skeleton skeleton, Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation) {
+    private static <T extends MeshObject> void traverseTree(Matrix4f transform, ModelNode node, MultiRenderObject<T> objects) {
         applyTransforms(transform, node);
 
         objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
 
-        for (var meshModel : node.getMeshModels()) {
-            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, glCalls, skeleton, animations, hideDuringAnimation);
-        }
-
-        for (var child : node.getChildren()) {
-            traverseTree(transform, child, objects, supplier, matMap, hidMap, glCalls, skeleton, animations, hideDuringAnimation);
+        for (var child : node.children) {
+            traverseTree(transform, child, objects);
         }
     }
 
@@ -258,25 +222,22 @@ public class ModelLoader {
         });
     }
 
-    public static Vector3f calculateDimensions(GltfModel model) {
+    public static Vector3f calculateDimensions(Mesh[] meshes) {
         var vec = new Vector3f();
         var pos = new Vector3f();
 
-        for(var mesh : model.getMeshModels()) {
-            for(var primitive : mesh.getMeshPrimitiveModels()) {
-
-                var buf = primitive.getAttributes().get("POSITION").getBufferViewModel().getBufferViewData();
-
-                var smallestVertexX = 0f;
+        for(var mesh : meshes) {
+            var buf = mesh.positions();
+            var smallestVertexX = 0f;
                 var smallestVertexY = 0f;
                 var smallestVertexZ = 0f;
                 var largestVertexX = 0f;
                 var largestVertexY = 0f;
                 var largestVertexZ = 0f;
-                for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
-                    var xPoint = buf.getFloat(i);
-                    var yPoint = buf.getFloat(i + 4);
-                    var zPoint = buf.getFloat(i + 8);
+                for (int i = 0; i < buf.size(); i += 3) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
+                    var xPoint = buf.get(i).x();
+                    var yPoint = buf.get(i).y();
+                    var zPoint = buf.get(i).z();
                     smallestVertexX = Math.min(smallestVertexX, xPoint);
                     smallestVertexY = Math.min(smallestVertexY, yPoint);
                     smallestVertexZ = Math.min(smallestVertexZ, zPoint);
@@ -288,180 +249,183 @@ public class ModelLoader {
                 vec.set(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ);
 
                 pos.max(vec);
-            }
+
         }
 
         return pos;
     }
 
-    private static List<String> collectShownVariants(MeshModel meshModel, List<String> variantsList) {
-        if (variantsList == null) {
-            return null;
-        } else if ((meshModel.getExtensions() != null && !meshModel.getExtensions().containsKey("KHR_materials_variants"))) {
-            var map = (Map<String, Object>) meshModel.getExtensions().get("KHR_materials_variants");
-            var variants = (List<Integer>) map.get("variants");
-            var variantList = new ArrayList<String>();
+    private static void applyTransforms(Matrix4f transform, ModelNode node) {
+        transform.set(node.transform);
 
-            for (var i : variants) {
-                var variant = variantsList.get(i);
-                variantList.add(variant);
-            }
-
-            return variantList;
-        } else {
-            return variantsList;
-        }
+//        if (node.getScale() != null) transform.scale(new Vector3f(node.getScale()));
+//        if (node.getRotation() != null)
+//            transform.rotate(new Quaternionf(node.getRotation()[0], node.getRotation()[1], node.getRotation()[2], node.getRotation()[3]));
+//        if (node.getTranslation() != null) {
+//            if (node.getTranslation().length == 3)
+//                transform.add(new Matrix4f().setTranslation(node.getTranslation()[0], node.getTranslation()[1], node.getTranslation()[2]));
+//            else
+//                transform.add(new Matrix4f().set(node.getTranslation()));
+//        }
     }
 
-    public static <T> Map<String, Map<String, T>> switchKeys(Map<String, Map<String, T>> inputMap) {
-        Map<String, Map<String, T>> switchedMap = new HashMap<>();
+//    public static <T extends MeshObject> void checkForRootTransformation(MultiRenderObject<T> objects, AIScene gltfModel) {
+//        if (gltfModel.getSkinModels().isEmpty()) {
+//            var node = gltfModel.getNodeModels().get(0);
+//            while (node.getParent() != null) node = node.getParent();
+//            var rootTransformation = new Matrix4f().set(node.createGlobalTransformSupplier().get());
+//            objects.setRootTransformation(rootTransformation);
+//        }
+//    }
 
-        for (String outerKey : inputMap.keySet()) {
-            Map<String, T> innerMap = inputMap.get(outerKey);
-
-            for (String innerKey : innerMap.keySet()) {
-                T value = innerMap.get(innerKey);
-
-                // Swap the keys
-                Map<String, T> switchedInnerMap = switchedMap.getOrDefault(innerKey, new HashMap<>());
-                switchedInnerMap.put(outerKey, value);
-                switchedMap.put(innerKey, switchedInnerMap);
-            }
-        }
-
-        return switchedMap;
-    }
-
-    private static void applyTransforms(Matrix4f transform, NodeModel node) {
-        if (node.getScale() != null) transform.scale(new Vector3f(node.getScale()));
-        if (node.getRotation() != null)
-            transform.rotate(new Quaternionf(node.getRotation()[0], node.getRotation()[1], node.getRotation()[2], node.getRotation()[3]));
-        if (node.getTranslation() != null) {
-            if (node.getTranslation().length == 3)
-                transform.add(new Matrix4f().setTranslation(node.getTranslation()[0], node.getTranslation()[1], node.getTranslation()[2]));
-            else
-                transform.add(new Matrix4f().set(node.getTranslation()));
-        }
-    }
-
-    public static <T extends MeshObject> void checkForRootTransformation(MultiRenderObject<T> objects, GltfModel gltfModel) {
-        if (gltfModel.getSkinModels().isEmpty()) {
-            var node = gltfModel.getNodeModels().get(0);
-            while (node.getParent() != null) node = node.getParent();
-            var rootTransformation = new Matrix4f().set(node.createGlobalTransformSupplier().get());
-            objects.setRootTransformation(rootTransformation);
-        }
-    }
-
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, List<String> hiddenList, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations) {
-        for (var primitiveModel : model.getMeshPrimitiveModels()) {
-            var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
-            var glModel = processPrimitiveModel(primitiveModel, glCalls);
-            var renderObject = objSupplier.get();
-
-            if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-                animatedMeshObject.setup(variants, hiddenList, glModel, model.getName(), skeleton, animations, ModelConfig.HideDuringAnimation.NONE);
-            } else {
-                renderObject.setup(variants, hiddenList, glModel, model.getName());
-            }
-
-            objects.add(renderObject);
-        }
-    }
-
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
-        var name = model.getName();
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, Mesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation<?>> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
+        var name = mesh.name();
 
         var map = materialMap.get(name);
         var list = hiddenMap.get(name);
 
-        for (var primitiveModel : model.getMeshPrimitiveModels()) {
-            var glModel = processPrimitiveModel(primitiveModel, glCalls);
-            var renderObject = objSupplier.get();
+        var glModel = processPrimitiveModel(mesh, skeleton, glCalls);
+        var renderObject = objSupplier.get();
 
-
-            if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-                animatedMeshObject.setup(map, list, glModel, name, skeleton, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
-            } else {
-                renderObject.setup(map, list, glModel, name);
-            }
-
-            objects.add(renderObject);
+        if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
+            animatedMeshObject.setup(map, list, glModel, name, skeleton, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
+        } else {
+            renderObject.setup(map, list, glModel, name);
         }
+
+        objects.add(renderObject);
     }
 
-    private static GLModel processPrimitiveModel(MeshPrimitiveModel primitiveModel, List<Runnable> glCalls) {
+    private static GLModel processPrimitiveModel(Mesh mesh, Skeleton skeleton, List<Runnable> glCalls) {
         var model = new GLModel();
-        var attributes = primitiveModel.getAttributes();
+
+        var length = calculateVertexSize(ATTRIBUTES);
+        var amount = mesh.positions().size();
+
+        var vertexBuffer = MemoryUtil.memAlloc(length * amount);
+
+        var bones = IntStream.range(0, amount).mapToObj(a -> new VertexBoneData()).toList();
+
+
+        mesh.bones().forEach(bone -> {
+            var boneId = skeleton.getId(bone);
+
+            for(var weight : bone.weights) {
+                if(weight.weight == 0.0) return;
+                else {
+                    bones.get(weight.vertexId).addBoneData(boneId, weight.weight);
+                }
+            }
+        });
+
+        for (int i = 0; i < amount; i++) {
+
+            var position = mesh.positions().get(i);
+            var uv = mesh.uvs().get(i);
+            var normal = mesh.normals().get(i);
+            var bone = bones.get(i);
+
+            vertexBuffer.putFloat(position.x);
+            vertexBuffer.putFloat(position.y);
+            vertexBuffer.putFloat(position.z);
+            vertexBuffer.putFloat(uv.x);
+            vertexBuffer.putFloat(uv.y);
+            vertexBuffer.putFloat(normal.x);
+            vertexBuffer.putFloat(normal.y);
+            vertexBuffer.putFloat(normal.z);
+
+            vertexBuffer.put((byte) bone.ids()[0]);
+            vertexBuffer.put((byte) bone.ids()[1]);
+            vertexBuffer.put((byte) bone.ids()[2]);
+            vertexBuffer.put((byte) bone.ids()[3]);
+
+            vertexBuffer.putFloat(bone.weights()[0]);
+            vertexBuffer.putFloat(bone.weights()[1]);
+            vertexBuffer.putFloat(bone.weights()[2]);
+            vertexBuffer.putFloat(bone.weights()[3]);
+        }
+
+        vertexBuffer.flip();
+
+        var indexBuffer = MemoryUtil.memAlloc(mesh.indices().size() * 4);
+        indexBuffer.asIntBuffer().put(mesh.indices().stream().mapToInt(a -> a).toArray()).flip();
 
         glCalls.add(() -> {
-            model.vao = GL30.glGenVertexArrays();
+            model.vao = generateVao(vertexBuffer, ATTRIBUTES);
             GL30.glBindVertexArray(model.vao);
 
-            var position = attributes.get("POSITION");
-            DataUtils.bindArrayBuffer(position.getBufferViewModel());
-            vertexAttribPointer(position, 0);
+//            // FIXME: this is for old models which dont get proper scaling for
+//            var buf = position.getBufferViewModel().getBufferViewData();
+//            var smallestVertexX = 0f;
+//            var smallestVertexY = 0f;
+//            var smallestVertexZ = 0f;
+//            var largestVertexX = 0f;
+//            var largestVertexY = 0f;
+//            var largestVertexZ = 0f;
+//            for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
+//                var xPoint = buf.getFloat(i);
+//                var yPoint = buf.getFloat(i + 4);
+//                var zPoint = buf.getFloat(i + 8);
+//                smallestVertexX = Math.min(smallestVertexX, xPoint);
+//                smallestVertexY = Math.min(smallestVertexY, yPoint);
+//                smallestVertexZ = Math.min(smallestVertexZ, zPoint);
+//                largestVertexX = Math.max(largestVertexX, xPoint);
+//                largestVertexY = Math.max(largestVertexY, yPoint);
+//                largestVertexZ = Math.max(largestVertexZ, zPoint);
+//            }
+//            model.dimensions = new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ);
 
-            // FIXME: this is for old models which dont get proper scaling for
-            var buf = position.getBufferViewModel().getBufferViewData();
-            var smallestVertexX = 0f;
-            var smallestVertexY = 0f;
-            var smallestVertexZ = 0f;
-            var largestVertexX = 0f;
-            var largestVertexY = 0f;
-            var largestVertexZ = 0f;
-            for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
-                var xPoint = buf.getFloat(i);
-                var yPoint = buf.getFloat(i + 4);
-                var zPoint = buf.getFloat(i + 8);
-                smallestVertexX = Math.min(smallestVertexX, xPoint);
-                smallestVertexY = Math.min(smallestVertexY, yPoint);
-                smallestVertexZ = Math.min(smallestVertexZ, zPoint);
-                largestVertexX = Math.max(largestVertexX, xPoint);
-                largestVertexY = Math.max(largestVertexY, yPoint);
-                largestVertexZ = Math.max(largestVertexZ, zPoint);
-            }
-            model.dimensions = new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ);
-
-            var uvs = attributes.get("TEXCOORD_0");
-            DataUtils.bindArrayBuffer(uvs.getBufferViewModel());
-            vertexAttribPointer(uvs, 1);
-
-            var normal = attributes.get("NORMAL");
-            DataUtils.bindArrayBuffer(normal.getBufferViewModel());
-            vertexAttribPointer(normal, 2);
-
-            var joints = attributes.get("JOINTS_0");
-
-            if (joints != null) {
-
-                DataUtils.bindArrayBuffer(joints.getBufferViewModel());
-                vertexAttribPointer(joints, 3);
-
-                var weights = attributes.get("WEIGHTS_0");
-                DataUtils.bindArrayBuffer(weights.getBufferViewModel());
-                vertexAttribPointer(weights, 4);
-            }
 
             model.ebo = GL15.glGenBuffers();
             GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
-            GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, DataUtils.makeDirect(primitiveModel.getIndices().getBufferViewModel().getBufferViewData()), GL15.GL_STATIC_DRAW);
+            GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
 
-            var mode = primitiveModel.getMode();
-            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, mode, primitiveModel.getIndices().getComponentType(), model.ebo, primitiveModel.getIndices().getCount()));
+            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES,  GL_UNSIGNED_INT, model.ebo, mesh.indices().size()));
         });
         return model;
     }
 
-    private static void vertexAttribPointer(AccessorModel data, int binding) {
+    private static int generateVao(ByteBuffer vertexBuffer, List<Attribute> layout) {
+        var vao = glGenVertexArrays();
+
+        glBindVertexArray(vao);
+        var stride = calculateVertexSize(layout);
+        var attribPtr = 0;
+
+        // I hate openGL. why cant I keep the vertex data and vertex layout separate :(
+        var vbo = glGenBuffers();
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
+
+        for (int i = 0; i < layout.size(); i++) {
+            var attrib = layout.get(i);
+            glEnableVertexAttribArray(i);
+            glVertexAttribPointer(
+                    i,
+                    attrib.amount(),
+                    attrib.glType(),
+                    false,
+                    stride,
+                    attribPtr
+            );
+            attribPtr += calculateAttributeSize(attrib);
+        }
+
+        glBindVertexArray(0);
+
+        return vao;
+    }
+
+    private static void vertexAttribPointer(Attribute data, int binding) {
         GL20.glEnableVertexAttribArray(binding);
         GL20.glVertexAttribPointer(
                 binding,
-                data.getElementType().getNumComponents(),
-                data.getComponentType(),
+                data.amount(),
+                data.glType(),
                 false,
-                data.getByteStride(),
-                data.getByteOffset());
+                0,
+                0);
     }
 
     public static List<String> getVariants(GltfModel model) {
@@ -525,11 +489,11 @@ public class ModelLoader {
             if(asset.getModelFile() == null) return;
 
             if (config != null) obj.scale = config.scale;
-            var model = read(asset);
+//            var model = read(asset);
             var smdAnims = readSmdAnimations(asset);
             var gfbAnims = readGfbAnimations(asset);
             var trAnims = readtrAnimations(asset);
-            var glCalls = objectCreator.getCalls(model, smdAnims, gfbAnims, trAnims, images, config, obj);
+            var glCalls = objectCreator.getCalls(asset, smdAnims, gfbAnims, trAnims, images, config, obj);
             ThreadSafety.runOnContextThread(() -> {
                 glCalls.forEach(Runnable::run);
                 obj.updateDimensions();
@@ -629,12 +593,49 @@ public class ModelLoader {
         modelLoadingPool.shutdown();
     }
 
-    public GltfModel read(PixelAsset asset) {
-        try {
-            return reader.readWithoutReferences(new ByteArrayInputStream(asset.getModelFile()));
-        } catch (IOException e) {
-            throw new RuntimeException("Issue reading GLTF Model", e);
-        }
+    public static AIScene read(PixelAsset asset) {
+        var name = asset.modelName;
+
+        var fileIo = AIFileIO.create()
+                .OpenProc((pFileIO, pFileName, openMode) -> {
+                    var fileName = MemoryUtil.memUTF8(pFileName);
+                    var bytes = asset.get(fileName);
+                    var data = BufferUtils.createByteBuffer(bytes.length);
+                    data.put(bytes);
+                    data.flip();
+
+                    return AIFile.create()
+                            .ReadProc((pFile, pBuffer, size, count) -> {
+                                var max = Math.min(data.remaining() / size, count);
+                                MemoryUtil.memCopy(MemoryUtil.memAddress(data), pBuffer, max * size);
+                                data.position((int) (data.position() + max * size));
+                                return max;
+                            })
+                            .SeekProc((pFile, offset, origin) -> {
+                                switch (origin) {
+                                    case Assimp.aiOrigin_CUR -> data.position(data.position() + (int) offset);
+                                    case Assimp.aiOrigin_SET -> data.position((int) offset);
+                                    case Assimp.aiOrigin_END -> data.position(data.limit() + (int) offset);
+                                }
+
+                                return 0;
+                            })
+                            .FileSizeProc(pFile -> data.limit())
+                            .address();
+                })
+                .CloseProc((pFileIO, pFile) -> {
+                    var aiFile = AIFile.create(pFile);
+                    aiFile.ReadProc().free();
+                    aiFile.SeekProc().free();
+                    aiFile.FileSizeProc().free();
+                });
+
+        var scene = Assimp.aiImportFileEx(name, Assimp.aiProcess_Triangulate | Assimp.aiProcess_ImproveCacheLocality, fileIo);
+
+        if (scene == null) throw new RuntimeException(Assimp.aiGetErrorString());
+
+        return scene;
+//            return reader.readWithoutReferences(new ByteArrayInputStream(asset.getModelFile()));
     }
 
     public static <T> Map<String, Map<String, T>> reverseMap(Map<String, Map<String, T>> inputMap) {
@@ -668,5 +669,27 @@ public class ModelLoader {
         }
 
         return reversedMap;
+    }
+
+    public static Matrix4f from(Matrix4f transform, AIMatrix4x4 aiMat4) {
+        return transform.set(aiMat4.a1(), aiMat4.a2(), aiMat4.a3(), aiMat4.a4(),
+                aiMat4.b1(), aiMat4.b2(), aiMat4.b3(), aiMat4.b4(),
+                aiMat4.c1(), aiMat4.c2(), aiMat4.c3(), aiMat4.c4(),
+                aiMat4.d1(), aiMat4.d2(), aiMat4.d3(), aiMat4.d4());
+    }
+
+    public static int calculateVertexSize(List<Attribute> layout) {
+        var size = 0;
+        for (var attrib : layout) size += calculateAttributeSize(attrib);
+        return size;
+    }
+
+    public static int calculateAttributeSize(Attribute attrib) {
+        return switch (attrib.glType()) {
+            case GL_FLOAT, GL_UNSIGNED_INT, GL_INT -> 4;
+            case GL_BYTE, GL_UNSIGNED_BYTE -> 1;
+            case GL_SHORT, GL_UNSIGNED_SHORT, GL_HALF_FLOAT -> 2;
+            default -> throw new IllegalStateException("Unexpected OpenGL Attribute type: " + attrib.glType() + ". If this is wrong, please contact hydos");
+        } * attrib.amount();
     }
 }

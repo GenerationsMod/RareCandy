@@ -13,7 +13,7 @@ public class ThreeStageAnimationInstance extends AnimationInstance {
     private Animation nextAnim;
     private Runnable finish;
 
-    public ThreeStageAnimationInstance(Map<String, Animation> animationMap, String enterAnim, String loopAnim, String endAnim, String... fallbacks) {
+    public ThreeStageAnimationInstance(Map<String, Animation<?>> animationMap, String enterAnim, String loopAnim, String endAnim, String... fallbacks) {
         super(null);
         this.enterAnim = animationMap.getOrDefault(enterAnim, findFallback(animationMap, fallbacks));
         this.loopAnim = animationMap.getOrDefault(loopAnim, findFallback(animationMap, fallbacks));
@@ -54,7 +54,7 @@ public class ThreeStageAnimationInstance extends AnimationInstance {
         this.finish = onFinish;
     }
 
-    private Animation findFallback(Map<String, Animation> animationMap, String[] fallbacks) {
+    private Animation<?> findFallback(Map<String, Animation<?>> animationMap, String[] fallbacks) {
         for (var fallback : fallbacks)
             if (animationMap.containsKey(fallback)) return animationMap.get(fallback);
         throw new RuntimeException("Failed to find original or any fallback animations. Available Animations: " + animationMap.keySet());

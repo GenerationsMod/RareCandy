@@ -2,6 +2,7 @@ package gg.generations.rarecandy.renderer.animation;
 
 import gg.generations.rarecandy.pokeutils.GFLib.Anim.*;
 import gg.generations.rarecandy.pokeutils.ModelConfig;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -102,7 +103,10 @@ public class GfbAnimation extends Animation<AnimationT> {
                 if(track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
                 else node.scaleKeys.add(0, animation.skeleton.boneMap.get(track.getName()).poseScale);
                 if(track.getTranslate().getValue() != null && !track.getName().equalsIgnoreCase("origin")) track.getTranslate().getValue().process(node.positionKeys);
-                else node.positionKeys.add(0, animation.skeleton.boneMap.get(track.getName()).posePosition);
+                else {
+                    Vector3f translate = animation.skeleton.boneMap.containsKey(track.getName()) ? animation.skeleton.boneMap.get(track.getName()).posePosition : Animation.TRANSLATE;
+                    node.positionKeys.add(0, translate);
+                }
             }
         }
         return animationNodes;

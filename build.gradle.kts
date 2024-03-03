@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.4.33-SNAPSHOT"
+version = "2.5.0-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -42,12 +42,14 @@ dependencies {
     shadow(implementation("org.lwjgl", "lwjgl-glfw"))
     shadow(implementation("org.lwjgl", "lwjgl-opengl"))
     shadow(implementation("org.lwjgl", "lwjgl-stb"))
+    shadow(implementation("org.lwjgl", "lwjgl-assimp"))
     shadow(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
 
     shadow(runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-windows"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-windows"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-windows"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = "natives-windows"))
+    shadow(runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = "natives-windows"))
 
     shadow(implementation("org.slf4j:slf4j-jdk14:2.0.7")!!)
 

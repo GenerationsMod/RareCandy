@@ -7,6 +7,8 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -23,17 +25,29 @@ public class DataUtils {
         return transformMatrix;
     }
 
-    public static void bindArrayBuffer(BufferViewModel bufferViewModel) {
-        var glBufferView = BUFFER_VIEW_MODEL_TO_GL_BUFFER_VIEW.get(bufferViewModel);
+    public static void bindArrayBuffer(ByteBuffer bufferViewModel) {
+//        var glBufferView = BUFFER_VIEW_MODEL_TO_GL_BUFFER_VIEW.get(bufferViewModel);
 
-        if (glBufferView == null) {
-            glBufferView = GL15.glGenBuffers();
+//        if (glBufferView == null) {
+            var glBufferView = GL15.glGenBuffers();
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBufferView);
-            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, makeDirect(bufferViewModel.getBufferViewData()), GL15.GL_STATIC_DRAW);
-            BUFFER_VIEW_MODEL_TO_GL_BUFFER_VIEW.put(bufferViewModel, glBufferView);
-        } else {
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBufferView);
-        }
+            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, makeDirect(bufferViewModel), GL15.GL_STATIC_DRAW);
+//            BUFFER_VIEW_MODEL_TO_GL_BUFFER_VIEW.put(bufferViewModel, glBufferView);
+//        } else {
+//            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBufferView);
+//        }
+    }
+
+    public static void bindArrayBuffer(float[] buffer) {
+        var glBufferView = GL15.glGenBuffers();
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBufferView);
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buffer, GL15.GL_STATIC_DRAW);
+    }
+
+    public static void bindArrayBuffer(int[] buffer) {
+        var glBufferView = GL15.glGenBuffers();
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBufferView);
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buffer, GL15.GL_STATIC_DRAW);
     }
 
     public static ByteBuffer makeDirect(ByteBuffer javaBuffer) {

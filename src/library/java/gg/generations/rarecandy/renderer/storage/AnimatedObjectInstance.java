@@ -53,6 +53,6 @@ public class AnimatedObjectInstance extends ObjectInstance {
     }
 
     public Transform getOffset(String material) {
-        return currentAnimation != null ? currentAnimation.getOffset(material) : AnimationController.NO_OFFSET;
+        return currentAnimation != null ? currentAnimation.getOffset(material) : null;
     }
 }

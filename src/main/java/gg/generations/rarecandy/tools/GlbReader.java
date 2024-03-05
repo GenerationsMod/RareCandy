@@ -97,7 +97,7 @@ public class GlbReader {
 
                         glb.getMeshModels().forEach(meshModel -> {
                             var mesh = meshModel.getMeshPrimitiveModels().get(0);
-                            defaultVariant.put(meshModel.getName(), new VariantDetails(mesh.getMaterialModel().getName(), false));
+                            defaultVariant.put(meshModel.getName(), new VariantDetails(mesh.getMaterialModel().getName(), false, null));
 
                             var variantMap1 = ModelLoader.createMeshVariantMap(mesh, materialsList, variants1);
 
@@ -105,7 +105,7 @@ public class GlbReader {
                                 var key = entry.getKey();
                                 var value = entry.getValue();
 
-                                if(!defaultVariant.get(meshModel.getName()).material().equals(value)) variantMap.get(key).details().put(meshModel.getName(), new VariantDetails(value, false));
+                                if(!defaultVariant.get(meshModel.getName()).material().equals(value)) variantMap.get(key).details().put(meshModel.getName(), new VariantDetails(value, false, null));
                             }
                         });
 

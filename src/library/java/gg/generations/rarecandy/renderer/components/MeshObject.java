@@ -4,6 +4,7 @@ import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import org.joml.Vector2f;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,10 +17,11 @@ public class MeshObject extends RenderObject {
     public GLModel model;
     public String name;
 
-    public void setup(Map<String, Material> variants, List<String> shouldRender, GLModel model, String name) {
+    public void setup(Map<String, Material> variants, List<String> shouldRender, Map<String, Vector2f> offset, GLModel model, String name) {
         this.name = name;
         this.variants = variants;
         this.shouldRenderList = shouldRender;
+        this.offsets = offset;
         this.model = model;
         this.defaultVariant = new ArrayList<>(variants.keySet()).get(0);
         this.ready = true;

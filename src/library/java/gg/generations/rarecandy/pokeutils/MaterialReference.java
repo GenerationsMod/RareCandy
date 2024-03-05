@@ -81,8 +81,6 @@ public class MaterialReference {
         return new Material(name, map, values, cull, blend, shader);
     }
     public static final class Serializer implements JsonDeserializer<MaterialReference> {
-
-
         @Override
         public MaterialReference deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 

@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.renderer.loading;
 
 import de.javagl.jgltf.model.*;
-import de.javagl.jgltf.model.io.GltfModelReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import gg.generations.rarecandy.pokeutils.*;
@@ -25,6 +24,7 @@ import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.assimp.*;
@@ -132,12 +132,14 @@ public class ModelLoader {
 
         var defaultVariant = new HashMap<String, Variant>();
         config.defaultVariant.forEach((k, v) -> {
-            var variant = new Variant(materials.get(v.material()), v.hide());
+            var variant = new Variant(materials.get(v.material()), v.hide(), v.offset());
             defaultVariant.put(k, variant);
         });
 
         var variantMaterialMap = new HashMap<String, Map<String, Material>>();
         var variantHideMap = new HashMap<String, List<String>>();
+        var variantOffsetMap = new HashMap<String, Map<String, Vector2f>>();
+
 
         if(config.hideDuringAnimation != null) {
             hideDuringAnimation = config.hideDuringAnimation;
@@ -164,26 +166,34 @@ public class ModelLoader {
 
                 var matMap = variantMaterialMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
                 var hideMap = variantHideMap.computeIfAbsent(variantKey, s3 -> new ArrayList<>());
+                var offsetMap = variantOffsetMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
 
-                applyVariant(materials, matMap, hideMap, map);
+
+                applyVariant(materials, matMap, hideMap, offsetMap, map);
             }
         } else {
             var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
             var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
+            var offsetMap = variantOffsetMap.computeIfAbsent("regular", s3 -> new HashMap<>());
+
 
             defaultVariant.forEach((s1, variant) -> {
                 matMap.put(s1, variant.material());
                 if (variant.hide()) hideMap.add(s1);
+                if (variant.offset() != null) offsetMap.put(s1, variant.offset());
+
             });
         }
 
         var matMap = reverseMap(variantMaterialMap);
         var hidMap = reverseListMap(variantHideMap);
+        var offsetMap = reverseMap(variantOffsetMap);
+
 
         objects.dimensions.set(calculateDimensions(meshes));
 
         for (var meshModel : meshes) {
-            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, glCalls, skeleton, animations, hideDuringAnimation);
+            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
         }
 
         var transform = new Matrix4f();
@@ -215,10 +225,11 @@ public class ModelLoader {
         }
     }
 
-    private static void applyVariant(Map<String, Material> materials, Map<String, Material> matMap, List<String> hideMap, Map<String, VariantDetails> variantMap) {
+    private static void applyVariant(Map<String, Material> materials, Map<String, Material> matMap, List<String> hideMap, Map<String, Vector2f> offsetMap, Map<String, VariantDetails> variantMap) {
         variantMap.forEach((k, v) -> {
             matMap.put(k, materials.get(v.material()));
             if (v.hide() != null && v.hide()) hideMap.add(k);
+            if (v.offset() != null) offsetMap.put(k, v.offset());
         });
     }
 
@@ -278,19 +289,20 @@ public class ModelLoader {
 //        }
 //    }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, Mesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation<?>> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, Mesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Vector2f>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation<?>> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
         var name = mesh.name();
 
         var map = materialMap.get(name);
         var list = hiddenMap.get(name);
+        var offset = offsetMap.get(name);
 
         var glModel = processPrimitiveModel(mesh, skeleton, glCalls);
         var renderObject = objSupplier.get();
 
         if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-            animatedMeshObject.setup(map, list, glModel, name, skeleton, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
+            animatedMeshObject.setup(map, list, offset, glModel, name, skeleton, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
         } else {
-            renderObject.setup(map, list, glModel, name);
+            renderObject.setup(map, list, offset, glModel, name);
         }
 
         objects.add(renderObject);
@@ -318,6 +330,8 @@ public class ModelLoader {
             }
         });
 
+        var isEmpty = bones.stream().allMatch(VertexBoneData::isEmpty);
+
         for (int i = 0; i < amount; i++) {
 
             var position = mesh.positions().get(i);
@@ -334,15 +348,27 @@ public class ModelLoader {
             vertexBuffer.putFloat(normal.y);
             vertexBuffer.putFloat(normal.z);
 
-            vertexBuffer.put((byte) bone.ids()[0]);
-            vertexBuffer.put((byte) bone.ids()[1]);
-            vertexBuffer.put((byte) bone.ids()[2]);
-            vertexBuffer.put((byte) bone.ids()[3]);
+            if(isEmpty) {
+                vertexBuffer.put((byte) 1);
+                vertexBuffer.put((byte) 0);
+                vertexBuffer.put((byte) 0);
+                vertexBuffer.put((byte) 0);
 
-            vertexBuffer.putFloat(bone.weights()[0]);
-            vertexBuffer.putFloat(bone.weights()[1]);
-            vertexBuffer.putFloat(bone.weights()[2]);
-            vertexBuffer.putFloat(bone.weights()[3]);
+                vertexBuffer.putFloat(1);
+                vertexBuffer.putFloat(0);
+                vertexBuffer.putFloat(0);
+                vertexBuffer.putFloat(0);
+            } else {
+                vertexBuffer.put((byte) bone.ids()[0]);
+                vertexBuffer.put((byte) bone.ids()[1]);
+                vertexBuffer.put((byte) bone.ids()[2]);
+                vertexBuffer.put((byte) bone.ids()[3]);
+
+                vertexBuffer.putFloat(bone.weights()[0]);
+                vertexBuffer.putFloat(bone.weights()[1]);
+                vertexBuffer.putFloat(bone.weights()[2]);
+                vertexBuffer.putFloat(bone.weights()[3]);
+            }
         }
 
         vertexBuffer.flip();
@@ -353,28 +379,6 @@ public class ModelLoader {
         glCalls.add(() -> {
             model.vao = generateVao(vertexBuffer, ATTRIBUTES);
             GL30.glBindVertexArray(model.vao);
-
-//            // FIXME: this is for old models which dont get proper scaling for
-//            var buf = position.getBufferViewModel().getBufferViewData();
-//            var smallestVertexX = 0f;
-//            var smallestVertexY = 0f;
-//            var smallestVertexZ = 0f;
-//            var largestVertexX = 0f;
-//            var largestVertexY = 0f;
-//            var largestVertexZ = 0f;
-//            for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
-//                var xPoint = buf.getFloat(i);
-//                var yPoint = buf.getFloat(i + 4);
-//                var zPoint = buf.getFloat(i + 8);
-//                smallestVertexX = Math.min(smallestVertexX, xPoint);
-//                smallestVertexY = Math.min(smallestVertexY, yPoint);
-//                smallestVertexZ = Math.min(smallestVertexZ, zPoint);
-//                largestVertexX = Math.max(largestVertexX, xPoint);
-//                largestVertexY = Math.max(largestVertexY, yPoint);
-//                largestVertexZ = Math.max(largestVertexZ, zPoint);
-//            }
-//            model.dimensions = new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ);
-
 
             model.ebo = GL15.glGenBuffers();
             GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);

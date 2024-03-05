@@ -2,8 +2,10 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
+import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
@@ -22,8 +24,16 @@ public class GuiPipelines {
                 ctx.uniform().uploadMat4fs(mats);
             })
             .supplyUniform("offset", ctx -> {
-                var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName()) != null ? instance.getOffset(ctx.getMaterial().getMaterialName()) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
-                ctx.uniform().uploadVec2f(offsets.offset());
+                Transform offsets = null;
+                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
+                    if (instance.getOffset(ctx.getMaterial().getMaterialName()) != null)
+                        offsets = instance.getOffset(ctx.getMaterial().getMaterialName());
+                }
+
+                Vector2f translate = offsets != null ? offsets.offset() : ctx.object().getOffsets(ctx.instance().variant());
+
+
+                ctx.uniform().uploadVec2f(translate);
             })
             .supplyUniform("scale", ctx -> {
                 var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName()) != null ? instance.getOffset(ctx.getMaterial().getMaterialName()) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;

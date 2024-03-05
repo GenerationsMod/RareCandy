@@ -23,4 +23,8 @@ public record VertexBoneData(int[] ids, float[] weights) {
     public String toString() {
         return Arrays.toString(ids) + " " + Arrays.toString(weights);
     }
+
+    public boolean isEmpty() {
+        return ids[0] == 0 && ids[1] == 0 && ids[2] == 0 && ids[3] == 0 && weights[0] == 0 && weights[1] == 0 && weights[2] == 0 && weights[3] == 0;
+    }
 }

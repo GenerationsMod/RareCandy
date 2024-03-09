@@ -27,13 +27,13 @@ public class ByteTrackUnion {
   public Framed8ByteTrackT asFramed8ByteTrack() { return (Framed8ByteTrackT) value; }
 
   public static int pack(FlatBufferBuilder builder, ByteTrackUnion _o) {
-    switch (_o.type) {
-      case ByteTrack.FixedByteTrack: return FixedByteTrack.pack(builder, _o.asFixedByteTrack());
-      case ByteTrack.DynamicByteTrack: return DynamicByteTrack.pack(builder, _o.asDynamicByteTrack());
-      case ByteTrack.Framed16ByteTrack: return Framed16ByteTrack.pack(builder, _o.asFramed16ByteTrack());
-      case ByteTrack.Framed8ByteTrack: return Framed8ByteTrack.pack(builder, _o.asFramed8ByteTrack());
-      default: return 0;
-    }
+      return switch (_o.type) {
+          case ByteTrack.FixedByteTrack -> FixedByteTrack.pack(builder, _o.asFixedByteTrack());
+          case ByteTrack.DynamicByteTrack -> DynamicByteTrack.pack(builder, _o.asDynamicByteTrack());
+          case ByteTrack.Framed16ByteTrack -> Framed16ByteTrack.pack(builder, _o.asFramed16ByteTrack());
+          case ByteTrack.Framed8ByteTrack -> Framed8ByteTrack.pack(builder, _o.asFramed8ByteTrack());
+          default -> 0;
+      };
   }
 }
 

@@ -27,13 +27,13 @@ public class FloatTrackUnion {
   public Framed8FloatTrackT asFramed8FloatTrack() { return (Framed8FloatTrackT) value; }
 
   public static int pack(FlatBufferBuilder builder, FloatTrackUnion _o) {
-    switch (_o.type) {
-      case FloatTrack.FixedFloatTrack: return FixedFloatTrack.pack(builder, _o.asFixedFloatTrack());
-      case FloatTrack.DynamicFloatTrack: return DynamicFloatTrack.pack(builder, _o.asDynamicFloatTrack());
-      case FloatTrack.Framed16FloatTrack: return Framed16FloatTrack.pack(builder, _o.asFramed16FloatTrack());
-      case FloatTrack.Framed8FloatTrack: return Framed8FloatTrack.pack(builder, _o.asFramed8FloatTrack());
-      default: return 0;
-    }
+      return switch (_o.type) {
+          case FloatTrack.FixedFloatTrack -> FixedFloatTrack.pack(builder, _o.asFixedFloatTrack());
+          case FloatTrack.DynamicFloatTrack -> DynamicFloatTrack.pack(builder, _o.asDynamicFloatTrack());
+          case FloatTrack.Framed16FloatTrack -> Framed16FloatTrack.pack(builder, _o.asFramed16FloatTrack());
+          case FloatTrack.Framed8FloatTrack -> Framed8FloatTrack.pack(builder, _o.asFramed8FloatTrack());
+          default -> 0;
+      };
   }
 }
 

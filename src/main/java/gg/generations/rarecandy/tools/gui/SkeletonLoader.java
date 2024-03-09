@@ -7,7 +7,6 @@ import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.renderer.components.BoneMesh;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import org.joml.Matrix4f;
-import org.lwjgl.assimp.AIScene;
 
 import java.util.*;
 

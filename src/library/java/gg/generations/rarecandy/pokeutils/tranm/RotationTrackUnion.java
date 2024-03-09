@@ -25,13 +25,13 @@ public class RotationTrackUnion {
   public Framed8RotationTrackT asFramed8RotationTrack() { return (Framed8RotationTrackT) value; }
 
   public static int pack(FlatBufferBuilder builder, RotationTrackUnion _o) {
-    switch (_o.type) {
-      case RotationTrack.FixedRotationTrack: return FixedRotationTrack.pack(builder, _o.asFixedRotationTrack());
-      case RotationTrack.DynamicRotationTrack: return DynamicRotationTrack.pack(builder, _o.asDynamicRotationTrack());
-      case RotationTrack.Framed16RotationTrack: return Framed16RotationTrack.pack(builder, _o.asFramed16RotationTrack());
-      case RotationTrack.Framed8RotationTrack: return Framed8RotationTrack.pack(builder, _o.asFramed8RotationTrack());
-      default: return 0;
-    }
+      return switch (_o.type) {
+          case RotationTrack.FixedRotationTrack -> FixedRotationTrack.pack(builder, _o.asFixedRotationTrack());
+          case RotationTrack.DynamicRotationTrack -> DynamicRotationTrack.pack(builder, _o.asDynamicRotationTrack());
+          case RotationTrack.Framed16RotationTrack -> Framed16RotationTrack.pack(builder, _o.asFramed16RotationTrack());
+          case RotationTrack.Framed8RotationTrack -> Framed8RotationTrack.pack(builder, _o.asFramed8RotationTrack());
+          default -> 0;
+      };
   }
 }
 

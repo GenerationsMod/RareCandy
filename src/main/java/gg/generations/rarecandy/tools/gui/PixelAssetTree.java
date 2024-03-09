@@ -5,10 +5,7 @@ import de.javagl.jgltf.model.io.GltfModelReader;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellEditor;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.MouseAdapter;
@@ -121,7 +118,7 @@ public class PixelAssetTree extends JTree {
             }*/ else tree.add(node(s));
         }
 
-        animationStrings.stream().sorted().map(this::node).forEach(a -> animationsNode.add(a));
+        animationStrings.stream().sorted().map(this::node).forEach(animationsNode::add);
 
         if (animationsNode.getChildCount() > 0) tree.add(animationsNode);
         if (imagesNode.getChildCount() > 0) tree.add(imagesNode);

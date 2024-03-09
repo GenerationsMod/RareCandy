@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.tools;
 
-import dev.thecodewarrior.binarysmd.BinarySMD;
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryWriter;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.NodesBlock;
@@ -11,7 +10,6 @@ import gg.generations.rarecandy.pokeutils.smdi.KeyframeT;
 import gg.generations.rarecandy.pokeutils.smdi.SMDIT;
 import org.jetbrains.annotations.NotNull;
 import org.msgpack.core.MessagePack;
-import org.msgpack.core.MessagePacker;
 
 import java.io.IOException;
 import java.nio.file.Files;

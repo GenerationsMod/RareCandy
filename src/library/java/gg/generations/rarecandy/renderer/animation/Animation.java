@@ -1,15 +1,10 @@
 package gg.generations.rarecandy.renderer.animation;
 
 import gg.generations.rarecandy.pokeutils.ModelNode;
-import org.apache.commons.compress.utils.Lists;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
-import org.joml.Vector2f;
 import org.joml.Vector3f;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;

@@ -1,20 +1,13 @@
 package gg.generations.rarecandy.tools;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import de.javagl.jgltf.model.AccessorModel;
 import de.javagl.jgltf.model.ImageModel;
-import de.javagl.jgltf.model.MeshModel;
 import de.javagl.jgltf.model.creation.AccessorModels;
 import de.javagl.jgltf.model.creation.GltfModelBuilder;
 import de.javagl.jgltf.model.creation.MeshPrimitiveBuilder;
-import de.javagl.jgltf.model.image.PixelDatas;
 import de.javagl.jgltf.model.impl.*;
-import de.javagl.jgltf.model.io.GltfAssetWriter;
 import de.javagl.jgltf.model.io.GltfModelReader;
-import de.javagl.jgltf.model.io.GltfWriter;
 import de.javagl.jgltf.model.io.v2.GltfModelWriterV2;
-import de.javagl.jgltf.model.io.v2.GltfReaderV2;
 import de.javagl.jgltf.model.v2.MaterialModelV2;
 import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.util.ImageUtils;
@@ -29,22 +22,14 @@ import org.tukaani.xz.XZOutputStream;
 import javax.imageio.ImageIO;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static gg.generations.rarecandy.tools.gui.GuiHandler.OPTIONS;
 

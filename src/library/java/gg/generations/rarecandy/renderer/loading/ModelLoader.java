@@ -41,13 +41,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static gg.generations.rarecandy.pokeutils.tranm.Animation.getRootAsAnimation;
-import static java.util.Objects.requireNonNull;
-import static org.lwjgl.opengl.GL11C.*;
-import static org.lwjgl.opengl.GL15C.*;
-import static org.lwjgl.opengl.GL15C.GL_STATIC_DRAW;
-import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
-import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30C.*;
 
 public class ModelLoader {

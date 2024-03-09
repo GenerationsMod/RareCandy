@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.renderer.components;
 
-import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.model.GLModel;

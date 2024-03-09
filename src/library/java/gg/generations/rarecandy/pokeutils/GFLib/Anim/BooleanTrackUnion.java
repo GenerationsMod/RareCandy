@@ -27,13 +27,13 @@ public class BooleanTrackUnion {
   public Framed8BooleanTrackT asFramed8BooleanTrack() { return (Framed8BooleanTrackT) value; }
 
   public static int pack(FlatBufferBuilder builder, BooleanTrackUnion _o) {
-    switch (_o.type) {
-      case BooleanTrack.FixedBooleanTrack: return FixedBooleanTrack.pack(builder, _o.asFixedBooleanTrack());
-      case BooleanTrack.DynamicBooleanTrack: return DynamicBooleanTrack.pack(builder, _o.asDynamicBooleanTrack());
-      case BooleanTrack.Framed16BooleanTrack: return Framed16BooleanTrack.pack(builder, _o.asFramed16BooleanTrack());
-      case BooleanTrack.Framed8BooleanTrack: return Framed8BooleanTrack.pack(builder, _o.asFramed8BooleanTrack());
-      default: return 0;
-    }
+      return switch (_o.type) {
+          case BooleanTrack.FixedBooleanTrack -> FixedBooleanTrack.pack(builder, _o.asFixedBooleanTrack());
+          case BooleanTrack.DynamicBooleanTrack -> DynamicBooleanTrack.pack(builder, _o.asDynamicBooleanTrack());
+          case BooleanTrack.Framed16BooleanTrack -> Framed16BooleanTrack.pack(builder, _o.asFramed16BooleanTrack());
+          case BooleanTrack.Framed8BooleanTrack -> Framed8BooleanTrack.pack(builder, _o.asFramed8BooleanTrack());
+          default -> 0;
+      };
   }
 }
 

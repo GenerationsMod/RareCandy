@@ -7,7 +7,6 @@ import org.joml.Vector3f;
 import org.lwjgl.assimp.AIBone;
 
 import java.util.Objects;
-import java.util.stream.IntStream;
 
 /**
  * We re-use this structure for multiple meshes so if you are accessing this value from outside a meshes bone array do NOT trust it.

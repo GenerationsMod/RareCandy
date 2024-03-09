@@ -27,13 +27,13 @@ public class DataTrackUnion {
   public StringDataTrackT asStringDataTrack() { return (StringDataTrackT) value; }
 
   public static int pack(FlatBufferBuilder builder, DataTrackUnion _o) {
-    switch (_o.type) {
-      case DataTrack.IntDataTrack: return IntDataTrack.pack(builder, _o.asIntDataTrack());
-      case DataTrack.FloatDataTrack: return FloatDataTrack.pack(builder, _o.asFloatDataTrack());
-      case DataTrack.ByteDataTrack: return ByteDataTrack.pack(builder, _o.asByteDataTrack());
-      case DataTrack.StringDataTrack: return StringDataTrack.pack(builder, _o.asStringDataTrack());
-      default: return 0;
-    }
+      return switch (_o.type) {
+          case DataTrack.IntDataTrack -> IntDataTrack.pack(builder, _o.asIntDataTrack());
+          case DataTrack.FloatDataTrack -> FloatDataTrack.pack(builder, _o.asFloatDataTrack());
+          case DataTrack.ByteDataTrack -> ByteDataTrack.pack(builder, _o.asByteDataTrack());
+          case DataTrack.StringDataTrack -> StringDataTrack.pack(builder, _o.asStringDataTrack());
+          default -> 0;
+      };
   }
 }
 

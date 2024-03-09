@@ -1,15 +1,13 @@
 package gg.generations.rarecandy.tools;
 
+import gg.generations.rarecandy.pokeutils.tranm.BoneTrackT;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
-import org.apache.commons.compress.utils.Lists;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,8 +22,8 @@ public class Transplants {
         var sleepEndTranm = TRANMT.deserializeFromBinary(Files.readAllBytes(sleepEndPath));
 
 
-        var mapattack = Stream.of(attackTranm.getTrack().getTracks()).collect(Collectors.toMap(a -> a.getBoneName(), a -> a));
-        var mapsleep = Stream.of(sleepEndTranm.getTrack().getTracks()).collect(Collectors.toMap(a -> a.getBoneName(), a -> a));
+        var mapattack = Stream.of(attackTranm.getTrack().getTracks()).collect(Collectors.toMap(BoneTrackT::getBoneName, a -> a));
+        var mapsleep = Stream.of(sleepEndTranm.getTrack().getTracks()).collect(Collectors.toMap(BoneTrackT::getBoneName, a -> a));
 
         var difference = new ArrayList<>(mapattack.keySet());
         difference.removeAll(mapsleep.keySet());

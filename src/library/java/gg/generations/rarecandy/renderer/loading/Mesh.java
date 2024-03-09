@@ -7,13 +7,9 @@ import org.joml.Vector3f;
 import org.lwjgl.assimp.AIBone;
 import org.lwjgl.assimp.AIMesh;
 import org.lwjgl.assimp.AIScene;
-import org.lwjgl.system.MemoryUtil;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static java.util.Objects.requireNonNull;
 

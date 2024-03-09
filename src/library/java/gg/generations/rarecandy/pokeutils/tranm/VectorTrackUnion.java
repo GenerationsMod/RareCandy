@@ -25,13 +25,13 @@ public class VectorTrackUnion {
   public Framed8VectorTrackT asFramed8VectorTrack() { return (Framed8VectorTrackT) value; }
 
   public static int pack(FlatBufferBuilder builder, VectorTrackUnion _o) {
-    switch (_o.type) {
-      case VectorTrack.FixedVectorTrack: return FixedVectorTrack.pack(builder, _o.asFixedVectorTrack());
-      case VectorTrack.DynamicVectorTrack: return DynamicVectorTrack.pack(builder, _o.asDynamicVectorTrack());
-      case VectorTrack.Framed16VectorTrack: return Framed16VectorTrack.pack(builder, _o.asFramed16VectorTrack());
-      case VectorTrack.Framed8VectorTrack: return Framed8VectorTrack.pack(builder, _o.asFramed8VectorTrack());
-      default: return 0;
-    }
+      return switch (_o.type) {
+          case VectorTrack.FixedVectorTrack -> FixedVectorTrack.pack(builder, _o.asFixedVectorTrack());
+          case VectorTrack.DynamicVectorTrack -> DynamicVectorTrack.pack(builder, _o.asDynamicVectorTrack());
+          case VectorTrack.Framed16VectorTrack -> Framed16VectorTrack.pack(builder, _o.asFramed16VectorTrack());
+          case VectorTrack.Framed8VectorTrack -> Framed8VectorTrack.pack(builder, _o.asFramed8VectorTrack());
+          default -> 0;
+      };
   }
 }
 

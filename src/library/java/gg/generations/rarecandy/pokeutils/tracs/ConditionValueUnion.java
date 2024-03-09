@@ -25,13 +25,14 @@ public class ConditionValueUnion {
   public ConditionValue_TriggerT asConditionValue_Trigger() { return (ConditionValue_TriggerT) value; }
 
   public static int pack(FlatBufferBuilder builder, ConditionValueUnion _o) {
-    switch (_o.type) {
-      case ConditionValue.ConditionValue_Int: return ConditionValue_Int.pack(builder, _o.asConditionValue_Int());
-      case ConditionValue.ConditionValue_Float: return ConditionValue_Float.pack(builder, _o.asConditionValue_Float());
-      case ConditionValue.ConditionValue_Bool: return ConditionValue_Bool.pack(builder, _o.asConditionValue_Bool());
-      case ConditionValue.ConditionValue_Trigger: return ConditionValue_Trigger.pack(builder, _o.asConditionValue_Trigger());
-      default: return 0;
-    }
+      return switch (_o.type) {
+          case ConditionValue.ConditionValue_Int -> ConditionValue_Int.pack(builder, _o.asConditionValue_Int());
+          case ConditionValue.ConditionValue_Float -> ConditionValue_Float.pack(builder, _o.asConditionValue_Float());
+          case ConditionValue.ConditionValue_Bool -> ConditionValue_Bool.pack(builder, _o.asConditionValue_Bool());
+          case ConditionValue.ConditionValue_Trigger ->
+                  ConditionValue_Trigger.pack(builder, _o.asConditionValue_Trigger());
+          default -> 0;
+      };
   }
 }
 

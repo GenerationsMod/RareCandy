@@ -1,12 +1,6 @@
 package gg.generations.rarecandy.tools;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gg.generations.rarecandy.pokeutils.tracl.TRACLT;
-import gg.generations.rarecandy.pokeutils.tracn.TRACNT;
-import gg.generations.rarecandy.pokeutils.tracp.TRACPT;
-import gg.generations.rarecandy.pokeutils.tracr.TRACR;
-import gg.generations.rarecandy.pokeutils.tracr.TRACRT;
 import gg.generations.rarecandy.pokeutils.tracs.TRACST;
 
 import java.io.IOException;

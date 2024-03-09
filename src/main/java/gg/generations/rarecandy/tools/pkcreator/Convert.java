@@ -140,7 +140,7 @@ public class Convert {
 
     public static void copyContents(Path source, Path destination) throws IOException {
         Files.createDirectories(destination);
-        Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
+        Files.walkFileTree(source, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                 return FileVisitResult.CONTINUE;

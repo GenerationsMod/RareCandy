@@ -7,8 +7,6 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.Map;

@@ -91,7 +91,7 @@ public class TranmUtilExperimental {
         else if(missing_component == 2) result.set(tx, ty, tw, tz);
         else result.set(tx, ty, tz, tw);
 
-        if(isNegative) result.mul(-1);;
+        if(isNegative) result.mul(-1);
 
         return result;
     }

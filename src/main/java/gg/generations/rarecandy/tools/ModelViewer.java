@@ -2,9 +2,6 @@ package gg.generations.rarecandy.tools;
 
 import gg.generations.rarecandy.pokeutils.Pair;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
-import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
-import gg.generations.rarecandy.tools.gui.GuiPipelines;
 import gg.generations.rarecandy.tools.gui.RareCandyCanvas;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -21,7 +18,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 

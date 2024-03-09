@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.renderer.animation;
 
 import org.joml.Matrix4f;
-import org.joml.Vector2f;
 
 import java.util.HashMap;
 import java.util.Map;

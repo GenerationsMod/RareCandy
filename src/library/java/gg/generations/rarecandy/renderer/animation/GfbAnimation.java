@@ -6,8 +6,6 @@ import org.joml.Vector3f;
 
 import java.util.*;
 
-import static java.util.stream.Stream.of;
-
 public class GfbAnimation extends Animation<AnimationT> {
 
     public GfbAnimation(String name, AnimationT rawAnimation, Skeleton skeleton, ModelConfig config) {
@@ -60,7 +58,7 @@ public class GfbAnimation extends Animation<AnimationT> {
         return offsets;
     }
 
-    public static record GfbOffset(TransformStorage<Float> uOffset, TransformStorage<Float> vOffset, TransformStorage<Float> uScale, TransformStorage<Float> vScale) implements Offset {
+    public record GfbOffset(TransformStorage<Float> uOffset, TransformStorage<Float> vOffset, TransformStorage<Float> uScale, TransformStorage<Float> vScale) implements Offset {
         public static <T> T calcInterpolatedFloat(float animTime, TransformStorage<T> node, T defaultVal) {
             if (node.size() == 0) return defaultVal;
 

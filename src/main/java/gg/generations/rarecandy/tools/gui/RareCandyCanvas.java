@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.pokeutils.GlbPixelAsset;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.LoggerUtil;
@@ -11,8 +10,6 @@ import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
-import gg.generations.rarecandy.renderer.pipeline.Pipeline;
-import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
@@ -30,8 +27,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 

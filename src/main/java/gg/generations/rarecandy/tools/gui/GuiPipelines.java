@@ -10,7 +10,6 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
-import java.util.List;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
 
@@ -121,9 +120,7 @@ public class GuiPipelines {
             });
 
     public static final Pipeline LAYERED = new Pipeline.Builder(LAYERED_BASE)
-            .supplyUniform("frame", ctx -> {
-                ctx.uniform().uploadInt(-1);
-            })
+            .supplyUniform("frame", ctx -> ctx.uniform().uploadInt(-1))
             .build();
 
     public static final Pipeline SOLID = new Pipeline.Builder(BASE)

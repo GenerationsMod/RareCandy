@@ -2,14 +2,12 @@ package gg.generations.rarecandy.renderer.animation;
 
 import gg.generations.rarecandy.pokeutils.Pair;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
+import gg.generations.rarecandy.pokeutils.tracm.TrackMaterial;
 import gg.generations.rarecandy.pokeutils.tracm.TrackMaterialAnim;
 import gg.generations.rarecandy.pokeutils.tracm.TrackMaterialValueList;
 import gg.generations.rarecandy.pokeutils.tranm.*;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -98,10 +96,7 @@ public class TranmAnimation extends Animation<Pair<gg.generations.rarecandy.poke
         var offsets = new HashMap<String, Offset>();
 
         if(animationPair.b() != null) {
-            IntStream.range(0, animationPair.b().tracksLength()).mapToObj(a -> animationPair.b().tracks(a)).filter(a -> a.materialAnimation() != null).flatMap(a -> IntStream.range(0, a.materialAnimation().materialTrackLength()).mapToObj(b -> a.materialAnimation().materialTrack(b))).collect(Collectors.toMap(b -> b.name(), b -> IntStream.range(0, b.animValuesLength()).mapToObj(b::animValues).collect(Collectors.toMap(TrackMaterialAnim::name, c -> {
-
-                return new GfbAnimation.GfbOffset(toStorage(c.list().red()), toStorage(c.list().green()), toStorage(c.list().blue()), toStorage(c.list().alpha()));
-            })))).forEach((k, v) -> {
+            IntStream.range(0, animationPair.b().tracksLength()).mapToObj(a -> animationPair.b().tracks(a)).filter(a -> a.materialAnimation() != null).flatMap(a -> IntStream.range(0, a.materialAnimation().materialTrackLength()).mapToObj(b -> a.materialAnimation().materialTrack(b))).collect(Collectors.toMap(TrackMaterial::name, b -> IntStream.range(0, b.animValuesLength()).mapToObj(b::animValues).collect(Collectors.toMap(TrackMaterialAnim::name, c -> new GfbAnimation.GfbOffset(toStorage(c.list().red()), toStorage(c.list().green()), toStorage(c.list().blue()), toStorage(c.list().alpha())))))).forEach((k, v) -> {
                 if(v.containsKey("UVScaleOffset")) offsets.put(k, v.get("UVScaleOffset"));
             });
         }

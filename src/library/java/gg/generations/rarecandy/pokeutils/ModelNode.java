@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.pokeutils;
 
-import de.javagl.jgltf.model.NodeModel;
 import org.joml.Matrix4f;
 import org.lwjgl.assimp.AIMatrix4x4;
 import org.lwjgl.assimp.AINode;

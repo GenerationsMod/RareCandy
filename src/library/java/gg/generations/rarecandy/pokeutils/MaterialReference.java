@@ -8,8 +8,6 @@ import org.joml.Vector3f;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public class MaterialReference {

@@ -7,9 +7,7 @@ import org.lwjgl.opengl.GL40;
 import org.lwjgl.system.MemoryUtil;
 
 import java.awt.image.BufferedImage;
-import java.io.Closeable;
 import java.io.IOException;
-import java.util.function.Supplier;
 
 public class Texture implements ITexture {
 

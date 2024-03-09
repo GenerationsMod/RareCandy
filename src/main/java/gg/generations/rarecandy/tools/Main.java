@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.tools;
 
-import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
 import gg.generations.rarecandy.pokeutils.Pair;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.tools.pokemodding.AnimationReadout;

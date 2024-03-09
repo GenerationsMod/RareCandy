@@ -1,11 +1,6 @@
 package gg.generations.rarecandy.pokeutils;
 
-import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import org.joml.Vector2f;
-
-import java.lang.reflect.Type;
-import java.util.Map;
 
 public record VariantDetails(String material, Boolean hide, Vector2f offset) {
     public VariantDetails fillIn(VariantDetails filler) {

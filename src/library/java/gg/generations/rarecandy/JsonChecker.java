@@ -6,7 +6,6 @@ import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.stream.Stream;
 
 public class JsonChecker {
 

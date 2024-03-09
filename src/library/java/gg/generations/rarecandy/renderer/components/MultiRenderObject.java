@@ -7,10 +7,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -60,7 +57,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     @Override
     public void update() {
         for (T t : objects) {
-            t.update();
+            if (t != null) t.update();
         }
 
         if (objects.get(0) != null && objects.get(0).isReady()) {
@@ -129,7 +126,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 //                pl.unbind();
 //            });
 //        } else {
-        this.objects.forEach(object -> object.render(instances, object));
+        this.objects.stream().filter(Objects::nonNull).forEach(object -> object.render(instances, object));
 //        }
     }
 

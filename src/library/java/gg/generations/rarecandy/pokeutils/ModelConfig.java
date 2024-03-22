@@ -16,6 +16,8 @@ public class ModelConfig {
 
     public Map<String, List<String>> materialsWithSameMaterialAnimation;
 
+    public List<String> ignoreScaleInAnimation;
+
     public List<String> getMaterialsForAnimation(String trackName) {
         var list = new ArrayList<String>();
         list.add(trackName);

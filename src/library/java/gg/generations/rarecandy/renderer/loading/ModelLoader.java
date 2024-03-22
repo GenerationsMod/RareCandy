@@ -84,7 +84,9 @@ public class ModelLoader {
                 var name = entry.getKey();
                 var tranm = entry.getValue().a() != null ? TRANMT.deserializeFromBinary(entry.getValue().a()) : null;
                 var tracm = entry.getValue().b() != null ? TRACM.getRootAsTRACM(ByteBuffer.wrap(entry.getValue().b())) : null;
-                animations.put(name, new TranmAnimation(name, new Pair<>(tranm, tracm), new Skeleton(skeleton)));
+
+                System.out.println("Animation: " + name);
+                animations.put(name, new TranmAnimation(name, new Pair<>(tranm, tracm), new Skeleton(skeleton), config.ignoreScaleInAnimation != null && config.ignoreScaleInAnimation.contains(name)));
             }
 
             for (var entry : gfbFileMap.entrySet()) {

@@ -89,45 +89,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
     @Override
     public <V extends RenderObject> void render(List<ObjectInstance> instances, V obj) {
-//        if (dirty) {
-//            pipeline = null;
-//            smartRender = true;
-//            for (T object : objects) {
-//                if (pipeline == null) pipeline = object..pipeline;
-//                else if (pipeline != object.pipeline) smartRender = false;
-//            }
-//        }
-//
-//        if (smartRender && isReady()) {
-//            Map<String, List<Consumer<Pipeline>>> map = new HashMap<>();
-//
-//            for (var instance : instances) {
-//                var material = objects.get(0).getMaterial(instance.variant()).getType();
-//
-//                var entry = map.computeIfAbsent(material, a -> new ArrayList<>());
-//
-//                entry.add(pipeline -> {
-//                    pipeline.updateOtherUniforms(instance, this);
-//
-//                    for (T object : objects) {
-//                        if (object instanceof MeshObject meshObject) {
-//                            if (meshObject.getVariant(instance.materialId()).hide()) continue;
-//                            pipeline.updateTexUniforms(instance, meshObject);
-//                            meshObject.model.runDrawCalls();
-//                        }
-//                    }
-//                });
-//            }
-//
-//            map.forEach((k, v) -> {
-//                var pl = pipeline.apply(k);
-//                pl.bind();
-//                v.forEach(a -> a.accept(pl));
-//                pl.unbind();
-//            });
-//        } else {
         this.objects.stream().filter(Objects::nonNull).forEach(object -> object.render(instances, object));
-//        }
     }
 
     public void updateDimensions() {

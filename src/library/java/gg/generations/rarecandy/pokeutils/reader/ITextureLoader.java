@@ -32,7 +32,7 @@ public abstract class ITextureLoader {
         register("dark", generateDirectReference("dark.png"));
         register("neutral", generateDirectReference("neutral.png"));
         register("bright", generateDirectReference("bright.png"));
-        register("paradox_mask", generateDirectReference("paradox_mask_tiled.png"));
+        register("paradox_mask", generateDirectReference("paradox.png"));
         register("blank", generateDirectReference("blank.png"));
         register("burnt_concrete", generateDirectReference("burnt_concrete.png"));
         register("concrete", generateDirectReference("concrete.png"));

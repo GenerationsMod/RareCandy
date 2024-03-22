@@ -8,8 +8,8 @@ import java.util.*;
 
 public class GfbAnimation extends Animation<AnimationT> {
 
-    public GfbAnimation(String name, AnimationT rawAnimation, Skeleton skeleton, ModelConfig config) {
-        super(name, (int) rawAnimation.getInfo().getFrameRate(), skeleton, rawAnimation, GfbAnimation::fillAnimationNodes, rawAnimation1 -> fillGfbOffsets(rawAnimation1, config));
+    public GfbAnimation(String name, AnimationT rawAnimation, Skeleton skeleton, ModelConfig config, boolean ignoreScaling) {
+        super(name, (int) rawAnimation.getInfo().getFrameRate(), skeleton, rawAnimation, (animation, rawAnimation2) -> fillAnimationNodes(animation, rawAnimation2, ignoreScaling), rawAnimation1 -> fillGfbOffsets(rawAnimation1, config));
 
         for (var animationNode : getAnimationNodes()) {
             if (animationNode != null) {
@@ -88,7 +88,7 @@ public class GfbAnimation extends Animation<AnimationT> {
         }
     }
 
-    public static AnimationNode[] fillAnimationNodes(Animation<AnimationT> animation, AnimationT rawAnimation) {
+    public static AnimationNode[] fillAnimationNodes(Animation<AnimationT> animation, AnimationT rawAnimation, boolean ignoreScaling) {
 
         var animationNodes = new AnimationNode[rawAnimation.getSkeleton().getTracks().length];
 
@@ -98,7 +98,7 @@ public class GfbAnimation extends Animation<AnimationT> {
 
                 if(track.getRotate().getValue() != null) track.getRotate().getValue().process(node.rotationKeys);
                 else node.rotationKeys.add(0, animation.skeleton.boneMap.get(track.getName()).poseRotation);
-                if(track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
+                if(ignoreScaling && track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
                 else node.scaleKeys.add(0, animation.skeleton.boneMap.get(track.getName()).poseScale);
                 if(track.getTranslate().getValue() != null && !track.getName().equalsIgnoreCase("origin")) track.getTranslate().getValue().process(node.positionKeys);
                 else {

@@ -86,7 +86,7 @@ public class ModelLoader {
                 var tracm = entry.getValue().b() != null ? TRACM.getRootAsTRACM(ByteBuffer.wrap(entry.getValue().b())) : null;
 
                 System.out.println("Animation: " + name);
-                animations.put(name, new TranmAnimation(name, new Pair<>(tranm, tracm), new Skeleton(skeleton), config.ignoreScaleInAnimation != null && config.ignoreScaleInAnimation.contains(name)));
+                animations.put(name, new TranmAnimation(name, new Pair<>(tranm, tracm), new Skeleton(skeleton), config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"))));
             }
 
             for (var entry : gfbFileMap.entrySet()) {
@@ -97,7 +97,7 @@ public class ModelLoader {
 
                     if (gfbAnim.getSkeleton() == null) continue;
 
-                    animations.put(name, new GfbAnimation(name, gfbAnim, new Skeleton(skeleton), config, config.ignoreScaleInAnimation != null && config.ignoreScaleInAnimation.contains(name)));
+                    animations.put(name, new GfbAnimation(name, gfbAnim, new Skeleton(skeleton), config, config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"))));
                 } catch (Exception e) {
                     System.out.println("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
                     e.printStackTrace();

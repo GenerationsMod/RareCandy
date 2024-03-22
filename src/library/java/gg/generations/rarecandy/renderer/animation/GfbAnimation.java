@@ -95,14 +95,15 @@ public class GfbAnimation extends Animation<AnimationT> {
         if (rawAnimation.getSkeleton() != null) {
             for (var track : rawAnimation.getSkeleton().getTracks()) {
                 var node = animationNodes[animation.nodeIdMap.computeIfAbsent(track.getName(), animation::newNode)] = new AnimationNode();
-
+                
                 if(track.getRotate().getValue() != null) track.getRotate().getValue().process(node.rotationKeys);
-                else node.rotationKeys.add(0, animation.skeleton.boneMap.get(track.getName()).poseRotation);
-                if(ignoreScaling && track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
-                else node.scaleKeys.add(0, animation.skeleton.boneMap.get(track.getName()).poseScale);
+                else node.rotationKeys.add(0, animation.skeleton.jointMap.get(track.getName()).poseRotation);
+                if(!ignoreScaling && track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
+                else node.scaleKeys.add(0, animation.skeleton.jointMap.get(track.getName()).poseScale);
+
                 if(track.getTranslate().getValue() != null && !track.getName().equalsIgnoreCase("origin")) track.getTranslate().getValue().process(node.positionKeys);
                 else {
-                    Vector3f translate = animation.skeleton.boneMap.containsKey(track.getName()) ? animation.skeleton.boneMap.get(track.getName()).posePosition : Animation.TRANSLATE;
+                    Vector3f translate = animation.skeleton.jointMap.containsKey(track.getName()) ? animation.skeleton.jointMap.get(track.getName()).posePosition : Animation.TRANSLATE;
                     node.positionKeys.add(0, translate);
                 }
             }

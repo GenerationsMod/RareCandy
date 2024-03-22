@@ -8,14 +8,17 @@ import gg.generations.rarecandy.renderer.rendering.Bone;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Skeleton {
+    public final Map<String, ModelNode> jointMap;
     public Bone[] bones;
     public final Map<String, Bone> boneMap;
     public final ModelNode rootNode;
 
     public Skeleton(Skeleton skeleton) {
         this.bones = skeleton.bones;
+        this.jointMap = skeleton.jointMap;
         this.boneMap = skeleton.boneMap;
         this.rootNode = skeleton.rootNode;
     }
@@ -25,6 +28,8 @@ public class Skeleton {
         this.rootNode = rootNode;
         var jointList = new ArrayList<ModelNode>();
         populateJoints(rootNode, jointList);
+
+        jointMap = jointList.stream().collect(Collectors.toMap(a -> a.name, a -> a));
 
         var boneCount = jointList.size();
         this.bones = new Bone[boneCount];
@@ -37,7 +42,9 @@ public class Skeleton {
     }
 
     public void store(Bone[] bones) {
-        for (var bone : bones) boneMap.put(bone.name, bone);
+        for (var bone : bones) {
+            boneMap.put(bone.name, bone);
+        }
     }
 
     public void calculateBoneData() {

@@ -19,10 +19,6 @@ public class Bone {
     public Matrix4f inverseBindMatrix;
     public Matrix4f restPose;
 
-    public final Vector3f posePosition = new Vector3f();
-    public final Quaternionf poseRotation = new Quaternionf();
-    public final Vector3f poseScale = new Vector3f(1, 1, 1);
-
     public Matrix4f lastSuccessfulTransform = new Matrix4f().identity();
 
     @Override
@@ -47,6 +43,7 @@ public class Bone {
         var b = new Bone();
         b.inverseBindMatrix = ModelNode.from(bone.mOffsetMatrix());
         b.restPose = new Matrix4f().set(b.inverseBindMatrix).invert();
+
         b.name = bone.mName().dataString();
 
         var aiWeights = Objects.requireNonNull(bone.mWeights());

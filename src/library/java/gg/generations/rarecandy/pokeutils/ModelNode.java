@@ -1,6 +1,8 @@
 package gg.generations.rarecandy.pokeutils;
 
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.lwjgl.assimp.AIMatrix4x4;
 import org.lwjgl.assimp.AINode;
 
@@ -14,6 +16,9 @@ public class ModelNode {
     public final String name;
     public final ModelNode parent;
     public final Matrix4f transform;
+    public final Vector3f posePosition;
+    public final Quaternionf poseRotation;
+    public final Vector3f poseScale;
     public final List<ModelNode> children = new ArrayList<>();
     public int id = -1;
 
@@ -22,6 +27,10 @@ public class ModelNode {
 
         this.parent = parent;
         this.transform = from(aiNode.mTransformation());
+        this.posePosition = transform.getTranslation(new Vector3f());
+        this.poseRotation = transform.getUnnormalizedRotation(new Quaternionf());
+        this.poseScale = transform.getScale(new Vector3f());
+
 
         for (int i = 0; i < aiNode.mNumChildren(); i++)
             children.add(new ModelNode(AINode.create(aiNode.mChildren().get(i)), this));

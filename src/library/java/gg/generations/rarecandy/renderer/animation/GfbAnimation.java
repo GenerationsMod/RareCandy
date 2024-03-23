@@ -95,11 +95,15 @@ public class GfbAnimation extends Animation<AnimationT> {
         if (rawAnimation.getSkeleton() != null) {
             for (var track : rawAnimation.getSkeleton().getTracks()) {
                 var node = animationNodes[animation.nodeIdMap.computeIfAbsent(track.getName(), animation::newNode)] = new AnimationNode();
-                
+
                 if(track.getRotate().getValue() != null) track.getRotate().getValue().process(node.rotationKeys);
                 else node.rotationKeys.add(0, animation.skeleton.jointMap.get(track.getName()).poseRotation);
                 if(!ignoreScaling && track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
-                else node.scaleKeys.add(0, animation.skeleton.jointMap.get(track.getName()).poseScale);
+                else {
+                    Vector3f scale = animation.skeleton.jointMap.containsKey(track.getName()) ? animation.skeleton.jointMap.get(track.getName()).poseScale : Animation.SCALE;
+
+                    node.scaleKeys.add(0, scale);
+                };
 
                 if(track.getTranslate().getValue() != null && !track.getName().equalsIgnoreCase("origin")) track.getTranslate().getValue().process(node.positionKeys);
                 else {

@@ -17,6 +17,7 @@ public abstract class Animation<T> {
     public static BiConsumer<Animation, String> animationModifier = (animation, s) -> {
     };
     protected static Vector3f TRANSLATE = new Vector3f();
+    protected static Vector3f SCALE = new Vector3f(1, 1, 1);
     public final String name;
     public final double animationDuration;
     protected final Skeleton skeleton;

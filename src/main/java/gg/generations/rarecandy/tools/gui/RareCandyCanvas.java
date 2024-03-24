@@ -10,6 +10,7 @@ import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
+import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
@@ -34,7 +35,7 @@ import java.util.function.Supplier;
 public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
 
-    private static float lightLevel = 0.50f;
+    private static float lightLevel = 0.950f;
     private static double time;
 
     public final Matrix4f viewMatrix = new Matrix4f();
@@ -91,7 +92,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
             case "masked" -> GuiPipelines.MASKED;
             case "layered" -> GuiPipelines.LAYERED;
             case "paradox" -> GuiPipelines.PARADOX;
-            case "bone" -> GuiPipelines.BONE;
+            case "plane" -> GuiPipelines.PLANE;
             default -> GuiPipelines.SOLID;
         });
 
@@ -113,7 +114,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public void openFile(PixelAsset pkFile, Runnable runnable) throws IOException {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
-//        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
         if(loadedModel != null) loadedModel.close();
 
         if(pkFile == null) return;
@@ -140,20 +141,17 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GuiPipelines.onInitialize();
         this.renderer = new RareCandy();
 
-        GL11C.glClearColor(lightLevel, lightLevel, lightLevel, 1);
+        GL11C.glClearColor(0, 0, 0, 1);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-//TODO: Fix
-//        try (var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {
-//            assert is != null;
-//
-//            load(renderer, new GlbPixelAsset("plane", is.readAllBytes()), model -> {
-//                plane = model;
-//                renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));
-//            }, MeshObject::new);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
+        loadPlane(renderer, 100, 100, model -> {
+            plane = model;
+            renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+        });
+    }
+
+    private MultiRenderObject<MeshObject> loadPlane(RareCandy renderer, int width, int length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
+        return renderer.getLoader().generatePlane(width, length, onFinish);
     }
 
     private Vector3f size = new Vector3f();

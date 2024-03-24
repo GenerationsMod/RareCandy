@@ -51,7 +51,7 @@ public abstract class RenderObject implements Closeable {
     }
 
     public Material getVariant(@Nullable String materialId) {
-        var variant = variants.containsKey(materialId) ? materialId : defaultVariant;
+        var variant = materialId != null && variants.containsKey(materialId) ? materialId : defaultVariant;
         return variants.get(variant);
     }
 

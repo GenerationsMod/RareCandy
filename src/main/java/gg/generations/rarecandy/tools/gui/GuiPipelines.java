@@ -56,6 +56,14 @@ public class GuiPipelines {
                 material.blendType().disable();
             });
 
+    public static final Pipeline PLANE = new Pipeline.Builder()
+            .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
+            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
+            .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
+            .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
+            .shader(builtin("animated/plane.vs.glsl"), builtin("animated/plane.fs.glsl")).build();
+
+
     public static final Pipeline BONE = new Pipeline.Builder(ROOT)
             .shader(builtin("animated/bone.vs.glsl"), builtin("animated/bone.fs.glsl"))
             .build();

@@ -32,8 +32,17 @@ public class Main {
             new Command("mouthFixer (swsh)", "Used to convert mouth textures in a folder into the format used in Sword and Shield pokemon model mouth", Main::mouthFixer),
             new Command("longBoi (swsh)", "Used to convert all selected non eye related textures into a long boi (mirrored version of itself) that makes setting up Sword and Shield pokemon models easier the format used in Sword and Shield pokemon model eyes.", Main::longBoi),
             new Command("Glb Convert", "Experimental converter for a full glb into the new config.json based form.", Main::glbConverter),
-            new Command("Model Viewer", "Simplified viewer for opening and reviewing models before packaging", Main::modelViewer)
+            new Command("Model Viewer", "Simplified viewer for opening and reviewing models before packaging", Main::modelViewer),
+            new Command("GFBANM/TRACM converter", "Converts gfbanm and tracms to json and back.", Main::gfbanmConvert)
             );
+
+    private static void gfbanmConvert(String[] args) {
+        try {
+            GfbanmConvert.main(args);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private static void modelViewer(String[] strings) {
         NativeFileDialog.NFD_Init();

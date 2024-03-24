@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.renderer.animation;
 
-import gg.generations.rarecandy.pokeutils.GFLib.Anim.*;
 import gg.generations.rarecandy.pokeutils.ModelConfig;
+import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import org.joml.Vector3f;
 
 import java.util.*;

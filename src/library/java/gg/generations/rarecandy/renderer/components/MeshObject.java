@@ -25,6 +25,8 @@ public class MeshObject extends RenderObject {
         this.model = model;
         this.defaultVariant = new ArrayList<>(variants.keySet()).get(0);
         this.ready = true;
+
+        System.out.println("soup");
     }
 
     public <T extends RenderObject> void render(List<ObjectInstance> instances, T object) {

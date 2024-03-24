@@ -4,7 +4,7 @@ import de.javagl.jgltf.model.*;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import gg.generations.rarecandy.pokeutils.*;
-import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
+import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
@@ -384,7 +384,7 @@ public class ModelLoader {
         return model;
     }
 
-    private static int generateVao(ByteBuffer vertexBuffer, List<Attribute> layout) {
+    public static int generateVao(ByteBuffer vertexBuffer, List<Attribute> layout) {
         var vao = glGenVertexArrays();
 
         glBindVertexArray(vao);
@@ -476,6 +476,22 @@ public class ModelLoader {
         if (RareCandy.DEBUG_THREADS) task.run();
         else modelLoadingPool.submit(task);
         return obj;
+    }
+
+    public MultiRenderObject<MeshObject> generatePlane(float width, float length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
+        var pair = PlaneGenerator.generatePlane(width, length);
+
+        var task = ThreadSafety.wrapException(() -> {
+            ThreadSafety.runOnContextThread(() -> {
+                pair.a().forEach(Runnable::run);
+                pair.b().updateDimensions();
+                if (onFinish != null) onFinish.accept(pair.b());
+            });
+        });
+        if (RareCandy.DEBUG_THREADS) task.run();
+        else modelLoadingPool.submit(task);
+
+        return pair.b();
     }
 
     private <T extends RenderObject> Runnable threadedCreateObject(MultiRenderObject<T> obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {

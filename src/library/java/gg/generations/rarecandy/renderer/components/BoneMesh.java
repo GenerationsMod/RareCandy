@@ -17,7 +17,7 @@ import java.util.Set;
 public class BoneMesh extends AnimatedMeshObject {
     private static final Set<String> single = Sets.newHashSet("regular");
 
-    public BoneMesh(Map<String, Animation<?>> animations, GLModel model, Skeleton skeleton) {
+    public BoneMesh(Map<String, Animation> animations, GLModel model, Skeleton skeleton) {
         super();
         this.animations = animations;
         this.model = model;

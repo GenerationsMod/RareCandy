@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.renderer.animation;
 
 import gg.generations.rarecandy.pokeutils.ModelNode;
+import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -10,7 +11,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public abstract class Animation<T> {
+public class Animation {
     public static final int FPS_60 = 1000;
     public static final int FPS_24 = 400;
     public static final int GLB_SPEED = 30;
@@ -18,6 +19,7 @@ public abstract class Animation<T> {
     };
     protected static Vector3f TRANSLATE = new Vector3f();
     protected static Vector3f SCALE = new Vector3f(1, 1, 1);
+    protected static Vector3f TRANSLATION = new Vector3f();
     public final String name;
     public final double animationDuration;
     protected final Skeleton skeleton;
@@ -29,81 +31,56 @@ public abstract class Animation<T> {
     public float ticksPerSecond;
     public boolean ignoreInstancedTime = false;
 
-    public Animation(String name, int ticksPerSecond, Skeleton skeleton, T value, BiFunction<Animation<T>, T, AnimationNode[]> animationNodes, Function<T, Map<String, Offset>> offsets) {
+    private boolean ignoreScaling;
+
+    public Animation(String name, int ticksPerSecond, Skeleton skeleton, ModelLoader.NodeProvider animationNodes, Map<String, Offset> offsets, boolean ignoreScaling) {
         this.name = name;
         this.ticksPerSecond = ticksPerSecond;
         this.skeleton = skeleton;
-        this.animationNodes = animationNodes.apply(this, value);
-        this.offsets = offsets.apply(value);
+        this.animationNodes = animationNodes.getNode(this, skeleton);
+        this.offsets = offsets;
         this.animationDuration = findLastKeyTime();
+        this.ignoreScaling = ignoreScaling;
 
-//        var boneList = List.of(this.skeleton.boneArray);
-
-//        StringBuilder builder = new StringBuilder();
-//
-//        builder.append("version 1\n");
-//        builder.append("nodes\n");
-//
-//        for (int i = 0; i < boneList.size(); i++) {
-//            var bone = boneList.get(i);
-//            builder.append("%s \"%s\" %s\n".formatted(i, bone.name, bone.parent));
-//        }
-//
-//        builder.append("end\n");
-//        builder.append("skeleton\n");
-//
-//        for (float i = 0; i < animationDuration; i++) {
-//            builder.append("time " + i + "\n");
-//
-//            for (int j = 0; j < boneList.size(); j++) {
-//                var bone = boneList.get(j);
-//                var index = nodeIdMap.get(bone.name);
-//
-//                var position = bone.posePosition;
-//                var rotation = bone.poseRotation;
-//                var scale = bone.poseScale;
-//
-//                try {
-//                    var animationNode = getAnimationNodes()[index];
-//
-//                    position = AnimationMath.calcInterpolatedPosition(i, animationNode);
-//                    rotation = AnimationMath.calcInterpolatedRotation(i, animationNode);
-//                    scale = AnimationMath.calcInterpolatedScaling(i, animationNode);
-//                } catch (Exception e) {
-//                }
-//
-//                var translate = position;
-//                var rotate = rotation.getEulerAnglesZYX(new Vector3f());
-//
-//                builder.append("%s  %.6f %.6f %.6f  %.6f %.6f %.6f  %.6f %.6f %.6f\n".formatted(j, translate.x, translate.y, translate.z, rotate.x, rotate.y, rotate.z, scale.x, scale.y, scale.z));
-//            }
-//
-//        }
-//
-//        builder.append("end");
-//
-//        try {
-//            Files.writeString(Path.of(name + ".smd"), builder);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
+        if(this.animationNodes != null) {
+            for (var animationNode : getAnimationNodes()) {
+                if (animationNode != null) {
+                    if (animationNode.positionKeys.getAtTime((int) animationDuration - 10) == null)
+                        animationNode.positionKeys.add(animationDuration, animationNode.positionKeys.get(0).value());
+                    if (animationNode.rotationKeys.getAtTime((int) animationDuration - 10) == null)
+                        animationNode.rotationKeys.add(animationDuration, animationNode.rotationKeys.get(0).value());
+                    if (animationNode.scaleKeys.getAtTime((int) animationDuration - 10) == null)
+                        animationNode.scaleKeys.add(animationDuration, animationNode.scaleKeys.get(0).value());
+                }
+            }
+        }
     }
 
-    public static <T> Map<String, GfbAnimation.Offset> fillOffsets(T item) {
+    public static <T> Map<String, Offset> fillOffsets(T item) {
         return new HashMap<>();
     }
 
     private double findLastKeyTime() {
         var duration = 0d;
 
-        for (var value : this.getAnimationNodes()) {
-            if (value != null) {
-                for (var key : value.positionKeys) duration = Math.max(key.time(), duration);
-                for (var key : value.rotationKeys) duration = Math.max(key.time(), duration);
-                for (var key : value.scaleKeys) duration = Math.max(key.time(), duration);
+        if(animationNodes != null) {
+
+            for (var value : this.getAnimationNodes()) {
+                if (value != null) {
+                    for (var key : value.positionKeys) duration = Math.max(key.time(), duration);
+                    for (var key : value.rotationKeys) duration = Math.max(key.time(), duration);
+                    for (var key : value.scaleKeys) duration = Math.max(key.time(), duration);
+                }
             }
         }
 
+        if(duration == 0) {
+            for (var value : this.offsets.values()) {
+                if (value != null) {
+                    duration = Math.max(value.duration(), duration);
+                }
+            }
+        }
 
         return duration;
     }
@@ -119,7 +96,7 @@ public abstract class Animation<T> {
         return boneTransforms;
     }
 
-    public void getFrameOffset(AnimationInstance<?> instance) {
+    public void getFrameOffset(AnimationInstance instance) {
         this.offsets.forEach((k, v) -> {
             var offsetInstance = instance.offsets.computeIfAbsent(k, a -> new Transform());
             offsetInstance.offset().zero();
@@ -148,9 +125,9 @@ public abstract class Animation<T> {
             var animNode = animationNodes[animationNodeId];
 
             if (animNode != null) {
-                var scale = AnimationMath.calcInterpolatedScaling(animTime, animNode);
+                var scale = ignoreScaling ? SCALE : AnimationMath.calcInterpolatedScaling(animTime, animNode);
                 var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
-                var translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
+                var translation = name.equalsIgnoreCase("origin") ? TRANSLATION : AnimationMath.calcInterpolatedPosition(animTime, animNode);
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
 
                 if (bone != null && this.isNaN(nodeTransform)) {
@@ -178,7 +155,7 @@ public abstract class Animation<T> {
         return Float.isNaN(nodeTransform.m00());
     }
 
-    protected int newNode(String nodeName) {
+    public int newNode(String nodeName) {
         return nodeIdMap.size();
     }
 
@@ -213,8 +190,34 @@ public abstract class Animation<T> {
         }
     }
 
-    public interface Offset {
-        void calcOffset(float animTime, Transform instance);
+    public record Offset(TransformStorage<Float> uOffset, TransformStorage<Float> vOffset, TransformStorage<Float> uScale, TransformStorage<Float> vScale, float duration) {
+        public static <T> T calcInterpolatedFloat(float animTime, TransformStorage<T> node, T defaultVal) {
+            if (node.size() == 0) return defaultVal;
 
+            var offset = findOffset(animTime, node);
+            return offset.value();
+        }
+
+        public static <T> TransformStorage.TimeKey<T> findOffset(float animTime, TransformStorage<T> keys) {
+            for (var key : keys) {
+                if (animTime < key.time())
+                    return keys.getBefore(key);
+            }
+
+            return keys.get(0);
+        }
+
+        public void calcOffset(float animTime, Transform instance) {
+
+            var uOffset = calcInterpolatedFloat(animTime, this.uOffset(), 0f);
+            var vOffset = calcInterpolatedFloat(animTime, this.vOffset(), 0f);
+            var uScale = calcInterpolatedFloat(animTime, this.uScale(), 1f);
+            var vScale = calcInterpolatedFloat(animTime, this.vScale(), 1f);
+
+            instance.offset().set(uOffset, vOffset);
+            instance.scale().set(uScale, vScale);
+        }
     }
 }
+
+

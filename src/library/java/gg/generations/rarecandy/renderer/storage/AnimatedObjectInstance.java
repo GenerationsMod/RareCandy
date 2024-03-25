@@ -23,7 +23,7 @@ public class AnimatedObjectInstance extends ObjectInstance {
         super(transformationMatrix, viewMatrix, materialId);
     }
 
-    public Map<String, Animation<?>> getAnimationsIfAvailable() {
+    public Map<String, Animation> getAnimationsIfAvailable() {
 
         try {
             return getAnimatedMesh().animations;

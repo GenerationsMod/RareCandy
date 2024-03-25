@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools;
 
 import gg.generations.rarecandy.pokeutils.Pair;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
-import gg.generations.rarecandy.tools.pokemodding.AnimationReadout;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
@@ -67,26 +66,26 @@ public class Main {
 
     }
 
-    private static void smdToGfbanm(String[] strings) {
-        try {
-            AnimationReadout.main(strings);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    private static void smdToGfbanm(String[] strings) {
+//        try {
+//            AnimationReadout.main(strings);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     private static void quaterionSwizzleTest(String[] strings) {
         QuaternionConverterGUI.main(strings);
     }
 
 
-    private static void gfbanmreadout(String[] args) {
-        try {
-            AnimationReadout.gfbanmPrintOut(args);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    private static void gfbanmreadout(String[] args) {
+//        try {
+//            AnimationReadout.gfbanmPrintOut(args);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static DualOutputStream outStream;

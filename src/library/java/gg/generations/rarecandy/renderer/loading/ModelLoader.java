@@ -8,6 +8,7 @@ import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
+import gg.generations.rarecandy.pokeutils.tracn.TRACNT;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.*;
@@ -36,6 +37,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -48,6 +50,10 @@ public class ModelLoader {
 
     public ModelLoader() {
         this.modelLoadingPool = Executors.newFixedThreadPool(2);
+    }
+
+    public interface NodeProvider {
+        Animation.AnimationNode[] getNode(Animation animation, Skeleton skeleton);
     }
 
     public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, PixelAsset gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
@@ -66,7 +72,11 @@ public class ModelLoader {
         if (config == null) throw new RuntimeException("config.json can't be null.");
 //        checkForRootTransformation(objects, gltfModel);
 
-        Map<String, Animation<?>> animations = new HashMap<>();
+        Map<String, NodeProvider> animationNodeMap = new HashMap<>();
+        Map<String, Integer> fpsMap = new HashMap<>();
+        Map<String, Map<String, Animation.Offset>> offsetsMap = new HashMap<>();
+
+        Set<String> animationNames = new HashSet<>();
 
         var gltfModel = ModelLoader.read(asset);
 
@@ -80,40 +90,76 @@ public class ModelLoader {
 //            skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
 //            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(animationModel.getName(), 30) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
 
-            for (var entry : trFilesMap.entrySet()) {
-                var name = entry.getKey();
-                var tranm = entry.getValue().a() != null ? TRANMT.deserializeFromBinary(entry.getValue().a()) : null;
-                var tracm = entry.getValue().b() != null ? TRACM.getRootAsTRACM(ByteBuffer.wrap(entry.getValue().b())) : null;
+//        var pairalreadycreated;
 
-                System.out.println("Animation: " + name);
-                animations.put(name, new TranmAnimation(name, new Pair<>(tranm, tracm), new Skeleton(skeleton), config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"))));
-            }
+        for (var entry : trFilesMap.entrySet()) {
+            var name = entry.getKey();
+            var tranm = entry.getValue().a() != null ? TRANMT.deserializeFromBinary(entry.getValue().a()) : null;
+            var tracm = entry.getValue().b() != null ? TRACM.getRootAsTRACM(ByteBuffer.wrap(entry.getValue().b())) : null;
 
-            for (var entry : gfbFileMap.entrySet()) {
-                var name = entry.getKey();
-
-                try {
-                    var gfbAnim = AnimationT.deserializeFromBinary(entry.getValue());
-
-                    if (gfbAnim.getSkeleton() == null) continue;
-
-                    animations.put(name, new GfbAnimation(name, gfbAnim, new Skeleton(skeleton), config, config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"))));
-                } catch (Exception e) {
-                    System.out.println("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
-                    e.printStackTrace();
+            if(tranm != null || tracm != null) {
+                animationNames.add(name);
+                if (tranm != null) {
+                    animationNodeMap.putIfAbsent(name, (animation, skeleton1) -> TranmUtils.getNodes(animation, skeleton1, tranm));
+                    fpsMap.putIfAbsent(name, (int) tranm.getInfo().getAnimationRate());
                 }
 
+                if (tracm != null) {
+                    offsetsMap.putIfAbsent(name, TracmUtils.getOffsets(tracm));
+                    fpsMap.putIfAbsent(name, (int) tracm.config().framerate());
+                }
             }
+        }
 
-            for (var entry : smdFileMap.entrySet()) {
-                var key = entry.getKey();
-                var value = entry.getValue();
+        for (var entry : gfbFileMap.entrySet()) {
+            var name = entry.getKey();
 
-                animations.put(key, new SmdAnimation(key, value, new Skeleton(skeleton), config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(key, 30) : 30));
+            try {
+                var gfbAnim = AnimationT.deserializeFromBinary(entry.getValue());
+
+                if(gfbAnim.getMaterial() != null || gfbAnim.getSkeleton() != null) {
+                    animationNames.add(name);
+                    fpsMap.put(name, (int) gfbAnim.getInfo().getFrameRate());
+
+                    if(gfbAnim.getSkeleton() != null) {
+                        animationNodeMap.put(name, (animation, skeleton13) -> GfbanmUtils.getNodes(animation, skeleton13, gfbAnim));
+                    }
+
+                    if(gfbAnim.getMaterial() != null) {
+                        offsetsMap.put(name, GfbanmUtils.getOffsets(gfbAnim));
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
+                e.printStackTrace();
             }
-//        } else {
-//            skeleton = null;
-//        }
+        }
+
+        for (var entry : smdFileMap.entrySet()) {
+            var key = entry.getKey();
+            var value = entry.getValue();
+
+            if(value != null) {
+                animationNames.add(key);
+                animationNodeMap.putIfAbsent(key, (NodeProvider) (animation, skeleton12) -> SmdUtils.getNode(animation, skeleton12, value));
+                fpsMap.putIfAbsent(key, 30);
+            }
+        }
+
+        Map<String, Animation> animations = new HashMap<>();
+
+        for(var name : animationNames) {
+            var fps = fpsMap.get(name);
+            fps = config.animationFpsOverride != null && config.animationFpsOverride.containsKey(name) ? config.animationFpsOverride.get(name) : fps;
+
+            var offsets = offsetsMap.getOrDefault(name, new HashMap<>());
+            offsets.forEach((trackName, offset) -> config.getMaterialsForAnimation(trackName).forEach(a -> offsets.put(a, offset)));
+
+            var nodes = animationNodeMap.getOrDefault(name, (animation, skeleton14) -> null);
+            var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
+
+            animations.put(name, new Animation(name, fps, skeleton, nodes, offsets, ignoreScaling));
+        }
 
         Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation = new HashMap<>();
 
@@ -284,7 +330,7 @@ public class ModelLoader {
 //        }
 //    }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, Mesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Vector2f>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation<?>> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, Mesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Vector2f>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
         var name = mesh.name();
 
         var map = materialMap.get(name);

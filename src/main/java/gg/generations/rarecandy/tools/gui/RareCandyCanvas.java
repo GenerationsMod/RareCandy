@@ -5,7 +5,6 @@ import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.animation.*;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
-import gg.generations.rarecandy.renderer.components.BoneMesh;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
@@ -164,8 +163,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
             loadedModelInstance.transformationMatrix().identity().scale(loadedModel.scale);
 
             size.set(loadedModel.dimensions).mul(loadedModel.scale);
-
-//            System.out.println("Size: (%s, %s, %s)".formatted(size.x - (size.x % fraciton), size.y - (size.y % fraciton), size.z - (size.z % fraciton))); //TODO: For boundingbox calcuations in generations blocks
         }
 
         time = (System.currentTimeMillis() - startTime) / 1000f;
@@ -210,25 +207,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, glCalls, supplier);
-                    return glCalls;
-                },
-                onFinish
-        );
-    }
-
-    protected void loadBoneModel(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<BoneMesh>> onFinish) {
-        createBone(renderer, is, onFinish);
-
-//        load(renderer, is, onFinish, AnimatedMeshObject::new);
-    }
-
-    protected void createBone(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<BoneMesh>> onFinish) {
-        var loader = renderer.getLoader();
-        loader.createObject(
-                () -> is,
-                (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {
-                    var glCalls = new ArrayList<Runnable>();
-                    SkeletonLoader.createSkeleton(object, gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, glCalls);
                     return glCalls;
                 },
                 onFinish

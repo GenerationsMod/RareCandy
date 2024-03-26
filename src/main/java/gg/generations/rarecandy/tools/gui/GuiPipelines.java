@@ -64,10 +64,6 @@ public class GuiPipelines {
             .shader(builtin("animated/plane.vs.glsl"), builtin("animated/plane.fs.glsl")).build();
 
 
-    public static final Pipeline BONE = new Pipeline.Builder(ROOT)
-            .shader(builtin("animated/bone.vs.glsl"), builtin("animated/bone.fs.glsl"))
-            .build();
-
     private static final Pipeline.Builder BASE = new Pipeline.Builder(ROOT)
             .configure(GuiPipelines::addDiffuse)
             .configure(GuiPipelines::addLight);

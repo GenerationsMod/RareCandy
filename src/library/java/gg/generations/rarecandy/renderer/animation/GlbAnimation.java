@@ -6,7 +6,7 @@
 //import org.joml.Vector3f;
 //
 //import java.util.List;
-//
+//TODO: REimplment
 //public class GlbAnimation extends Animation<AnimationModel> {
 //    public GlbAnimation(AnimationModel rawAnimation, Skeleton skeleton, int speed) {
 //        super(rawAnimation.getName(), speed, skeleton, rawAnimation, GlbAnimation::fillAnimationNodes, Animation::fillOffsets);

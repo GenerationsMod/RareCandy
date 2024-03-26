@@ -51,38 +51,38 @@ public class GfbanmConvert {
                     animation.setVisibility(null);
                     animation.setEventData(null);
 
-//                    var materialAnimation = animation.getMaterial();
-//
-//                    var materials = Arrays.stream(materialAnimation.getTracks())/*.dropWhile(a -> !a.getName().toLowerCase().contains("eye"))*/.toArray(MaterialTrackT[]::new);
-//
-//                    for(var material : materials) {
-//                        material.setFlags(null);
-//                        material.setVectors(null);
-//
-//                        var uScale = Arrays.stream(material.getValues()).filter(a -> a.getName().equals("ColorBaseU")).findFirst();
-//                        var uTranslate = Arrays.stream(material.getValues()).filter(a -> a.getName().equals("ColorUVTranslateU")).findFirst();
-//
-//                        if(uScale.isPresent() && uTranslate.isPresent() && material.getName().toLowerCase().contains("eye")) {
-//                            uTranslate.get().getValue().getValue().adjustValue(0.25f);
-//                        } else {
-//                            System.out.println(uScale.isPresent() + " " + uTranslate.isPresent());
-//                        }
-//
-//                        var array = Arrays.stream(material.getValues()).filter(a -> a.getName().startsWith("ColorUVTranslate"))/*.map(new Function<ShaderEntryT, ShaderEntryT>() {
-//
-//                            @Override
-//                            public ShaderEntryT apply(ShaderEntryT shaderEntryT) {
-//
-//
-//                                if(shaderEntryT.getName().equals("ColorUVTranslateU")) shaderEntryT.getValue().getValue().adjustValue(0.5f);
-//                                return shaderEntryT;
-//                            }
-//                        })*/.toArray(ShaderEntryT[]::new);
-//
-//                        material.setValues(array);
-//                    }
+                    var materialAnimation = animation.getMaterial();
 
-//                    materialAnimation.setTracks(materials);
+                    var materials = Arrays.stream(materialAnimation.getTracks())/*.dropWhile(a -> !a.getName().toLowerCase().contains("eye"))*/.toArray(MaterialTrackT[]::new);
+
+                    for(var material : materials) {
+                        material.setFlags(null);
+                        material.setVectors(null);
+
+                        var uScale = Arrays.stream(material.getValues()).filter(a -> a.getName().equals("ColorBaseU")).findFirst();
+                        var uTranslate = Arrays.stream(material.getValues()).filter(a -> a.getName().equals("ColorUVTranslateU")).findFirst();
+
+                        if(uScale.isPresent() && uTranslate.isPresent() && material.getName().toLowerCase().contains("eye")) {
+                            uTranslate.get().getValue().getValue().adjustValue(0.25f);
+                        } else {
+                            System.out.println(uScale.isPresent() + " " + uTranslate.isPresent());
+                        }
+
+                        var array = Arrays.stream(material.getValues()).filter(a -> a.getName().startsWith("ColorUVTranslate"))/*.map(new Function<ShaderEntryT, ShaderEntryT>() {
+
+                            @Override
+                            public ShaderEntryT apply(ShaderEntryT shaderEntryT) {
+
+
+                                if(shaderEntryT.getName().equals("ColorUVTranslateU")) shaderEntryT.getValue().getValue().adjustValue(0.5f);
+                                return shaderEntryT;
+                            }
+                        })*/.toArray(ShaderEntryT[]::new);
+
+                        material.setValues(array);
+                    }
+
+                    materialAnimation.setTracks(materials);
 
 
 

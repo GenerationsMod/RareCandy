@@ -86,7 +86,7 @@ public class Animation {
     }
 
     public float getAnimationTime(double secondsPassed) {
-        var ticksPassed = (float) secondsPassed * ticksPerSecond;
+        var ticksPassed = (float) secondsPassed * (ticksPerSecond);
             return (float) (ticksPassed % animationDuration);
     }
 

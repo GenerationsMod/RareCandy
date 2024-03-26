@@ -13,7 +13,6 @@ public record VertexBoneData(int[] ids, float[] weights) {
                 ids[i] = boneId;
                 weights[i] = weight;
 
-//                if(weight != 1.0) System.out.println("%s %s".formatted(boneId, weight));
                 return;
             }
         }

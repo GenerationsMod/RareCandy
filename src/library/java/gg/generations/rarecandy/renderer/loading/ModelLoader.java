@@ -8,7 +8,6 @@ import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
-import gg.generations.rarecandy.pokeutils.tracn.TRACNT;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.*;

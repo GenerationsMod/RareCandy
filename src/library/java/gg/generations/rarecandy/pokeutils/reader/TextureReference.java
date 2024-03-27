@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.pokeutils.reader;
 
-import com.thebombzen.jxlatte.JXLDecoder;
-import com.thebombzen.jxlatte.JXLOptions;
+import com.traneptora.jxlatte.JXLDecoder;
+import com.traneptora.jxlatte.JXLOptions;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;

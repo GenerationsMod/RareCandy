@@ -11,6 +11,7 @@ import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
 import org.jetbrains.annotations.NotNull;
@@ -167,7 +168,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         time = (System.currentTimeMillis() - startTime) / 1000f;
 
-        renderer.render(false, time);
+        renderer.render(false, time, RenderStage.SOLID);
+        renderer.render(false, time, RenderStage.TRANSPARENT);
         swapBuffers();
 
         if (instances.size() > 1) {
@@ -207,6 +209,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, glCalls, supplier);
+                    object.objects.forEach(t -> glCalls.add(t.model::upload));
+
                     return glCalls;
                 },
                 onFinish

@@ -2,12 +2,14 @@ package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 /**
@@ -17,7 +19,7 @@ import java.util.function.Consumer;
  */
 public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
-    public final List<T> objects = new ArrayList<>();
+    public final List<T> objects = new CopyOnWriteArrayList<>();
     private final List<Consumer<T>> queue = new ArrayList<>();
     private final boolean smartRender = false;
     public final Vector3f dimensions = new Vector3f();
@@ -88,8 +90,12 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public <V extends RenderObject> void render(List<ObjectInstance> instances, V obj) {
-        this.objects.stream().filter(Objects::nonNull).forEach(object -> object.render(instances, object));
+    public <V extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances, V obj) {
+        for (T object : this.objects) {
+            if (object != null && object.isReady()) {
+                object.render(stage, instances, object);
+            }
+        }
     }
 
     public void updateDimensions() {

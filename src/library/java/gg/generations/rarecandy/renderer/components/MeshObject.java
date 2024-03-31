@@ -1,9 +1,11 @@
 package gg.generations.rarecandy.renderer.components;
 
+import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.joml.Vector2f;
 
 import java.io.IOException;
@@ -27,7 +29,7 @@ public class MeshObject extends RenderObject {
         this.ready = true;
     }
 
-    public <T extends RenderObject> void render(List<ObjectInstance> instances, T object) {
+    public <T extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances, T object) {
         Map<Material, List<Consumer<Pipeline>>> map = new HashMap<>();
 
         for (var instance : instances) {
@@ -36,6 +38,8 @@ public class MeshObject extends RenderObject {
             }
 
             var material = object.getMaterial(instance.variant());
+
+            if(stage == RenderStage.SOLID && material.blendType() != BlendType.None || stage == RenderStage.TRANSPARENT && material.blendType() == BlendType.None) return;
 
             map.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
                 pipeline.updateOtherUniforms(instance, object);

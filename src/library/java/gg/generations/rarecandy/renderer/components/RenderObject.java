@@ -3,6 +3,7 @@ package gg.generations.rarecandy.renderer.components;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -23,8 +24,8 @@ public abstract class RenderObject implements Closeable {
     protected List<String> shouldRenderList;
     protected Map<String, Vector2f> offsets;
 
-    public void render(List<ObjectInstance> instances) {
-        render(instances, this);
+    public void render(RenderStage stage, List<ObjectInstance> instances) {
+        render(stage, instances, this);
     }
 
     public void update() {
@@ -59,7 +60,7 @@ public abstract class RenderObject implements Closeable {
         return offsets != null ? offsets.getOrDefault(variant, AnimationController.NO_UV_OFFSET) : AnimationController.NO_UV_OFFSET;
     }
 
-    protected abstract <T extends RenderObject> void render(List<ObjectInstance> instances, T object);
+    protected abstract <T extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances, T object);
 
     protected boolean shouldRender(ObjectInstance instance) {
         return shouldRenderList != null && shouldRenderList.contains(instance.variant()); //TODO: check if correct.

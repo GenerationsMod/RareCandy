@@ -41,6 +41,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.lwjgl.opengl.GL30C.*;
 
@@ -230,11 +231,13 @@ public class ModelLoader {
         var offsetMap = reverseMap(variantOffsetMap);
 
 
-        objects.dimensions.set(calculateDimensions(meshes));
+//        objects.dimensions.set(calculateDimensions(meshes));
 
+        Stream.of(meshes).flatMap(a -> a.positions().stream()).forEach(objects.dimensions::max);
         for (var meshModel : meshes) {
             processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
         }
+
 
         var transform = new Matrix4f();
 
@@ -336,7 +339,7 @@ public class ModelLoader {
         var list = hiddenMap.get(name);
         var offset = offsetMap.get(name);
 
-        var glModel = processPrimitiveModel(mesh, skeleton, glCalls);
+        var glModel = processPrimitiveModel(mesh, skeleton);
         var renderObject = objSupplier.get();
 
         if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
@@ -348,7 +351,7 @@ public class ModelLoader {
         objects.add(renderObject);
     }
 
-    private static GLModel processPrimitiveModel(Mesh mesh, Skeleton skeleton, List<Runnable> glCalls) {
+    private static GLModel processPrimitiveModel(Mesh mesh, Skeleton skeleton) {
         var model = new GLModel();
 
         var length = calculateVertexSize(ATTRIBUTES);
@@ -412,20 +415,14 @@ public class ModelLoader {
         }
 
         vertexBuffer.flip();
+        model.vertexBuffer = vertexBuffer;
 
         var indexBuffer = MemoryUtil.memAlloc(mesh.indices().size() * 4);
         indexBuffer.asIntBuffer().put(mesh.indices().stream().mapToInt(a -> a).toArray()).flip();
 
-        glCalls.add(() -> {
-            model.vao = generateVao(vertexBuffer, ATTRIBUTES);
-            GL30.glBindVertexArray(model.vao);
+        model.indexBuffer = indexBuffer;
+        model.indexSize = mesh.indices().size();
 
-            model.ebo = GL15.glGenBuffers();
-            GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
-            GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
-
-            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES,  GL_UNSIGNED_INT, model.ebo, mesh.indices().size()));
-        });
         return model;
     }
 

@@ -31,6 +31,7 @@ public class ObjectManager {
     public void render(RenderStage stage) {
         for (var entry : objects.entrySet()) {
             var object = entry.getKey();
+            if (object == null) continue;
 
             if (object.isReady()) {
                 object.update();

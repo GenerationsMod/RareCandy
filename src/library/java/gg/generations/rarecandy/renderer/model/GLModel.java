@@ -18,7 +18,6 @@ import static org.lwjgl.opengl.GL11C.GL_SHORT;
 import static org.lwjgl.opengl.GL11C.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11C.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11C.GL_UNSIGNED_SHORT;
-import static org.lwjgl.opengl.GL15C.*;
 import static org.lwjgl.opengl.GL15C.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
@@ -77,9 +76,10 @@ public class GLModel implements Closeable {
         GL30.glBindVertexArray(vao);
 
         ebo = GL15.glGenBuffers();
-        GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);
-        GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
-        GL30C.glBindVertexArray(0);
+        glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
         meshDrawCommands.add(new MeshDrawCommand(vao, GL11.GL_TRIANGLES, GL_UNSIGNED_INT, ebo, indexSize));
         uploaded = true;
     }
@@ -117,6 +117,7 @@ public class GLModel implements Closeable {
             attribPtr += calculateAttributeSize(attrib);
         }
 
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
 
         return vao;

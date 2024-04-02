@@ -36,6 +36,7 @@ public class GLModel implements Closeable {
     public ByteBuffer indexBuffer;
 
     public int indexSize;
+    private int vbo = -1;
 
     public void runDrawCalls() {
         for (var drawCommand : meshDrawCommands) {
@@ -67,12 +68,16 @@ public class GLModel implements Closeable {
             GL30.glDeleteBuffers(ebo);
             ebo = -1;
         }
+        if(vbo > -1) {
+            GL30.glDeleteBuffers(vbo);
+            vbo = -1;
+        }
         uploaded = false;
     }
     public void upload() {
         if (uploaded) return;
 
-        vao = generateVao(vertexBuffer, DEFAULT_ATTRIBUTES);
+        generateVao(this, vertexBuffer, DEFAULT_ATTRIBUTES);
         GL30.glBindVertexArray(vao);
 
         ebo = GL15.glGenBuffers();
@@ -90,17 +95,17 @@ public class GLModel implements Closeable {
         }
     }
 
-    public static int generateVao(ByteBuffer vertexBuffer, List<Attribute> layout) {
-        var vao = glGenVertexArrays();
+    public static void generateVao(GLModel model, ByteBuffer vertexBuffer, List<Attribute> layout) {
+        model.vao = glGenVertexArrays();
 
-        glBindVertexArray(vao);
+        glBindVertexArray(model.vao);
         var stride = calculateVertexSize(layout);
         var attribPtr = 0;
 
         // I hate openGL. why cant I keep the vertex data and vertex layout separate :(
-        var vbo = glGenBuffers();
+        model.vbo = glGenBuffers();
 
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
         glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
 
         for (int i = 0; i < layout.size(); i++) {
@@ -119,8 +124,6 @@ public class GLModel implements Closeable {
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-
-        return vao;
     }
 
     public static int calculateVertexSize(List<Attribute> layout) {

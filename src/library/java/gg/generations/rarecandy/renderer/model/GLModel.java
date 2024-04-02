@@ -2,10 +2,7 @@ package gg.generations.rarecandy.renderer.model;
 
 import gg.generations.rarecandy.renderer.loading.Attribute;
 import org.joml.Vector3f;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL15C;
-import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.*;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -63,8 +60,14 @@ public class GLModel implements Closeable {
 
     @Override
     public void close() {
-        if(vao > -1) GL30.glDeleteVertexArrays(vao);
-        if(ebo > -1) GL30.glDeleteBuffers(ebo);
+        if(vao > -1) {
+            GL30.glDeleteVertexArrays(vao);
+            vao = -1;
+        }
+        if(ebo > -1) {
+            GL30.glDeleteBuffers(ebo);
+            ebo = -1;
+        }
         uploaded = false;
     }
     public void upload() {
@@ -76,11 +79,13 @@ public class GLModel implements Closeable {
         ebo = GL15.glGenBuffers();
         GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);
         GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
+        GL30C.glBindVertexArray(0);
         meshDrawCommands.add(new MeshDrawCommand(vao, GL11.GL_TRIANGLES, GL_UNSIGNED_INT, ebo, indexSize));
+        uploaded = true;
     }
 
     public void removeFromGpu() {
-        if(!uploaded) {
+        if(uploaded) {
             close();
         }
     }

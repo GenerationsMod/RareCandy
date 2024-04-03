@@ -31,7 +31,7 @@ public class SmdUtils {
         return fillAnimationNodesSmdx(animation, skeleton, skeletonBlock, nodesMap);
     }
 
-    private static Animation.AnimationNode[] fillAnimationNodesSmdx(Animation animation, Skeleton skeleton, @NotNull List<SkeletonBlock.Keyframe> keyframes, Map<Integer, String> nodeMap) {
+    private static Animation.AnimationNode[] fillAnimationNodesSmdx(Animation animation, /*Skeleton skeleton, */@NotNull List<SkeletonBlock.Keyframe> keyframes, Map<Integer, String> nodeMap) {
         var nodes = new HashMap<String, List<SmdBoneStateKey>>();
 
         for (var keyframe : keyframes) {
@@ -39,14 +39,15 @@ public class SmdUtils {
             var states = keyframe.states;
 
             for (var boneState : states) {
-                if (boneState.bone < skeleton.bones.length - 1) {
+//TODO: Trust the smd.
+//                if (boneState.bone < skeleton.bones.length - 1) {
                     var id = nodeMap.get(boneState.bone);
                     var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
 
                     var pos = id.equals("origin") ? new Vector3f() : new Vector3f(boneState.posX, boneState.posY, boneState.posZ);
 
                     list.add(new SmdBoneStateKey(time, pos, new Quaternionf().rotateZYX(boneState.rotZ, boneState.rotY, boneState.rotX)));
-                }
+//                }
             }
 
             nodes.forEach((k, v) -> v.sort(Comparator.comparingInt(SmdBoneStateKey::time)));
@@ -76,6 +77,12 @@ public class SmdUtils {
         animationNode.scaleKeys.add(0, new Vector3f(1, 1, 1));
 
         return animationNode;
+    }
+
+    public static void process(ModelLoader.AnimationData data, String name, SMDFile value) {
+        data.animationNames().add(name);
+        data.animationNodeMap().putIfAbsent(name, (animation, skeleton) -> SmdUtils.getNode(animation, skeleton, value));
+        data.fpsMap().putIfAbsent(name, 30);
     }
 
     public record SmdBoneStateKey(int time, Vector3f pos, Quaternionf rot) {

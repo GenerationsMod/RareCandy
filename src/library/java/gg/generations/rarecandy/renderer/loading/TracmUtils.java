@@ -65,4 +65,11 @@ public class TracmUtils {
 
         return storage;
     }
+
+    public static void process(ModelLoader.AnimationData data, String name, TRACM tracm) {
+        data.animationNames().add(name);
+
+        data.offsetsMap().putIfAbsent(name, TracmUtils.getOffsets(tracm));
+        data.fpsMap().putIfAbsent(name, (int) tracm.config().framerate());
+    }
 }

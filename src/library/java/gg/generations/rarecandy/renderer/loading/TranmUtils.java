@@ -66,13 +66,9 @@ public class TranmUtils {
         }
     }
 
-    public static long getFps(Pair<TRANMT, TRACM> rawAnimation) {
-        if(rawAnimation.a() != null) {
-            return rawAnimation.a().getInfo().getAnimationRate();
-        } else if(rawAnimation.b() != null) {
-            return rawAnimation.b().config().framerate();
-        } else {
-            return 0L;
-        }
+    public static void process(ModelLoader.AnimationData data, String name, TRANMT tranm) {
+        data.animationNames().add(name);
+        data.animationNodeMap().putIfAbsent(name, (animation, skeleton) -> TranmUtils.getNodes(animation, skeleton, tranm));
+        data.fpsMap().putIfAbsent(name, (int) tranm.getInfo().getAnimationRate());
     }
 }

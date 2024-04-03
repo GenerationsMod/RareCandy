@@ -37,7 +37,7 @@ public class Animation {
         this.name = name;
         this.ticksPerSecond = ticksPerSecond;
         this.skeleton = skeleton;
-        this.animationNodes = animationNodes.getNode(this, skeleton);
+        this.animationNodes = animationNodes.getNode(this/*, skeleton*/);
         this.offsets = offsets;
         this.animationDuration = findLastKeyTime();
         this.ignoreScaling = ignoreScaling;

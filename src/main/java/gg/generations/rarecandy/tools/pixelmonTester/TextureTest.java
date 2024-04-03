@@ -14,7 +14,7 @@ public class TextureTest {
     public static void main(String[] args) throws IOException {
         var path = Path.of("D:\\Git Repos\\RareCandy\\run\\converter\\in\\alcremie\\toppings.png");
 
-        displayImage(TextureReference.read(Files.readAllBytes(path), path.getFileName().toString(), true));
+        displayImage(TextureReference.read(Files.readAllBytes(path), path.getFileName().toString()));
     }
 
     public static void displayImage(TextureReference reference) {

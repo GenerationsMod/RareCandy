@@ -67,4 +67,19 @@ public class GfbanmUtils {
         }
         return animationNodes;
     }
+
+    public static void process(ModelLoader.AnimationData data, String name, AnimationT gfbAnim) {
+        if(gfbAnim.getMaterial() != null || gfbAnim.getSkeleton() != null) {
+            data.animationNames().add(name);
+            data.fpsMap().put(name, (int) gfbAnim.getInfo().getFrameRate());
+
+            if(gfbAnim.getSkeleton() != null) {
+                data.animationNodeMap().put(name, (animation, skeleton) -> GfbanmUtils.getNodes(animation, skeleton, gfbAnim));
+            }
+
+            if(gfbAnim.getMaterial() != null) {
+                data.offsetsMap().put(name, GfbanmUtils.getOffsets(gfbAnim));
+            }
+        }
+    }
 }

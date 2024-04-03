@@ -9,43 +9,47 @@ import org.lwjgl.assimp.AIMesh;
 import org.lwjgl.assimp.AIScene;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
 
-public record Mesh(
-        String name,
-        int material,
-        List<Integer> indices,
-        List<Vector3f> positions,
-        List<Vector2f> uvs,
-        List<Vector3f> normals,
-        List<Bone> bones
+public record Model(
+        String[] names,
+        int[] offsets,
+        List<Vertex> vertices,
+        List<Integer> indices
 ) {
 
-    public static Mesh[] readMeshData(Skeleton skeleton, AIScene scene) {
-        var meshes = new Mesh[scene.mNumMeshes()];
+    public record Vertex(Vector3f vector3f, Vector2f vector2f, Vector3f f, VertexBoneData vertexBoneData) {
+    }
+
+
+    public static Model readMeshData(Skeleton skeleton, AIScene scene) {
+        var meshes = new Model[scene.mNumMeshes()];
+
+        var names = new String[scene.mNumMeshes()];
+        var offsets = new int[scene.mNumMeshes()];
+
+        var vertices = new ArrayList<Vertex>();
+        var indices = new ArrayList<Integer>();
+
+        var index = 0;
 
         for (int i = 0; i < scene.mNumMeshes(); i++) {
 
             var mesh = AIMesh.create(scene.mMeshes().get(i));
-            var name = mesh.mName().dataString();
+            names[i] = mesh.mName().dataString();
+            offsets[i] = index;
             var material = mesh.mMaterialIndex();
-            var indices = new ArrayList<Integer>();
+
+            var vertexMap = new ArrayList<Integer>();
+
             var positions = new ArrayList<Vector3f>();
             var uvs = new ArrayList<Vector2f>();
             var normals = new ArrayList<Vector3f>();
             var bones = new ArrayList<Bone>();
-
-            // Indices
-            var aiFaces = mesh.mFaces();
-
-            for (int j = 0; j < mesh.mNumFaces(); j++) {
-                var aiFace = aiFaces.get(j);
-                indices.add(aiFace.mIndices().get(0));
-                indices.add(aiFace.mIndices().get(1));
-                indices.add(aiFace.mIndices().get(2));
-            }
 
             // Positions
             var aiVert = mesh.mVertices();
@@ -70,6 +74,29 @@ public record Mesh(
                     normals.add(new Vector3f(aiNormals.get(j).x(), aiNormals.get(j).y(), aiNormals.get(j).z()));
             }
 
+            for (int j = 0; j < positions.size(); j++) {
+                var vertex = new Vertex(positions.get(j), uvs.get(j), normals.get(j), new VertexBoneData());
+
+                var vertexId = vertices.indexOf(vertex);
+
+                if(vertexId == -1) {
+                    vertexId = vertices.size();
+                    vertices.add(vertex);
+                }
+
+                vertexMap.add(vertexId);
+            }
+
+            var aiFaces = mesh.mFaces();
+            for (int j = 0; j < mesh.mNumFaces(); j++) {
+                var aiFace = aiFaces.get(j);
+                indices.add(vertexMap.get(aiFace.mIndices().get(0)));
+                indices.add(vertexMap.get(aiFace.mIndices().get(1)));
+                indices.add(vertexMap.get(aiFace.mIndices().get(2)));
+
+            }
+
+
             // Bones
             if (mesh.mBones() != null) {
                 var aiBones = requireNonNull(mesh.mBones());
@@ -81,16 +108,28 @@ public record Mesh(
                     var bone = Bone.from(aiBone);
 
 
-
                     bones.add(bone);
                 }
             }
 
             skeleton.store(bones.toArray(Bone[]::new));
-            meshes[i] = new Mesh(name, material, indices, positions, uvs, normals, bones);
+
+            bones.forEach(bone -> {
+                var boneId = skeleton.getId(bone);
+
+                for(var weight : bone.weights) {
+                    if(weight.weight == 0.0) return;
+                    else {
+                        vertices.get(vertexMap.get(weight.vertexId)).vertexBoneData().addBoneData(boneId, weight.weight);
+                    }
+                }
+            });
+
+
+//            meshes[i] = new Mesh(name, material, indices, positions, uvs, normals, bones);
         }
 
         skeleton.calculateBoneData();
-        return meshes;
+        return new Model(names, offsets, vertices, indices);
     }
 }

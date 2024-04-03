@@ -79,7 +79,7 @@ public class PokemonTest {
 
     protected <T extends MeshObject> void load(RareCandy renderer, Supplier<PixelAsset> asset, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
-        loader.createObject(
+        loader.createObjectThreaded(
                 asset,
                 (gltfModel, smdFileMap, gfbFileMap, tranmFilesMaps, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();

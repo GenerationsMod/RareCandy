@@ -16,7 +16,7 @@ import java.util.Objects;
 
 public record TextureReference(BufferedImage data, String name) {
 
-    public static TextureReference read(byte[] imageBytes, String name, boolean isGlb) throws IOException {
+    public static TextureReference read(byte[] imageBytes, String name) throws IOException {
         BufferedImage pixelData;
         BufferedImage temp;
 

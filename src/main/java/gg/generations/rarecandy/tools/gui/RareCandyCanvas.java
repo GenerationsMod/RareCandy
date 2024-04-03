@@ -204,7 +204,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         var loader = renderer.getLoader();
-        loader.createObject(
+        loader.createObjectThreaded(
                 () -> is,
                 (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
@@ -214,7 +214,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
                     return glCalls;
                 },
                 onFinish
-        );
+        ).thenAccept(onFinish);
     }
 
     public void setAnimation(@NotNull String animation) {

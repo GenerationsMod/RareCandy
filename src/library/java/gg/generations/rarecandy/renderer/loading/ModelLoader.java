@@ -17,7 +17,6 @@ import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.GlCallSupplier;
-import gg.generations.rarecandy.renderer.model.MeshDrawCommand;
 import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
@@ -34,9 +33,7 @@ import org.lwjgl.system.MemoryUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -56,8 +53,8 @@ public class ModelLoader {
         Animation.AnimationNode[] getNode(Animation animation, Skeleton skeleton);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, PixelAsset gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
-        create2(objects, gltfModel, smdFileMap, gfbFileMap, trFilesMap, images, config, glCalls, supplier, Animation.GLB_SPEED);
+    public static <T extends MeshObject> void create2(PixelAsset gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
+        return create2(gltfModel, smdFileMap, gfbFileMap, trFilesMap, images, config, glCalls, supplier, Animation.GLB_SPEED);
     }
 
     private static List<Attribute> ATTRIBUTES = List.of(
@@ -68,15 +65,36 @@ public class ModelLoader {
             Attribute.BONE_WEIGHTS
     );
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, PixelAsset asset, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
+    public record AnimationData(
+            Map<String, NodeProvider> animationNodeMap,
+    Map<String, Integer> fpsMap,
+    Map<String, Map<String, Animation.Offset>> offsetsMap,
+
+    Set<String> animationNames
+    ) {
+        public Map<String, Animation> process(Skeleton skeleton, ModelConfig config) {
+            var animations = new HashMap<String, Animation>();
+            for (var name : animationNames) {
+                var fps = fpsMap.get(name);
+                fps = config.animationFpsOverride != null && config.animationFpsOverride.containsKey(name) ? config.animationFpsOverride.get(name) : fps;
+
+                var offsets = offsetsMap.getOrDefault(name, new HashMap<>());
+                offsets.forEach((trackName, offset) -> config.getMaterialsForAnimation(trackName).forEach(a -> offsets.put(a, offset)));
+
+                var nodes = animationNodeMap.getOrDefault(name, (animation, skeleton14) -> null);
+                var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
+
+                animations.put(name, new Animation(name, fps, skeleton, nodes, offsets, ignoreScaling));
+            }
+
+            return animations;
+        }
+    }
+
+    public static <T extends MeshObject> CompletableFuture<MultiRenderObject<T>> create2(PixelAsset asset, CompletableFuture<Map<String, SMDFile>> smdFileMap, CompletableFuture<Map<String, byte[]>> tracmMap, CompletableFuture<Map<String, byte[]>> tranmMap, CompletableFuture<Map<String, byte[]>> gfbanmMap, CompletableFuture<Map<String, String>> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
         if (config == null) throw new RuntimeException("config.json can't be null.");
-//        checkForRootTransformation(objects, gltfModel);
 
-        Map<String, NodeProvider> animationNodeMap = new HashMap<>();
-        Map<String, Integer> fpsMap = new HashMap<>();
-        Map<String, Map<String, Animation.Offset>> offsetsMap = new HashMap<>();
-
-        Set<String> animationNames = new HashSet<>();
+        var data = new AnimationData(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashSet<>());
 
         var gltfModel = ModelLoader.read(asset);
 
@@ -84,85 +102,56 @@ public class ModelLoader {
 
         Skeleton skeleton = new Skeleton(rootNode);
 
+
+        var animations = CompletableFuture.allOf(
+                tracmMap.thenAccept(trFilesMap -> {
+                    for (var entry : trFilesMap.entrySet()) {
+                        var name = entry.getKey();
+                        var tracm = TRACM.getRootAsTRACM(ByteBuffer.wrap(entry.getValue()));
+                        TracmUtils.process(data, name, tracm);
+                    }
+                }),
+                tranmMap.thenAccept(trFilesMap -> {
+                    for (var entry : trFilesMap.entrySet()) {
+                        var name = entry.getKey();
+                        var tranm = TRANMT.deserializeFromBinary(entry.getValue());
+                        TranmUtils.process(data, name, tranm);
+                    }
+                }),
+                gfbanmMap.thenAccept(trFilesMap -> {
+                    for (var entry : trFilesMap.entrySet()) {
+                        var name = entry.getKey();
+                        var gfbAnim = AnimationT.deserializeFromBinary(entry.getValue());
+                        GfbanmUtils.process(data, name, gfbAnim);
+                    }
+                }),
+                smdFileMap.thenAccept(trFilesMap -> {
+                    for (var entry : trFilesMap.entrySet()) {
+                        var name = entry.getKey();
+                        SmdUtils.process(data, name, entry.getValue());
+                    }
+                })).thenApplyAsync(ignored -> data.process(skeleton, config));
+
+        var variants = images.thenApplyAsync(map -> createVariants(config, map));
+
+//        objects.dimensions.set(calculateDimensions(meshes));
+
         var meshes = Mesh.readMeshData(skeleton, gltfModel);
-
-//        if (!gltfModel.getSkinModels().isEmpty()) {
-//            skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
-//            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(animationModel.getName(), 30) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
-
-//        var pairalreadycreated;
-
-        for (var entry : trFilesMap.entrySet()) {
-            var name = entry.getKey();
-            var tranm = entry.getValue().a() != null ? TRANMT.deserializeFromBinary(entry.getValue().a()) : null;
-            var tracm = entry.getValue().b() != null ? TRACM.getRootAsTRACM(ByteBuffer.wrap(entry.getValue().b())) : null;
-
-            if(tranm != null || tracm != null) {
-                animationNames.add(name);
-                if (tranm != null) {
-                    animationNodeMap.putIfAbsent(name, (animation, skeleton1) -> TranmUtils.getNodes(animation, skeleton1, tranm));
-                    fpsMap.putIfAbsent(name, (int) tranm.getInfo().getAnimationRate());
-                }
-
-                if (tracm != null) {
-                    offsetsMap.putIfAbsent(name, TracmUtils.getOffsets(tracm));
-                    fpsMap.putIfAbsent(name, (int) tracm.config().framerate());
-                }
-            }
+        Stream.of(meshes).flatMap(a -> a.positions().stream()).forEach(objects.dimensions::max);
+        for (var meshModel : meshes) {
+            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, offsetMap, glCalls, skeleton, animations, config.hideDuringAnimation != null ? config.hideDuringAnimation : new HashMap<String, ModelConfig.HideDuringAnimation>());
         }
 
-        for (var entry : gfbFileMap.entrySet()) {
-            var name = entry.getKey();
 
-            try {
-                var gfbAnim = AnimationT.deserializeFromBinary(entry.getValue());
+        var transform = new Matrix4f();
 
-                if(gfbAnim.getMaterial() != null || gfbAnim.getSkeleton() != null) {
-                    animationNames.add(name);
-                    fpsMap.put(name, (int) gfbAnim.getInfo().getFrameRate());
+        traverseTree(transform, rootNode, objects);
 
-                    if(gfbAnim.getSkeleton() != null) {
-                        animationNodeMap.put(name, (animation, skeleton13) -> GfbanmUtils.getNodes(animation, skeleton13, gfbAnim));
-                    }
+        Assimp.aiReleaseImport(gltfModel);
 
-                    if(gfbAnim.getMaterial() != null) {
-                        offsetsMap.put(name, GfbanmUtils.getOffsets(gfbAnim));
-                    }
-                }
-            } catch (Exception e) {
-                System.out.println("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
-                e.printStackTrace();
-            }
-        }
+    }
 
-        for (var entry : smdFileMap.entrySet()) {
-            var key = entry.getKey();
-            var value = entry.getValue();
-
-            if(value != null) {
-                animationNames.add(key);
-                animationNodeMap.putIfAbsent(key, (NodeProvider) (animation, skeleton12) -> SmdUtils.getNode(animation, skeleton12, value));
-                fpsMap.putIfAbsent(key, 30);
-            }
-        }
-
-        Map<String, Animation> animations = new HashMap<>();
-
-        for(var name : animationNames) {
-            var fps = fpsMap.get(name);
-            fps = config.animationFpsOverride != null && config.animationFpsOverride.containsKey(name) ? config.animationFpsOverride.get(name) : fps;
-
-            var offsets = offsetsMap.getOrDefault(name, new HashMap<>());
-            offsets.forEach((trackName, offset) -> config.getMaterialsForAnimation(trackName).forEach(a -> offsets.put(a, offset)));
-
-            var nodes = animationNodeMap.getOrDefault(name, (animation, skeleton14) -> null);
-            var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
-
-            animations.put(name, new Animation(name, fps, skeleton, nodes, offsets, ignoreScaling));
-        }
-
-        Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation = new HashMap<>();
-
+    private static Map<String, Map<String, Variant>> createVariants(ModelConfig config, Map<String, String> images) {
         var materials = new HashMap<String, Material>();
 
         config.materials.forEach((k, v) -> {
@@ -170,6 +159,7 @@ public class ModelLoader {
 
             materials.put(k, material);
         });
+
 
         var defaultVariant = new HashMap<String, Variant>();
         config.defaultVariant.forEach((k, v) -> {
@@ -181,10 +171,7 @@ public class ModelLoader {
         var variantHideMap = new HashMap<String, List<String>>();
         var variantOffsetMap = new HashMap<String, Map<String, Vector2f>>();
 
-
-        if(config.hideDuringAnimation != null) {
-            hideDuringAnimation = config.hideDuringAnimation;
-        }
+        var variants = new HashMap<String, Map<String, Variant>>();
 
         if(config.variants != null) {
             for (Map.Entry<String, VariantParent> entry : config.variants.entrySet()) {
@@ -196,55 +183,29 @@ public class ModelLoader {
                 var map = variantParent.details();
 
                 while (child != null) {
-                     var details = child.details();
+                    var details = child.details();
 
-                     applyVariantDetails(details, map);
+                    applyVariantDetails(details, map);
 
                     child = config.variants.get(child.inherits());
                 }
 
                 applyVariantDetails(config.defaultVariant, map);
 
-                var matMap = variantMaterialMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
-                var hideMap = variantHideMap.computeIfAbsent(variantKey, s3 -> new ArrayList<>());
-                var offsetMap = variantOffsetMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
+                var variantSet = variants.computeIfAbsent(variantKey, s -> new HashMap<>());
 
-
-                applyVariant(materials, matMap, hideMap, offsetMap, map);
+                map.forEach((k, v) -> variantSet.put(k, v.process(materials)));
             }
         } else {
-            var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
-            var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
-            var offsetMap = variantOffsetMap.computeIfAbsent("regular", s3 -> new HashMap<>());
-
-
-            defaultVariant.forEach((s1, variant) -> {
-                matMap.put(s1, variant.material());
-                if (variant.hide()) hideMap.add(s1);
-                if (variant.offset() != null) offsetMap.put(s1, variant.offset());
-
-            });
+            variants.computeIfAbsent("regular", s3 -> new HashMap<>()).putAll(defaultVariant);
         }
 
-        var matMap = reverseMap(variantMaterialMap);
-        var hidMap = reverseListMap(variantHideMap);
-        var offsetMap = reverseMap(variantOffsetMap);
+//        var matMap = reverseMap(variantMaterialMap);
+//        var hidMap = reverseListMap(variantHideMap);
+//        var offsetMap = reverseMap(variantOffsetMap);
 
 
-//        objects.dimensions.set(calculateDimensions(meshes));
-
-        Stream.of(meshes).flatMap(a -> a.positions().stream()).forEach(objects.dimensions::max);
-        for (var meshModel : meshes) {
-            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
-        }
-
-
-        var transform = new Matrix4f();
-
-        traverseTree(transform, rootNode, objects);
-
-        Assimp.aiReleaseImport(gltfModel);
-
+        return reverseMap(variants);
     }
 
     private static <T extends MeshObject> void traverseTree(Matrix4f transform, ModelNode node, MultiRenderObject<T> objects) {
@@ -268,12 +229,8 @@ public class ModelLoader {
         }
     }
 
-    private static void applyVariant(Map<String, Material> materials, Map<String, Material> matMap, List<String> hideMap, Map<String, Vector2f> offsetMap, Map<String, VariantDetails> variantMap) {
-        variantMap.forEach((k, v) -> {
-            matMap.put(k, materials.get(v.material()));
-            if (v.hide() != null && v.hide()) hideMap.add(k);
-            if (v.offset() != null) offsetMap.put(k, v.offset());
-        });
+    private static void applyVariant(Map<String, Material> materials, Map<String, Variant> variants, Map<String, VariantDetails> variantMap) {
+        variantMap.forEach((k, v) -> variants.put(k, v.process(materials)));
     }
 
     public static Vector3f calculateDimensions(Mesh[] meshes) {
@@ -332,7 +289,15 @@ public class ModelLoader {
 //        }
 //    }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, Mesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Vector2f>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
+    private static <T extends MeshObject> void processPrimitiveModels(
+            MultiRenderObject<T> objects,
+            Supplier<T> objSupplier,
+            Mesh mesh,
+            Map<String, Map<String, Material>> materialMap,
+            Map<String, List<String>> hiddenMap,
+            Map<String, Map<String, Vector2f>> offsetMap,
+            List<Runnable> glCalls,
+            @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
         var name = mesh.name();
 
         var map = materialMap.get(name);
@@ -351,11 +316,11 @@ public class ModelLoader {
         objects.add(renderObject);
     }
 
-    private static GLModel processPrimitiveModel(Mesh mesh, Skeleton skeleton) {
+    private static GLModel processPrimitiveModel(Model mesh, Skeleton skeleton) {
         var model = new GLModel();
 
         var length = calculateVertexSize(ATTRIBUTES);
-        var amount = mesh.positions().size();
+        var amount = mesh.vertices().size();
 
         var vertexBuffer = MemoryUtil.memAlloc(length * amount);
 
@@ -373,7 +338,7 @@ public class ModelLoader {
             }
         });
 
-        var isEmpty = bones.stream().allMatch(VertexBoneData::isEmpty);
+        var isEmpty = mesh.vertices().stream().map(Model.Vertex::vertexBoneData).allMatch(VertexBoneData::isEmpty);
 
         for (int i = 0; i < amount; i++) {
 
@@ -512,13 +477,10 @@ public class ModelLoader {
         }
     }
 
-    public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
-        var obj = new MultiRenderObject<T>();
-        var task = threadedCreateObject(obj, is, objectCreator, onFinish);
-        if (RareCandy.DEBUG_THREADS) task.run();
-        else modelLoadingPool.submit(task);
-        return obj;
+    public <T extends RenderObject> CompletableFuture<MultiRenderObject<T>> createObjectThreaded(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
+        return threadedCreateObject(is, objectCreator, onFinish, modelLoadingPool);
     }
+
 
     public MultiRenderObject<MeshObject> generatePlane(float width, float length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
         var pair = PlaneGenerator.generatePlane(width, length);
@@ -536,91 +498,133 @@ public class ModelLoader {
         return pair.b();
     }
 
-    private <T extends RenderObject> Runnable threadedCreateObject(MultiRenderObject<T> obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
-        return ThreadSafety.wrapException(() -> {
-            var asset = is.get();
-            var config = asset.getConfig();
+    private <T extends RenderObject> CompletableFuture<MultiRenderObject<T>> threadedCreateObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish, ExecutorService service) {
+        var asset = is.get();
+        if(asset.getModelFile() == null) return CompletableFuture.completedFuture(null);
+        var config = asset.getConfig();
 
-            var images = readImages(asset);
+        var images = readImages(asset, service);
+        var smdAnims = readSmdAnimations(asset, service);
+        var gfbAnims = readAnimations(asset, "gfbanm", service);
+        var tracms = readAnimations(asset, "tracm", service);
+        var tranms = readAnimations(asset, "tranm", service);
 
-            if(asset.getModelFile() == null) return;
+        ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, glCalls, supplier);
 
+
+        return CompletableFuture.allOf(images, smdAnims, gfbAnims, trAnims).thenApplyAsync(unused -> {
+            try {
+                var obj = new MultiRenderObject<T>();
+                return new Pair<>(obj, objectCreator.getCalls(asset, smdAnims.get(), gfbAnims.get(), trAnims.get(), images.get(), config, obj));
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }, service).thenApplyAsync(pair -> {
+            var obj = pair.a();
             if (config != null) obj.scale = config.scale;
-//            var model = read(asset);
-            var smdAnims = readSmdAnimations(asset);
-            var gfbAnims = readGfbAnimations(asset);
-            var trAnims = readtrAnimations(asset);
-            var glCalls = objectCreator.getCalls(asset, smdAnims, gfbAnims, trAnims, images, config, obj);
+
             ThreadSafety.runOnContextThread(() -> {
-                glCalls.forEach(Runnable::run);
+                pair.b().forEach(Runnable::run);
                 obj.updateDimensions();
                 if (onFinish != null) onFinish.accept(obj);
             });
-        });
+
+            return obj;
+        }, service);
     }
 
-    private Map<String, String> readImages(PixelAsset asset) {
+    private CompletableFuture<Map<String, String>> readImages(PixelAsset asset, ExecutorService service) {
         var images = asset.getImageFiles();
-        var map = new HashMap<String, String>();
+
+        var map = new HashMap<String,CompletableFuture<String>>();
+
         for (var entry : images) {
             var key = entry.getKey();
 
-            try {
+            var future1 = CompletableFuture.supplyAsync(entry::getValue, service).thenApplyAsync(a -> {
+                try {
+                    return TextureReference.read(a, key);
+                } catch (IOException e) {
+                    return null;
+                }
+            }, service).thenApplyAsync(reference -> {
                 var id = asset.name + "-" + key;
-                ITextureLoader.instance().register(id, TextureReference.read(entry.getValue(), key, true));
+                if(reference != null) ITextureLoader.instance().register(id, reference);
+                return id;
+            }, service);
 
-                map.put(key, id);
-            } catch (IOException e) {
-                System.out.print("Error couldn't load: " + key); //TODO: Logger solution.
-            }
+            map.put(key, future1);
+
+
+
+//            try {
+//                var id = asset.name + "-" + key;
+//                ITextureLoader.instance().register(id, TextureReference.read(entry.getValue(), key));
+//
+//                map.put(key, id);
+//            } catch (IOException e) {
+//                System.out.print("Error couldn't load: " + key); //TODO: Logger solution.
+//            }
         }
 
-        return map;
-    }
-
-    private Map<String, byte[]> readGfbAnimations(PixelAsset asset) {
-        return asset.files.entrySet().stream()
-                .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm"))
-                .collect(Collectors.toMap(this::cleanAnimName, Map.Entry::getValue));
-    }
-
-    private HashMap<String, Pair<byte[], byte[]>> readtrAnimations(PixelAsset asset) {
-        var map = new HashMap<String, Pair<byte[], byte[]>>();
-
-        var list = asset.files.keySet().stream().filter(a -> a.endsWith("tranm") || a.endsWith("tracm")).collect(Collectors.toCollection(ArrayList::new));
-
-        while (!list.isEmpty()) {
-            var a = list.remove(0);
-
-            if (a.endsWith(".tranm")) {
-                var index = list.indexOf(a.replace(".tranm", ".tracm"));
-
-                if (index != -1) {
-                    var b = list.remove(index);
-
-                    map.put(a.replace(".tranm", ""), new Pair<>(asset.files.get(a), asset.files.get(b)));
-                } else {
-                    map.put(a.replace(".tranm", ""), new Pair<>(asset.files.get(a), null));
+        return CompletableFuture.allOf(map.values().toArray(new CompletableFuture[0])).thenApplyAsync(ignored -> {
+            var resultMap = new HashMap<String, String>();
+            for (var entry : map.entrySet()) {
+                try {
+                    resultMap.put(entry.getKey(), entry.getValue().get());
+                } catch (Exception e) {
+                    // Handle exception if needed
                 }
-            } else {
-                if (a.endsWith(".tracm")) {
-                    var index = list.indexOf(a.replace(".tracm", ".tranm"));
+            }
 
+            return resultMap;
+        }, service);
+
+//        var map = new HashMap<String, String>();
+//        return map;
+    }
+
+
+    public CompletableFuture<Map<String, byte[]>> readAnimations(PixelAsset asset, String extension, ExecutorService service) {
+        return CompletableFuture.supplyAsync(() ->
+                asset.files.entrySet().stream()
+                        .filter(entry -> entry.getKey().endsWith(extension))
+                        .collect(Collectors.toMap(this::cleanAnimName, Map.Entry::getValue)), service);
+        );
+    }
+    public CompletableFuture<HashMap<String, Pair<byte[], byte[]>>> readtrAnimations(PixelAsset asset, ExecutorService service) {
+        return CompletableFuture.supplyAsync(() -> {
+            var map = new HashMap<String, Pair<byte[], byte[]>>();
+            var list = asset.files.keySet().stream()
+                    .filter(a -> a.endsWith("tranm") || a.endsWith("tracm"))
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            while (!list.isEmpty()) {
+                var a = list.remove(0);
+
+                if (a.endsWith(".tranm")) {
+                    var index = list.indexOf(a.replace(".tranm", ".tracm"));
                     if (index != -1) {
                         var b = list.remove(index);
-
-                        map.put(a.replace(".tracm", ""), new Pair<>(asset.files.get(b), asset.files.get(a)));
+                        map.put(a.replace(".tranm", ""), new Pair<>(asset.files.get(a), asset.files.get(b)));
                     } else {
-                        map.put(a.replace(".tracm", ""), new Pair<>(null, asset.files.get(a)));
+                        map.put(a.replace(".tranm", ""), new Pair<>(asset.files.get(a), null));
+                    }
+                } else {
+                    if (a.endsWith(".tracm")) {
+                        var index = list.indexOf(a.replace(".tracm", ".tranm"));
+                        if (index != -1) {
+                            var b = list.remove(index);
+                            map.put(a.replace(".tracm", ""), new Pair<>(asset.files.get(b), asset.files.get(a)));
+                        } else {
+                            map.put(a.replace(".tracm", ""), new Pair<>(null, asset.files.get(a)));
+                        }
                     }
                 }
             }
-
-        }
-
-        return map;
+            return map;
+        }, service);
     }
-
 
     public String cleanAnimName(Map.Entry<String, byte[]> entry) {
         var str = entry.getKey();
@@ -633,18 +637,32 @@ public class ModelLoader {
         return str.substring(substringStart, substringEnd);
     }
 
-    private Map<String, SMDFile> readSmdAnimations(PixelAsset pixelAsset) {
+    public CompletableFuture<Map<String, SMDFile>> readSmdAnimations(PixelAsset pixelAsset, ExecutorService service) {
         var files = pixelAsset.getAnimationFiles();
-        var map = new HashMap<String, SMDFile>();
+        var map = new HashMap<String, CompletableFuture<SMDFile>>();
         var reader = new SMDTextReader();
 
         for (var entry : files) {
-            var smdFile = reader.read(new String(entry.getValue()));
-            map.put(cleanAnimName(entry.getKey().replace(".smd", "")), smdFile);
+            var future = CompletableFuture.supplyAsync(entry::getValue, service).thenApplyAsync(String::new, service).thenApplyAsync(reader::read, service);
+
+            map.put(cleanAnimName(entry.getKey().replace(".smd", "")), future);
         }
 
-        return map;
+        // Combine all CompletableFutures into one CompletableFuture that completes when all of them are done
+        return CompletableFuture.allOf(map.values().toArray(new CompletableFuture[0]))
+                .thenApplyAsync(ignored -> {
+                    var resultMap = new HashMap<String, SMDFile>();
+                    for (var entry : map.entrySet()) {
+                        try {
+                            resultMap.put(entry.getKey(), entry.getValue().get());
+                        } catch (Exception e) {
+                            // Handle exception if needed
+                        }
+                    }
+                    return resultMap;
+                }, service);
     }
+
 
     public void close() {
         modelLoadingPool.shutdown();

@@ -9,6 +9,7 @@ import gg.generations.rarecandy.renderer.components.RenderObject;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @FunctionalInterface
 public interface GlCallSupplier<T extends RenderObject> {

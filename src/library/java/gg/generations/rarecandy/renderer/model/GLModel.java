@@ -28,7 +28,7 @@ public class GLModel implements Closeable {
 
     private boolean uploaded = false;
 
-    public int vao = -1;
+    public int vao;
 
     public Vector3f dimensions = new Vector3f();
     public int ebo = -1;
@@ -60,9 +60,9 @@ public class GLModel implements Closeable {
 
     @Override
     public void close() {
-        if(vao > -1) {
+        if(vao != -1) {
             GL30.glDeleteVertexArrays(vao);
-            vao = -1;
+            vao = 1;
         }
         if(ebo > -1) {
             GL30.glDeleteBuffers(ebo);
@@ -122,7 +122,7 @@ public class GLModel implements Closeable {
             attribPtr += calculateAttributeSize(attrib);
         }
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }
 

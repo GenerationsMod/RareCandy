@@ -326,18 +326,6 @@ public class ModelLoader {
 
         var bones = IntStream.range(0, amount).mapToObj(a -> new VertexBoneData()).toList();
 
-
-        mesh.bones().forEach(bone -> {
-            var boneId = skeleton.getId(bone);
-
-            for(var weight : bone.weights) {
-                if(weight.weight == 0.0) return;
-                else {
-                    bones.get(weight.vertexId).addBoneData(boneId, weight.weight);
-                }
-            }
-        });
-
         var isEmpty = mesh.vertices().stream().map(Model.Vertex::vertexBoneData).allMatch(VertexBoneData::isEmpty);
 
         for (int i = 0; i < amount; i++) {

@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Animation {
     public static final int FPS_60 = 1000;
@@ -38,6 +39,7 @@ public class Animation {
         this.ticksPerSecond = ticksPerSecond;
         this.skeleton = skeleton;
         this.animationNodes = animationNodes.getNode(this, skeleton);
+
         this.offsets = offsets;
         this.animationDuration = findLastKeyTime();
         this.ignoreScaling = ignoreScaling;
@@ -112,11 +114,11 @@ public class Animation {
         return boneTransforms;
     }
 
-    private static final float[] matrix = new float[16];
+    private static final Matrix4f matrix = new Matrix4f();
 
     public void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
         var name = node.name;
-        var nodeTransform = node.transform;
+        var nodeTransform = matrix.set(node.transform);
 
         var animationNodeId = nodeIdMap.getOrDefault(name, -1);
         var bone = skeleton.get(name);
@@ -130,8 +132,8 @@ public class Animation {
                 var translation = name.equalsIgnoreCase("origin") ? TRANSLATION : AnimationMath.calcInterpolatedPosition(animTime, animNode);
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
 
-                if (bone != null && this.isNaN(nodeTransform)) {
-                    bone.lastSuccessfulTransform = new Matrix4f(nodeTransform);
+                if (bone != null && !this.isNaN(nodeTransform)) {
+                    bone.lastSuccessfulTransform = nodeTransform.set(nodeTransform);
                 }
             }
         }

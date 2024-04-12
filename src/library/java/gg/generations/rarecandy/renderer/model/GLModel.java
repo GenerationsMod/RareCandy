@@ -73,6 +73,7 @@ public class GLModel implements Closeable {
             vbo = -1;
         }
         uploaded = false;
+        meshDrawCommands.clear();
     }
     public void upload() {
         if (uploaded) return;

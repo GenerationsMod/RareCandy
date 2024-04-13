@@ -132,9 +132,9 @@ public class Animation {
                 var translation = name.equalsIgnoreCase("origin") ? TRANSLATION : AnimationMath.calcInterpolatedPosition(animTime, animNode);
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
 
-                if (bone != null && !this.isNaN(nodeTransform)) {
-                    bone.lastSuccessfulTransform = nodeTransform.set(nodeTransform);
-                }
+//                if (bone != null && !this.isNaN(nodeTransform)) {
+//                    bone.lastSuccessfulTransform = nodeTransform.set(nodeTransform);
+//                }
             }
         }
 
@@ -142,9 +142,9 @@ public class Animation {
 
         if (bone != null) {
 
-            if (isNaN(globalTransform)) {
-                globalTransform = parentTransform.mul(bone.lastSuccessfulTransform, new Matrix4f());
-            }
+//            if (isNaN(globalTransform)) {
+//                globalTransform = parentTransform.mul(bone.lastSuccessfulTransform, new Matrix4f());
+//            }
 
             boneTransforms[skeleton.getId(bone)] = globalTransform.mul(bone.inverseBindMatrix, new Matrix4f());
         }

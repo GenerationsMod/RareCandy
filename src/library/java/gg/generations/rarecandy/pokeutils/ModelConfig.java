@@ -1,5 +1,7 @@
 package gg.generations.rarecandy.pokeutils;
 
+import gg.generations.rarecandy.renderer.animation.Animation;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,10 @@ public class ModelConfig {
 
         public HideDuringAnimation() {
             this(false, null);
+        }
+
+        public boolean check(Animation animation) {
+            return check(animation != null ? animation.name : null);
         }
 
         public boolean check(String animation) {

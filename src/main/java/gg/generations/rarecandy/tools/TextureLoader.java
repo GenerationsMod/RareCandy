@@ -44,7 +44,7 @@ public class TextureLoader extends ITextureLoader {
         try (var is = Pipeline.class.getResourceAsStream("/textures/" + path)) {
             assert is != null;
             return TextureReference.read(is.readAllBytes(), path, true);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

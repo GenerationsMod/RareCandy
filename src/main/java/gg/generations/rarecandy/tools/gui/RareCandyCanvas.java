@@ -126,10 +126,27 @@ public class RareCandyCanvas extends AWTGLCanvas {
             var variants = model.availableVariants();
 
             var variant = !variants.isEmpty() ? variants.iterator().next() : null;
-            var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
-            instance.transformationMatrix().scale(loadedModel.scale);
-            loadedModelInstance = renderer.objectManager.add(model, instance);
-            model.updateDimensions();
+
+            for (Animation animation : loadedModel.objects.get(0).animations.values()) {
+                var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
+                instance.transformationMatrix().translate(i, 0, 0).scale(loadedModel.scale);
+//                instance.changeAnimation(new AnimationInstance(animation));
+
+                renderer.objectManager.add(model, instance);
+
+                if (i == 0) {
+                    loadedModelInstance = instance;
+                }
+
+                i++;
+            }
+
+
+
+            var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant).getAnimationsIfAvailable();
+//            instance.transformationMatrix().scale(loadedModel.scale);
+//            loadedModelInstance = renderer.objectManager.add(model, instance);
+//            model.updateDimensions();
             runnable.run();
         });
     }

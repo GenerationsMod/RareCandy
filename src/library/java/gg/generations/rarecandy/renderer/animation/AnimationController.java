@@ -31,7 +31,10 @@ public class AnimationController {
                 continue;
             }
 
-            if (playingInstance.shouldDestroy()) instancesToRemove.add(playingInstance);
+            if (playingInstance.shouldDestroy()) {
+                instancesToRemove.add(playingInstance);
+                continue;
+            }
             if (playingInstance.animation.ignoreInstancedTime)
                 instanceIgnoringAnimTransforms.put(playingInstance.animation, playingInstance.animation.getFrameTransform(globalSecondsPassed));
 

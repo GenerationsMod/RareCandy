@@ -11,6 +11,8 @@ import org.lwjgl.assimp.AIScene;
 import java.util.ArrayList;
 import java.util.List;
 
+import static gg.generations.rarecandy.renderer.loading.ModelLoader.ATTRIBUTES;
+import static gg.generations.rarecandy.renderer.loading.ModelLoader.calculateVertexSize;
 import static java.util.Objects.requireNonNull;
 
 public record Mesh(
@@ -25,6 +27,8 @@ public record Mesh(
 
     public static Mesh[] readMeshData(Skeleton skeleton, AIScene scene) {
         var meshes = new Mesh[scene.mNumMeshes()];
+
+        var length = calculateVertexSize(ATTRIBUTES);
 
         for (int i = 0; i < scene.mNumMeshes(); i++) {
 

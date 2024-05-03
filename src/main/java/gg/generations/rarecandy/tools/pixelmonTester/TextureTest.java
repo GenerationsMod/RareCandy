@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class TextureTest {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         var path = Path.of("D:\\Git Repos\\RareCandy\\run\\converter\\in\\alcremie\\toppings.png");
 
         displayImage(TextureReference.read(Files.readAllBytes(path), path.getFileName().toString(), true));

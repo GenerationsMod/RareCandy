@@ -5,6 +5,7 @@ import com.traneptora.jxlatte.JXLOptions;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferFloat;
@@ -14,9 +15,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
-public record TextureReference(BufferedImage data, String name) {
+public record TextureReference(TextureDetails data, String name) {
 
-    public static TextureReference read(byte[] imageBytes, String name, boolean isGlb) throws IOException {
+    public static TextureReference read(byte[] imageBytes, String name, boolean isGlb) throws Exception {
+        if(name.endsWith("img")) {
+            var buffer = ByteBuffer.wrap(imageBytes);
+            return new TextureReference(ImgUtils.read(buffer), name);
+        }
         BufferedImage pixelData;
         BufferedImage temp;
 
@@ -33,15 +38,26 @@ public record TextureReference(BufferedImage data, String name) {
 
         var width = temp.getWidth();
         var height = temp.getHeight();
-        pixelData = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        int[] pixels = new int[width * height];
+        var hasTransparent = false;
+
+        var checkTransparency = temp.getColorModel().getTransparency() != Transparency.OPAQUE;
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                int p = temp.getRGB(x, y);
-                pixelData.setRGB(x, y, p);
+                var p = pixels[x + y * height] = temp.getRGB(x, y);
+
+                if(checkTransparency) hasTransparent = ((p>>24) & 0xff) != 255 || hasTransparent;
             }
         }
 
-        return new TextureReference(pixelData, name);
+        var type = hasTransparent ? TextureDetails.Type.RGBA : TextureDetails.Type.RGB;
+
+        pixelData = new BufferedImage(width, height, hasTransparent ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+        pixelData.getGraphics().drawImage(temp, 0, 0, null);
+
+        return new TextureReference(ImgUtils.save(pixelData), name);
     }
 
     public static ByteBuffer read(BufferedImage image) {

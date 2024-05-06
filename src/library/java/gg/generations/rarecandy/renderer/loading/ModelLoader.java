@@ -17,7 +17,6 @@ import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.GlCallSupplier;
-import gg.generations.rarecandy.renderer.model.MeshDrawCommand;
 import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
@@ -36,7 +35,6 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -49,7 +47,7 @@ public class ModelLoader {
     private final ExecutorService modelLoadingPool;
 
     public ModelLoader() {
-        this.modelLoadingPool = Executors.newFixedThreadPool(2);
+        this.modelLoadingPool = Executors.newFixedThreadPool(5);
     }
 
     public interface NodeProvider {
@@ -70,7 +68,6 @@ public class ModelLoader {
 
     public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, PixelAsset asset, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
         if (config == null) throw new RuntimeException("config.json can't be null.");
-//        checkForRootTransformation(objects, gltfModel);
 
         Map<String, NodeProvider> animationNodeMap = new HashMap<>();
         Map<String, Integer> fpsMap = new HashMap<>();
@@ -86,18 +83,12 @@ public class ModelLoader {
 
         var meshes = Mesh.readMeshData(skeleton, gltfModel);
 
-//        if (!gltfModel.getSkinModels().isEmpty()) {
-//            skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
-//            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(animationModel.getName(), 30) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
-
-//        var pairalreadycreated;
-
         for (var entry : trFilesMap.entrySet()) {
             var name = entry.getKey();
             var tranm = entry.getValue().a() != null ? TRANMT.deserializeFromBinary(entry.getValue().a()) : null;
             var tracm = entry.getValue().b() != null ? TRACM.getRootAsTRACM(ByteBuffer.wrap(entry.getValue().b())) : null;
 
-            if(tranm != null || tracm != null) {
+            if (tranm != null || tracm != null) {
                 animationNames.add(name);
                 if (tranm != null) {
                     animationNodeMap.putIfAbsent(name, (animation, skeleton1) -> TranmUtils.getNodes(animation, skeleton1, tranm));
@@ -117,20 +108,20 @@ public class ModelLoader {
             try {
                 var gfbAnim = AnimationT.deserializeFromBinary(entry.getValue());
 
-                if(gfbAnim.getMaterial() != null || gfbAnim.getSkeleton() != null) {
+                if (gfbAnim.getMaterial() != null || gfbAnim.getSkeleton() != null) {
                     animationNames.add(name);
                     fpsMap.put(name, (int) gfbAnim.getInfo().getFrameRate());
 
-                    if(gfbAnim.getSkeleton() != null) {
+                    if (gfbAnim.getSkeleton() != null) {
                         animationNodeMap.put(name, (animation, skeleton13) -> GfbanmUtils.getNodes(animation, skeleton13, gfbAnim));
                     }
 
-                    if(gfbAnim.getMaterial() != null) {
+                    if (gfbAnim.getMaterial() != null) {
                         offsetsMap.put(name, GfbanmUtils.getOffsets(gfbAnim));
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
+                System.out.printf("Failed to load animation %s due to the following exception: %s%n", name, e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -139,7 +130,7 @@ public class ModelLoader {
             var key = entry.getKey();
             var value = entry.getValue();
 
-            if(value != null) {
+            if (value != null) {
                 animationNames.add(key);
                 animationNodeMap.putIfAbsent(key, (NodeProvider) (animation, skeleton12) -> SmdUtils.getNode(animation, skeleton12, value));
                 fpsMap.putIfAbsent(key, 30);
@@ -148,7 +139,7 @@ public class ModelLoader {
 
         Map<String, Animation> animations = new HashMap<>();
 
-        for(var name : animationNames) {
+        for (var name : animationNames) {
             var fps = fpsMap.get(name);
             fps = config.animationFpsOverride != null && config.animationFpsOverride.containsKey(name) ? config.animationFpsOverride.get(name) : fps;
 
@@ -182,11 +173,11 @@ public class ModelLoader {
         var variantOffsetMap = new HashMap<String, Map<String, Vector2f>>();
 
 
-        if(config.hideDuringAnimation != null) {
+        if (config.hideDuringAnimation != null) {
             hideDuringAnimation = config.hideDuringAnimation;
         }
 
-        if(config.variants != null) {
+        if (config.variants != null) {
             for (Map.Entry<String, VariantParent> entry : config.variants.entrySet()) {
                 String variantKey = entry.getKey();
                 VariantParent variantParent = entry.getValue();
@@ -196,9 +187,9 @@ public class ModelLoader {
                 var map = variantParent.details();
 
                 while (child != null) {
-                     var details = child.details();
+                    var details = child.details();
 
-                     applyVariantDetails(details, map);
+                    applyVariantDetails(details, map);
 
                     child = config.variants.get(child.inherits());
                 }
@@ -235,7 +226,7 @@ public class ModelLoader {
 
         Stream.of(meshes).flatMap(a -> a.positions().stream()).forEach(objects.dimensions::max);
         for (var meshModel : meshes) {
-            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
+            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, offsetMap, skeleton, animations, hideDuringAnimation);
         }
 
 
@@ -257,12 +248,12 @@ public class ModelLoader {
         }
     }
 
-    private static void applyVariantDetails(Map<String, VariantDetails> applied, Map<String, VariantDetails> appliee) {
+    private static void applyVariantDetails(Map<String, VariantDetails> applied, Map<String, VariantDetails> apply) {
         for (Map.Entry<String, VariantDetails> entry : applied.entrySet()) {
             String k = entry.getKey();
             VariantDetails v = entry.getValue();
-            appliee.compute(k, (s, variantDetails) -> {
-                if(variantDetails == null) return v;
+            apply.compute(k, (s, variantDetails) -> {
+                if (variantDetails == null) return v;
                 return variantDetails.fillIn(v);
             });
         }
@@ -276,63 +267,11 @@ public class ModelLoader {
         });
     }
 
-    public static Vector3f calculateDimensions(Mesh[] meshes) {
-        var vec = new Vector3f();
-        var pos = new Vector3f();
-
-        for(var mesh : meshes) {
-            var buf = mesh.positions();
-            var smallestVertexX = 0f;
-                var smallestVertexY = 0f;
-                var smallestVertexZ = 0f;
-                var largestVertexX = 0f;
-                var largestVertexY = 0f;
-                var largestVertexZ = 0f;
-                for (int i = 0; i < buf.size(); i += 3) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
-                    var xPoint = buf.get(i).x();
-                    var yPoint = buf.get(i).y();
-                    var zPoint = buf.get(i).z();
-                    smallestVertexX = Math.min(smallestVertexX, xPoint);
-                    smallestVertexY = Math.min(smallestVertexY, yPoint);
-                    smallestVertexZ = Math.min(smallestVertexZ, zPoint);
-                    largestVertexX = Math.max(largestVertexX, xPoint);
-                    largestVertexY = Math.max(largestVertexY, yPoint);
-                    largestVertexZ = Math.max(largestVertexZ, zPoint);
-                }
-
-                vec.set(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ);
-
-                pos.max(vec);
-
-        }
-
-        return pos;
-    }
-
     private static void applyTransforms(Matrix4f transform, ModelNode node) {
         transform.set(node.transform);
-
-//        if (node.getScale() != null) transform.scale(new Vector3f(node.getScale()));
-//        if (node.getRotation() != null)
-//            transform.rotate(new Quaternionf(node.getRotation()[0], node.getRotation()[1], node.getRotation()[2], node.getRotation()[3]));
-//        if (node.getTranslation() != null) {
-//            if (node.getTranslation().length == 3)
-//                transform.add(new Matrix4f().setTranslation(node.getTranslation()[0], node.getTranslation()[1], node.getTranslation()[2]));
-//            else
-//                transform.add(new Matrix4f().set(node.getTranslation()));
-//        }
     }
 
-//    public static <T extends MeshObject> void checkForRootTransformation(MultiRenderObject<T> objects, AIScene gltfModel) {
-//        if (gltfModel.getSkinModels().isEmpty()) {
-//            var node = gltfModel.getNodeModels().get(0);
-//            while (node.getParent() != null) node = node.getParent();
-//            var rootTransformation = new Matrix4f().set(node.createGlobalTransformSupplier().get());
-//            objects.setRootTransformation(rootTransformation);
-//        }
-//    }
-
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, Mesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Vector2f>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, Mesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Vector2f>> offsetMap,  @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
         var name = mesh.name();
 
         var map = materialMap.get(name);
@@ -365,8 +304,8 @@ public class ModelLoader {
         mesh.bones().forEach(bone -> {
             var boneId = skeleton.getId(bone);
 
-            for(var weight : bone.weights) {
-                if(weight.weight == 0.0) return;
+            for (var weight : bone.weights) {
+                if (weight.weight == 0.0) return;
                 else {
                     bones.get(weight.vertexId).addBoneData(boneId, weight.weight);
                 }
@@ -375,42 +314,46 @@ public class ModelLoader {
 
         var isEmpty = bones.stream().allMatch(VertexBoneData::isEmpty);
 
-        for (int i = 0; i < amount; i++) {
+        if (!mesh.positions().isEmpty() || !mesh.uvs().isEmpty() || !mesh.normals().isEmpty()) {
+            for (Vector3f position : mesh.positions()) {
+                vertexBuffer.putFloat(position.x);
+                vertexBuffer.putFloat(position.y);
+                vertexBuffer.putFloat(position.z);
+            }
 
-            var position = mesh.positions().get(i);
-            var uv = mesh.uvs().get(i);
-            var normal = mesh.normals().get(i);
-            var bone = bones.get(i);
+            for (Vector2f uv : mesh.uvs()) {
+                vertexBuffer.putFloat(uv.x);
+                vertexBuffer.putFloat(uv.y);
+            }
 
-            vertexBuffer.putFloat(position.x);
-            vertexBuffer.putFloat(position.y);
-            vertexBuffer.putFloat(position.z);
-            vertexBuffer.putFloat(uv.x);
-            vertexBuffer.putFloat(uv.y);
-            vertexBuffer.putFloat(normal.x);
-            vertexBuffer.putFloat(normal.y);
-            vertexBuffer.putFloat(normal.z);
+            for (Vector3f normal : mesh.normals()) {
+                vertexBuffer.putFloat(normal.x);
+                vertexBuffer.putFloat(normal.y);
+                vertexBuffer.putFloat(normal.z);
+            }
 
-            if(isEmpty) {
-                vertexBuffer.put((byte) 1);
-                vertexBuffer.put((byte) 0);
-                vertexBuffer.put((byte) 0);
-                vertexBuffer.put((byte) 0);
+            for (VertexBoneData bone : bones) {
+                if (isEmpty) {
+                    vertexBuffer.put((byte) 1);
+                    vertexBuffer.put((byte) 0);
+                    vertexBuffer.put((byte) 0);
+                    vertexBuffer.put((byte) 0);
 
-                vertexBuffer.putFloat(1);
-                vertexBuffer.putFloat(0);
-                vertexBuffer.putFloat(0);
-                vertexBuffer.putFloat(0);
-            } else {
-                vertexBuffer.put((byte) bone.ids()[0]);
-                vertexBuffer.put((byte) bone.ids()[1]);
-                vertexBuffer.put((byte) bone.ids()[2]);
-                vertexBuffer.put((byte) bone.ids()[3]);
+                    vertexBuffer.putFloat(1);
+                    vertexBuffer.putFloat(0);
+                    vertexBuffer.putFloat(0);
+                    vertexBuffer.putFloat(0);
+                } else {
+                    vertexBuffer.put((byte) bone.ids()[0]);
+                    vertexBuffer.put((byte) bone.ids()[1]);
+                    vertexBuffer.put((byte) bone.ids()[2]);
+                    vertexBuffer.put((byte) bone.ids()[3]);
 
-                vertexBuffer.putFloat(bone.weights()[0]);
-                vertexBuffer.putFloat(bone.weights()[1]);
-                vertexBuffer.putFloat(bone.weights()[2]);
-                vertexBuffer.putFloat(bone.weights()[3]);
+                    vertexBuffer.putFloat(bone.weights()[0]);
+                    vertexBuffer.putFloat(bone.weights()[1]);
+                    vertexBuffer.putFloat(bone.weights()[2]);
+                    vertexBuffer.putFloat(bone.weights()[3]);
+                }
             }
         }
 
@@ -469,6 +412,7 @@ public class ModelLoader {
                 0);
     }
 
+    @Deprecated
     public static List<String> getVariants(GltfModel model) {
         try {
             if (model.getExtensions() == null || model.getExtensions().isEmpty() || !model.getExtensions().containsKey("KHR_materials_variants"))
@@ -488,10 +432,15 @@ public class ModelLoader {
         }
     }
 
+    @Deprecated
     public static <T> Map<String, T> createMeshVariantMap(MeshPrimitiveModel primitiveModel, List<T> materials, List<String> variantsList) {
         if (variantsList == null) {
             var materialId = primitiveModel.getMaterialModel().getName();
-            return Collections.singletonMap("default", materials.stream().filter(a -> a.toString().equals(materialId)).findAny().get());
+            if (materials.stream().findAny().isPresent() && materials.stream().anyMatch(a -> a.toString().equals(materialId))) {
+                return Collections.singletonMap("default", materials.stream().findAny().get());
+            } else {
+                return Collections.singletonMap("default", materials.iterator().next()); //TODO does this work?
+            }
         } else {
             var map = (Map<String, Object>) primitiveModel.getExtensions().get("KHR_materials_variants");
             var mappings = (List<Map<String, Object>>) map.get("mappings");
@@ -512,15 +461,15 @@ public class ModelLoader {
         }
     }
 
-    public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
+    public <T extends RenderObject> void createObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
         var obj = new MultiRenderObject<T>();
         var task = threadedCreateObject(obj, is, objectCreator, onFinish);
         if (RareCandy.DEBUG_THREADS) task.run();
         else modelLoadingPool.submit(task);
-        return obj;
     }
 
-    public MultiRenderObject<MeshObject> generatePlane(float width, float length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
+    public MultiRenderObject<MeshObject> generatePlane(float width, float length, Consumer<
+            MultiRenderObject<MeshObject>> onFinish) {
         var pair = PlaneGenerator.generatePlane(width, length);
 
         var task = ThreadSafety.wrapException(() -> {
@@ -536,14 +485,15 @@ public class ModelLoader {
         return pair.b();
     }
 
-    private <T extends RenderObject> Runnable threadedCreateObject(MultiRenderObject<T> obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
+    private <T extends RenderObject> Runnable
+    threadedCreateObject(MultiRenderObject<T> obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
         return ThreadSafety.wrapException(() -> {
             var asset = is.get();
             var config = asset.getConfig();
 
             var images = readImages(asset);
 
-            if(asset.getModelFile() == null) return;
+            if (asset.getModelFile() == null) return;
 
             if (config != null) obj.scale = config.scale;
 //            var model = read(asset);
@@ -746,7 +696,8 @@ public class ModelLoader {
             case GL_FLOAT, GL_UNSIGNED_INT, GL_INT -> 4;
             case GL_BYTE, GL_UNSIGNED_BYTE -> 1;
             case GL_SHORT, GL_UNSIGNED_SHORT, GL_HALF_FLOAT -> 2;
-            default -> throw new IllegalStateException("Unexpected OpenGL Attribute type: " + attrib.glType() + ". If this is wrong, please contact hydos");
+            default ->
+                    throw new IllegalStateException("Unexpected OpenGL Attribute type: " + attrib.glType() + ". If this is wrong, please contact hydos");
         } * attrib.amount();
     }
 }

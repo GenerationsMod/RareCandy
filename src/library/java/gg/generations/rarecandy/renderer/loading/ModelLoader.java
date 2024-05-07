@@ -34,6 +34,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -145,7 +146,7 @@ public class ModelLoader {
 
             if(value != null) {
                 animationNames.add(key);
-                animationNodeMap.putIfAbsent(key, (NodeProvider) (animation, skeleton12) -> SmdUtils.getNode(animation, skeleton12, value));
+                animationNodeMap.putIfAbsent(key, (animation, skeleton12) -> SmdUtils.getNode(animation, skeleton12, value));
                 fpsMap.putIfAbsent(key, 30);
             }
         }
@@ -235,13 +236,9 @@ public class ModelLoader {
 
         Stream.of(meshes).flatMap(a -> a.positions().stream()).forEach(objects.dimensions::max);
 
-        var future = new ArrayList<CompletableFuture<Void>>();
-
         for (var meshModel : meshes) {
-            future.add(CompletableFuture.runAsync(() -> processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation)));
+            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
         }
-
-        CompletableFuture.allOf(future.toArray(CompletableFuture[]::new)).join();
 
 //        var transform = new Matrix4f();
 
@@ -428,6 +425,119 @@ public class ModelLoader {
         return model;
     }
 
+    private static GLModel fromBuffer(ByteBuffer buffer) {
+        var model = new GLModel();
+
+        var length = calculateVertexSize(ATTRIBUTES);
+        var amount = buffer.getInt();
+
+        var vertexBuffer = MemoryUtil.memAlloc(length * amount);
+
+        for (int i = 0; i < amount; i++) {
+            vertexBuffer.putFloat(buffer.getFloat());
+            vertexBuffer.putFloat(buffer.getFloat());
+            vertexBuffer.putFloat(buffer.getFloat());
+            vertexBuffer.putFloat(buffer.getFloat());
+            vertexBuffer.putFloat(buffer.getFloat());
+            vertexBuffer.putFloat(buffer.getFloat());
+            vertexBuffer.putFloat(buffer.getFloat());
+            vertexBuffer.putFloat(buffer.getFloat());
+
+            vertexBuffer.put(buffer.get());
+            vertexBuffer.put(buffer.get());
+            vertexBuffer.put(buffer.get());
+            vertexBuffer.put(buffer.get());
+
+            vertexBuffer.putFloat(buffer.getFloat());
+            vertexBuffer.putFloat(buffer.getFloat());
+            vertexBuffer.putFloat(buffer.getFloat());
+            vertexBuffer.putFloat(buffer.getFloat());
+        }
+
+        vertexBuffer.flip();
+        model.vertexBuffer = vertexBuffer;
+
+        model.indexSize = buffer.get();
+        var indexBuffer = MemoryUtil.memAlloc(model.indexSize * 4);
+
+        for (int i = 0; i < model.indexSize; i++) {
+            indexBuffer.putInt(buffer.getInt());
+        }
+
+        indexBuffer.flip();
+
+
+        model.indexBuffer = indexBuffer;
+
+        return model;
+    }
+
+    private static void toBuffer(ByteBuffer buffer, Mesh mesh, Skeleton skeleton) {
+        var amount = mesh.positions().size();
+
+
+        var bones = IntStream.range(0, amount).parallel().mapToObj(a -> new VertexBoneData()).toList();
+
+
+        mesh.bones().forEach(bone -> {
+            var boneId = skeleton.getId(bone);
+
+            for(var weight : bone.weights) {
+                if(weight.weight == 0.0) return;
+                else {
+                    bones.get(weight.vertexId).addBoneData(boneId, weight.weight);
+                }
+            }
+        });
+
+        var isEmpty = bones.stream().allMatch(VertexBoneData::isEmpty);
+
+        for (int i = 0; i < amount; i++) {
+
+            var position = mesh.positions().get(i);
+            var uv = mesh.uvs().get(i);
+            var normal = mesh.normals().get(i);
+            var bone = bones.get(i);
+
+            buffer.putFloat(position.x);
+            buffer.putFloat(position.y);
+            buffer.putFloat(position.z);
+            buffer.putFloat(uv.x);
+            buffer.putFloat(uv.y);
+            buffer.putFloat(normal.x);
+            buffer.putFloat(normal.y);
+            buffer.putFloat(normal.z);
+
+            if(isEmpty) {
+                buffer.put((byte) 1);
+                buffer.put((byte) 0);
+                buffer.put((byte) 0);
+                buffer.put((byte) 0);
+
+                buffer.putFloat(1);
+                buffer.putFloat(0);
+                buffer.putFloat(0);
+                buffer.putFloat(0);
+            } else {
+                buffer.put((byte) bone.ids()[0]);
+                buffer.put((byte) bone.ids()[1]);
+                buffer.put((byte) bone.ids()[2]);
+                buffer.put((byte) bone.ids()[3]);
+
+                buffer.putFloat(bone.weights()[0]);
+                buffer.putFloat(bone.weights()[1]);
+                buffer.putFloat(bone.weights()[2]);
+                buffer.putFloat(bone.weights()[3]);
+            }
+        }
+
+
+
+        var indexBuffer = buffer;
+        buffer.putInt(mesh.indices().size());
+        indexBuffer.asIntBuffer().put(mesh.indices().stream().mapToInt(a -> a).toArray());
+    }
+
     public static int generateVao(ByteBuffer vertexBuffer, List<Attribute> layout) {
         var vao = glGenVertexArrays();
 
@@ -590,8 +700,6 @@ public class ModelLoader {
                     if(gfbAnim.getSkeleton() != null) {
                         animationNodeMap.put(name, (animation, skeleton13) -> GfbanmUtils.getNodes(animation, skeleton13, gfbAnim));
                     }
-
-
 
                     if(gfbAnim.getMaterial() != null) {
                         offsetsMap.put(name, GfbanmUtils.getOffsets(gfbAnim));
@@ -768,7 +876,10 @@ public class ModelLoader {
 
             try {
                 var id = asset.name + "-" + key;
-                ITextureLoader.instance().register(id, TextureReference.read(entry.getValue(), key, true));
+                var reference = TextureReference.read(entry.getValue(), key, true);
+                ITextureLoader.instance().register(id, reference);
+
+//                reference.save(Path.of(""));
 
                 map.put(key, id);
             } catch (Exception e) {

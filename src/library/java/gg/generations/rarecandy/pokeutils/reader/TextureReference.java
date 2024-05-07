@@ -13,7 +13,11 @@ import java.awt.image.DataBufferInt;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public record TextureReference(TextureDetails data, String name) {
 
@@ -36,26 +40,28 @@ public record TextureReference(TextureDetails data, String name) {
             temp = ImageIO.read(new ByteArrayInputStream(imageBytes));
         }
 
+
         var width = temp.getWidth();
         var height = temp.getHeight();
 
-        int[] pixels = new int[width * height];
         var hasTransparent = false;
 
         var checkTransparency = temp.getColorModel().getTransparency() != Transparency.OPAQUE;
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                var p = pixels[x + y * height] = temp.getRGB(x, y);
-
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                var p = temp.getRGB(x, y);
                 if(checkTransparency) hasTransparent = ((p>>24) & 0xff) != 255 || hasTransparent;
             }
         }
 
-        var type = hasTransparent ? TextureDetails.Type.RGBA : TextureDetails.Type.RGB;
-
         pixelData = new BufferedImage(width, height, hasTransparent ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
-        pixelData.getGraphics().drawImage(temp, 0, 0, null);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                var p = temp.getRGB(x, y);
+                pixelData.setRGB(x, y, p);
+            }
+        }
 
         return new TextureReference(ImgUtils.save(pixelData), name);
     }
@@ -91,6 +97,7 @@ public record TextureReference(TextureDetails data, String name) {
                 readyData.put((byte) ((pixel >> 8) & 0xFF));
                 readyData.put((byte) (pixel & 0xFF));
                 readyData.put((byte) ((pixel >> 24) & 0xFF));
+
             }
 
             readyData.flip();
@@ -125,4 +132,25 @@ public record TextureReference(TextureDetails data, String name) {
                 "name=" + name + ']';
     }
 
+    public void save(Path directory) {
+        var name1 = stripFileExtension(name);
+
+        var path = directory.resolve(name1 + ".img");
+
+
+        var buffer = data().toBytes();
+//        try {
+//            Files.write(path, buffer.array());
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
+//        MemoryUtil.memFree(buffer);
+    }
+
+    public static String stripFileExtension(String fileName) {
+        int dotIndex = fileName.lastIndexOf('.');
+        return dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
+    }
 }

@@ -6,6 +6,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -34,6 +35,29 @@ public class Animation {
 
     private boolean ignoreScaling;
 
+    public Animation(String name, int ticksPerSecond, Skeleton skeleton, AnimationNode[] animationNodes, Map<String, Offset> offsets, boolean ignoreScaling) {
+        this.name = name;
+        this.ticksPerSecond = ticksPerSecond;
+        this.skeleton = skeleton;
+        this.animationNodes = animationNodes;
+
+        this.offsets = offsets;
+        this.animationDuration = findLastKeyTime();
+        this.ignoreScaling = ignoreScaling;
+
+        if(this.animationNodes != null) {
+            for (var animationNode : getAnimationNodes()) {
+                if (animationNode != null) {
+                    if (animationNode.positionKeys.getAtTime((int) animationDuration - 10) == null)
+                        animationNode.positionKeys.add(animationDuration, animationNode.positionKeys.get(0).value());
+                    if (animationNode.rotationKeys.getAtTime((int) animationDuration - 10) == null)
+                        animationNode.rotationKeys.add(animationDuration, animationNode.rotationKeys.get(0).value());
+                    if (animationNode.scaleKeys.getAtTime((int) animationDuration - 10) == null)
+                        animationNode.scaleKeys.add(animationDuration, animationNode.scaleKeys.get(0).value());
+                }
+            }
+        }
+    }
     public Animation(String name, int ticksPerSecond, Skeleton skeleton, ModelLoader.NodeProvider animationNodes, Map<String, Offset> offsets, boolean ignoreScaling) {
         this.name = name;
         this.ticksPerSecond = ticksPerSecond;
@@ -56,6 +80,47 @@ public class Animation {
                 }
             }
         }
+    }
+
+    public static Animation fromBuffer(ByteBuffer buffer, Skeleton skeleton) {
+        var name = ModelNode.extractName(buffer);
+
+        var tps = buffer.get();
+
+        var nodesLength = buffer.getShort();
+
+        var animationNodes = new AnimationNode[nodesLength];
+
+        for (int i = 0; i < nodesLength; i++) {
+            animationNodes[i] = new AnimationNode(buffer);
+        }
+
+        var idMap = generateNodeIdMap(buffer);
+
+        var offsets = getOffsets(buffer);
+
+
+    }
+
+    private static Map<String, Offset> getOffsets(ByteBuffer buffer) {
+        var length = buffer.get();
+
+
+    }
+
+    private static Map<String, Integer> generateNodeIdMap(ByteBuffer buffer) {
+        var length = buffer.get();
+
+        var map = new HashMap<String, Integer>();
+
+        for (int i = 0; i < length; i++) {
+            var key = ModelNode.extractName(buffer);
+            var value = buffer.getInt();
+
+            map.put(key, value);
+        }
+
+        return map;
     }
 
     public static <T> Map<String, Offset> fillOffsets(T item) {
@@ -179,6 +244,51 @@ public class Animation {
         public AnimationNode() {
         }
 
+        public static Vector3f fromBuffer(ByteBuffer buffer) {
+            return new Vector3f(buffer.getFloat(), buffer.getFloat(), buffer.getFloat());
+        }
+
+        public static void toBuffer(ByteBuffer buffer, Vector3f vector3f) {
+            buffer.putFloat(vector3f.x()).putFloat(vector3f.y()).putFloat(vector3f.z());
+        }
+
+        public static Quaternionf quatFromBuffer(ByteBuffer buffer) {
+            float scaleFactor = 127.5f;
+
+            float x = buffer.getShort() / scaleFactor;
+            float y = buffer.getShort() / scaleFactor;
+            float z = buffer.getShort() / scaleFactor;
+            float w = buffer.getShort() / scaleFactor;
+
+
+            return new Quaternionf(x, y, z, w);
+        }
+
+        public static void quatToBuffer(ByteBuffer buffer, Quaternionf quaternion) {
+            float scaleFactor = 127.5f;
+
+            short x = (short) Math.round(quaternion.x() * scaleFactor);
+            short y = (short) Math.round(quaternion.y() * scaleFactor);
+            short z = (short) Math.round(quaternion.z() * scaleFactor);
+            short w = (short) Math.round(quaternion.w() * scaleFactor);
+
+            buffer.putShort(x).putShort(y).putShort(z).putShort(w);
+        }
+
+        public AnimationNode(ByteBuffer buffer) {
+            positionKeys.fromBuffer(buffer, AnimationNode::fromBuffer);
+            rotationKeys.fromBuffer(buffer, AnimationNode::quatFromBuffer);
+            scaleKeys.fromBuffer(buffer, AnimationNode::fromBuffer);
+        }
+
+        public void fillBuffer(ByteBuffer buffer) {
+            positionKeys.fillByteBuffer(buffer, AnimationNode::toBuffer);
+            rotationKeys.fillByteBuffer(buffer, AnimationNode::quatToBuffer);
+            scaleKeys.fillByteBuffer(buffer, AnimationNode::toBuffer);
+        }
+
+
+
         public TransformStorage.TimeKey<Vector3f> getDefaultPosition() {
             return positionKeys.get(0);
         }
@@ -193,6 +303,7 @@ public class Animation {
     }
 
     public record Offset(TransformStorage<Float> uOffset, TransformStorage<Float> vOffset, TransformStorage<Float> uScale, TransformStorage<Float> vScale, float duration) {
+
         public static <T> T calcInterpolatedFloat(float animTime, TransformStorage<T> node, T defaultVal) {
             if (node.size() == 0) return defaultVal;
 
@@ -218,6 +329,28 @@ public class Animation {
 
             instance.offset().set(uOffset, vOffset);
             instance.scale().set(uScale, vScale);
+        }
+
+        public void fillBuffer(ByteBuffer buffer) {
+            buffer.putFloat(duration);
+            uOffset.fillByteBuffer(buffer, ByteBuffer::putFloat);
+            vOffset.fillByteBuffer(buffer, ByteBuffer::putFloat);
+            uScale.fillByteBuffer(buffer, ByteBuffer::putFloat);
+            vScale.fillByteBuffer(buffer, ByteBuffer::putFloat);
+        }
+
+        public static Offset fromBuffer(ByteBuffer buffer) {
+            var duration = buffer.getFloat();
+
+            var uOffset = new TransformStorage<Float>().fromBuffer(buffer, ByteBuffer::getFloat);
+
+            var vOffset = new TransformStorage<Float>().fromBuffer(buffer, ByteBuffer::getFloat);
+
+            var uScale = new TransformStorage<Float>().fromBuffer(buffer, ByteBuffer::getFloat);
+
+            var vScale = new TransformStorage<Float>().fromBuffer(buffer, ByteBuffer::getFloat);
+
+            return new Offset(uOffset, vOffset, uScale, vScale, duration);
         }
     }
 }

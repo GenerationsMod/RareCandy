@@ -10,6 +10,8 @@ import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.MeshDrawCommand;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL15C;
@@ -70,4 +72,29 @@ public class PlaneGenerator {
         return new Pair<>(glCalls, obj);
     }
 
+    public static Mesh mesh(String name, int material, float width, float length) {
+        System.out.println(name + " " + material);
+
+        return new Mesh(name, material, List.of(0,1,2,1,3,2),
+                List.of(
+                        new Vector3f(-width / 2, 0.0f, -length / 2).add(0, material, 0),
+                        new Vector3f(width / 2, 0.0f, -length / 2).add(0, material, 0),
+                        new Vector3f(-width / 2, 0.0f, length / 2).add(0, material, 0),
+                        new Vector3f(width / 2, 0.0f, length / 2).add(0, material, 0)
+                ),
+                List.of(
+                        new Vector2f(0.0f, 0.0f),
+                        new Vector2f(1.0f, 0.0f),
+                        new Vector2f(0.0f, 1.0f),
+                        new Vector2f(1.0f, 1.0f)
+                ),
+                List.of(
+                        new Vector3f(0, 1, 0),
+                        new Vector3f(0, 1, 0),
+                        new Vector3f(0, 1, 0),
+                        new Vector3f(0, 1, 0)
+                ),
+                List.of()
+        );
+    }
 }

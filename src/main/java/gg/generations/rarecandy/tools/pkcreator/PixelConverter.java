@@ -42,8 +42,6 @@ public class PixelConverter {
                         IOUtils.copy(new BufferedInputStream(new ByteArrayInputStream(file.getValue())), tarWriter);
                         tarWriter.closeArchiveEntry();
                     }
-
-                    print(tarWriter.getBytesWritten());
                 }
         } catch (IOException e) {
             printError(e);
@@ -91,6 +89,8 @@ public class PixelConverter {
     }
 
     public static void unpackPk(Path path, Path outputPath) {
+        System.out.println("Unpacking: " + path);
+
         try (var xzReader = new XZInputStream(Files.newInputStream(path))) {
             try (var tarReader = new TarArchiveInputStream(xzReader)) {
                 extractTarArchive(tarReader, outputPath);
@@ -102,7 +102,7 @@ public class PixelConverter {
 
     public static void extractTarArchive(TarArchiveInputStream tarIn, Path targetFolderPath) throws IOException {
         TarArchiveEntry entry;
-        while ((entry = tarIn.getNextTarEntry()) != null) {
+        while ((entry = tarIn.getNextEntry()) != null) {
             Path outputFile = targetFolderPath.resolve(entry.getName());
             if (entry.isDirectory()) {
                 Files.createDirectories(outputFile);

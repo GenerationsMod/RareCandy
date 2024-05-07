@@ -97,4 +97,22 @@ public record Mesh(
         skeleton.calculateBoneData();
         return meshes;
     }
+
+    public static Mesh[] imageDisplay(Skeleton skeleton, AIScene scene) {
+        var meshes = new Mesh[scene.mNumMeshes()];
+
+        var length = calculateVertexSize(ATTRIBUTES);
+
+        for (int i = 0; i < scene.mNumMeshes(); i++) {
+
+            var mesh = AIMesh.create(scene.mMeshes().get(i));
+            var name = mesh.mName().dataString();
+            var material = mesh.mMaterialIndex();
+
+            meshes[i] = PlaneGenerator.mesh(name, i, 1, 1);
+        }
+
+        skeleton.calculateBoneData();
+        return meshes;
+    }
 }

@@ -2,9 +2,12 @@ package gg.generations.rarecandy.renderer.animation;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TreeMap;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>> {
     public final TreeMap<Double, TimeKey<T>> keys = new TreeMap<>();
@@ -16,6 +19,27 @@ public class TransformStorage<T> implements Iterable<TransformStorage.TimeKey<T>
         }
 
         return (index % arr.length + arr.length) % arr.length;
+    }
+
+    public void fillByteBuffer(ByteBuffer buffer, BiConsumer<ByteBuffer, T> consumer) {
+        buffer.putShort((short) values.length);
+
+        for (TimeKey<T> key : values) {
+            buffer.putDouble(key.time);
+            consumer.accept(buffer, key.value);
+        }
+    }
+
+    public TransformStorage<T> fromBuffer(ByteBuffer buffer, Function<ByteBuffer, T> function) {
+        var length = buffer.getShort();
+
+        if(length > 0) {
+            for (int i = 0; i < length; i++) {
+                add(buffer.getDouble(), function.apply(buffer));
+            }
+        }
+
+        return this;
     }
 
     @NotNull

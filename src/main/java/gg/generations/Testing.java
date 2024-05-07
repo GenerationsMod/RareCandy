@@ -8,11 +8,23 @@ import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import gg.generations.rarecandy.tools.TextureLoader;
+import gg.generations.rarecandy.tools.gui.DialogueUtils;
+import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
+import org.lwjgl.util.nfd.NativeFileDialog;
+import org.tukaani.xz.XZInputStream;
+import org.tukaani.xz.XZOutputStream;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -20,43 +32,53 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static gg.generations.rarecandy.tools.gui.GuiHandler.OPTIONS;
+
 public class Testing {
     public static void main(String[] args) throws IOException {
-        var render = new RareCandy();
+        NativeFileDialog.NFD_Init();
+        var list = DialogueUtils.chooseMultipleFiles("PK;pk");
 
-        var path = Path.of("test");
+        if(list == null) return;
 
-        var fullTime = System.currentTimeMillis();
+        var base =  Path.of("D:\\models");
 
-        ITextureLoader.setInstance(new TextureLoader());
+        var result = Path.of("main.fsrepo");
 
-        Files.newDirectoryStream(path).forEach(x -> {
-            System.out.println("Rawr: " + x);
+        if(Files.notExists(base))Files.createDirectory(base);
 
-            var time = System.currentTimeMillis();
-
-
-            try {
-                var asset = new PixelAsset(Files.newInputStream(x), null).getImageFiles();
-
-
-
-            } catch (Exception e) {
-                System.out.println("Model: " + x.toString() + " failed." + e.getMessage());
+        try {
+            for(var path : list) {
+                PixelConverter.unpackPk(path, base.resolve(path.getFileName().toString().replace(".pk", "")));
             }
-        });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
-        System.out.println("Total Time to load: " + ((System.currentTimeMillis() - fullTime)/1000f));
+
+        try (var stream = Files.walk(base).filter(Files::isRegularFile)) {
+            List<Path> files = stream.toList();
+            writeRepository(files, base, result);
+        }
     }
 
-    protected static <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
-        var loader = renderer.getLoader();
-        loader.createObject(
-                new MultiRenderObject<>(),
-                () -> is,
-                supplier,
-                onFinish
-        );
-    }
 
+    public static void writeRepository(List<Path> files, Path relativePath, Path output) throws IOException {
+        if(Files.notExists(output.toAbsolutePath().getParent())) Files.createDirectories(output.toAbsolutePath().getParent());
+
+        try (var xzWriter = new XZOutputStream(Files.newOutputStream(output), OPTIONS)) {
+            try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
+                for (var file : files) {
+                    var entry = new TarArchiveEntry(file, relativePath.relativize(file).toString());
+                    tarWriter.putArchiveEntry(entry);
+                    if (Files.isRegularFile(file)) try (var is = new BufferedInputStream(Files.newInputStream(file))) {
+                        IOUtils.copy(is, tarWriter);
+                    }
+                    tarWriter.closeArchiveEntry();
+
+                    System.out.println("Packed: " + file);
+                }
+            }
+        }
+    }
 }

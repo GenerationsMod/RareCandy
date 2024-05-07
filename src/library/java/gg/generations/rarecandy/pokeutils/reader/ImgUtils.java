@@ -4,6 +4,7 @@ import gg.generations.rarecandy.pokeutils.reader.TextureDetails;
 
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
+import java.util.stream.Stream;
 
 public class ImgUtils {
     public static TextureDetails read(ByteBuffer bufffer) throws Exception {
@@ -46,8 +47,9 @@ public class ImgUtils {
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                var i = x + y * height;
+                var i = x + y * width;
                 var pixel = image.getRGB(x, y);
+
                 type.setBytes(i, data, pixel);
             }
         }

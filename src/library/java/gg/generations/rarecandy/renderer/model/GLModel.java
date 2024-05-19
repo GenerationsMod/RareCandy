@@ -26,17 +26,11 @@ import static org.lwjgl.opengl.GL30C.*;
 public class GLModel implements Closeable {
     public List<MeshDrawCommand> meshDrawCommands = new ArrayList<>();
 
-    private boolean uploaded = false;
+    public Vector3f dimensions = new Vector3f();
 
     public int vao = -1;
-
-    public Vector3f dimensions = new Vector3f();
     public int ebo = -1;
-    public ByteBuffer vertexBuffer;
-    public ByteBuffer indexBuffer;
-
-    public int indexSize;
-    private int vbo = -1;
+    public int vbo = -1;
 
     public void runDrawCalls() {
         for (var drawCommand : meshDrawCommands) {
@@ -72,85 +66,8 @@ public class GLModel implements Closeable {
             GL30.glDeleteBuffers(vbo);
             vbo = -1;
         }
-        uploaded = false;
+
         meshDrawCommands.clear();
     }
-    public void upload() {
-        if (uploaded) return;
 
-        generateVao(this, vertexBuffer, DEFAULT_ATTRIBUTES);
-        GL30.glBindVertexArray(vao);
-
-        ebo = GL15.glGenBuffers();
-        glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        meshDrawCommands.add(new MeshDrawCommand(vao, GL11.GL_TRIANGLES, GL_UNSIGNED_INT, ebo, indexSize));
-        uploaded = true;
-    }
-
-    public void removeFromGpu() {
-        if(uploaded) {
-            close();
-        }
-    }
-
-    public static void generateVao(GLModel model, ByteBuffer vertexBuffer, List<Attribute> layout) {
-        model.vao = glGenVertexArrays();
-
-        glBindVertexArray(model.vao);
-        var stride = calculateVertexSize(layout);
-        var attribPtr = 0;
-
-        // I hate openGL. why cant I keep the vertex data and vertex layout separate :(
-        model.vbo = glGenBuffers();
-
-        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
-
-        for (int i = 0; i < layout.size(); i++) {
-            var attrib = layout.get(i);
-            glEnableVertexAttribArray(i);
-            glVertexAttribPointer(
-                    i,
-                    attrib.amount(),
-                    attrib.glType(),
-                    false,
-                    stride,
-                    attribPtr
-            );
-            attribPtr += calculateAttributeSize(attrib);
-        }
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-
-    public static int calculateVertexSize(List<Attribute> layout) {
-        var size = 0;
-        for (var attrib : layout) size += calculateAttributeSize(attrib);
-        return size;
-    }
-
-    public static int calculateAttributeSize(Attribute attrib) {
-        return switch (attrib.glType()) {
-            case GL_FLOAT, GL_UNSIGNED_INT, GL_INT -> 4;
-            case GL_BYTE, GL_UNSIGNED_BYTE -> 1;
-            case GL_SHORT, GL_UNSIGNED_SHORT, GL_HALF_FLOAT -> 2;
-            default -> throw new IllegalStateException("Unexpected OpenGL Attribute type: " + attrib.glType() + ". If this is wrong, please contact hydos");
-        } * attrib.amount();
-    }
-
-    private static List<Attribute> DEFAULT_ATTRIBUTES = List.of(
-            Attribute.POSITION,
-            Attribute.TEXCOORD,
-            Attribute.NORMAL,
-            Attribute.BONE_IDS,
-            Attribute.BONE_WEIGHTS
-    );
-
-    public boolean isUploaded() {
-        return uploaded;
-    }
 }

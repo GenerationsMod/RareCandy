@@ -2,6 +2,7 @@ package gg.generations.rarecandy.pokeutils.reader;
 
 import gg.generations.rarecandy.renderer.loading.ITexture;
 
+import java.awt.image.BufferedImage;
 import java.util.Set;
 
 public abstract class ITextureLoader {
@@ -19,35 +20,9 @@ public abstract class ITextureLoader {
 
     public abstract void register(String name, ITexture reference);
 
+    public abstract void register(String id, String fileName, byte[] data);
+
     public abstract void remove(String name);
-
-    public void clear() {
-        getTextureEntries().forEach(this::remove);
-        reload();
-    }
-
-    public abstract TextureReference generateDirectReference(String path);
-
-    public void reload() {
-        register("dark", generateDirectReference("dark.png"));
-        register("neutral", generateDirectReference("neutral.png"));
-        register("bright", generateDirectReference("bright.png"));
-        register("paradox_mask", generateDirectReference("paradox.png"));
-        register("blank", generateDirectReference("blank.png"));
-        register("burnt_concrete", generateDirectReference("burnt_concrete.png"));
-        register("concrete", generateDirectReference("concrete.png"));
-        register("glass", generateDirectReference("glass.png"));
-        register("metal", generateDirectReference("metal.png"));
-        register("silver", generateDirectReference("silver.png"));
-
-
-    }
-    public void register(String name, TextureReference reference) {
-        register(name, loadFromReference(reference));
-    }
-
-    protected abstract ITexture loadFromReference(TextureReference reference);
-
 
     public ITexture getDarkFallback() {
         return getTexture("dark");

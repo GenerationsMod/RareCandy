@@ -6,7 +6,6 @@ import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
 import gg.generations.rarecandy.renderer.ThreadSafety;
@@ -36,7 +35,6 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -56,9 +54,6 @@ public class ModelLoader {
         Animation.AnimationNode[] getNode(Animation animation, Skeleton skeleton);
     }
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, PixelAsset gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
-        create2(objects, gltfModel, smdFileMap, gfbFileMap, trFilesMap, images, config, glCalls, supplier, Animation.GLB_SPEED);
-    }
 
     private static List<Attribute> ATTRIBUTES = List.of(
             Attribute.POSITION,
@@ -68,9 +63,8 @@ public class ModelLoader {
             Attribute.BONE_WEIGHTS
     );
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, PixelAsset asset, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
+    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, PixelAsset asset, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
         if (config == null) throw new RuntimeException("config.json can't be null.");
-//        checkForRootTransformation(objects, gltfModel);
 
         Map<String, NodeProvider> animationNodeMap = new HashMap<>();
         Map<String, Integer> fpsMap = new HashMap<>();
@@ -85,12 +79,6 @@ public class ModelLoader {
         Skeleton skeleton = new Skeleton(rootNode);
 
         var meshes = Mesh.readMeshData(skeleton, gltfModel);
-
-//        if (!gltfModel.getSkinModels().isEmpty()) {
-//            skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
-//            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(animationModel.getName(), 30) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
-
-//        var pairalreadycreated;
 
         for (var entry : trFilesMap.entrySet()) {
             var name = entry.getKey();
@@ -230,9 +218,6 @@ public class ModelLoader {
         var hidMap = reverseListMap(variantHideMap);
         var offsetMap = reverseMap(variantOffsetMap);
 
-
-//        objects.dimensions.set(calculateDimensions(meshes));
-
         Stream.of(meshes).flatMap(a -> a.positions().stream()).forEach(objects.dimensions::max);
         for (var meshModel : meshes) {
             processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
@@ -311,26 +296,7 @@ public class ModelLoader {
 
     private static void applyTransforms(Matrix4f transform, ModelNode node) {
         transform.set(node.transform);
-
-//        if (node.getScale() != null) transform.scale(new Vector3f(node.getScale()));
-//        if (node.getRotation() != null)
-//            transform.rotate(new Quaternionf(node.getRotation()[0], node.getRotation()[1], node.getRotation()[2], node.getRotation()[3]));
-//        if (node.getTranslation() != null) {
-//            if (node.getTranslation().length == 3)
-//                transform.add(new Matrix4f().setTranslation(node.getTranslation()[0], node.getTranslation()[1], node.getTranslation()[2]));
-//            else
-//                transform.add(new Matrix4f().set(node.getTranslation()));
-//        }
     }
-
-//    public static <T extends MeshObject> void checkForRootTransformation(MultiRenderObject<T> objects, AIScene gltfModel) {
-//        if (gltfModel.getSkinModels().isEmpty()) {
-//            var node = gltfModel.getNodeModels().get(0);
-//            while (node.getParent() != null) node = node.getParent();
-//            var rootTransformation = new Matrix4f().set(node.createGlobalTransformSupplier().get());
-//            objects.setRootTransformation(rootTransformation);
-//        }
-//    }
 
     private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, Mesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Vector2f>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
         var name = mesh.name();
@@ -339,7 +305,7 @@ public class ModelLoader {
         var list = hiddenMap.get(name);
         var offset = offsetMap.get(name);
 
-        var glModel = processPrimitiveModel(mesh, skeleton);
+        var glModel = processPrimitiveModel(mesh, skeleton, glCalls);
         var renderObject = objSupplier.get();
 
         if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
@@ -351,7 +317,7 @@ public class ModelLoader {
         objects.add(renderObject);
     }
 
-    private static GLModel processPrimitiveModel(Mesh mesh, Skeleton skeleton) {
+    private static GLModel processPrimitiveModel(Mesh mesh, Skeleton skeleton, List<Runnable> glCalls) {
         var model = new GLModel();
 
         var length = calculateVertexSize(ATTRIBUTES);
@@ -415,28 +381,66 @@ public class ModelLoader {
         }
 
         vertexBuffer.flip();
-        model.vertexBuffer = vertexBuffer;
+
+
 
         var indexBuffer = MemoryUtil.memAlloc(mesh.indices().size() * 4);
         indexBuffer.asIntBuffer().put(mesh.indices().stream().mapToInt(a -> a).toArray()).flip();
 
-        model.indexBuffer = indexBuffer;
-        model.indexSize = mesh.indices().size();
+        var indexSize = mesh.indices().size();
+
+        glCalls.add(() -> {
+            generateVao(model, vertexBuffer, DEFAULT_ATTRIBUTES);
+            GL30.glBindVertexArray(model.vao);
+            model.ebo = GL15.glGenBuffers();
+            glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
+            glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES, GL_UNSIGNED_INT, model.ebo, indexSize));
+            MemoryUtil.memFree(vertexBuffer);
+            MemoryUtil.memFree(indexBuffer);
+        });
 
         return model;
     }
 
-    public static int generateVao(ByteBuffer vertexBuffer, List<Attribute> layout) {
-        var vao = glGenVertexArrays();
 
-        glBindVertexArray(vao);
+    public static int calculateVertexSize(List<Attribute> layout) {
+        var size = 0;
+        for (var attrib : layout) size += calculateAttributeSize(attrib);
+        return size;
+    }
+
+    public static int calculateAttributeSize(Attribute attrib) {
+        return switch (attrib.glType()) {
+            case GL_FLOAT, GL_UNSIGNED_INT, GL_INT -> 4;
+            case GL_BYTE, GL_UNSIGNED_BYTE -> 1;
+            case GL_SHORT, GL_UNSIGNED_SHORT, GL_HALF_FLOAT -> 2;
+            default -> throw new IllegalStateException("Unexpected OpenGL Attribute type: " + attrib.glType() + ". If this is wrong, please contact hydos");
+        } * attrib.amount();
+    }
+
+    private static List<Attribute> DEFAULT_ATTRIBUTES = List.of(
+            Attribute.POSITION,
+            Attribute.TEXCOORD,
+            Attribute.NORMAL,
+            Attribute.BONE_IDS,
+            Attribute.BONE_WEIGHTS
+    );
+
+
+    public static void generateVao(GLModel model, ByteBuffer vertexBuffer, List<Attribute> layout) {
+        model.vao = glGenVertexArrays();
+
+        glBindVertexArray(model.vao);
         var stride = calculateVertexSize(layout);
         var attribPtr = 0;
 
         // I hate openGL. why cant I keep the vertex data and vertex layout separate :(
-        var vbo = glGenBuffers();
+        model.vbo = glGenBuffers();
 
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
         glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
 
         for (int i = 0; i < layout.size(); i++) {
@@ -454,8 +458,6 @@ public class ModelLoader {
         }
 
         glBindVertexArray(0);
-
-        return vao;
     }
 
     private static void vertexAttribPointer(Attribute data, int binding) {
@@ -565,14 +567,10 @@ public class ModelLoader {
         for (var entry : images) {
             var key = entry.getKey();
 
-            try {
-                var id = asset.name + "-" + key;
-                ITextureLoader.instance().register(id, TextureReference.read(entry.getValue(), key, true));
+            var id = asset.name + "-" + key;
+            ITextureLoader.instance().register(id, key, entry.getValue());
 
-                map.put(key, id);
-            } catch (IOException e) {
-                System.out.print("Error couldn't load: " + key); //TODO: Logger solution.
-            }
+            map.put(key, id);
         }
 
         return map;
@@ -733,20 +731,5 @@ public class ModelLoader {
                 aiMat4.b1(), aiMat4.b2(), aiMat4.b3(), aiMat4.b4(),
                 aiMat4.c1(), aiMat4.c2(), aiMat4.c3(), aiMat4.c4(),
                 aiMat4.d1(), aiMat4.d2(), aiMat4.d3(), aiMat4.d4());
-    }
-
-    public static int calculateVertexSize(List<Attribute> layout) {
-        var size = 0;
-        for (var attrib : layout) size += calculateAttributeSize(attrib);
-        return size;
-    }
-
-    public static int calculateAttributeSize(Attribute attrib) {
-        return switch (attrib.glType()) {
-            case GL_FLOAT, GL_UNSIGNED_INT, GL_INT -> 4;
-            case GL_BYTE, GL_UNSIGNED_BYTE -> 1;
-            case GL_SHORT, GL_UNSIGNED_SHORT, GL_HALF_FLOAT -> 2;
-            default -> throw new IllegalStateException("Unexpected OpenGL Attribute type: " + attrib.glType() + ". If this is wrong, please contact hydos");
-        } * attrib.amount();
     }
 }

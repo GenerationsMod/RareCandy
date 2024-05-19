@@ -51,7 +51,7 @@ public class PlaneGenerator {
 
 
         List<Runnable> glCalls = List.of(() -> {
-            model.vao = generateVao(vertexBuffer, attributes);
+            generateVao(model, vertexBuffer, attributes);
             GL30.glBindVertexArray(model.vao);
 
             model.ebo = GL15.glGenBuffers();
@@ -59,6 +59,8 @@ public class PlaneGenerator {
             GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
 
             model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES, GL11.GL_UNSIGNED_SHORT, model.ebo, 6));
+            MemoryUtil.memFree(vertexBuffer);
+            MemoryUtil.memFree(indexBuffer);
         });
 
         var obj = new MultiRenderObject<MeshObject>();

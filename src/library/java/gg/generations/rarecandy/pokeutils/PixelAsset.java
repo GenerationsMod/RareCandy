@@ -67,7 +67,7 @@ public class PixelAsset {
                     try {
                         files.put(entry.getFileName().toString(), Files.readAllBytes(entry));
                     } catch (IOException e) {
-
+                        throw new RuntimeException();
                     }
                 }
             }

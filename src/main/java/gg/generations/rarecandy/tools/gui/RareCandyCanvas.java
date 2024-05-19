@@ -35,6 +35,8 @@ import java.util.function.Supplier;
 public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
 
+    private ModelLoader loader = new ModelLoader();
+
     private static float lightLevel = 0.950f;
     private static double time;
 
@@ -209,8 +211,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, glCalls, supplier);
-                    object.objects.forEach(t -> glCalls.add(t.model::upload));
-
                     return glCalls;
                 },
                 onFinish

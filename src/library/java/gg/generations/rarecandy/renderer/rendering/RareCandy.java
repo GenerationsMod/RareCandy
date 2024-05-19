@@ -12,12 +12,9 @@ public class RareCandy {
     private static final Queue<Runnable> TASKS = new ConcurrentLinkedQueue<>();
     public static boolean DEBUG_THREADS = false;
     public final ObjectManager objectManager = new ObjectManager();
-    private final ModelLoader loader;
-
     public RareCandy() {
         ThreadSafety.initContextThread();
         var startLoad = System.currentTimeMillis();
-        this.loader = new ModelLoader();
         LoggerUtil.print("RareCandy Startup took " + (System.currentTimeMillis() - startLoad) + "ms");
     }
 
@@ -42,13 +39,5 @@ public class RareCandy {
         if (clearInstances) {
             this.objectManager.clearObjects();
         }
-    }
-
-    public void close() {
-        this.loader.close();
-    }
-
-    public ModelLoader getLoader() {
-        return loader;
     }
 }

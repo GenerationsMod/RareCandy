@@ -24,7 +24,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class PokemonTest {
-
+    private ModelLoader loader = new ModelLoader();
     private final List<AnimatedObjectInstance> instances = new ArrayList<>();
     private final Path path;
     public RareCandy renderer;
@@ -78,7 +78,6 @@ public class PokemonTest {
     }
 
     protected <T extends MeshObject> void load(RareCandy renderer, Supplier<PixelAsset> asset, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
-        var loader = renderer.getLoader();
         loader.createObject(
                 asset,
                 (gltfModel, smdFileMap, gfbFileMap, tranmFilesMaps, images, config, object) -> {

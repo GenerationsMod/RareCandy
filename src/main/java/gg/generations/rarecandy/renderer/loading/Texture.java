@@ -18,6 +18,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class Texture implements ITexture {
+    private static final JXLOptions options;
+
+    static {
+        options = new JXLOptions();
+        options.hdr = JXLOptions.HDR_OFF;
+        options.threads = 4;
+    }
     private TextureDetails details;
     public int id;
 
@@ -68,11 +75,7 @@ public class Texture implements ITexture {
         BufferedImage pixelData;
         BufferedImage temp;
 
-
         if (name.endsWith("jxl")) {
-            var options = new JXLOptions();
-            options.hdr = JXLOptions.HDR_OFF;
-            options.threads = 2;
             temp = new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage();
         } else {
 

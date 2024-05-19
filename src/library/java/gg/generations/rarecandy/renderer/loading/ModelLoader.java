@@ -47,7 +47,11 @@ public class ModelLoader {
     private final ExecutorService modelLoadingPool;
 
     public ModelLoader() {
-        this.modelLoadingPool = Executors.newFixedThreadPool(2);
+        this(4);
+    }
+
+    public ModelLoader(int numThreads) {
+        this.modelLoadingPool = Executors.newFixedThreadPool(numThreads);
     }
 
     public interface NodeProvider {

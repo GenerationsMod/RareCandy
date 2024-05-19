@@ -153,7 +153,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     private MultiRenderObject<MeshObject> loadPlane(RareCandy renderer, int width, int length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
-        return renderer.getLoader().generatePlane(width, length, onFinish);
+        return loader.generatePlane(width, length, onFinish);
     }
 
     private Vector3f size = new Vector3f();
@@ -205,7 +205,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
-        var loader = renderer.getLoader();
         loader.createObject(
                 () -> is,
                 (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {

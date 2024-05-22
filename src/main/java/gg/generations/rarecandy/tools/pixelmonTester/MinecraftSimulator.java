@@ -54,8 +54,7 @@ public class MinecraftSimulator {
 
             var timePassed = (System.currentTimeMillis() - START_TIME);
 
-            scene.render(false, timePassed, RenderStage.SOLID);
-            scene.render(false, timePassed, RenderStage.TRANSPARENT);
+            scene.render(false, timePassed);
             window.swapBuffers();
         }
 

@@ -2,14 +2,12 @@ package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
-import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 /**
@@ -93,12 +91,12 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public <V extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances, V obj) {
+    public <V extends RenderObject> void render(List<ObjectInstance> instances, V obj) {
         List<T> ts = this.objects;
         for (int i = 0, tsSize = ts.size(); i < tsSize; i++) {
             T object = ts.get(i);
             if (object != null && object.isReady()) {
-                object.render(stage, instances, object);
+                object.render(instances, object);
             }
         }
     }

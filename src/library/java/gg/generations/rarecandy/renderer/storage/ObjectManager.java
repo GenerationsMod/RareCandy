@@ -3,7 +3,6 @@ package gg.generations.rarecandy.renderer.storage;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
-import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -28,14 +27,14 @@ public class ObjectManager {
         animationController.render(secondsPassed);
     }
 
-    public void render(RenderStage stage) {
+    public void render() {
         for (var entry : objects.entrySet()) {
             var object = entry.getKey();
             if (object == null) continue;
 
             if (object.isReady()) {
                 object.update();
-                object.render(stage, entry.getValue());
+                object.render(entry.getValue());
             }
         }
     }

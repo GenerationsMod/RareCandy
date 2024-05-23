@@ -11,7 +11,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
 
-import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
+import static gg.generations.rarecandy.tools.gui.RareCandyCanvasTexture.projectionMatrix;
 import static java.lang.Math.abs;
 import static java.lang.Math.floor;
 

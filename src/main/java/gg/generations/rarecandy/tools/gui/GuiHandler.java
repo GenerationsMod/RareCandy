@@ -44,8 +44,8 @@ public class GuiHandler implements KeyListener {
         getCanvas().attachArcBall();
     }
 
-    public RareCandyCanvas getCanvas() {
-        return (RareCandyCanvas) gui.canvasPanel.getComponents()[0];
+    public RareCandyCanvasTexture getCanvas() {
+        return (RareCandyCanvasTexture) gui.canvasPanel.getComponents()[0];
     }
 
     public void initializeAsset(PixelAsset asset, Path path) {

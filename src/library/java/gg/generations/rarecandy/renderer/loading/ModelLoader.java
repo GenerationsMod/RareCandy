@@ -10,10 +10,7 @@ import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.*;
-import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
-import gg.generations.rarecandy.renderer.components.MeshObject;
-import gg.generations.rarecandy.renderer.components.MultiRenderObject;
-import gg.generations.rarecandy.renderer.components.RenderObject;
+import gg.generations.rarecandy.renderer.components.*;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.GlCallSupplier;
 import gg.generations.rarecandy.renderer.model.MeshDrawCommand;
@@ -30,7 +27,6 @@ import org.lwjgl.assimp.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -66,6 +62,20 @@ public class ModelLoader {
             Attribute.BONE_IDS,
             Attribute.BONE_WEIGHTS
     );
+
+    public static Map<String, Material> getMaterials(Map<String, String> images, ModelConfig config) {
+        if (config == null) throw new RuntimeException("config.json can't be null.");
+
+        var materials = new HashMap<String, Material>();
+
+        config.materials.forEach((k, v) -> {
+            var material = MaterialReference.process(k, config.materials, images);
+
+            materials.put(k, material);
+        });
+
+        return materials;
+    }
 
     public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, PixelAsset asset, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
         if (config == null) throw new RuntimeException("config.json can't be null.");
@@ -528,6 +538,22 @@ public class ModelLoader {
 
     public MultiRenderObject<MeshObject> generatePlane(float width, float length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
         var pair = PlaneGenerator.generatePlane(width, length);
+
+        var task = ThreadSafety.wrapException(() -> {
+            ThreadSafety.runOnContextThread(() -> {
+                pair.a().forEach(Runnable::run);
+                pair.b().updateDimensions();
+                if (onFinish != null) onFinish.accept(pair.b());
+            });
+        });
+        if (RareCandy.DEBUG_THREADS) task.run();
+        else modelLoadingPool.submit(task);
+
+        return pair.b();
+    }
+
+    public MultiRenderObject<TextureDisplayObject> generatePlaneDisplay(float width, float length, Consumer<MultiRenderObject<TextureDisplayObject>> onFinish) {
+        var pair = PlaneGenerator.generatePlaneDisplay(width, length);
 
         var task = ThreadSafety.wrapException(() -> {
             ThreadSafety.runOnContextThread(() -> {

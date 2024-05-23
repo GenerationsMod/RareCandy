@@ -2,19 +2,16 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.animation.*;
-import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
-import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.components.TextureDisplayObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
-import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
-import org.jetbrains.annotations.NotNull;
+import gg.generations.rarecandy.tools.gui.GuiPipelines;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
@@ -26,42 +23,24 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 
-public class RareCandyCanvas extends AWTGLCanvas {
+public class RareCandyCanvasTexture extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
 
-    private ModelLoader loader = new ModelLoader();
+    private final ModelLoader loader = new ModelLoader();
 
-    private static float lightLevel = 0.950f;
-    private static double time;
+    private static final float lightLevel = 1f;
 
     public final Matrix4f viewMatrix = new Matrix4f();
-    public final List<AnimatedObjectInstance> instances = new ArrayList<>();
-    private final int scaleModifier = 0;
-    public double startTime = System.currentTimeMillis();
-    public String currentAnimation = null;
     private RareCandy renderer;
     private MultiRenderObject<TextureDisplayObject> plane;
+    private Map<String, Material> materials;
+    private ObjectInstance instance;
 
-    public MultiRenderObject<AnimatedMeshObject> loadedModel;
-    public AnimatedObjectInstance loadedModelInstance;
-    private static float previousLightLevel;
-
-    public static void setLightLevel(float lightLevel) {
-        previousLightLevel = RareCandyCanvas.lightLevel;
-        RareCandyCanvas.lightLevel = lightLevel;
-    }
-
-     static float getLightLevel() {
-        return lightLevel;
-    }
-
-    public RareCandyCanvas() {
+    public RareCandyCanvasTexture() {
         super(defaultData());
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -81,11 +60,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         return data;
     }
 
-    public static double getTime() {
-        return time;
-    }
-
-    public static void setup(RareCandyCanvas canvas) {
+    public static void setup(RareCandyCanvasTexture canvas) {
         canvas.attachArcBall();
 
         ITextureLoader.setInstance(new TextureLoader());
@@ -110,29 +85,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public void openFile(PixelAsset pkFile) throws IOException {
-        openFile(pkFile, () -> {});
-    }
-
-    public void openFile(PixelAsset pkFile, Runnable runnable) throws IOException {
-        currentAnimation = null;
-        renderer.objectManager.clearObjects();
-        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
-        if(loadedModel != null) loadedModel.close();
-
         if(pkFile == null) return;
 
-        loadPokemonModel(renderer, pkFile, model -> {
-            var i = 0;
-
-            loadedModel = model;
-            var variants = model.availableVariants();
-
-            var variant = !variants.isEmpty() ? variants.iterator().next() : null;
-            var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
-            instance.transformationMatrix().scale(loadedModel.scale);
-            loadedModelInstance = renderer.objectManager.add(model, instance);
-            model.updateDimensions();
-            runnable.run();
+        loadPokemonModel(pkFile, model -> {
+            plane.objects.get(0).setMaterials(materials);
         });
     }
 
@@ -146,9 +102,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClearColor(0, 0, 0, 1);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        loadPlane(100, 100, model -> {
+        loadPlane(2, 2, model -> {
             plane = model;
-            renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+            instance = new ObjectInstance(new Matrix4f(), viewMatrix, null);
+            renderer.objectManager.add(model, instance);
         });
     }
 
@@ -156,81 +113,35 @@ public class RareCandyCanvas extends AWTGLCanvas {
         return loader.generatePlaneDisplay(width, length, onFinish);
     }
 
-    private Vector3f size = new Vector3f();
+    private final Vector3f size = new Vector3f();
 
-    private double fraciton = 1/16f;
+    private final double fraciton = 1/16f;
     @Override
     public void paintGL() {
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-        if (loadedModelInstance != null) {
-            loadedModelInstance.transformationMatrix().identity().scale(loadedModel.scale);
 
-            size.set(loadedModel.dimensions).mul(loadedModel.scale);
-        }
-
-        time = (System.currentTimeMillis() - startTime) / 1000f;
-
-        renderer.render(false, time);
+        renderer.render(false, 0f);
         swapBuffers();
-
-        if (instances.size() > 1) {
-            ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
-                for (var instance : instances) {
-                    if(a.animations != null) {
-                        var newAnimation = a.animations.get(currentAnimation);
-
-                        if(newAnimation != null) {
-                            instance.changeAnimation(createInstance(newAnimation));
-                        }
-                    }
-                }
-            });
-        }
-
-        for (var instance : instances) {
-            if (scaleModifier != 0) {
-                var newScale = 1 - (scaleModifier * 0.1f);
-                instance.transformationMatrix().scale(newScale);
-            }
-        }
     }
 
     public AnimationInstance createInstance(Animation animation) {
         return new AnimationInstance(animation);
     }
 
-    protected void loadPokemonModel(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
-        load(renderer, is, onFinish, AnimatedMeshObject::new);
+    protected void loadPokemonModel(PixelAsset is, Consumer<MultiRenderObject<TextureDisplayObject>> onFinish) {
+        load(is, onFinish);
     }
 
-    protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected void load(PixelAsset is, Consumer<MultiRenderObject<TextureDisplayObject>> onFinish) {
         loader.createObject(
                 () -> is,
                 (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, glCalls, supplier);
+                    materials = ModelLoader.getMaterials(images, config);
                     return glCalls;
                 },
                 onFinish
         );
-    }
-
-    public void setAnimation(@NotNull String animation) {
-        AnimatedMeshObject object = loadedModel.objects.get(0);
-
-        if (object.animations != null)
-            LoggerUtil.print(animation);
-        if (Objects.requireNonNull(object.animations).containsKey(animation)) {
-            loadedModelInstance.changeAnimation(createInstance(object.animations.get(animation)));
-        }
-    }
-
-    public void updateLoadedModel(Consumer<AnimatedMeshObject> consumer) {
-        loadedModel.onUpdate(consumer);
-    }
-
-    public void setVariant(String variant) {
-        loadedModelInstance.setVariant(variant);
     }
 
     public void attachArcBall() {
@@ -239,6 +150,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
         this.addMouseWheelListener(arcballOrbit);
         this.addMouseListener(arcballOrbit);
         this.addKeyListener(arcballOrbit);
+    }
+
+    public void setVariant(String string) {
+        instance.setVariant(string);
     }
 
     public static class ArcballOrbit implements MouseMotionListener, MouseWheelListener, MouseListener, KeyListener {

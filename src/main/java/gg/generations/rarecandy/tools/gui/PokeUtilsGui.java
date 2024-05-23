@@ -88,7 +88,7 @@ public class PokeUtilsGui extends JPanel {
     private void createUIComponents() {
 //        System.load("C:/Program Files/RenderDoc/renderdoc.dll");
         this.fileViewer = new PixelAssetTree(this);
-        this.renderingWindow = new RareCandyCanvas();
+        this.renderingWindow = new RareCandyCanvasTexture();
     }
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 

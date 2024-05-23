@@ -61,13 +61,6 @@ public class TreeNodePopup extends JPopupMenu {
             if (fileBytes == null) throw new RuntimeException("Removed non-existing file");
             gui.asset.files.put(newName, fileBytes);
 
-            gui.getCanvas().updateLoadedModel(obj -> {
-                if (obj.animations.containsKey(target.toString())) {
-                    obj.animations.put(newName, obj.animations.get(target.toString()));
-                    obj.animations.remove(target.toString());
-                }
-            });
-
             var parent = (MutableTreeNode) pathNode.getParentPath().getLastPathComponent();
             parent.insert(new DefaultMutableTreeNode(newName), model.getIndexOfChild(parent, target));
             model.removeNodeFromParent(target);

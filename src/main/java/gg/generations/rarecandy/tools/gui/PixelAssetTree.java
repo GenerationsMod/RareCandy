@@ -57,69 +57,35 @@ public class PixelAssetTree extends JTree {
                                 new TreeNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
                     }
                 else if (path.getParentPath() != null)
-                    if (path.getParentPath().getLastPathComponent().toString().equals("animations")) {
-                        PixelAssetTree.this.gui.handler.getCanvas().setAnimation(path.getLastPathComponent().toString().replace(".tranm", "").replace(".smd", "").replace(".gfbanm", ""));
-                    } else if (path.getParentPath().getLastPathComponent().toString().equals("variants")) {
-                        PixelAssetTree.this.gui.handler.getCanvas().setVariant(path.getLastPathComponent().toString());
+                    if (path.getParentPath().getLastPathComponent().toString().equals("variants")) {
+                        var string = path.getLastPathComponent().toString();
+                        var index = string.indexOf("(");
+
+                        if(index > -1) string = string.substring(0, index);
+
+                        PixelAssetTree.this.gui.handler.getCanvas().setVariant(string);
                     }
             }
         });
 
         addTreeSelectionListener(e -> {
             var selectedNode = (DefaultMutableTreeNode) getLastSelectedPathComponent();
-
-            if (selectedNode != null && selectedNode.getParent() != null && selectedNode.getParent().toString().equals("animations")) {
-                this.gui.handler.getCanvas().currentAnimation = selectedNode.toString();
-                this.gui.handler.getCanvas().startTime = System.currentTimeMillis();
-            }
         });
     }
 
     public void initializeAsset(PixelAsset asset, Path assetPath) {
         var tree = node(assetPath.getFileName().toString());
-        var animationsNode = node("animations");
         var imagesNode = node("images");
 
-        List<String> variants = asset.getConfig() != null && asset.getConfig().variants != null ? List.copyOf(asset.getConfig().variants.keySet()) : new ArrayList<>();
+        List<String> variants = asset.getConfig() != null && asset.getConfig().materials != null ? List.copyOf(asset.getConfig().materials.entrySet().stream().map(a -> a.getKey() + "(" + a.getValue().shader + ")").toList()) : new ArrayList<>();
 
-        Set<String> animationStrings = new HashSet<>();
+        variants = variants.stream().sorted().toList();
+
 
         for (var s : asset.files.keySet()) {
-            if(s.endsWith("tranm") || s.endsWith("tracm") || s.endsWith("gfbanm") || s.endsWith("smd")) {
-                if(!animationStrings.contains(s)) {
-                    animationStrings.add(s.replace(".tracm", "").replace(".tranm", "").replace(".gfbanm", "").replace(".smd", ""));
-                }
-            }
-            else if (s.endsWith("glb")) {
-                var glbNode = node(s);
-                try {
-
-                    var gltf = new GltfModelReader().readWithoutReferences(new ByteArrayInputStream(asset.files.get(s)));
-
-                    if (variants.isEmpty())
-                        variants = gltf.getExtensions() != null && gltf.getExtensions().containsKey("KHR_materials_variants") ? ((List<Map<String, String>>) (((Map<String, Object>) gltf.getExtensions().get("KHR_materials_variants")).get("variants"))).stream().map(a -> a.get("name")).toList() : List.of();
-                    var animations = gltf.getAnimationModels().stream().map(NamedModelElement::getName).toList();
-
-                    if (!animations.isEmpty()) {
-                        var modelAnimationsNode = node("animations");
-                        for (var name : animations) modelAnimationsNode.add(node(name));
-                        glbNode.add(modelAnimationsNode);
-                    }
-
-                } catch (IOException ignored) {
-                }
-                tree.add(glbNode);
-            } else if (s.endsWith("jxl")) {
-                imagesNode.add(node(s));
-            }/* else if(s.equals("config.json")) {
-                tree.add(new ModConfigTreeNode(asset.getConfig()));
-            }*/ else tree.add(node(s));
+        if (s.endsWith("jxl")) imagesNode.add(node(s));
+            else tree.add(node(s));
         }
-
-        animationStrings.stream().sorted().map(this::node).forEach(animationsNode::add);
-
-        if (animationsNode.getChildCount() > 0) tree.add(animationsNode);
-        if (imagesNode.getChildCount() > 0) tree.add(imagesNode);
 
         if (!variants.isEmpty()) {
             var modelAnimationsNode = node("variants");

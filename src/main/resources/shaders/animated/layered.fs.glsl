@@ -38,14 +38,7 @@ float adjustScalar(float color) {
 }
 
 vec4 adjust(vec4 color) {
-//    color.r = adjustScalar(color.r * 2, 0.0, 1.0);
-//    color.g = adjustScalar(color.g * 2, 0.0, 1.0);
-//    color.b = adjustScalar(color.b * 2, 0.0, 1.0);
-//    color.a = adjustScalar(color.a * 2, 0.0, 1.0);
-
     return clamp(color * 2, 0, 1);
-
-//    return color;
 }
 
 vec3 applyEmission(vec3 base, vec3 emissionColor, float intensity) {
@@ -56,6 +49,9 @@ float getMaskIntensity() {
     vec2 effectTexCoord = vec2(texCoord0);
 
     if(frame >= 0) {
+        effectTexCoord *= 4f;
+        effectTexCoord = fract(effectTexCoord);
+
         effectTexCoord *= (0.25f);
         effectTexCoord.x += (frame % 4)/4f;
         effectTexCoord.y +=  (frame/4)/4f;
@@ -65,8 +61,9 @@ float getMaskIntensity() {
 }
 
 vec4 getColor() {
-    vec4 color = texture(diffuse, texCoord0);
-    vec4 layerMasks = adjust(texture(layer, texCoord0));
+    vec2 texCoord = texCoord0;
+    vec4 color = texture(diffuse, texCoord);
+    vec4 layerMasks = adjust(texture(layer, texCoord));
     float maskColor = adjustScalar(getMaskIntensity());
 
     vec3 base = mix(color.rgb, color.rgb * baseColor1, layerMasks.r);

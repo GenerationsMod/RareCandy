@@ -37,7 +37,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     private ModelLoader loader = new ModelLoader();
 
-    private static float lightLevel = 0.950f;
+    private static float lightLevel = 1f;
     private static double time;
 
     public final Matrix4f viewMatrix = new Matrix4f();

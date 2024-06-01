@@ -5,6 +5,7 @@ import com.traneptora.jxlatte.JXLOptions;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL13C;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;
@@ -28,11 +29,11 @@ public class Texture implements ITexture {
     private TextureDetails details;
     public int id;
 
-    public Texture(ByteBuffer buffer, int width, int height) {
-        details = new TextureDetails(buffer, width, height);
+    public Texture(ByteBuffer buffer, Type type, int width, int height) {
+        details = new TextureDetails(buffer, type, width, height);
     }
 
-    private record TextureDetails(ByteBuffer buffer, int width, int height) implements Closeable {
+    private record TextureDetails(ByteBuffer buffer, Type type, int width, int height) implements Closeable {
         @Override
         public void close() {
             MemoryUtil.memFree(buffer());
@@ -41,7 +42,7 @@ public class Texture implements ITexture {
         public int init() {
             var id = GL11.glGenTextures();
             GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, id);
-            GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, width, height, 0, GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, buffer);
+            GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, type.internalFormat, width, height, 0, type.format, type.type, buffer);
 
             GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_S, GL11C.GL_REPEAT);
             GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_T, GL11C.GL_REPEAT);
@@ -77,25 +78,27 @@ public class Texture implements ITexture {
 
         if (name.endsWith("jxl")) {
             temp = new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage();
+            return new Texture(readRegular(temp), Type.RGBA_FLOAT, temp.getWidth(), temp.getHeight());
         } else {
-
             temp = ImageIO.read(new ByteArrayInputStream(imageBytes));
+
+            return new Texture(readRegular(temp), Type.RGBA_BYTE, temp.getWidth(), temp.getHeight());
         }
 
-        var width = temp.getWidth();
-        var height = temp.getHeight();
-        pixelData = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int p = temp.getRGB(x, y);
-                pixelData.setRGB(x, y, p);
-            }
-        }
+//        var width = temp.getWidth();
+//        var height = temp.getHeight();
+//        pixelData = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+//        for (int y = 0; y < height; y++) {
+//            for (int x = 0; x < width; x++) {
+//                int p = temp.getRGB(x, y);
+//                pixelData.setRGB(x, y, p);
+//            }
+//        }
 
-        return new Texture(read(pixelData), pixelData.getWidth(), pixelData.getHeight());
+
     }
 
-    public static ByteBuffer read(BufferedImage image) {
+    public static ByteBuffer readRegular(BufferedImage image) {
         if (image == null) {
             return null;
         }
@@ -104,13 +107,19 @@ public class Texture implements ITexture {
 
         ByteBuffer readyData;
 
-        if (buffer instanceof DataBufferFloat intBuffer) {
-            var rawData = intBuffer.getData();
-            readyData = MemoryUtil.memAlloc(rawData.length * 4);
+        if (buffer instanceof DataBufferFloat floatBuffer) {
 
-            for (var hdrChannel : rawData) {
-                var channelValue = hdrToRgb(hdrChannel);
-                readyData.put((byte) channelValue);
+            var length = floatBuffer.getSize();
+
+            readyData = MemoryUtil.memAlloc(length * 4 * 4);
+            var rawData = floatBuffer.getBankData();
+
+
+            for (int i = 0; i < length; i++) {
+                readyData.putFloat(rawData[0][i]);
+                readyData.putFloat(rawData[1][i]);
+                readyData.putFloat(rawData[2][i]);
+                readyData.putFloat(rawData[3][i]);
             }
 
             readyData.flip();
@@ -137,7 +146,47 @@ public class Texture implements ITexture {
         return readyData;
     }
 
-    private static int hdrToRgb(float hdr) {
-        return (int) Math.min(Math.max(Math.pow(hdr, 1.0 / 2.2) * 255, 0), 255);
+    private static double hdrToRgb(float hdr) {
+        return Math.min(Math.max(Math.pow(hdr, 1.0 / 2.2) * 255, 0), 255);
+    }
+
+    public enum Type {
+        RGBA_BYTE(GL30.GL_RGBA8, GL30.GL_RGBA, GL30.GL_UNSIGNED_BYTE, true, true),
+
+        RGBA_FLOAT(GL30.GL_RGBA32F, GL30.GL_RGBA, GL30.GL_FLOAT, false, true);
+
+        private final int internalFormat;
+        private final int format;
+        private final int type;
+        private final boolean isByte;
+        private final boolean hasAlpha;
+
+        Type(int internalFormat, int format, int type, boolean isByte, boolean hasAlpha) {
+            this.internalFormat = internalFormat;
+            this.format = format;
+            this.type = type;
+            this.isByte = isByte;
+            this.hasAlpha = hasAlpha;
+        }
+
+        public int getInternalFormat() {
+            return internalFormat;
+        }
+
+        public int getFormat() {
+            return format;
+        }
+
+        public int getType() {
+            return type;
+        }
+
+        public boolean isByte() {
+            return isByte;
+        }
+
+        public boolean isHasAlpha() {
+            return hasAlpha;
+        }
     }
 }

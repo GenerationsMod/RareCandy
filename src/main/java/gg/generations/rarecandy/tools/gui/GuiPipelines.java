@@ -67,6 +67,7 @@ public class GuiPipelines {
     private static final Pipeline.Builder BASE = new Pipeline.Builder(ROOT)
             .configure(GuiPipelines::addDiffuse)
             .configure(GuiPipelines::addLight);
+    private static Vector3f ZERO = new Vector3f();
 
     private static void addDiffuse(Pipeline.Builder builder) {
         builder.supplyUniform("diffuse", ctx -> {
@@ -82,11 +83,11 @@ public class GuiPipelines {
     }
 
     private static void baseColors(Pipeline.Builder builder) {
-        builder.supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor3") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor4") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor5") instanceof Vector3f vec ? vec : GuiPipelines.ONE));
+        builder.supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor1") instanceof Vector3f vec ? vec : GuiPipelines.ZERO))
+                .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor2") instanceof Vector3f vec ? vec : GuiPipelines.ZERO))
+                .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor3") instanceof Vector3f vec ? vec : GuiPipelines.ZERO))
+                .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor4") instanceof Vector3f vec ? vec : GuiPipelines.ZERO))
+                .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor5") instanceof Vector3f vec ? vec : GuiPipelines.ZERO));
     }
 
     private static void addLight(Pipeline.Builder builder) {
@@ -119,7 +120,7 @@ public class GuiPipelines {
             }).supplyUniform("mask", ctx -> {
                 var texture = ctx.getTexture("mask");
 
-                if(texture == null) texture = ITextureLoader.instance().getDarkFallback();
+                if(texture == null) texture = ITextureLoader.instance().getTexture("blank");
 
                 texture.bind(3);
                 ctx.uniform().uploadInt(3);
@@ -180,7 +181,7 @@ public class GuiPipelines {
                 .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity2") instanceof Float vec ? vec : 0.0f))
                 .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity3") instanceof Float vec ? vec : 0.0f))
                 .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity4") instanceof Float vec ? vec : 0.0f))
-                .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity5") instanceof Float vec ? vec : 1.0f));
+                .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity5") instanceof Float vec ? vec : 0.0f));
     }
     private static final Vector3f ONE = new Vector3f(1,1, 1);
 

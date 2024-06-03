@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class Material implements Closeable {
     private final String materialName;
-    private Map<String, String> images;
+    public Map<String, String> images;
 
     private Map<String, Object> values;
 

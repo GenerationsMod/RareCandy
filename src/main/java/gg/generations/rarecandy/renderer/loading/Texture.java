@@ -78,7 +78,7 @@ public class Texture implements ITexture {
 
         if (name.endsWith("jxl")) {
             temp = new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage();
-            return new Texture(readRegular(temp), Type.RGBA_BYTE, temp.getWidth(), temp.getHeight());
+            return new Texture(readRegular(temp), Type.RGBA_FLOAT, temp.getWidth(), temp.getHeight());
         } else {
             temp = ImageIO.read(new ByteArrayInputStream(imageBytes));
 
@@ -116,10 +116,10 @@ public class Texture implements ITexture {
 
 
             for (int i = 0; i < length; i++) {
-                readyData.put((byte) hdrToRgb((rawData[0][i])));
-                readyData.put((byte) hdrToRgb((rawData[1][i])));
-                readyData.put((byte) hdrToRgb((rawData[2][i])));
-                readyData.put((byte) hdrToRgb((rawData[3][i])));
+                readyData.putFloat(rawData[0][i]);
+                readyData.putFloat(rawData[1][i]);
+                readyData.putFloat(rawData[2][i]);
+                readyData.putFloat(rawData[3][i]);
             }
 
             readyData.flip();
@@ -146,8 +146,8 @@ public class Texture implements ITexture {
         return readyData;
     }
 
-    private static double hdrToRgb(float hdr) {
-        return Math.min(Math.max(Math.pow(hdr, 1.0 / 2.2) * 255, 0), 255);
+    private static byte hdrToRgb(float hdr) {
+        return (byte) Math.min(Math.max(Math.pow(hdr, 1.0 / 2.2) * 255, 0), 255);
     }
 
     public enum Type {

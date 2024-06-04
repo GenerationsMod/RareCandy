@@ -30,7 +30,11 @@ public class Texture implements ITexture {
     public int id;
 
     public Texture(ByteBuffer buffer, Type type, int width, int height) {
-        details = new TextureDetails(buffer, type, width, height);
+        this(new TextureDetails(buffer, type, width, height));
+    }
+
+    public Texture(TextureDetails textureDetails) {
+        this.details = textureDetails;
     }
 
     private record TextureDetails(ByteBuffer buffer, Type type, int width, int height) implements Closeable {
@@ -74,16 +78,9 @@ public class Texture implements ITexture {
 
     public static Texture read(byte[] imageBytes, String name) throws IOException {
         BufferedImage pixelData;
-        BufferedImage temp;
+        BufferedImage temp = name.endsWith("jxl") ? new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage() : ImageIO.read(new ByteArrayInputStream(imageBytes));
 
-        if (name.endsWith("jxl")) {
-            temp = new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage();
-            return new Texture(readRegular(temp), Type.RGBA_FLOAT, temp.getWidth(), temp.getHeight());
-        } else {
-            temp = ImageIO.read(new ByteArrayInputStream(imageBytes));
-
-            return new Texture(readRegular(temp), Type.RGBA_BYTE, temp.getWidth(), temp.getHeight());
-        }
+        return new Texture(readRegular(temp));
 
 //        var width = temp.getWidth();
 //        var height = temp.getHeight();
@@ -98,7 +95,7 @@ public class Texture implements ITexture {
 
     }
 
-    public static ByteBuffer readRegular(BufferedImage image) {
+    public static TextureDetails readRegular(BufferedImage image) {
         if (image == null) {
             return null;
         }
@@ -111,39 +108,54 @@ public class Texture implements ITexture {
 
             var length = floatBuffer.getSize();
 
+            var channels = floatBuffer.getBankData().length;
+
             readyData = MemoryUtil.memAlloc(length * 4 * 4);
             var rawData = floatBuffer.getBankData();
 
-
             for (int i = 0; i < length; i++) {
-                readyData.putFloat(rawData[0][i]);
-                readyData.putFloat(rawData[1][i]);
-                readyData.putFloat(rawData[2][i]);
-                readyData.putFloat(rawData[3][i]);
+                for (int channel = 0; channel < channels; channel++) {
+                    readyData.putFloat(rawData[channel][i]);
+                }
             }
 
             readyData.flip();
+
+            var type = channels == 3 ? Type.RGB_FLOAT : Type.RGBA_FLOAT;
+
+            return new TextureDetails(readyData, type, image.getWidth(), image.getHeight());
         } else if (buffer instanceof DataBufferInt floatBuffer) {
             var rawData = floatBuffer.getData();
-            readyData = MemoryUtil.memAlloc(rawData.length * 4);
+
+            var isRGBA = image.getType() == BufferedImage.TYPE_INT_ARGB;
+
+            readyData = MemoryUtil.memAlloc(rawData.length * (isRGBA ? 4 : 3));
 
             for (var pixel : rawData) {
                 readyData.put((byte) ((pixel >> 16) & 0xFF));
                 readyData.put((byte) ((pixel >> 8) & 0xFF));
                 readyData.put((byte) (pixel & 0xFF));
-                readyData.put((byte) ((pixel >> 24) & 0xFF));
+                if(isRGBA) readyData.put((byte) ((pixel >> 24) & 0xFF));
             }
 
             readyData.flip();
+
+            return new TextureDetails(readyData, isRGBA ? Type.RGBA_BYTE : Type.RGB_BYTE, image.getWidth(), image.getHeight());
         } else if (buffer instanceof DataBufferByte dataBufferByte) {
             var rawData = dataBufferByte.getData();
+
+            var isRGBA = image.getType() == BufferedImage.TYPE_INT_ARGB;
+
             readyData = MemoryUtil.memAlloc(rawData.length);
 
             readyData.put(rawData);
             readyData.flip();
+
+            return new TextureDetails(readyData, isRGBA ? Type.RGBA_BYTE : Type.RGB_BYTE, image.getWidth(), image.getHeight());
+
         } else throw new RuntimeException("Unknown Data Type: " + buffer.getClass().getName());
 
-        return readyData;
+//        return readyData;
     }
 
     private static byte hdrToRgb(float hdr) {
@@ -152,8 +164,10 @@ public class Texture implements ITexture {
 
     public enum Type {
         RGBA_BYTE(GL30.GL_RGBA8, GL30.GL_RGBA, GL30.GL_UNSIGNED_BYTE, true, true),
+        RGB_BYTE(GL30.GL_RGB8, GL30.GL_RGB, GL30.GL_UNSIGNED_BYTE, true, false),
 
-        RGBA_FLOAT(GL30.GL_RGBA32F, GL30.GL_RGBA, GL30.GL_FLOAT, false, true);
+        RGBA_FLOAT(GL30.GL_RGBA32F, GL30.GL_RGBA, GL30.GL_FLOAT, false, true),
+        RGB_FLOAT(GL30.GL_RGB32F, GL30.GL_RGB, GL30.GL_FLOAT, false, false);
 
         private final int internalFormat;
         private final int format;

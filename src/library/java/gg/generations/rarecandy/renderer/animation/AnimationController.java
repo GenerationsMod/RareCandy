@@ -11,6 +11,7 @@ import java.util.*;
 public class AnimationController {
     public static final Matrix4f[] NO_ANIMATION = new Matrix4f[220];
     public static final Transform NO_OFFSET = new Transform();
+    public static final Vector2f NO_UV_OFFSET = new Vector2f();
 
     static {
         var identity = new Matrix4f().identity();

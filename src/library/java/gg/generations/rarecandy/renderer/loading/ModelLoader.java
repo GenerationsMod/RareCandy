@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL15C;
@@ -59,6 +60,8 @@ public class ModelLoader {
     }
 
     public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
+        if(config != null) throw new RuntimeException("Error no config.json found.");
+
         checkForRootTransformation(objects, gltfModel);
         if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
 
@@ -105,10 +108,7 @@ public class ModelLoader {
 
         Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation = new HashMap<>();
 
-        if (config != null) {
-
-
-            var materials = new HashMap<String, Material>();
+        var materials = new HashMap<String, Material>();
 
             config.materials.forEach((k, v) -> {
                 var material = MaterialReference.process(k, config.materials, images);
@@ -118,12 +118,13 @@ public class ModelLoader {
 
             var defaultVariant = new HashMap<String, Variant>();
             config.defaultVariant.forEach((k, v) -> {
-                var variant = new Variant(materials.get(v.material()), v.hide());
+                var variant = new Variant(materials.get(v.material()), v.hide(), v.offset());
                 defaultVariant.put(k, variant);
             });
 
             var variantMaterialMap = new HashMap<String, Map<String, Material>>();
             var variantHideMap = new HashMap<String, List<String>>();
+            var variantOffsetMap = new HashMap<String, Map<String, Vector2f>>();
 
             if(config.hideDuringAnimation != null) {
                 hideDuringAnimation = config.hideDuringAnimation;
@@ -150,93 +151,97 @@ public class ModelLoader {
 
                     var matMap = variantMaterialMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
                     var hideMap = variantHideMap.computeIfAbsent(variantKey, s3 -> new ArrayList<>());
+                    var offsetMap = variantOffsetMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
 
                     applyVariant(materials, matMap, hideMap, map);
                 }
             } else {
                 var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
                 var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
+                var offsetMap = variantOffsetMap.computeIfAbsent("regular", s3 -> new HashMap<>());
 
                 defaultVariant.forEach((s1, variant) -> {
                     matMap.put(s1, variant.material());
                     if (variant.hide()) hideMap.add(s1);
+                    if (variant.offset() != null) offsetMap.put(s1, variant.offset());
                 });
             }
 
             var matMap = reverseMap(variantMaterialMap);
             var hidMap = reverseListMap(variantHideMap);
+            var offsetMap = reverseMap(variantOffsetMap);
 
             objects.dimensions.set(calculateDimensions(gltfModel));
 
             for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
                 var transform = new Matrix4f();
 
-                traverseTree(transform, node, objects, supplier, matMap, hidMap, glCalls, skeleton, animations, hideDuringAnimation);
+                traverseTree(transform, node, objects, supplier, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
             }
-        } else {
-
-            //Original model loading code
-
-            var textures = gltfModel.getTextureModels().stream().collect(Collectors.toMap(textureModel -> textureModel.getImageModel().getName(), raw -> {
-                var id = gltfModel.getNodeModels().get(0).getName() + "-" + raw.getImageModel().getName();
-
-                var image = ImageUtils.readAsBufferedImage(raw.getImageModel().getImageData());
-
-                ITextureLoader.instance().register(id, new TextureReference(image, raw.getImageModel().getName()));
-
-                return id;
-            }));
-
-            var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
-                var textureName = raw.getBaseColorTexture().getImageModel().getName();
-                return SolidReferenceMaterial.process(raw.getName(), textureName, textures);
-            }).toList();
-            var variants = getVariants(gltfModel);
-
-            objects.dimensions.set(calculateDimensions(gltfModel));
-            objects.scale = 1f / objects.scale;
-
-            // gltfModel.getSceneModels().get(0).getNodeModels().get(0).getScale()
-            for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
-                var transform = new Matrix4f();
-                applyTransforms(transform, node);
-
-                if (node.getChildren().isEmpty()) {
-                    // Model Loading Method #1
-                    objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
-
-                    for (var meshModel : node.getMeshModels()) {
-                        var showList = collectShownVariants(meshModel, variants);
-
-                        processPrimitiveModels(objects, supplier, meshModel, materials, variants, showList, glCalls, skeleton, animations);
-                    }
-                } else {
-                    // Model Loading Method #2
-                    for (var child : node.getChildren()) {
-                        applyTransforms(transform, child);
-                        objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
-
-                        for (var meshModel : child.getMeshModels()) {
-                            var showList = collectShownVariants(meshModel, variants);
-                            processPrimitiveModels(objects, supplier, meshModel, materials, variants, showList, glCalls, skeleton, animations);
-                        }
-                    }
-                }
-            }
-        }
+//        } else {
+//
+//            //Original model loading code
+//
+//            var textures = gltfModel.getTextureModels().stream().collect(Collectors.toMap(textureModel -> textureModel.getImageModel().getName(), raw -> {
+//                var id = gltfModel.getNodeModels().get(0).getName() + "-" + raw.getImageModel().getName();
+//
+//                var image = ImageUtils.readAsBufferedImage(raw.getImageModel().getImageData());
+//
+//                ITextureLoader.instance().register(id, new TextureReference(image, raw.getImageModel().getName()));
+//
+//                return id;
+//            }));
+//
+//            var materials = gltfModel.getMaterialModels().stream().map(MaterialModelV2.class::cast).map(raw -> {
+//                var textureName = raw.getBaseColorTexture().getImageModel().getName();
+//                return SolidReferenceMaterial.process(raw.getName(), textureName, textures);
+//            }).toList();
+//            var variants = getVariants(gltfModel);
+//
+//            objects.dimensions.set(calculateDimensions(gltfModel));
+//            objects.scale = 1f / objects.scale;
+//
+//            // gltfModel.getSceneModels().get(0).getNodeModels().get(0).getScale()
+//            for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
+//                var transform = new Matrix4f();
+//                applyTransforms(transform, node);
+//
+//                if (node.getChildren().isEmpty()) {
+//                    // Model Loading Method #1
+//                    objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
+//
+//                    for (var meshModel : node.getMeshModels()) {
+//                        var showList = collectShownVariants(meshModel, variants);
+//
+//                        processPrimitiveModels(objects, supplier, meshModel, materials, variants, showList, glCalls, skeleton, animations);
+//                    }
+//                } else {
+//                    // Model Loading Method #2
+//                    for (var child : node.getChildren()) {
+//                        applyTransforms(transform, child);
+//                        objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
+//
+//                        for (var meshModel : child.getMeshModels()) {
+//                            var showList = collectShownVariants(meshModel, variants);
+//                            processPrimitiveModels(objects, supplier, meshModel, materials, variants, showList, glCalls, skeleton, animations);
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
-    private static <T extends MeshObject> void traverseTree(Matrix4f transform, NodeModel node, MultiRenderObject<T> objects, Supplier<T> supplier, Map<String, Map<String, Material>> matMap, Map<String, List<String>> hidMap, List<Runnable> glCalls, Skeleton skeleton, Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation) {
+    private static <T extends MeshObject> void traverseTree(Matrix4f transform, NodeModel node, MultiRenderObject<T> objects, Supplier<T> supplier, Map<String, Map<String, Material>> matMap, Map<String, List<String>> hidMap, Map<String, Map<String, Vector2f>> offsetMap, List<Runnable> glCalls, Skeleton skeleton, Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation) {
         applyTransforms(transform, node);
 
         objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
 
         for (var meshModel : node.getMeshModels()) {
-            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, glCalls, skeleton, animations, hideDuringAnimation);
+            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
         }
 
         for (var child : node.getChildren()) {
-            traverseTree(transform, child, objects, supplier, matMap, hidMap, glCalls, skeleton, animations, hideDuringAnimation);
+            traverseTree(transform, child, objects, supplier, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
         }
     }
 
@@ -353,27 +358,28 @@ public class ModelLoader {
         }
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, List<String> hiddenList, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, List<String> hiddenList, Map<String, Vector2f> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations) {
         for (var primitiveModel : model.getMeshPrimitiveModels()) {
             var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
             var glModel = processPrimitiveModel(primitiveModel, glCalls);
             var renderObject = objSupplier.get();
 
             if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-                animatedMeshObject.setup(variants, hiddenList, glModel, model.getName(), skeleton, animations, ModelConfig.HideDuringAnimation.NONE);
+                animatedMeshObject.setup(variants, hiddenList, offsetMap, glModel, model.getName(), skeleton, animations, ModelConfig.HideDuringAnimation.NONE);
             } else {
-                renderObject.setup(variants, hiddenList, glModel, model.getName());
+                renderObject.setup(variants, hiddenList, offsetMap, glModel, model.getName());
             }
 
             objects.add(renderObject);
         }
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Vector2f>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
         var name = model.getName();
 
         var map = materialMap.get(name);
         var list = hiddenMap.get(name);
+        var map1 = offsetMap.get(name);
 
         for (var primitiveModel : model.getMeshPrimitiveModels()) {
             var glModel = processPrimitiveModel(primitiveModel, glCalls);
@@ -381,9 +387,9 @@ public class ModelLoader {
 
 
             if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-                animatedMeshObject.setup(map, list, glModel, name, skeleton, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
+                animatedMeshObject.setup(map, list, map1, glModel, name, skeleton, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
             } else {
-                renderObject.setup(map, list, glModel, name);
+                renderObject.setup(map, list, map1, glModel, name);
             }
 
             objects.add(renderObject);

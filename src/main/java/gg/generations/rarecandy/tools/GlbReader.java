@@ -23,6 +23,7 @@ import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
+import org.joml.Vector2f;
 import org.lwjgl.util.nfd.NativeFileDialog;
 import org.tukaani.xz.XZOutputStream;
 
@@ -97,7 +98,7 @@ public class GlbReader {
 
                         glb.getMeshModels().forEach(meshModel -> {
                             var mesh = meshModel.getMeshPrimitiveModels().get(0);
-                            defaultVariant.put(meshModel.getName(), new VariantDetails(mesh.getMaterialModel().getName(), false));
+                            defaultVariant.put(meshModel.getName(), new VariantDetails(mesh.getMaterialModel().getName(), false, new Vector2f()));
 
                             var variantMap1 = ModelLoader.createMeshVariantMap(mesh, materialsList, variants1);
 
@@ -105,7 +106,7 @@ public class GlbReader {
                                 var key = entry.getKey();
                                 var value = entry.getValue();
 
-                                if(!defaultVariant.get(meshModel.getName()).material().equals(value)) variantMap.get(key).details().put(meshModel.getName(), new VariantDetails(value, false));
+                                if(!defaultVariant.get(meshModel.getName()).material().equals(value)) variantMap.get(key).details().put(meshModel.getName(), new VariantDetails(value, false, new Vector2f()));
                             }
                         });
 

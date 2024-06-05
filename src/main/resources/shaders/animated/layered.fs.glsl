@@ -56,7 +56,7 @@ float getMaskIntensity() {
     vec2 effectTexCoord = vec2(texCoord0);
 
     if(frame >= 0) {
-        effectTexCoord *= 0.25;
+        effectTexCoord *= 0.25f;
         effectTexCoord.x += (frame % 4)/4f;
         effectTexCoord.y +=  (frame/4)/4f;
     }

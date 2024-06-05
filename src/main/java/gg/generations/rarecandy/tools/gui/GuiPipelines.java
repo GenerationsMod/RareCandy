@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
+import static java.lang.Math.floor;
 
 public class GuiPipelines {
     private static final Pipeline.Builder ROOT = new Pipeline.Builder()
@@ -154,8 +155,19 @@ public class GuiPipelines {
             .supplyUniform("color", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("color") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
             .build();
     public static final Pipeline PARADOX = new Pipeline.Builder(LAYERED_BASE)
-            .supplyUniform("frame", ctx -> ctx.uniform().uploadInt((int) ((RareCandyCanvas.getTime() * 25) % 16)))
-            .build();
+            .supplyUniform("frame", ctx -> {
+                var i = (int) pingpong(RareCandyCanvas.getTime() % 1d);
+
+                ctx.uniform().uploadInt(i);
+            }).build();
+
+    public static double fract(double a) {
+        return a - floor(a);
+    }
+
+    public static double pingpong(double time) {
+        return (int) (Math.sin(time * Math.PI * 2) * 7 + 7);
+    }
 
     private static void emissionColors(Pipeline.Builder builder) {
         builder.supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))

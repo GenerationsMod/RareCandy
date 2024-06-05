@@ -3,92 +3,149 @@
 package gg.generations.rarecandy.pokeutils.tracr;
 
 import com.google.flatbuffers.BaseVector;
-import com.google.flatbuffers.BooleanVector;
-import com.google.flatbuffers.ByteVector;
 import com.google.flatbuffers.Constants;
-import com.google.flatbuffers.DoubleVector;
 import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.FloatVector;
-import com.google.flatbuffers.IntVector;
-import com.google.flatbuffers.LongVector;
-import com.google.flatbuffers.ShortVector;
-import com.google.flatbuffers.StringVector;
-import com.google.flatbuffers.Struct;
 import com.google.flatbuffers.Table;
-import com.google.flatbuffers.UnionVector;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class Track extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_5_26(); }
-  public static Track getRootAsTrack(ByteBuffer _bb) { return getRootAsTrack(_bb, new Track()); }
-  public static Track getRootAsTrack(ByteBuffer _bb, Track obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
-  public Track __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+    public static void ValidateVersion() {
+        Constants.FLATBUFFERS_23_5_26();
+    }
 
-  public String trackName() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
-  public ByteBuffer trackNameAsByteBuffer() { return __vector_as_bytebuffer(4, 1); }
-  public ByteBuffer trackNameInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 4, 1); }
-  public long res0() { int o = __offset(6); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
-  public long res1() { int o = __offset(8); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
-  public TrackResources trackResource() { return trackResource(new TrackResources()); }
-  public TrackResources trackResource(TrackResources obj) { int o = __offset(10); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
+    public static Track getRootAsTrack(ByteBuffer _bb) {
+        return getRootAsTrack(_bb, new Track());
+    }
 
-  public static int createTrack(FlatBufferBuilder builder,
-      int trackNameOffset,
-      long res0,
-      long res1,
-      int trackResourceOffset) {
-    builder.startTable(4);
-    Track.addTrackResource(builder, trackResourceOffset);
-    Track.addRes1(builder, res1);
-    Track.addRes0(builder, res0);
-    Track.addTrackName(builder, trackNameOffset);
-    return Track.endTrack(builder);
-  }
+    public static Track getRootAsTrack(ByteBuffer _bb, Track obj) {
+        _bb.order(ByteOrder.LITTLE_ENDIAN);
+        return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb));
+    }
 
-  public static void startTrack(FlatBufferBuilder builder) { builder.startTable(4); }
-  public static void addTrackName(FlatBufferBuilder builder, int trackNameOffset) { builder.addOffset(0, trackNameOffset, 0); }
-  public static void addRes0(FlatBufferBuilder builder, long res0) { builder.addInt(1, (int) res0, (int) 0L); }
-  public static void addRes1(FlatBufferBuilder builder, long res1) { builder.addInt(2, (int) res1, (int) 0L); }
-  public static void addTrackResource(FlatBufferBuilder builder, int trackResourceOffset) { builder.addOffset(3, trackResourceOffset, 0); }
-  public static int endTrack(FlatBufferBuilder builder) {
-    int o = builder.endTable();
-    return o;
-  }
+    public void __init(int _i, ByteBuffer _bb) {
+        __reset(_i, _bb);
+    }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+    public Track __assign(int _i, ByteBuffer _bb) {
+        __init(_i, _bb);
+        return this;
+    }
 
-    public Track get(int j) { return get(new Track(), j); }
-    public Track get(Track obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
-  }
-  public TrackT unpack() {
-    TrackT _o = new TrackT();
-    unpackTo(_o);
-    return _o;
-  }
-  public void unpackTo(TrackT _o) {
-    String _oTrackName = trackName();
-    _o.setTrackName(_oTrackName);
-    long _oRes0 = res0();
-    _o.setRes0(_oRes0);
-    long _oRes1 = res1();
-    _o.setRes1(_oRes1);
-    if (trackResource() != null) _o.setTrackResource(trackResource().unpack());
-    else _o.setTrackResource(null);
-  }
-  public static int pack(FlatBufferBuilder builder, TrackT _o) {
-    if (_o == null) return 0;
-    int _trackName = _o.getTrackName() == null ? 0 : builder.createString(_o.getTrackName());
-    int _trackResource = _o.getTrackResource() == null ? 0 : TrackResources.pack(builder, _o.getTrackResource());
-    return createTrack(
-      builder,
-      _trackName,
-      _o.getRes0(),
-      _o.getRes1(),
-      _trackResource);
-  }
+    public String trackName() {
+        int o = __offset(4);
+        return o != 0 ? __string(o + bb_pos) : null;
+    }
+
+    public ByteBuffer trackNameAsByteBuffer() {
+        return __vector_as_bytebuffer(4, 1);
+    }
+
+    public ByteBuffer trackNameInByteBuffer(ByteBuffer _bb) {
+        return __vector_in_bytebuffer(_bb, 4, 1);
+    }
+
+    public long res0() {
+        int o = __offset(6);
+        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
+    }
+
+    public long res1() {
+        int o = __offset(8);
+        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
+    }
+
+    public TrackResources trackResource() {
+        return trackResource(new TrackResources());
+    }
+
+    public TrackResources trackResource(TrackResources obj) {
+        int o = __offset(10);
+        return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null;
+    }
+
+    public static int createTrack(FlatBufferBuilder builder,
+                                  int trackNameOffset,
+                                  long res0,
+                                  long res1,
+                                  int trackResourceOffset) {
+        builder.startTable(4);
+        Track.addTrackResource(builder, trackResourceOffset);
+        Track.addRes1(builder, res1);
+        Track.addRes0(builder, res0);
+        Track.addTrackName(builder, trackNameOffset);
+        return Track.endTrack(builder);
+    }
+
+    public static void startTrack(FlatBufferBuilder builder) {
+        builder.startTable(4);
+    }
+
+    public static void addTrackName(FlatBufferBuilder builder, int trackNameOffset) {
+        builder.addOffset(0, trackNameOffset, 0);
+    }
+
+    public static void addRes0(FlatBufferBuilder builder, long res0) {
+        builder.addInt(1, (int) res0, (int) 0L);
+    }
+
+    public static void addRes1(FlatBufferBuilder builder, long res1) {
+        builder.addInt(2, (int) res1, (int) 0L);
+    }
+
+    public static void addTrackResource(FlatBufferBuilder builder, int trackResourceOffset) {
+        builder.addOffset(3, trackResourceOffset, 0);
+    }
+
+    public static int endTrack(FlatBufferBuilder builder) {
+        int o = builder.endTable();
+        return o;
+    }
+
+    public static final class Vector extends BaseVector {
+        public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) {
+            __reset(_vector, _element_size, _bb);
+            return this;
+        }
+
+        public Track get(int j) {
+            return get(new Track(), j);
+        }
+
+        public Track get(Track obj, int j) {
+            return obj.__assign(__indirect(__element(j), bb), bb);
+        }
+    }
+
+    public TrackT unpack() {
+        TrackT _o = new TrackT();
+        unpackTo(_o);
+        return _o;
+    }
+
+    public void unpackTo(TrackT _o) {
+        String _oTrackName = trackName();
+        _o.setTrackName(_oTrackName);
+        long _oRes0 = res0();
+        _o.setRes0(_oRes0);
+        long _oRes1 = res1();
+        _o.setRes1(_oRes1);
+        if (trackResource() != null) _o.setTrackResource(trackResource().unpack());
+        else _o.setTrackResource(null);
+    }
+
+    public static int pack(FlatBufferBuilder builder, TrackT _o) {
+        if (_o == null) return 0;
+        int _trackName = _o.getTrackName() == null ? 0 : builder.createString(_o.getTrackName());
+        int _trackResource = _o.getTrackResource() == null ? 0 : TrackResources.pack(builder, _o.getTrackResource());
+        return createTrack(
+                builder,
+                _trackName,
+                _o.getRes0(),
+                _o.getRes1(),
+                _trackResource);
+    }
 }
 

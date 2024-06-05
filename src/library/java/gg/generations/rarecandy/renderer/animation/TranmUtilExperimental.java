@@ -35,7 +35,7 @@ public class TranmUtilExperimental {
         var min_val = min(q);
         var is_negative = 0;
 
-        if(abs(min_val) > max_val) {
+        if (abs(min_val) > max_val) {
             max_val = min_val;
             is_negative = 1;
         }
@@ -43,22 +43,22 @@ public class TranmUtilExperimental {
         var max_index = q.indexOf(max_val);
         int tx = 0, ty = 0, tz = 0;
 
-        if(is_negative == 1)
+        if (is_negative == 1)
             q = Stream.of(-q.get(0), -q.get(1), -q.get(2), -q.get(3)).collect(Collectors.toCollection(ArrayList::new));
 
-        if(max_index == 0) {
+        if (max_index == 0) {
             tx = quantize_float(q.get(3));
             ty = quantize_float(q.get(1));
             tz = quantize_float(q.get(2));
-        } else if(max_index == 1) {
+        } else if (max_index == 1) {
             tx = quantize_float(q.get(0));
             ty = quantize_float(q.get(3));
             tz = quantize_float(q.get(2));
-        } else if(max_index ==2) {
+        } else if (max_index == 2) {
             tx = quantize_float(q.get(0));
             ty = quantize_float(q.get(1));
             tz = quantize_float(q.get(3));
-        } else if( max_index == 3) {
+        } else if (max_index == 3) {
             tx = quantize_float(q.get(0));
             ty = quantize_float(q.get(1));
             tz = quantize_float(q.get(2));
@@ -86,12 +86,13 @@ public class TranmUtilExperimental {
 //    #print(f"original comp: {missing_component}")
 
         Quaternionf result = new Quaternionf();
-        if(missing_component == 0) result.set(tw, ty, tz, tx);
-        else if(missing_component == 1) result.set(tx, tw, tz, ty);
-        else if(missing_component == 2) result.set(tx, ty, tw, tz);
+        if (missing_component == 0) result.set(tw, ty, tz, tx);
+        else if (missing_component == 1) result.set(tx, tw, tz, ty);
+        else if (missing_component == 2) result.set(tx, ty, tw, tz);
         else result.set(tx, ty, tz, tw);
 
-        if(isNegative) result.mul(-1);;
+        if (isNegative) result.mul(-1);
+        ;
 
         return result;
     }

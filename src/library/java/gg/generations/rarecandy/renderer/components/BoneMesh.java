@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.renderer.components;
 
-import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.model.GLModel;
@@ -27,8 +26,8 @@ public class BoneMesh extends AnimatedMeshObject {
 
     @Override
     public <T extends RenderObject> void render(List<ObjectInstance> instances, T object) {
-        if(object instanceof BoneMesh) {
-            for(var instance : instances) {
+        if (object instanceof BoneMesh) {
+            for (var instance : instances) {
 
                 var pipeline = PipelineRegistry.get("bone");
                 pipeline.bind(null);

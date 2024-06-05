@@ -25,12 +25,12 @@ public class SmdAnimation extends Animation<SMDFile> {
             if (block instanceof SkeletonBlock skeletonBlock1) {
                 skeletonBlock = skeletonBlock1.keyframes;
             }
-            if(block instanceof NodesBlock nodes) {
+            if (block instanceof NodesBlock nodes) {
                 nodesMap = nodes.bones.stream().collect(Collectors.toMap(a -> a.id, a -> a.name));
             }
         }
 
-        if(skeletonBlock == null || nodesMap == null) throw new RuntimeException("Error!");
+        if (skeletonBlock == null || nodesMap == null) throw new RuntimeException("Error!");
 
         return fillAnimationNodesSmdx(animation, skeletonBlock, nodesMap);
     }

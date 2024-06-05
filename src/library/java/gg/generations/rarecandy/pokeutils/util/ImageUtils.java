@@ -134,21 +134,18 @@ public class ImageUtils {
         if (!(dataBuffer instanceof DataBufferInt dataBufferInt)) {
             throw new IllegalArgumentException(
                     "Invalid buffer type in image, " +
-                    "only TYPE_INT_* is allowed");
+                            "only TYPE_INT_* is allowed");
         }
         return IntBuffer.wrap(dataBufferInt.getData());
     }
 
 
-    public static BufferedImage readAsBufferedImage(ByteBuffer byteBuffer)
-    {
-        if (byteBuffer == null)
-        {
+    public static BufferedImage readAsBufferedImage(ByteBuffer byteBuffer) {
+        if (byteBuffer == null) {
             return null;
         }
         try (InputStream inputStream =
-                     Buffers.createByteBufferInputStream(byteBuffer.slice()))
-        {
+                     Buffers.createByteBufferInputStream(byteBuffer.slice())) {
             var image = ImageIO.read(inputStream);
 
             if (image.getType() != BufferedImage.TYPE_INT_ARGB) {
@@ -156,9 +153,7 @@ public class ImageUtils {
             }
 
             return image;
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
 //            logger.severe(e.toString());
             return null;
         }

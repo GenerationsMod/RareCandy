@@ -2,39 +2,30 @@
 
 package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
-import com.google.flatbuffers.BaseVector;
-import com.google.flatbuffers.BooleanVector;
-import com.google.flatbuffers.ByteVector;
-import com.google.flatbuffers.Constants;
-import com.google.flatbuffers.DoubleVector;
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.FloatVector;
-import com.google.flatbuffers.IntVector;
-import com.google.flatbuffers.LongVector;
-import com.google.flatbuffers.ShortVector;
-import com.google.flatbuffers.StringVector;
-import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
-import com.google.flatbuffers.UnionVector;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 public class ShaderEntryT {
-  private String name;
-  private FloatTrackUnion value;
+    private String name;
+    private FloatTrackUnion value;
 
-  public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
-  public void setName(String name) { this.name = name; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-  public FloatTrackUnion getValue() { return value; }
+    public FloatTrackUnion getValue() {
+        return value;
+    }
 
-  public void setValue(FloatTrackUnion value) { this.value = value; }
+    public void setValue(FloatTrackUnion value) {
+        this.value = value;
+    }
 
 
-  public ShaderEntryT() {
-    this.name = null;
-    this.value = null;
-  }
+    public ShaderEntryT() {
+        this.name = null;
+        this.value = null;
+    }
 }
 

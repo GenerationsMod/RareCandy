@@ -4,12 +4,10 @@ import gg.generations.rarecandy.pokeutils.Pair;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.tracm.TrackMaterialAnim;
 import gg.generations.rarecandy.pokeutils.tracm.TrackMaterialValueList;
-import gg.generations.rarecandy.pokeutils.tranm.*;
-import org.joml.Quaternionf;
+import gg.generations.rarecandy.pokeutils.tranm.QuatTrack;
+import gg.generations.rarecandy.pokeutils.tranm.VectorTrack;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -37,9 +35,9 @@ public class TranmAnimation extends Animation<Pair<gg.generations.rarecandy.poke
     }
 
     private static long getFps(Pair<gg.generations.rarecandy.pokeutils.tranm.TRANMT, TRACM> rawAnimation) {
-        if(rawAnimation.a() != null) {
+        if (rawAnimation.a() != null) {
             return rawAnimation.a().getInfo().getAnimationRate();
-        } else if(rawAnimation.b() != null) {
+        } else if (rawAnimation.b() != null) {
             return rawAnimation.b().config().framerate();
         } else {
             return 0L;
@@ -60,27 +58,39 @@ public class TranmAnimation extends Animation<Pair<gg.generations.rarecandy.poke
                 var rotate = boneAnim.getRotate();
 
                 switch (boneAnim.getRotate().getType()) {
-                    case QuatTrack.DynamicQuatTrack -> TranmUtil.processDynamicQuatTrack(rotate.asDynamicRotationTrack(), node.rotationKeys);
-                    case QuatTrack.FixedQuatTrack -> TranmUtil.processFixedQuatTrack(rotate.asFixedRotationTrack(), node.rotationKeys);
-                    case QuatTrack.Framed8QuatTrack -> TranmUtil.processFramed8QuatTrack(rotate.asFramed8RotationTrack(), node.rotationKeys);
-                    case QuatTrack.Framed16QuatTrack -> TranmUtil.processFramed16QuatTrack(rotate.asFramed16RotationTrack(), node.rotationKeys);
+                    case QuatTrack.DynamicQuatTrack ->
+                            TranmUtil.processDynamicQuatTrack(rotate.asDynamicRotationTrack(), node.rotationKeys);
+                    case QuatTrack.FixedQuatTrack ->
+                            TranmUtil.processFixedQuatTrack(rotate.asFixedRotationTrack(), node.rotationKeys);
+                    case QuatTrack.Framed8QuatTrack ->
+                            TranmUtil.processFramed8QuatTrack(rotate.asFramed8RotationTrack(), node.rotationKeys);
+                    case QuatTrack.Framed16QuatTrack ->
+                            TranmUtil.processFramed16QuatTrack(rotate.asFramed16RotationTrack(), node.rotationKeys);
                 }
 
                 var scale = boneAnim.getScale();
                 switch (scale.getType()) {
-                    case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack(scale.asDynamicVectorTrack(), node.scaleKeys);
-                    case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack(scale.asFixedVectorTrack(), node.scaleKeys);
-                    case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack(scale.asFramed8VectorTrack(), node.scaleKeys);
-                    case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack(scale.asFramed16VectorTrack(), node.scaleKeys);
+                    case VectorTrack.DynamicVectorTrack ->
+                            TranmUtil.processDynamicVecTrack(scale.asDynamicVectorTrack(), node.scaleKeys);
+                    case VectorTrack.FixedVectorTrack ->
+                            TranmUtil.processFixedVecTrack(scale.asFixedVectorTrack(), node.scaleKeys);
+                    case VectorTrack.Framed8VectorTrack ->
+                            TranmUtil.processFramed8VecTrack(scale.asFramed8VectorTrack(), node.scaleKeys);
+                    case VectorTrack.Framed16VectorTrack ->
+                            TranmUtil.processFramed16VecTrack(scale.asFramed16VectorTrack(), node.scaleKeys);
                 }
 
                 if (!Objects.requireNonNull(boneAnim.getBoneName()).equalsIgnoreCase("origin")) {
                     var translate = boneAnim.getTranslate();
                     switch (translate.getType()) {
-                        case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack(translate.asDynamicVectorTrack(), node.positionKeys);
-                        case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack(translate.asFixedVectorTrack(), node.positionKeys);
-                        case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack(translate.asFramed8VectorTrack(), node.positionKeys);
-                        case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack(translate.asFramed16VectorTrack(), node.positionKeys);
+                        case VectorTrack.DynamicVectorTrack ->
+                                TranmUtil.processDynamicVecTrack(translate.asDynamicVectorTrack(), node.positionKeys);
+                        case VectorTrack.FixedVectorTrack ->
+                                TranmUtil.processFixedVecTrack(translate.asFixedVectorTrack(), node.positionKeys);
+                        case VectorTrack.Framed8VectorTrack ->
+                                TranmUtil.processFramed8VecTrack(translate.asFramed8VectorTrack(), node.positionKeys);
+                        case VectorTrack.Framed16VectorTrack ->
+                                TranmUtil.processFramed16VecTrack(translate.asFramed16VectorTrack(), node.positionKeys);
                     }
                 } else {
                     node.positionKeys.add(0, new Vector3f(0, 0, 0));
@@ -97,12 +107,12 @@ public class TranmAnimation extends Animation<Pair<gg.generations.rarecandy.poke
     public static Map<String, Offset> fillTrOffsets(Pair<gg.generations.rarecandy.pokeutils.tranm.TRANMT, TRACM> animationPair) {
         var offsets = new HashMap<String, Offset>();
 
-        if(animationPair.b() != null) {
+        if (animationPair.b() != null) {
             IntStream.range(0, animationPair.b().tracksLength()).mapToObj(a -> animationPair.b().tracks(a)).filter(a -> a.materialAnimation() != null).flatMap(a -> IntStream.range(0, a.materialAnimation().materialTrackLength()).mapToObj(b -> a.materialAnimation().materialTrack(b))).collect(Collectors.toMap(b -> b.name(), b -> IntStream.range(0, b.animValuesLength()).mapToObj(b::animValues).collect(Collectors.toMap(TrackMaterialAnim::name, c -> {
 
                 return new GfbAnimation.GfbOffset(toStorage(c.list().red()), toStorage(c.list().green()), toStorage(c.list().blue()), toStorage(c.list().alpha()));
             })))).forEach((k, v) -> {
-                if(v.containsKey("UVScaleOffset")) offsets.put(k, v.get("UVScaleOffset"));
+                if (v.containsKey("UVScaleOffset")) offsets.put(k, v.get("UVScaleOffset"));
             });
         }
 

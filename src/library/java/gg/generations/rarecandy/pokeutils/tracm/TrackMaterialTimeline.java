@@ -12,55 +12,138 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class TrackMaterialTimeline extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_5_26(); }
-  public static TrackMaterialTimeline getRootAsTrackMaterialTimeline(ByteBuffer _bb) { return getRootAsTrackMaterialTimeline(_bb, new TrackMaterialTimeline()); }
-  public static TrackMaterialTimeline getRootAsTrackMaterialTimeline(ByteBuffer _bb, TrackMaterialTimeline obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
-  public TrackMaterialTimeline __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+    public static void ValidateVersion() {
+        Constants.FLATBUFFERS_23_5_26();
+    }
 
-  public long res0() { int o = __offset(4); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
-  public long res1() { int o = __offset(6); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
-  public TrackMaterial materialTrack(int j) { return materialTrack(new TrackMaterial(), j); }
-  public TrackMaterial materialTrack(TrackMaterial obj, int j) { int o = __offset(8); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
-  public int materialTrackLength() { int o = __offset(8); return o != 0 ? __vector_len(o) : 0; }
-  public TrackMaterial.Vector materialTrackVector() { return materialTrackVector(new TrackMaterial.Vector()); }
-  public TrackMaterial.Vector materialTrackVector(TrackMaterial.Vector obj) { int o = __offset(8); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
-  public int unk3() { int o = __offset(10); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 0; }
-  public int unk4() { int o = __offset(12); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 0; }
+    public static TrackMaterialTimeline getRootAsTrackMaterialTimeline(ByteBuffer _bb) {
+        return getRootAsTrackMaterialTimeline(_bb, new TrackMaterialTimeline());
+    }
 
-  public static int createTrackMaterialTimeline(FlatBufferBuilder builder,
-      long res0,
-      long res1,
-      int materialTrackOffset,
-      int unk3,
-      int unk4) {
-    builder.startTable(5);
-    TrackMaterialTimeline.addMaterialTrack(builder, materialTrackOffset);
-    TrackMaterialTimeline.addRes1(builder, res1);
-    TrackMaterialTimeline.addRes0(builder, res0);
-    TrackMaterialTimeline.addUnk4(builder, unk4);
-    TrackMaterialTimeline.addUnk3(builder, unk3);
-    return TrackMaterialTimeline.endTrackMaterialTimeline(builder);
-  }
+    public static TrackMaterialTimeline getRootAsTrackMaterialTimeline(ByteBuffer _bb, TrackMaterialTimeline obj) {
+        _bb.order(ByteOrder.LITTLE_ENDIAN);
+        return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb));
+    }
 
-  public static void startTrackMaterialTimeline(FlatBufferBuilder builder) { builder.startTable(5); }
-  public static void addRes0(FlatBufferBuilder builder, long res0) { builder.addInt(0, (int) res0, (int) 0L); }
-  public static void addRes1(FlatBufferBuilder builder, long res1) { builder.addInt(1, (int) res1, (int) 0L); }
-  public static void addMaterialTrack(FlatBufferBuilder builder, int materialTrackOffset) { builder.addOffset(2, materialTrackOffset, 0); }
-  public static int createMaterialTrackVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
-  public static void startMaterialTrackVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
-  public static void addUnk3(FlatBufferBuilder builder, int unk3) { builder.addByte(3, (byte) unk3, (byte) 0); }
-  public static void addUnk4(FlatBufferBuilder builder, int unk4) { builder.addByte(4, (byte) unk4, (byte) 0); }
-  public static int endTrackMaterialTimeline(FlatBufferBuilder builder) {
-    int o = builder.endTable();
-    return o;
-  }
+    public void __init(int _i, ByteBuffer _bb) {
+        __reset(_i, _bb);
+    }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+    public TrackMaterialTimeline __assign(int _i, ByteBuffer _bb) {
+        __init(_i, _bb);
+        return this;
+    }
 
-    public TrackMaterialTimeline get(int j) { return get(new TrackMaterialTimeline(), j); }
-    public TrackMaterialTimeline get(TrackMaterialTimeline obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
-  }
+    public long res0() {
+        int o = __offset(4);
+        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
+    }
+
+    public long res1() {
+        int o = __offset(6);
+        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
+    }
+
+    public TrackMaterial materialTrack(int j) {
+        return materialTrack(new TrackMaterial(), j);
+    }
+
+    public TrackMaterial materialTrack(TrackMaterial obj, int j) {
+        int o = __offset(8);
+        return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null;
+    }
+
+    public int materialTrackLength() {
+        int o = __offset(8);
+        return o != 0 ? __vector_len(o) : 0;
+    }
+
+    public TrackMaterial.Vector materialTrackVector() {
+        return materialTrackVector(new TrackMaterial.Vector());
+    }
+
+    public TrackMaterial.Vector materialTrackVector(TrackMaterial.Vector obj) {
+        int o = __offset(8);
+        return o != 0 ? obj.__assign(__vector(o), 4, bb) : null;
+    }
+
+    public int unk3() {
+        int o = __offset(10);
+        return o != 0 ? bb.get(o + bb_pos) & 0xFF : 0;
+    }
+
+    public int unk4() {
+        int o = __offset(12);
+        return o != 0 ? bb.get(o + bb_pos) & 0xFF : 0;
+    }
+
+    public static int createTrackMaterialTimeline(FlatBufferBuilder builder,
+                                                  long res0,
+                                                  long res1,
+                                                  int materialTrackOffset,
+                                                  int unk3,
+                                                  int unk4) {
+        builder.startTable(5);
+        TrackMaterialTimeline.addMaterialTrack(builder, materialTrackOffset);
+        TrackMaterialTimeline.addRes1(builder, res1);
+        TrackMaterialTimeline.addRes0(builder, res0);
+        TrackMaterialTimeline.addUnk4(builder, unk4);
+        TrackMaterialTimeline.addUnk3(builder, unk3);
+        return TrackMaterialTimeline.endTrackMaterialTimeline(builder);
+    }
+
+    public static void startTrackMaterialTimeline(FlatBufferBuilder builder) {
+        builder.startTable(5);
+    }
+
+    public static void addRes0(FlatBufferBuilder builder, long res0) {
+        builder.addInt(0, (int) res0, (int) 0L);
+    }
+
+    public static void addRes1(FlatBufferBuilder builder, long res1) {
+        builder.addInt(1, (int) res1, (int) 0L);
+    }
+
+    public static void addMaterialTrack(FlatBufferBuilder builder, int materialTrackOffset) {
+        builder.addOffset(2, materialTrackOffset, 0);
+    }
+
+    public static int createMaterialTrackVector(FlatBufferBuilder builder, int[] data) {
+        builder.startVector(4, data.length, 4);
+        for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]);
+        return builder.endVector();
+    }
+
+    public static void startMaterialTrackVector(FlatBufferBuilder builder, int numElems) {
+        builder.startVector(4, numElems, 4);
+    }
+
+    public static void addUnk3(FlatBufferBuilder builder, int unk3) {
+        builder.addByte(3, (byte) unk3, (byte) 0);
+    }
+
+    public static void addUnk4(FlatBufferBuilder builder, int unk4) {
+        builder.addByte(4, (byte) unk4, (byte) 0);
+    }
+
+    public static int endTrackMaterialTimeline(FlatBufferBuilder builder) {
+        int o = builder.endTable();
+        return o;
+    }
+
+    public static final class Vector extends BaseVector {
+        public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) {
+            __reset(_vector, _element_size, _bb);
+            return this;
+        }
+
+        public TrackMaterialTimeline get(int j) {
+            return get(new TrackMaterialTimeline(), j);
+        }
+
+        public TrackMaterialTimeline get(TrackMaterialTimeline obj, int j) {
+            return obj.__assign(__indirect(__element(j), bb), bb);
+        }
+    }
 }
 

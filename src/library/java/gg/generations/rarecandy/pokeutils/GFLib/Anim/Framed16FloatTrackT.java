@@ -2,52 +2,41 @@
 
 package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
-import com.google.flatbuffers.BaseVector;
-import com.google.flatbuffers.BooleanVector;
-import com.google.flatbuffers.ByteVector;
-import com.google.flatbuffers.Constants;
-import com.google.flatbuffers.DoubleVector;
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.FloatVector;
-import com.google.flatbuffers.IntVector;
-import com.google.flatbuffers.LongVector;
-import com.google.flatbuffers.ShortVector;
-import com.google.flatbuffers.StringVector;
-import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
-import com.google.flatbuffers.UnionVector;
-import gg.generations.rarecandy.renderer.animation.TranmUtil;
 import gg.generations.rarecandy.renderer.animation.TransformStorage;
-import org.joml.Quaternionf;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class Framed16FloatTrackT implements TrackProcesser<Float> {
-  private int[] frames;
-  private float[] float_;
+    private int[] frames;
+    private float[] float_;
 
-  public int[] getFrames() { return frames; }
-
-  public void setFrames(int[] frames) { this.frames = frames; }
-
-  public float[] getFloat() { return float_; }
-
-  public void setFloat(float[] float_) { this.float_ = float_; }
-
-
-  public Framed16FloatTrackT() {
-    this.frames = null;
-    this.float_ = null;
-  }
-
-  @Override
-  public void process(TransformStorage<Float> rotationKeys) {
-    var frames = getFrames();
-    for (int i = 0; i < getFrames().length; i++) {
-      var vec = getFloat()[i];
-      rotationKeys.add(frames[i], vec);
+    public int[] getFrames() {
+        return frames;
     }
-  }
+
+    public void setFrames(int[] frames) {
+        this.frames = frames;
+    }
+
+    public float[] getFloat() {
+        return float_;
+    }
+
+    public void setFloat(float[] float_) {
+        this.float_ = float_;
+    }
+
+
+    public Framed16FloatTrackT() {
+        this.frames = null;
+        this.float_ = null;
+    }
+
+    @Override
+    public void process(TransformStorage<Float> rotationKeys) {
+        var frames = getFrames();
+        for (int i = 0; i < getFrames().length; i++) {
+            var vec = getFloat()[i];
+            rotationKeys.add(frames[i], vec);
+        }
+    }
 }
 

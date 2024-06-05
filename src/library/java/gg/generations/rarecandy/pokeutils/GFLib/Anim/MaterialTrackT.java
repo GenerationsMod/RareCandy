@@ -2,51 +2,50 @@
 
 package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
-import com.google.flatbuffers.BaseVector;
-import com.google.flatbuffers.BooleanVector;
-import com.google.flatbuffers.ByteVector;
-import com.google.flatbuffers.Constants;
-import com.google.flatbuffers.DoubleVector;
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.FloatVector;
-import com.google.flatbuffers.IntVector;
-import com.google.flatbuffers.LongVector;
-import com.google.flatbuffers.ShortVector;
-import com.google.flatbuffers.StringVector;
-import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
-import com.google.flatbuffers.UnionVector;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 public class MaterialTrackT {
-  private String name;
-  private FlagEntryT[] flags;
-  private ShaderEntryT[] values;
-  private ColorEntryT[] vectors;
+    private String name;
+    private FlagEntryT[] flags;
+    private ShaderEntryT[] values;
+    private ColorEntryT[] vectors;
 
-  public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
-  public void setName(String name) { this.name = name; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-  public FlagEntryT[] getFlags() { return flags; }
+    public FlagEntryT[] getFlags() {
+        return flags;
+    }
 
-  public void setFlags(FlagEntryT[] flags) { this.flags = flags; }
+    public void setFlags(FlagEntryT[] flags) {
+        this.flags = flags;
+    }
 
-  public ShaderEntryT[] getValues() { return values; }
+    public ShaderEntryT[] getValues() {
+        return values;
+    }
 
-  public void setValues(ShaderEntryT[] values) { this.values = values; }
+    public void setValues(ShaderEntryT[] values) {
+        this.values = values;
+    }
 
-  public ColorEntryT[] getVectors() { return vectors; }
+    public ColorEntryT[] getVectors() {
+        return vectors;
+    }
 
-  public void setVectors(ColorEntryT[] vectors) { this.vectors = vectors; }
+    public void setVectors(ColorEntryT[] vectors) {
+        this.vectors = vectors;
+    }
 
 
-  public MaterialTrackT() {
-    this.name = null;
-    this.flags = null;
-    this.values = null;
-    this.vectors = null;
-  }
+    public MaterialTrackT() {
+        this.name = null;
+        this.flags = null;
+        this.values = null;
+        this.vectors = null;
+    }
 }
 

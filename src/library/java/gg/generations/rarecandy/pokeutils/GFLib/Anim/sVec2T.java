@@ -2,39 +2,30 @@
 
 package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
-import com.google.flatbuffers.BaseVector;
-import com.google.flatbuffers.BooleanVector;
-import com.google.flatbuffers.ByteVector;
-import com.google.flatbuffers.Constants;
-import com.google.flatbuffers.DoubleVector;
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.FloatVector;
-import com.google.flatbuffers.IntVector;
-import com.google.flatbuffers.LongVector;
-import com.google.flatbuffers.ShortVector;
-import com.google.flatbuffers.StringVector;
-import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
-import com.google.flatbuffers.UnionVector;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 public class sVec2T {
-  private short u;
-  private short v;
+    private short u;
+    private short v;
 
-  public short getU() { return u; }
+    public short getU() {
+        return u;
+    }
 
-  public void setU(short u) { this.u = u; }
+    public void setU(short u) {
+        this.u = u;
+    }
 
-  public short getV() { return v; }
+    public short getV() {
+        return v;
+    }
 
-  public void setV(short v) { this.v = v; }
+    public void setV(short v) {
+        this.v = v;
+    }
 
 
-  public sVec2T() {
-    this.u = 0;
-    this.v = 0;
-  }
+    public sVec2T() {
+        this.u = 0;
+        this.v = 0;
+    }
 }
 

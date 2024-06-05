@@ -51,7 +51,6 @@ public class MeshObject extends RenderObject {
         }
 
 
-
         map.forEach((k, v) -> {
             var pl = k.getPipeline();
 

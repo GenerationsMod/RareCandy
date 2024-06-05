@@ -8,8 +8,6 @@ import org.joml.Vector3f;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public class MaterialReference {
@@ -46,7 +44,7 @@ public class MaterialReference {
         while (parent != null) {
             reference = materialreferences.get(parent);
 
-            if(reference == null) parent = null;
+            if (reference == null) parent = null;
             else {
 
                 if (!shader.equals(reference.shader)) {
@@ -80,6 +78,7 @@ public class MaterialReference {
         }
         return new Material(name, map, values, cull, blend, shader);
     }
+
     public static final class Serializer implements JsonDeserializer<MaterialReference> {
         @Override
         public MaterialReference deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
@@ -98,7 +97,7 @@ public class MaterialReference {
 
             String parent = jsonObject.has("inherits") ? jsonObject.get("inherits").getAsString() : null;
 
-            if(jsonObject.has("type")) {
+            if (jsonObject.has("type")) {
 
                 var type = jsonObject.getAsJsonPrimitive("type").getAsString();
 
@@ -154,7 +153,7 @@ public class MaterialReference {
         var values = new HashMap<String, Object>();
 
         object.asMap().forEach((key, value) -> {
-            if(value.isJsonObject()) {
+            if (value.isJsonObject()) {
 
                 var obj = value.getAsJsonObject();
 
@@ -171,24 +170,24 @@ public class MaterialReference {
                         values.put(key, val.getAsFloat());
                     }
                 }
-            } else if(value.isJsonPrimitive()) {
-                if(value.getAsJsonPrimitive().isBoolean()) values.put(key, value.getAsBoolean());
-                else if(value.getAsJsonPrimitive().isNumber()) values.put(key, value.getAsFloat());
-                else if(value.getAsJsonPrimitive().isString()) {
-                    if(key.equals("cull")) values.put(key, CullType.from(value.getAsString()));
+            } else if (value.isJsonPrimitive()) {
+                if (value.getAsJsonPrimitive().isBoolean()) values.put(key, value.getAsBoolean());
+                else if (value.getAsJsonPrimitive().isNumber()) values.put(key, value.getAsFloat());
+                else if (value.getAsJsonPrimitive().isString()) {
+                    if (key.equals("cull")) values.put(key, CullType.from(value.getAsString()));
                     else values.put(key, color(value));
                 }
-            } else if(value.isJsonArray()) values.put(key, color(value));
+            } else if (value.isJsonArray()) values.put(key, color(value));
         });
 
         return values;
     }
 
     public static Vector3f color(JsonElement element) {
-        if(element.isJsonArray()) {
+        if (element.isJsonArray()) {
             var array = element.getAsJsonArray();
             return new Vector3f(array.get(0).getAsFloat(), array.get(1).getAsFloat(), array.get(2).getAsFloat());
-        } else if(element.isJsonPrimitive()){
+        } else if (element.isJsonPrimitive()) {
             int colorValue = Integer.parseInt(element.getAsString().replace("#", ""), 16);
 
             // Extract individual R, G, and B components

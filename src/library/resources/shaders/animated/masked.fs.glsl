@@ -24,7 +24,7 @@ void main() {
 
     outColor = vec4(vec3(mask), baseColor.a);
 
-    if(useLight) {
+    if (useLight) {
         outColor.xyz *= max(texture(emission, texCoord0).r, lightLevel);
     }
 }

@@ -2,39 +2,30 @@
 
 package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
-import com.google.flatbuffers.BaseVector;
-import com.google.flatbuffers.BooleanVector;
-import com.google.flatbuffers.ByteVector;
-import com.google.flatbuffers.Constants;
-import com.google.flatbuffers.DoubleVector;
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.FloatVector;
-import com.google.flatbuffers.IntVector;
-import com.google.flatbuffers.LongVector;
-import com.google.flatbuffers.ShortVector;
-import com.google.flatbuffers.StringVector;
-import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
-import com.google.flatbuffers.UnionVector;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 public class ColorEntryT {
-  private String name;
-  private VectorTrackUnion col;
+    private String name;
+    private VectorTrackUnion col;
 
-  public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
-  public void setName(String name) { this.name = name; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-  public VectorTrackUnion getCol() { return col; }
+    public VectorTrackUnion getCol() {
+        return col;
+    }
 
-  public void setCol(VectorTrackUnion col) { this.col = col; }
+    public void setCol(VectorTrackUnion col) {
+        this.col = col;
+    }
 
 
-  public ColorEntryT() {
-    this.name = null;
-    this.col = null;
-  }
+    public ColorEntryT() {
+        this.name = null;
+        this.col = null;
+    }
 }
 

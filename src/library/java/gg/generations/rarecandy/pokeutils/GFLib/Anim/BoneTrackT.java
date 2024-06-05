@@ -2,51 +2,50 @@
 
 package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
-import com.google.flatbuffers.BaseVector;
-import com.google.flatbuffers.BooleanVector;
-import com.google.flatbuffers.ByteVector;
-import com.google.flatbuffers.Constants;
-import com.google.flatbuffers.DoubleVector;
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.FloatVector;
-import com.google.flatbuffers.IntVector;
-import com.google.flatbuffers.LongVector;
-import com.google.flatbuffers.ShortVector;
-import com.google.flatbuffers.StringVector;
-import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
-import com.google.flatbuffers.UnionVector;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 public class BoneTrackT {
-  private String name;
-  private VectorTrackUnion scale;
-  private RotationTrackUnion rotate;
-  private VectorTrackUnion translate;
+    private String name;
+    private VectorTrackUnion scale;
+    private RotationTrackUnion rotate;
+    private VectorTrackUnion translate;
 
-  public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
-  public void setName(String name) { this.name = name; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-  public VectorTrackUnion getScale() { return scale; }
+    public VectorTrackUnion getScale() {
+        return scale;
+    }
 
-  public void setScale(VectorTrackUnion scale) { this.scale = scale; }
+    public void setScale(VectorTrackUnion scale) {
+        this.scale = scale;
+    }
 
-  public RotationTrackUnion getRotate() { return rotate; }
+    public RotationTrackUnion getRotate() {
+        return rotate;
+    }
 
-  public void setRotate(RotationTrackUnion rotate) { this.rotate = rotate; }
+    public void setRotate(RotationTrackUnion rotate) {
+        this.rotate = rotate;
+    }
 
-  public VectorTrackUnion getTranslate() { return translate; }
+    public VectorTrackUnion getTranslate() {
+        return translate;
+    }
 
-  public void setTranslate(VectorTrackUnion translate) { this.translate = translate; }
+    public void setTranslate(VectorTrackUnion translate) {
+        this.translate = translate;
+    }
 
 
-  public BoneTrackT() {
-    this.name = null;
-    this.scale = null;
-    this.rotate = null;
-    this.translate = null;
-  }
+    public BoneTrackT() {
+        this.name = null;
+        this.scale = null;
+        this.rotate = null;
+        this.translate = null;
+    }
 }
 

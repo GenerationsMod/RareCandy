@@ -7,7 +7,9 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 public record VariantParent(String inherits, Map<String, VariantDetails> details) {
-    public static TypeToken<Map<String, VariantDetails>> DETAILS_MAP = new TypeToken<>() {};
+    public static TypeToken<Map<String, VariantDetails>> DETAILS_MAP = new TypeToken<>() {
+    };
+
     public static class Serializer implements JsonDeserializer<VariantParent>, JsonSerializer<VariantParent> {
 
         @Override
@@ -16,7 +18,7 @@ public record VariantParent(String inherits, Map<String, VariantDetails> details
 
             String inherits = null;
 
-            if(jsonObject.has("inherits")) {
+            if (jsonObject.has("inherits")) {
                 inherits = jsonObject.remove("inherits").getAsJsonPrimitive().getAsString();
             }
 
@@ -31,7 +33,7 @@ public record VariantParent(String inherits, Map<String, VariantDetails> details
 
             src.details().forEach((k, v) -> object.add(k, context.serialize(v)));
 
-            if(src.inherits() != null) object.addProperty("inherits", src.inherits());
+            if (src.inherits() != null) object.addProperty("inherits", src.inherits());
 
             return object;
         }

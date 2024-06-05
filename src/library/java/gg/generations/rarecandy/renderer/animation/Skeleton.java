@@ -39,7 +39,7 @@ public class Skeleton {
 
             Matrix4f inverseBindMatrix = null;
 
-            if(id != -1) {
+            if (id != -1) {
                 inverseBindMatrix = new Matrix4f().set(rawSkin.getInverseBindMatrix(id, array));
             }
 
@@ -50,11 +50,11 @@ public class Skeleton {
     }
 
     private NodeModel findRoot(SkinModel skeleton) {
-        if(skeleton.getSkeleton() != null) return skeleton.getSkeleton();
+        if (skeleton.getSkeleton() != null) return skeleton.getSkeleton();
 
         var root = skeleton.getJoints().get(0);
 
-        while(root.getParent() != null) {
+        while (root.getParent() != null) {
             root = root.getParent();
         }
 

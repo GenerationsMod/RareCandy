@@ -2,11 +2,11 @@ package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.renderer.animation.Animation;
+import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.material.Material;
-import gg.generations.rarecandy.renderer.animation.Skeleton;
-import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import org.joml.Vector2f;
 
 import java.util.List;

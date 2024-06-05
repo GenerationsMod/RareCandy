@@ -2,42 +2,28 @@
 
 package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
-import com.google.flatbuffers.BaseVector;
-import com.google.flatbuffers.BooleanVector;
-import com.google.flatbuffers.ByteVector;
-import com.google.flatbuffers.Constants;
-import com.google.flatbuffers.DoubleVector;
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.FloatVector;
-import com.google.flatbuffers.IntVector;
-import com.google.flatbuffers.LongVector;
-import com.google.flatbuffers.ShortVector;
-import com.google.flatbuffers.StringVector;
-import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
-import com.google.flatbuffers.UnionVector;
-import gg.generations.rarecandy.renderer.animation.TranmUtil;
 import gg.generations.rarecandy.renderer.animation.TransformStorage;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 public class FixedFloatTrackT implements TrackProcesser<Float> {
-  private float float_;
+    private float float_;
 
-  public float getFloat() { return float_; }
+    public float getFloat() {
+        return float_;
+    }
 
-  public void setFloat(float float_) { this.float_ = float_; }
+    public void setFloat(float float_) {
+        this.float_ = float_;
+    }
 
 
-  public FixedFloatTrackT() {
-    this.float_ = 0.0f;
-  }
+    public FixedFloatTrackT() {
+        this.float_ = 0.0f;
+    }
 
-  @Override
-  public void process(TransformStorage<Float> keys) {
-    keys.add(0, float_);
+    @Override
+    public void process(TransformStorage<Float> keys) {
+        keys.add(0, float_);
 
-  }
+    }
 }
 

@@ -3,105 +3,153 @@
 package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
 import com.google.flatbuffers.BaseVector;
-import com.google.flatbuffers.BooleanVector;
-import com.google.flatbuffers.ByteVector;
 import com.google.flatbuffers.Constants;
-import com.google.flatbuffers.DoubleVector;
 import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.FloatVector;
-import com.google.flatbuffers.IntVector;
-import com.google.flatbuffers.LongVector;
-import com.google.flatbuffers.ShortVector;
-import com.google.flatbuffers.StringVector;
-import com.google.flatbuffers.Struct;
 import com.google.flatbuffers.Table;
-import com.google.flatbuffers.UnionVector;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class FlagEntry extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_5_26(); }
-  public static FlagEntry getRootAsFlagEntry(ByteBuffer _bb) { return getRootAsFlagEntry(_bb, new FlagEntry()); }
-  public static FlagEntry getRootAsFlagEntry(ByteBuffer _bb, FlagEntry obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
-  public FlagEntry __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
-
-  public String name() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
-  public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(4, 1); }
-  public ByteBuffer nameInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 4, 1); }
-  public byte flagType() { int o = __offset(6); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public Table flag(Table obj) { int o = __offset(8); return o != 0 ? __union(obj, o + bb_pos) : null; }
-
-  public static int createFlagEntry(FlatBufferBuilder builder,
-      int nameOffset,
-      byte flagType,
-      int flagOffset) {
-    builder.startTable(3);
-    FlagEntry.addFlag(builder, flagOffset);
-    FlagEntry.addName(builder, nameOffset);
-    FlagEntry.addFlagType(builder, flagType);
-    return FlagEntry.endFlagEntry(builder);
-  }
-
-  public static void startFlagEntry(FlatBufferBuilder builder) { builder.startTable(3); }
-  public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(0, nameOffset, 0); }
-  public static void addFlagType(FlatBufferBuilder builder, byte flagType) { builder.addByte(1, flagType, 0); }
-  public static void addFlag(FlatBufferBuilder builder, int flagOffset) { builder.addOffset(2, flagOffset, 0); }
-  public static int endFlagEntry(FlatBufferBuilder builder) {
-    int o = builder.endTable();
-    return o;
-  }
-
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
-
-    public FlagEntry get(int j) { return get(new FlagEntry(), j); }
-    public FlagEntry get(FlagEntry obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
-  }
-  public FlagEntryT unpack() {
-    FlagEntryT _o = new FlagEntryT();
-    unpackTo(_o);
-    return _o;
-  }
-  public void unpackTo(FlagEntryT _o) {
-    String _oName = name();
-    _o.setName(_oName);
-    BooleanTrackUnion _oFlag = new BooleanTrackUnion();
-    byte _oFlagType = flagType();
-    _oFlag.setType(_oFlagType);
-    Table _oFlagValue;
-    switch (_oFlagType) {
-      case BooleanTrack.FixedBooleanTrack:
-        _oFlagValue = flag(new FixedBooleanTrack());
-        _oFlag.setValue(_oFlagValue != null ? ((FixedBooleanTrack) _oFlagValue).unpack() : null);
-        break;
-      case BooleanTrack.DynamicBooleanTrack:
-        _oFlagValue = flag(new DynamicBooleanTrack());
-        _oFlag.setValue(_oFlagValue != null ? ((DynamicBooleanTrack) _oFlagValue).unpack() : null);
-        break;
-      case BooleanTrack.Framed16BooleanTrack:
-        _oFlagValue = flag(new Framed16BooleanTrack());
-        _oFlag.setValue(_oFlagValue != null ? ((Framed16BooleanTrack) _oFlagValue).unpack() : null);
-        break;
-      case BooleanTrack.Framed8BooleanTrack:
-        _oFlagValue = flag(new Framed8BooleanTrack());
-        _oFlag.setValue(_oFlagValue != null ? ((Framed8BooleanTrack) _oFlagValue).unpack() : null);
-        break;
-      default: break;
+    public static void ValidateVersion() {
+        Constants.FLATBUFFERS_23_5_26();
     }
-    _o.setFlag(_oFlag);
-  }
-  public static int pack(FlatBufferBuilder builder, FlagEntryT _o) {
-    if (_o == null) return 0;
-    int _name = _o.getName() == null ? 0 : builder.createString(_o.getName());
-    byte _flagType = _o.getFlag() == null ? BooleanTrack.NONE : _o.getFlag().getType();
-    int _flag = _o.getFlag() == null ? 0 : BooleanTrackUnion.pack(builder, _o.getFlag());
-    return createFlagEntry(
-      builder,
-      _name,
-      _flagType,
-      _flag);
-  }
+
+    public static FlagEntry getRootAsFlagEntry(ByteBuffer _bb) {
+        return getRootAsFlagEntry(_bb, new FlagEntry());
+    }
+
+    public static FlagEntry getRootAsFlagEntry(ByteBuffer _bb, FlagEntry obj) {
+        _bb.order(ByteOrder.LITTLE_ENDIAN);
+        return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb));
+    }
+
+    public void __init(int _i, ByteBuffer _bb) {
+        __reset(_i, _bb);
+    }
+
+    public FlagEntry __assign(int _i, ByteBuffer _bb) {
+        __init(_i, _bb);
+        return this;
+    }
+
+    public String name() {
+        int o = __offset(4);
+        return o != 0 ? __string(o + bb_pos) : null;
+    }
+
+    public ByteBuffer nameAsByteBuffer() {
+        return __vector_as_bytebuffer(4, 1);
+    }
+
+    public ByteBuffer nameInByteBuffer(ByteBuffer _bb) {
+        return __vector_in_bytebuffer(_bb, 4, 1);
+    }
+
+    public byte flagType() {
+        int o = __offset(6);
+        return o != 0 ? bb.get(o + bb_pos) : 0;
+    }
+
+    public Table flag(Table obj) {
+        int o = __offset(8);
+        return o != 0 ? __union(obj, o + bb_pos) : null;
+    }
+
+    public static int createFlagEntry(FlatBufferBuilder builder,
+                                      int nameOffset,
+                                      byte flagType,
+                                      int flagOffset) {
+        builder.startTable(3);
+        FlagEntry.addFlag(builder, flagOffset);
+        FlagEntry.addName(builder, nameOffset);
+        FlagEntry.addFlagType(builder, flagType);
+        return FlagEntry.endFlagEntry(builder);
+    }
+
+    public static void startFlagEntry(FlatBufferBuilder builder) {
+        builder.startTable(3);
+    }
+
+    public static void addName(FlatBufferBuilder builder, int nameOffset) {
+        builder.addOffset(0, nameOffset, 0);
+    }
+
+    public static void addFlagType(FlatBufferBuilder builder, byte flagType) {
+        builder.addByte(1, flagType, 0);
+    }
+
+    public static void addFlag(FlatBufferBuilder builder, int flagOffset) {
+        builder.addOffset(2, flagOffset, 0);
+    }
+
+    public static int endFlagEntry(FlatBufferBuilder builder) {
+        int o = builder.endTable();
+        return o;
+    }
+
+    public static final class Vector extends BaseVector {
+        public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) {
+            __reset(_vector, _element_size, _bb);
+            return this;
+        }
+
+        public FlagEntry get(int j) {
+            return get(new FlagEntry(), j);
+        }
+
+        public FlagEntry get(FlagEntry obj, int j) {
+            return obj.__assign(__indirect(__element(j), bb), bb);
+        }
+    }
+
+    public FlagEntryT unpack() {
+        FlagEntryT _o = new FlagEntryT();
+        unpackTo(_o);
+        return _o;
+    }
+
+    public void unpackTo(FlagEntryT _o) {
+        String _oName = name();
+        _o.setName(_oName);
+        BooleanTrackUnion _oFlag = new BooleanTrackUnion();
+        byte _oFlagType = flagType();
+        _oFlag.setType(_oFlagType);
+        Table _oFlagValue;
+        switch (_oFlagType) {
+            case BooleanTrack.FixedBooleanTrack:
+                _oFlagValue = flag(new FixedBooleanTrack());
+                _oFlag.setValue(_oFlagValue != null ? ((FixedBooleanTrack) _oFlagValue).unpack() : null);
+                break;
+            case BooleanTrack.DynamicBooleanTrack:
+                _oFlagValue = flag(new DynamicBooleanTrack());
+                _oFlag.setValue(_oFlagValue != null ? ((DynamicBooleanTrack) _oFlagValue).unpack() : null);
+                break;
+            case BooleanTrack.Framed16BooleanTrack:
+                _oFlagValue = flag(new Framed16BooleanTrack());
+                _oFlag.setValue(_oFlagValue != null ? ((Framed16BooleanTrack) _oFlagValue).unpack() : null);
+                break;
+            case BooleanTrack.Framed8BooleanTrack:
+                _oFlagValue = flag(new Framed8BooleanTrack());
+                _oFlag.setValue(_oFlagValue != null ? ((Framed8BooleanTrack) _oFlagValue).unpack() : null);
+                break;
+            default:
+                break;
+        }
+        _o.setFlag(_oFlag);
+    }
+
+    public static int pack(FlatBufferBuilder builder, FlagEntryT _o) {
+        if (_o == null) return 0;
+        int _name = _o.getName() == null ? 0 : builder.createString(_o.getName());
+        byte _flagType = _o.getFlag() == null ? BooleanTrack.NONE : _o.getFlag().getType();
+        int _flag = _o.getFlag() == null ? 0 : BooleanTrackUnion.pack(builder, _o.getFlag());
+        return createFlagEntry(
+                builder,
+                _name,
+                _flagType,
+                _flag);
+    }
 }
 

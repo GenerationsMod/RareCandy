@@ -12,41 +12,88 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class TrackConfig extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_23_5_26(); }
-  public static TrackConfig getRootAsTrackConfig(ByteBuffer _bb) { return getRootAsTrackConfig(_bb, new TrackConfig()); }
-  public static TrackConfig getRootAsTrackConfig(ByteBuffer _bb, TrackConfig obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
-  public TrackConfig __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+    public static void ValidateVersion() {
+        Constants.FLATBUFFERS_23_5_26();
+    }
 
-  public long res0() { int o = __offset(4); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
-  public long duration() { int o = __offset(6); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
-  public long framerate() { int o = __offset(8); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
+    public static TrackConfig getRootAsTrackConfig(ByteBuffer _bb) {
+        return getRootAsTrackConfig(_bb, new TrackConfig());
+    }
 
-  public static int createTrackConfig(FlatBufferBuilder builder,
-      long res0,
-      long duration,
-      long framerate) {
-    builder.startTable(3);
-    TrackConfig.addFramerate(builder, framerate);
-    TrackConfig.addDuration(builder, duration);
-    TrackConfig.addRes0(builder, res0);
-    return TrackConfig.endTrackConfig(builder);
-  }
+    public static TrackConfig getRootAsTrackConfig(ByteBuffer _bb, TrackConfig obj) {
+        _bb.order(ByteOrder.LITTLE_ENDIAN);
+        return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb));
+    }
 
-  public static void startTrackConfig(FlatBufferBuilder builder) { builder.startTable(3); }
-  public static void addRes0(FlatBufferBuilder builder, long res0) { builder.addInt(0, (int) res0, (int) 0L); }
-  public static void addDuration(FlatBufferBuilder builder, long duration) { builder.addInt(1, (int) duration, (int) 0L); }
-  public static void addFramerate(FlatBufferBuilder builder, long framerate) { builder.addInt(2, (int) framerate, (int) 0L); }
-  public static int endTrackConfig(FlatBufferBuilder builder) {
-    int o = builder.endTable();
-    return o;
-  }
+    public void __init(int _i, ByteBuffer _bb) {
+        __reset(_i, _bb);
+    }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+    public TrackConfig __assign(int _i, ByteBuffer _bb) {
+        __init(_i, _bb);
+        return this;
+    }
 
-    public TrackConfig get(int j) { return get(new TrackConfig(), j); }
-    public TrackConfig get(TrackConfig obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
-  }
+    public long res0() {
+        int o = __offset(4);
+        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
+    }
+
+    public long duration() {
+        int o = __offset(6);
+        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
+    }
+
+    public long framerate() {
+        int o = __offset(8);
+        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
+    }
+
+    public static int createTrackConfig(FlatBufferBuilder builder,
+                                        long res0,
+                                        long duration,
+                                        long framerate) {
+        builder.startTable(3);
+        TrackConfig.addFramerate(builder, framerate);
+        TrackConfig.addDuration(builder, duration);
+        TrackConfig.addRes0(builder, res0);
+        return TrackConfig.endTrackConfig(builder);
+    }
+
+    public static void startTrackConfig(FlatBufferBuilder builder) {
+        builder.startTable(3);
+    }
+
+    public static void addRes0(FlatBufferBuilder builder, long res0) {
+        builder.addInt(0, (int) res0, (int) 0L);
+    }
+
+    public static void addDuration(FlatBufferBuilder builder, long duration) {
+        builder.addInt(1, (int) duration, (int) 0L);
+    }
+
+    public static void addFramerate(FlatBufferBuilder builder, long framerate) {
+        builder.addInt(2, (int) framerate, (int) 0L);
+    }
+
+    public static int endTrackConfig(FlatBufferBuilder builder) {
+        int o = builder.endTable();
+        return o;
+    }
+
+    public static final class Vector extends BaseVector {
+        public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) {
+            __reset(_vector, _element_size, _bb);
+            return this;
+        }
+
+        public TrackConfig get(int j) {
+            return get(new TrackConfig(), j);
+        }
+
+        public TrackConfig get(TrackConfig obj, int j) {
+            return obj.__assign(__indirect(__element(j), bb), bb);
+        }
+    }
 }
 

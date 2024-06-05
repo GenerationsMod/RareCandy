@@ -1,6 +1,8 @@
 package gg.generations.rarecandy.pokeutils;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
@@ -10,7 +12,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,7 +29,7 @@ public class PixelAsset {
             .registerTypeAdapter(MaterialReference.class, new MaterialReference.Serializer())
             .registerTypeAdapter(Vector2f.class, (JsonDeserializer<Vector2f>) (json, type, context) -> {
                 var vec = new Vector2f();
-                if(json.isJsonArray())
+                if (json.isJsonArray())
                     if (json.getAsJsonArray().size() == 2)
                         vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat());
                 return vec;
@@ -60,7 +61,8 @@ public class PixelAsset {
             for (Path entry : stream) {
                 if (!Files.isDirectory(entry)) {
 
-                    if (entry.getFileName().toString().endsWith(".glb")) this.modelName = entry.getFileName().toString();
+                    if (entry.getFileName().toString().endsWith(".glb"))
+                        this.modelName = entry.getFileName().toString();
 
                     try {
                         files.put(entry.getFileName().toString(), Files.readAllBytes(entry));
@@ -87,7 +89,7 @@ public class PixelAsset {
             var tarFile = getTarFile(Objects.requireNonNull(is, "Input Stream is null"));
 
             for (var entry : tarFile.getEntries()) {
-                if(entry.getName().endsWith("/")) continue;
+                if (entry.getName().endsWith("/")) continue;
 
                 if (entry.getName().endsWith(".glb")) this.modelName = entry.getName();
 

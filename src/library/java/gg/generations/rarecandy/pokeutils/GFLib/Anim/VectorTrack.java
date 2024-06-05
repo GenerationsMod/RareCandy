@@ -4,15 +4,19 @@ package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
 @SuppressWarnings("unused")
 public final class VectorTrack {
-  private VectorTrack() { }
-  public static final byte NONE = 0;
-  public static final byte FixedVectorTrack = 1;
-  public static final byte DynamicVectorTrack = 2;
-  public static final byte Framed16VectorTrack = 3;
-  public static final byte Framed8VectorTrack = 4;
+    private VectorTrack() {
+    }
 
-  public static final String[] names = { "NONE", "FixedVectorTrack", "DynamicVectorTrack", "Framed16VectorTrack", "Framed8VectorTrack", };
+    public static final byte NONE = 0;
+    public static final byte FixedVectorTrack = 1;
+    public static final byte DynamicVectorTrack = 2;
+    public static final byte Framed16VectorTrack = 3;
+    public static final byte Framed8VectorTrack = 4;
 
-  public static String name(int e) { return names[e]; }
+    public static final String[] names = {"NONE", "FixedVectorTrack", "DynamicVectorTrack", "Framed16VectorTrack", "Framed8VectorTrack",};
+
+    public static String name(int e) {
+        return names[e];
+    }
 }
 

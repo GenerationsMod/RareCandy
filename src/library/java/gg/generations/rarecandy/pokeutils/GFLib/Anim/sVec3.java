@@ -3,65 +3,79 @@
 package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
 import com.google.flatbuffers.BaseVector;
-import com.google.flatbuffers.BooleanVector;
-import com.google.flatbuffers.ByteVector;
-import com.google.flatbuffers.Constants;
-import com.google.flatbuffers.DoubleVector;
 import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.FloatVector;
-import com.google.flatbuffers.IntVector;
-import com.google.flatbuffers.LongVector;
-import com.google.flatbuffers.ShortVector;
-import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
-import com.google.flatbuffers.UnionVector;
+
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class sVec3 extends Struct {
-  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
-  public sVec3 __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+    public void __init(int _i, ByteBuffer _bb) {
+        __reset(_i, _bb);
+    }
 
-  public int x() { return bb.getShort(bb_pos + 0) & 0xFFFF; }
-  public int y() { return bb.getShort(bb_pos + 2) & 0xFFFF; }
-  public int z() { return bb.getShort(bb_pos + 4) & 0xFFFF; }
+    public sVec3 __assign(int _i, ByteBuffer _bb) {
+        __init(_i, _bb);
+        return this;
+    }
 
-  public static int createsVec3(FlatBufferBuilder builder, int x, int y, int z) {
-    builder.prep(2, 6);
-    builder.putShort((short) z);
-    builder.putShort((short) y);
-    builder.putShort((short) x);
-    return builder.offset();
-  }
+    public int x() {
+        return bb.getShort(bb_pos + 0) & 0xFFFF;
+    }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+    public int y() {
+        return bb.getShort(bb_pos + 2) & 0xFFFF;
+    }
 
-    public sVec3 get(int j) { return get(new sVec3(), j); }
-    public sVec3 get(sVec3 obj, int j) {  return obj.__assign(__element(j), bb); }
-  }
-  public sVec3T unpack() {
-    sVec3T _o = new sVec3T();
-    unpackTo(_o);
-    return _o;
-  }
-  public void unpackTo(sVec3T _o) {
-    int _oX = x();
-    _o.setX(_oX);
-    int _oY = y();
-    _o.setY(_oY);
-    int _oZ = z();
-    _o.setZ(_oZ);
-  }
-  public static int pack(FlatBufferBuilder builder, sVec3T _o) {
-    if (_o == null) return 0;
-    return createsVec3(
-      builder,
-      _o.getX(),
-      _o.getY(),
-      _o.getZ());
-  }
+    public int z() {
+        return bb.getShort(bb_pos + 4) & 0xFFFF;
+    }
+
+    public static int createsVec3(FlatBufferBuilder builder, int x, int y, int z) {
+        builder.prep(2, 6);
+        builder.putShort((short) z);
+        builder.putShort((short) y);
+        builder.putShort((short) x);
+        return builder.offset();
+    }
+
+    public static final class Vector extends BaseVector {
+        public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) {
+            __reset(_vector, _element_size, _bb);
+            return this;
+        }
+
+        public sVec3 get(int j) {
+            return get(new sVec3(), j);
+        }
+
+        public sVec3 get(sVec3 obj, int j) {
+            return obj.__assign(__element(j), bb);
+        }
+    }
+
+    public sVec3T unpack() {
+        sVec3T _o = new sVec3T();
+        unpackTo(_o);
+        return _o;
+    }
+
+    public void unpackTo(sVec3T _o) {
+        int _oX = x();
+        _o.setX(_oX);
+        int _oY = y();
+        _o.setY(_oY);
+        int _oZ = z();
+        _o.setZ(_oZ);
+    }
+
+    public static int pack(FlatBufferBuilder builder, sVec3T _o) {
+        if (_o == null) return 0;
+        return createsVec3(
+                builder,
+                _o.getX(),
+                _o.getY(),
+                _o.getZ());
+    }
 }
 

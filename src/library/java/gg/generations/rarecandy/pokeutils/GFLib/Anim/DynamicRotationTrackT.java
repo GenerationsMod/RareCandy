@@ -7,23 +7,27 @@ import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import org.joml.Quaternionf;
 
 public class DynamicRotationTrackT implements TrackProcesser<Quaternionf> {
-  private sVec3T[] co;
+    private sVec3T[] co;
 
-  public sVec3T[] getCo() { return co; }
-
-  public void setCo(sVec3T[] co) { this.co = co; }
-
-
-  public DynamicRotationTrackT() {
-    this.co = null;
-  }
-
-  @Override
-  public void process(TransformStorage<Quaternionf> rotationKeys) {
-    for (int i = 0; i < co.length; i++) {
-      var vec = co[i];
-      rotationKeys.add(i, TranmUtil.unpack(vec.getX(), vec.getY(), vec.getZ()));
+    public sVec3T[] getCo() {
+        return co;
     }
-  }
+
+    public void setCo(sVec3T[] co) {
+        this.co = co;
+    }
+
+
+    public DynamicRotationTrackT() {
+        this.co = null;
+    }
+
+    @Override
+    public void process(TransformStorage<Quaternionf> rotationKeys) {
+        for (int i = 0; i < co.length; i++) {
+            var vec = co[i];
+            rotationKeys.add(i, TranmUtil.unpack(vec.getX(), vec.getY(), vec.getZ()));
+        }
+    }
 }
 

@@ -2,45 +2,40 @@
 
 package gg.generations.rarecandy.pokeutils.GFLib.Anim;
 
-import com.google.flatbuffers.BaseVector;
-import com.google.flatbuffers.BooleanVector;
-import com.google.flatbuffers.ByteVector;
-import com.google.flatbuffers.Constants;
-import com.google.flatbuffers.DoubleVector;
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.FloatVector;
-import com.google.flatbuffers.IntVector;
-import com.google.flatbuffers.LongVector;
-import com.google.flatbuffers.ShortVector;
-import com.google.flatbuffers.StringVector;
-import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
-import com.google.flatbuffers.UnionVector;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 public class InfoT {
-  private long doesLoop;
-  private long keyFrames;
-  private long frameRate;
+    private long doesLoop;
+    private long keyFrames;
+    private long frameRate;
 
-  public long getDoesLoop() { return doesLoop; }
+    public long getDoesLoop() {
+        return doesLoop;
+    }
 
-  public void setDoesLoop(long doesLoop) { this.doesLoop = doesLoop; }
+    public void setDoesLoop(long doesLoop) {
+        this.doesLoop = doesLoop;
+    }
 
-  public long getKeyFrames() { return keyFrames; }
+    public long getKeyFrames() {
+        return keyFrames;
+    }
 
-  public void setKeyFrames(long keyFrames) { this.keyFrames = keyFrames; }
+    public void setKeyFrames(long keyFrames) {
+        this.keyFrames = keyFrames;
+    }
 
-  public long getFrameRate() { return frameRate; }
+    public long getFrameRate() {
+        return frameRate;
+    }
 
-  public void setFrameRate(long frameRate) { this.frameRate = frameRate; }
+    public void setFrameRate(long frameRate) {
+        this.frameRate = frameRate;
+    }
 
 
-  public InfoT() {
-    this.doesLoop = 0L;
-    this.keyFrames = 0L;
-    this.frameRate = 0L;
-  }
+    public InfoT() {
+        this.doesLoop = 0L;
+        this.keyFrames = 0L;
+        this.frameRate = 0L;
+    }
 }
 

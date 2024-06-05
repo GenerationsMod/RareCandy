@@ -20,8 +20,8 @@ public class ModelConfig {
         var list = new ArrayList<String>();
         list.add(trackName);
 
-        if(materialsWithSameMaterialAnimation != null) {
-            if(materialsWithSameMaterialAnimation.containsKey(trackName)) {
+        if (materialsWithSameMaterialAnimation != null) {
+            if (materialsWithSameMaterialAnimation.containsKey(trackName)) {
                 list.addAll(materialsWithSameMaterialAnimation.get(trackName));
             }
         }

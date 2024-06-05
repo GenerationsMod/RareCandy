@@ -1,9 +1,9 @@
 package gg.generations.rarecandy.renderer.pipeline;
 
-import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.components.RenderObject;
-import gg.generations.rarecandy.renderer.rendering.RareCandy;
+import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;

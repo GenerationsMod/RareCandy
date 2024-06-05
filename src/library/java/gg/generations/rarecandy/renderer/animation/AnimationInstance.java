@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.renderer.animation;
 
 import org.joml.Matrix4f;
-import org.joml.Vector2f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -81,7 +80,7 @@ public class AnimationInstance<T> {
     public Transform getOffset(String name) {
         var offset = offsets.get(name.replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/);
 
-        if(offset == null) {
+        if (offset == null) {
             return AnimationController.NO_OFFSET;
         } else {
             return offset;

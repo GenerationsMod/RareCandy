@@ -45,7 +45,7 @@ public final class OpenGL {
         if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (OpenGL) obj;
         return this.majorVersion == that.majorVersion &&
-               this.minorVersion == that.minorVersion;
+                this.minorVersion == that.minorVersion;
     }
 
     @Override

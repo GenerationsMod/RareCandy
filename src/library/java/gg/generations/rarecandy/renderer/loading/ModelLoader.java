@@ -2,7 +2,6 @@ package gg.generations.rarecandy.renderer.loading;
 
 import de.javagl.jgltf.model.*;
 import de.javagl.jgltf.model.io.GltfModelReader;
-import de.javagl.jgltf.model.v2.MaterialModelV2;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import gg.generations.rarecandy.pokeutils.*;
@@ -11,7 +10,6 @@ import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
-import gg.generations.rarecandy.pokeutils.util.ImageUtils;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.*;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
@@ -45,8 +43,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static gg.generations.rarecandy.pokeutils.tranm.Animation.getRootAsAnimation;
-
 public class ModelLoader {
     private final GltfModelReader reader = new GltfModelReader();
     private final ExecutorService modelLoadingPool;
@@ -60,7 +56,7 @@ public class ModelLoader {
     }
 
     public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
-        if(config != null) throw new RuntimeException("Error no config.json found.");
+        if (config != null) throw new RuntimeException("Error no config.json found.");
 
         checkForRootTransformation(objects, gltfModel);
         if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
@@ -110,74 +106,74 @@ public class ModelLoader {
 
         var materials = new HashMap<String, Material>();
 
-            config.materials.forEach((k, v) -> {
-                var material = MaterialReference.process(k, config.materials, images);
+        config.materials.forEach((k, v) -> {
+            var material = MaterialReference.process(k, config.materials, images);
 
-                materials.put(k, material);
-            });
+            materials.put(k, material);
+        });
 
-            var defaultVariant = new HashMap<String, Variant>();
-            config.defaultVariant.forEach((k, v) -> {
-                var variant = new Variant(materials.get(v.material()), v.hide(), v.offset());
-                defaultVariant.put(k, variant);
-            });
+        var defaultVariant = new HashMap<String, Variant>();
+        config.defaultVariant.forEach((k, v) -> {
+            var variant = new Variant(materials.get(v.material()), v.hide(), v.offset());
+            defaultVariant.put(k, variant);
+        });
 
-            var variantMaterialMap = new HashMap<String, Map<String, Material>>();
-            var variantHideMap = new HashMap<String, List<String>>();
-            var variantOffsetMap = new HashMap<String, Map<String, Vector2f>>();
+        var variantMaterialMap = new HashMap<String, Map<String, Material>>();
+        var variantHideMap = new HashMap<String, List<String>>();
+        var variantOffsetMap = new HashMap<String, Map<String, Vector2f>>();
 
-            if(config.hideDuringAnimation != null) {
-                hideDuringAnimation = config.hideDuringAnimation;
-            }
+        if (config.hideDuringAnimation != null) {
+            hideDuringAnimation = config.hideDuringAnimation;
+        }
 
-            if(config.variants != null) {
-                for (Map.Entry<String, VariantParent> entry : config.variants.entrySet()) {
-                    String variantKey = entry.getKey();
-                    VariantParent variantParent = entry.getValue();
+        if (config.variants != null) {
+            for (Map.Entry<String, VariantParent> entry : config.variants.entrySet()) {
+                String variantKey = entry.getKey();
+                VariantParent variantParent = entry.getValue();
 
-                    VariantParent child = config.variants.get(variantParent.inherits());
+                VariantParent child = config.variants.get(variantParent.inherits());
 
-                    var map = variantParent.details();
+                var map = variantParent.details();
 
-                    while (child != null) {
-                         var details = child.details();
+                while (child != null) {
+                    var details = child.details();
 
-                         applyVariantDetails(details, map);
+                    applyVariantDetails(details, map);
 
-                        child = config.variants.get(child.inherits());
-                    }
-
-                    applyVariantDetails(config.defaultVariant, map);
-
-                    var matMap = variantMaterialMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
-                    var hideMap = variantHideMap.computeIfAbsent(variantKey, s3 -> new ArrayList<>());
-                    var offsetMap = variantOffsetMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
-
-                    applyVariant(materials, matMap, hideMap, map);
+                    child = config.variants.get(child.inherits());
                 }
-            } else {
-                var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
-                var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
-                var offsetMap = variantOffsetMap.computeIfAbsent("regular", s3 -> new HashMap<>());
 
-                defaultVariant.forEach((s1, variant) -> {
-                    matMap.put(s1, variant.material());
-                    if (variant.hide()) hideMap.add(s1);
-                    if (variant.offset() != null) offsetMap.put(s1, variant.offset());
-                });
+                applyVariantDetails(config.defaultVariant, map);
+
+                var matMap = variantMaterialMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
+                var hideMap = variantHideMap.computeIfAbsent(variantKey, s3 -> new ArrayList<>());
+                var offsetMap = variantOffsetMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
+
+                applyVariant(materials, matMap, hideMap, map);
             }
+        } else {
+            var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
+            var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
+            var offsetMap = variantOffsetMap.computeIfAbsent("regular", s3 -> new HashMap<>());
 
-            var matMap = reverseMap(variantMaterialMap);
-            var hidMap = reverseListMap(variantHideMap);
-            var offsetMap = reverseMap(variantOffsetMap);
+            defaultVariant.forEach((s1, variant) -> {
+                matMap.put(s1, variant.material());
+                if (variant.hide()) hideMap.add(s1);
+                if (variant.offset() != null) offsetMap.put(s1, variant.offset());
+            });
+        }
 
-            objects.dimensions.set(calculateDimensions(gltfModel));
+        var matMap = reverseMap(variantMaterialMap);
+        var hidMap = reverseListMap(variantHideMap);
+        var offsetMap = reverseMap(variantOffsetMap);
 
-            for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
-                var transform = new Matrix4f();
+        objects.dimensions.set(calculateDimensions(gltfModel));
 
-                traverseTree(transform, node, objects, supplier, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
-            }
+        for (var node : gltfModel.getSceneModels().get(0).getNodeModels()) {
+            var transform = new Matrix4f();
+
+            traverseTree(transform, node, objects, supplier, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
+        }
 //        } else {
 //
 //            //Original model loading code
@@ -250,7 +246,7 @@ public class ModelLoader {
             String k = entry.getKey();
             VariantDetails v = entry.getValue();
             appliee.compute(k, (s, variantDetails) -> {
-                if(variantDetails == null) return v;
+                if (variantDetails == null) return v;
                 return variantDetails.fillIn(v);
             });
         }
@@ -267,8 +263,8 @@ public class ModelLoader {
         var vec = new Vector3f();
         var pos = new Vector3f();
 
-        for(var mesh : model.getMeshModels()) {
-            for(var primitive : mesh.getMeshPrimitiveModels()) {
+        for (var mesh : model.getMeshModels()) {
+            for (var primitive : mesh.getMeshPrimitiveModels()) {
 
                 var buf = primitive.getAttributes().get("POSITION").getBufferViewModel().getBufferViewData();
 
@@ -528,7 +524,7 @@ public class ModelLoader {
 
             var images = readImages(asset);
 
-            if(asset.getModelFile() == null) return;
+            if (asset.getModelFile() == null) return;
 
             if (config != null) obj.scale = config.scale;
             var model = read(asset);

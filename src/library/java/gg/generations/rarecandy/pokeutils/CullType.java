@@ -28,14 +28,14 @@ public enum CullType {
     }
 
     public void enable() {
-        if(glConstant != -1) {
+        if (glConstant != -1) {
             GL11.glEnable(GL11.GL_CULL_FACE);
             GL11.glCullFace(glConstant);
         }
     }
 
     public void disable() {
-        if(glConstant != -1) {
+        if (glConstant != -1) {
             GL11.glDisable(GL11.GL_CULL_FACE);
         }
     }

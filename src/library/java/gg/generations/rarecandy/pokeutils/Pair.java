@@ -38,13 +38,13 @@ public final class Pair<A, B> {
         if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (Pair) obj;
         return Objects.equals(this.a, that.a) &&
-               Objects.equals(this.b, that.b);
+                Objects.equals(this.b, that.b);
     }
 
     @Override
     public String toString() {
         return "Pair[" +
-               "a=" + a + ", " +
-               "b=" + b + ']';
+                "a=" + a + ", " +
+                "b=" + b + ']';
     }
 }

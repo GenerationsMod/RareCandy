@@ -6,20 +6,24 @@ import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import org.joml.Vector3f;
 
 public class FixedVectorTrackT implements TrackProcesser<Vector3f> {
-  private Vec3T co;
+    private Vec3T co;
 
-  public Vec3T getCo() { return co; }
+    public Vec3T getCo() {
+        return co;
+    }
 
-  public void setCo(Vec3T co) { this.co = co; }
+    public void setCo(Vec3T co) {
+        this.co = co;
+    }
 
 
-  public FixedVectorTrackT() {
-    this.co = new Vec3T();
-  }
+    public FixedVectorTrackT() {
+        this.co = new Vec3T();
+    }
 
-  @Override
-  public void process(TransformStorage<Vector3f> keys) {
-    keys.add(0, new Vector3f(co.getX(), co.getY(), co.getZ()));
-  }
+    @Override
+    public void process(TransformStorage<Vector3f> keys) {
+        keys.add(0, new Vector3f(co.getX(), co.getY(), co.getZ()));
+    }
 }
 

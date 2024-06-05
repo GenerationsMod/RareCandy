@@ -1,11 +1,10 @@
 package gg.generations.rarecandy.renderer.animation;
 
-import gg.generations.rarecandy.pokeutils.GFLib.Anim.*;
+import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
 import gg.generations.rarecandy.pokeutils.ModelConfig;
 
-import java.util.*;
-
-import static java.util.stream.Stream.of;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GfbAnimation extends Animation<AnimationT> {
 
@@ -28,10 +27,10 @@ public class GfbAnimation extends Animation<AnimationT> {
     public static Map<String, Offset> fillGfbOffsets(AnimationT rawAnimation, ModelConfig config) {
         var offsets = new HashMap<String, Offset>();
 
-        if(rawAnimation.getMaterial() != null) {
+        if (rawAnimation.getMaterial() != null) {
             var material = rawAnimation.getMaterial();
 
-            for(var track : material.getTracks()) {
+            for (var track : material.getTracks()) {
                 var trackName = track.getName();
 
                 var uOffset = new TransformStorage<Float>();
@@ -39,16 +38,16 @@ public class GfbAnimation extends Animation<AnimationT> {
                 var uScale = new TransformStorage<Float>();
                 var vScale = new TransformStorage<Float>();
 
-                for(var entry : track.getValues()) {
-                    if(entry.getName().equals("ColorUVTranslateU")) {
+                for (var entry : track.getValues()) {
+                    if (entry.getName().equals("ColorUVTranslateU")) {
                         entry.getValue().getValue().process(uOffset);
-                    } else if(entry.getName().equals("ColorUVTranslateV")) {
+                    } else if (entry.getName().equals("ColorUVTranslateV")) {
                         entry.getValue().getValue().process(vOffset);
                     }
                 }
 
-                if(uOffset.size() == 0) uOffset.add(0, 0f);
-                if(vOffset.size() == 0) uOffset.add(0, 0f);
+                if (uOffset.size() == 0) uOffset.add(0, 0f);
+                if (vOffset.size() == 0) uOffset.add(0, 0f);
 
                 var offset = new GfbOffset(uOffset, vOffset, uScale, vScale);
 
@@ -59,7 +58,8 @@ public class GfbAnimation extends Animation<AnimationT> {
         return offsets;
     }
 
-    public static record GfbOffset(TransformStorage<Float> uOffset, TransformStorage<Float> vOffset, TransformStorage<Float> uScale, TransformStorage<Float> vScale) implements Offset {
+    public static record GfbOffset(TransformStorage<Float> uOffset, TransformStorage<Float> vOffset,
+                                   TransformStorage<Float> uScale, TransformStorage<Float> vScale) implements Offset {
         public static <T> T calcInterpolatedFloat(float animTime, TransformStorage<T> node, T defaultVal) {
             if (node.size() == 0) return defaultVal;
 
@@ -97,11 +97,12 @@ public class GfbAnimation extends Animation<AnimationT> {
             for (var track : rawAnimation.getSkeleton().getTracks()) {
                 var node = animationNodes[animation.nodeIdMap.computeIfAbsent(track.getName(), animation::newNode)] = new AnimationNode();
 
-                if(track.getRotate().getValue() != null) track.getRotate().getValue().process(node.rotationKeys);
+                if (track.getRotate().getValue() != null) track.getRotate().getValue().process(node.rotationKeys);
                 else node.rotationKeys.add(0, animation.skeleton.boneMap.get(track.getName()).poseRotation);
-                if(track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
+                if (track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
                 else node.scaleKeys.add(0, animation.skeleton.boneMap.get(track.getName()).poseScale);
-                if(track.getTranslate().getValue() != null && !track.getName().equalsIgnoreCase("origin")) track.getTranslate().getValue().process(node.positionKeys);
+                if (track.getTranslate().getValue() != null && !track.getName().equalsIgnoreCase("origin"))
+                    track.getTranslate().getValue().process(node.positionKeys);
                 else node.positionKeys.add(0, animation.skeleton.boneMap.get(track.getName()).posePosition);
             }
         }

@@ -7,20 +7,24 @@ import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import org.joml.Quaternionf;
 
 public class FixedRotationTrackT implements TrackProcesser<Quaternionf> {
-  private sVec3T co;
+    private sVec3T co;
 
-  public sVec3T getCo() { return co; }
+    public sVec3T getCo() {
+        return co;
+    }
 
-  public void setCo(sVec3T co) { this.co = co; }
+    public void setCo(sVec3T co) {
+        this.co = co;
+    }
 
 
-  public FixedRotationTrackT() {
-    this.co = new sVec3T();
-  }
+    public FixedRotationTrackT() {
+        this.co = new sVec3T();
+    }
 
-  @Override
-  public void process(TransformStorage<Quaternionf> rotationKeys) {
-    rotationKeys.add(0, TranmUtil.unpack(co.getX(), co.getY(), co.getZ()));
-  }
+    @Override
+    public void process(TransformStorage<Quaternionf> rotationKeys) {
+        rotationKeys.add(0, TranmUtil.unpack(co.getX(), co.getY(), co.getZ()));
+    }
 }
 

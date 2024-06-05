@@ -42,6 +42,7 @@ public abstract class ITextureLoader {
 
 
     }
+
     public void register(String name, TextureReference reference) {
         register(name, loadFromReference(reference));
     }
@@ -56,6 +57,7 @@ public abstract class ITextureLoader {
     public ITexture getBrightFallback() {
         return getTexture("neutral");
     }
+
     public ITexture getNuetralFallback() {
         return getTexture("bright");
     }

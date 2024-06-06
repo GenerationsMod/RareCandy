@@ -87,5 +87,7 @@ vec4 getColor() {
 void main() {
     outColor = getColor();
 
+    if(outColor.a < 0.004) discard;
+
     if(useLight) outColor.xyz *= max(texture(emission, texCoord0).r, lightLevel);
 }

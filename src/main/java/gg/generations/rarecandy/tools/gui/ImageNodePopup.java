@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
-import com.thebombzen.jxlatte.JXLDecoder;
+
+import com.traneptora.jxlatte.JXLDecoder;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;

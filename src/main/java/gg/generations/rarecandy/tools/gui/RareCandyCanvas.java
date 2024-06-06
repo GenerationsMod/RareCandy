@@ -12,6 +12,7 @@ import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
 import org.jetbrains.annotations.NotNull;
@@ -181,7 +182,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         time = (System.currentTimeMillis() - startTime) / 1000f;
 
-        renderer.render(false, time);
+        renderer.render(false, time, RenderStage.SOLID);
+        renderer.render(false, time, RenderStage.TRANSPARENT);
         swapBuffers();
 
         if (instances.size() > 1) {

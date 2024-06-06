@@ -17,9 +17,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class PixelAssetTree extends JTree {
 
@@ -87,7 +86,7 @@ public class PixelAssetTree extends JTree {
 
         List<String> variants = asset.getConfig() != null && asset.getConfig().variants != null ? List.copyOf(asset.getConfig().variants.keySet()) : new ArrayList<>();
 
-        List<String> animationStrings = new ArrayList<>();
+        Set<String> animationStrings = new HashSet<>();
 
         for (var s : asset.files.keySet()) {
             if(s.endsWith("tranm") || s.endsWith("tracm") || s.endsWith("gfbanm") || s.endsWith("smd")) {

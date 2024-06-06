@@ -1,8 +1,10 @@
-package gg.generations.rarecandy.renderer.animation;
+package gg.generations.rarecandy.renderer.loading;
 
 import dev.thecodewarrior.binarysmd.studiomdl.NodesBlock;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
+import gg.generations.rarecandy.renderer.animation.Animation;
+import gg.generations.rarecandy.renderer.animation.Skeleton;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -10,32 +12,26 @@ import org.joml.Vector3f;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class SmdAnimation extends Animation<SMDFile> {
-
-    public SmdAnimation(String name, SMDFile smdFile, Skeleton bones, int ticksPerSecond) {
-        super(name, ticksPerSecond, bones, smdFile, SmdAnimation::fillAnimationNodes, Animation::fillOffsets);
-        animationModifier.accept(this, "smd");
-    }
-
-    public static AnimationNode[] fillAnimationNodes(Animation<SMDFile> animation, SMDFile item) {
-        @NotNull List<SkeletonBlock.@NotNull Keyframe> skeletonBlock = null;
+public class SmdUtils {
+    public static Animation.AnimationNode[] getNode(Animation animation, Skeleton skeleton, SMDFile item) {
+        List<SkeletonBlock.@NotNull Keyframe> skeletonBlock = null;
         Map<Integer, String> nodesMap = null;
 
         for (var block : item.blocks) {
             if (block instanceof SkeletonBlock skeletonBlock1) {
                 skeletonBlock = skeletonBlock1.keyframes;
             }
-            if (block instanceof NodesBlock nodes) {
+            if(block instanceof NodesBlock nodes) {
                 nodesMap = nodes.bones.stream().collect(Collectors.toMap(a -> a.id, a -> a.name));
             }
         }
 
-        if (skeletonBlock == null || nodesMap == null) throw new RuntimeException("Error!");
+        if(skeletonBlock == null || nodesMap == null) throw new RuntimeException("Error!");
 
-        return fillAnimationNodesSmdx(animation, skeletonBlock, nodesMap);
+        return fillAnimationNodesSmdx(animation, skeleton, skeletonBlock, nodesMap);
     }
 
-    private static AnimationNode[] fillAnimationNodesSmdx(Animation<SMDFile> animation, @NotNull List<SkeletonBlock.Keyframe> keyframes, Map<Integer, String> nodeMap) {
+    private static Animation.AnimationNode[] fillAnimationNodesSmdx(Animation animation, Skeleton skeleton, @NotNull List<SkeletonBlock.Keyframe> keyframes, Map<Integer, String> nodeMap) {
         var nodes = new HashMap<String, List<SmdBoneStateKey>>();
 
         for (var keyframe : keyframes) {
@@ -43,7 +39,7 @@ public class SmdAnimation extends Animation<SMDFile> {
             var states = keyframe.states;
 
             for (var boneState : states) {
-                if (boneState.bone < animation.skeleton.boneArray.length - 1) {
+                if (boneState.bone < skeleton.boneArray.length - 1) {
                     var id = nodeMap.get(boneState.bone);
                     var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
 
@@ -56,7 +52,7 @@ public class SmdAnimation extends Animation<SMDFile> {
             nodes.forEach((k, v) -> v.sort(Comparator.comparingInt(SmdBoneStateKey::time)));
         }
 
-        var animationNodes = new AnimationNode[nodes.size()];
+        var animationNodes = new Animation.AnimationNode[nodes.size()];
         for (var entry : nodes.entrySet()) {
             animationNodes[animation.nodeIdMap.computeIfAbsent(entry.getKey(), animation::newNode)] = createNode(entry.getValue());
         }
@@ -64,8 +60,8 @@ public class SmdAnimation extends Animation<SMDFile> {
         return animationNodes;
     }
 
-    public static AnimationNode createNode(List<SmdBoneStateKey> keys) {
-        var animationNode = new AnimationNode();
+    public static Animation.AnimationNode createNode(List<SmdBoneStateKey> keys) {
+        var animationNode = new Animation.AnimationNode();
 
         if (keys.isEmpty()) {
             animationNode.positionKeys.add(0, new Vector3f());

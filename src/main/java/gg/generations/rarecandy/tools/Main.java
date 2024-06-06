@@ -2,20 +2,16 @@ package gg.generations.rarecandy.tools;
 
 import gg.generations.rarecandy.pokeutils.Pair;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
-import gg.generations.rarecandy.tools.pokemodding.AnimationReadout;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
 import gg.generations.rarecandy.tools.pkcreator.Convert;
 import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
-import gg.generations.rarecandy.tools.pokemodding.QuaternionConverterGUI;
 import gg.generations.rarecandy.tools.swsh.EyeTexture;
 import gg.generations.rarecandy.tools.swsh.LongBoi;
 import gg.generations.rarecandy.tools.swsh.MouthTexture;
 import org.lwjgl.util.nfd.NativeFileDialog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,30 +53,6 @@ public class Main {
             }, pairConsumer), true);
 
     }
-
-    private static void smdToGfbanm(String[] strings) {
-        try {
-            AnimationReadout.main(strings);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void quaterionSwizzleTest(String[] strings) {
-        QuaternionConverterGUI.main(strings);
-    }
-
-
-    private static void gfbanmreadout(String[] args) {
-        try {
-            AnimationReadout.gfbanmPrintOut(args);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
-    private static DualOutputStream outStream;
 
     private static void mouthFixer(String[] strings) {
         try {

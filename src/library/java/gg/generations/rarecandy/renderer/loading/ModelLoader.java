@@ -51,6 +51,10 @@ public class ModelLoader {
         this.modelLoadingPool = Executors.newFixedThreadPool(2);
     }
 
+    public interface NodeProvider {
+        Animation.AnimationNode[] getNode(Animation animation, Skeleton skeleton);
+    }
+
     public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
         create2(objects, gltfModel, smdFileMap, gfbFileMap, trFilesMap, images, config, glCalls, supplier, Animation.GLB_SPEED);
     }
@@ -63,17 +67,36 @@ public class ModelLoader {
 
         Map<String, Animation> animations = null;
 
-        Skeleton skeleton;
+        Skeleton skeleton = null;
 
         if (!gltfModel.getSkinModels().isEmpty()) {
             skeleton = new Skeleton(gltfModel.getNodeModels(), gltfModel.getSkinModels().get(0));
-            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(animationModel.getName(), 30) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+//            animations = gltfModel.getAnimationModels().stream().map(animationModel -> new GlbAnimation(animationModel, skeleton, config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(animationModel.getName(), 30) : animationSpeed)).collect(Collectors.toMap(animation -> animation.name, animation -> animation));
+
+            Map<String, NodeProvider> animationNodeMap = new HashMap<>();
+            Map<String, Integer> fpsMap = new HashMap<>();
+            Map<String, Map<String, Animation.Offset>> offsetsMap = new HashMap<>();
+
+            Set<String> animationNames = new HashSet<>();
+
 
             for (var entry : trFilesMap.entrySet()) {
                 var name = entry.getKey();
                 var tranm = entry.getValue().a() != null ? TRANMT.deserializeFromBinary(entry.getValue().a()) : null;
                 var tracm = entry.getValue().b() != null ? TRACM.getRootAsTRACM(ByteBuffer.wrap(entry.getValue().b())) : null;
-                animations.put(name, new TranmAnimation(name, new Pair<>(tranm, tracm), new Skeleton(skeleton), config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"))));
+
+                if (tranm != null || tracm != null) {
+                    animationNames.add(name);
+                    if (tranm != null) {
+                        animationNodeMap.putIfAbsent(name, (animation, skeleton1) -> TranmUtils.getNodes(animation, skeleton1, tranm));
+                        fpsMap.putIfAbsent(name, (int) tranm.getInfo().getAnimationRate());
+                    }
+
+                    if (tracm != null) {
+                        offsetsMap.putIfAbsent(name, TracmUtils.getOffsets(tracm));
+                        fpsMap.putIfAbsent(name, (int) tracm.config().framerate());
+                    }
+                }
             }
 
             for (var entry : gfbFileMap.entrySet()) {
@@ -82,9 +105,18 @@ public class ModelLoader {
                 try {
                     var gfbAnim = AnimationT.deserializeFromBinary(entry.getValue());
 
-                    if (gfbAnim.getSkeleton() == null) continue;
+                    if (gfbAnim.getMaterial() != null || gfbAnim.getSkeleton() != null) {
+                        animationNames.add(name);
+                        fpsMap.put(name, (int) gfbAnim.getInfo().getFrameRate());
 
-                    animations.put(name, new GfbAnimation(name, gfbAnim, new Skeleton(skeleton), config, config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"))));
+                        if (gfbAnim.getSkeleton() != null) {
+                            animationNodeMap.put(name, (animation, skeleton13) -> GfbanmUtils.getNodes(animation, skeleton13, gfbAnim));
+                        }
+
+                        if (gfbAnim.getMaterial() != null) {
+                            offsetsMap.put(name, GfbanmUtils.getOffsets(gfbAnim));
+                        }
+                    }
                 } catch (Exception e) {
                     System.out.println("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
                     e.printStackTrace();
@@ -96,10 +128,27 @@ public class ModelLoader {
                 var key = entry.getKey();
                 var value = entry.getValue();
 
-                animations.put(key, new SmdAnimation(key, value, new Skeleton(skeleton), config != null && config.animationFpsOverride != null ? config.animationFpsOverride.getOrDefault(key, 30) : 30));
+                if (value != null) {
+                    animationNames.add(key);
+                    animationNodeMap.putIfAbsent(key, (NodeProvider) (animation, skeleton12) -> SmdUtils.getNode(animation, skeleton12, value));
+                    fpsMap.putIfAbsent(key, 30);
+                }
             }
-        } else {
-            skeleton = null;
+
+            animations = new HashMap<>();
+
+            for (var name : animationNames) {
+                var fps = fpsMap.get(name);
+                fps = config.animationFpsOverride != null && config.animationFpsOverride.containsKey(name) ? config.animationFpsOverride.get(name) : fps;
+
+                var offsets = offsetsMap.getOrDefault(name, new HashMap<>());
+                offsets.forEach((trackName, offset) -> config.getMaterialsForAnimation(trackName).forEach(a -> offsets.put(a, offset)));
+
+                var nodes = animationNodeMap.getOrDefault(name, (animation, skeleton14) -> null);
+                var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
+
+                animations.put(name, new Animation(name, fps, skeleton, nodes, offsets, ignoreScaling));
+            }
         }
 
         Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation = new HashMap<>();

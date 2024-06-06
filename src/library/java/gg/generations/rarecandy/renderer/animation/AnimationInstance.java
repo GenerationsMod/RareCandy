@@ -15,14 +15,14 @@ public class AnimationInstance<T> {
     public final Map<String, Transform> offsets = new HashMap<>();
 
 
-    protected Animation<T> animation;
+    protected Animation animation;
     protected float currentTime;
     protected double timeAtPause;
     protected double timeAtUnpause;
     private boolean paused;
     private boolean unused;
 
-    public AnimationInstance(Animation<T> animation) {
+    public AnimationInstance(Animation animation) {
         this.animation = animation;
 
         animation.offsets.keySet().forEach(k -> offsets.put(k, new Transform()));

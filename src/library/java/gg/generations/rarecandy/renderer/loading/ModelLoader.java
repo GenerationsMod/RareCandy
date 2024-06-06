@@ -5,7 +5,7 @@ import de.javagl.jgltf.model.io.GltfModelReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import gg.generations.rarecandy.pokeutils.*;
-import gg.generations.rarecandy.pokeutils.gfbanm.Anim.AnimationT;
+import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;

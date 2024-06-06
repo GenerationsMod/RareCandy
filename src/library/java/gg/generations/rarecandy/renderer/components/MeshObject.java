@@ -37,12 +37,6 @@ public class MeshObject extends RenderObject {
 
             var material = object.getMaterial(instance.variant());
 
-            System.out.print(name);
-            System.out.print(" " + instance.variant());
-            System.out.print(" " + material != null);
-            System.out.print(" " + material.getMaterialName());
-            System.out.println(" " + material.getPipeline() != null);
-
             map.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
                 pipeline.updateOtherUniforms(instance, object);
                 pipeline.updateTexUniforms(instance, object);

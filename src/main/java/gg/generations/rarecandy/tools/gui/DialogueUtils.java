@@ -61,13 +61,10 @@ public class DialogueUtils {
                 NFD_PathSet_FreeEnum(psEnum);
                 NFD_PathSet_Free(pathSet);
 
-
-                System.out.println("Blep4");
                 return paths;
             }
         }
 
-        System.out.println("Blep");
         return null;
     }
 

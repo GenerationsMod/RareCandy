@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.renderer.loading;
 
-import gg.generations.rarecandy.pokeutils.gfbanm.Anim.AnimationT;
+import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.animation.TransformStorage;

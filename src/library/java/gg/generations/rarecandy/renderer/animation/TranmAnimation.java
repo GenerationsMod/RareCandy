@@ -109,12 +109,52 @@ public class TranmAnimation extends Animation<Pair<gg.generations.rarecandy.poke
         var offsets = new HashMap<String, Offset>();
 
         if (animationPair.b() != null) {
-            IntStream.range(0, animationPair.b().tracksLength()).mapToObj(a -> animationPair.b().tracks(a)).filter(a -> a.materialAnimation() != null).flatMap(a -> IntStream.range(0, a.materialAnimation().materialTrackLength()).mapToObj(b -> a.materialAnimation().materialTrack(b))).collect(Collectors.toMap(b -> b.name(), b -> IntStream.range(0, b.animValuesLength()).mapToObj(b::animValues).collect(Collectors.toMap(TrackMaterialAnim::name, c -> {
+            var tracm = animationPair.b();
 
-                return new GfbAnimation.GfbOffset(toStorage(c.list().red()), toStorage(c.list().green()), toStorage(c.list().blue()), toStorage(c.list().alpha()));
-            })))).forEach((k, v) -> {
-                if (v.containsKey("UVScaleOffset")) offsets.put(k, v.get("UVScaleOffset"));
-            });
+            for (int i = 0; i < tracm.tracksLength(); i++) {
+                var tracks = tracm.tracks(i);
+                var materialTimeline = tracks.materialAnimation();
+
+                if(materialTimeline == null) continue;
+
+                for (int j = 0; j < materialTimeline.materialTrackLength(); j++) {
+                    var materialTrack = materialTimeline.materialTrack(j);
+
+                    for (int k = 0; k < materialTrack.animValuesLength(); k++) {
+                        var animValues = materialTrack.animValues(k);
+
+                        var list = animValues.list();
+
+                        offsets.computeIfAbsent(animValues.name(), a -> new GfbAnimation.GfbOffset(
+                                toStorage(list.red()),
+                                toStorage(list.green()),
+                                toStorage(list.blue()),
+                                toStorage(list.alpha())));
+                    }
+
+                }
+            }
+
+//            IntStream.range(0, animationPair.b().tracksLength())
+//                    .mapToObj(a -> animationPair.b().tracks(a)).filter(a -> a.materialAnimation() != null)
+//                    .flatMap(a -> IntStream.range(0, a.materialAnimation().materialTrackLength())
+//                            .mapToObj(b -> a.materialAnimation().materialTrack(b))).collect(
+//                            Collectors.toMap(
+//                                    TrackMaterial::name,
+//                                    b -> IntStream.range(0,
+//                                                    b.animValuesLength())
+//                                            .mapToObj(b::animValues)
+//                                            .distinct().collect(
+//                                                    Collectors.toMap(
+//                                                            TrackMaterialAnim::name,
+//                                                            c -> new GfbAnimation.GfbOffset(
+//                                                                    toStorage(c.list().red()),
+//                                                                    toStorage(c.list().green()),
+//                                                                    toStorage(c.list().blue()),
+//                                                                    toStorage(c.list().alpha()))))))
+//                    .forEach((k, v) -> {
+//                if(v.containsKey("UVScaleOffset")) offsets.put(k, v.get("UVScaleOffset"));
+//            });
         }
 
         return offsets;

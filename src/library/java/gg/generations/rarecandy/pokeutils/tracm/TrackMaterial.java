@@ -103,6 +103,14 @@ public final class TrackMaterial extends Table {
         TrackMaterial.addName(builder, nameOffset);
         return TrackMaterial.endTrackMaterial(builder);
     }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TrackMaterial trackMaterial)) return false;
+
+        return name().equals(trackMaterial.name());
+    }
 
     public static void startTrackMaterial(FlatBufferBuilder builder) {
         builder.startTable(3);

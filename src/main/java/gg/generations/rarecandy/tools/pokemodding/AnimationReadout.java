@@ -1,37 +1,28 @@
 package gg.generations.rarecandy.tools.pokemodding;
 
 import com.google.gson.*;
-import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.NodesBlock;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
-import gg.generations.rarecandy.pokeutils.GFLib.Anim.*;
 import gg.generations.rarecandy.pokeutils.Pair;
+import gg.generations.rarecandy.pokeutils.gfbanm.Anim.*;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.tracm.TrackMaterial;
 import gg.generations.rarecandy.pokeutils.tracm.TrackMaterialAnim;
-import gg.generations.rarecandy.pokeutils.tranm.*;
-import gg.generations.rarecandy.pokeutils.tranm.Animation;
 import gg.generations.rarecandy.pokeutils.tranm.DynamicRotationTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.DynamicVectorTrack;
 import gg.generations.rarecandy.pokeutils.tranm.DynamicVectorTrackT;
 import gg.generations.rarecandy.pokeutils.tranm.FixedRotationTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.FixedVectorTrack;
 import gg.generations.rarecandy.pokeutils.tranm.FixedVectorTrackT;
 import gg.generations.rarecandy.pokeutils.tranm.Framed16RotationTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.Framed16VectorTrack;
 import gg.generations.rarecandy.pokeutils.tranm.Framed16VectorTrackT;
 import gg.generations.rarecandy.pokeutils.tranm.Framed8RotationTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.Framed8VectorTrack;
 import gg.generations.rarecandy.pokeutils.tranm.Framed8VectorTrackT;
 import gg.generations.rarecandy.pokeutils.tranm.RotationTrackUnion;
 import gg.generations.rarecandy.pokeutils.tranm.Vec3T;
-import gg.generations.rarecandy.pokeutils.tranm.VectorTrack;
 import gg.generations.rarecandy.pokeutils.tranm.VectorTrackUnion;
 import gg.generations.rarecandy.pokeutils.tranm.sVec3T;
 import gg.generations.rarecandy.renderer.animation.Animation.AnimationNode;
 import gg.generations.rarecandy.renderer.animation.SmdAnimation;
-import gg.generations.rarecandy.renderer.animation.TranmUtil;
 import gg.generations.rarecandy.renderer.animation.TranmUtilExperimental;
 import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
@@ -41,15 +32,12 @@ import org.joml.Vector3f;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class AnimationReadout {
     private static Gson gson = new GsonBuilder().setPrettyPrinting()

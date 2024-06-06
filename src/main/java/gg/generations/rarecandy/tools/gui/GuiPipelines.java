@@ -183,7 +183,12 @@ public class GuiPipelines {
     }
     private static final Vector3f ONE = new Vector3f(1,1, 1);
 
-
+    public static final Pipeline PLANE = new Pipeline.Builder()
+            .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
+            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
+            .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
+            .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
+            .shader(builtin("animated/plane.vs.glsl"), builtin("animated/plane.fs.glsl")).build();
 
     public static void onInitialize() {
     }

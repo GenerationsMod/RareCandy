@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.renderer.animation;
 
-import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
+import gg.generations.rarecandy.pokeutils.gfbanm.Anim.AnimationT;
 import gg.generations.rarecandy.pokeutils.ModelConfig;
 import org.joml.Vector3f;
 
@@ -110,7 +110,7 @@ public class GfbAnimation extends Animation<AnimationT> {
                 else {
                     Vector3f translate = animation.skeleton.boneMap.containsKey(track.getName()) ? animation.skeleton.boneMap.get(track.getName()).posePosition : Animation.TRANSLATE;
 
-                    node.positionKeys.add(0, );
+                    node.positionKeys.add(0, translate);
                 }
             }
         }

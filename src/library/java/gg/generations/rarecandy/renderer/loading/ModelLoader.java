@@ -5,7 +5,7 @@ import de.javagl.jgltf.model.io.GltfModelReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import gg.generations.rarecandy.pokeutils.*;
-import gg.generations.rarecandy.pokeutils.GFLib.Anim.AnimationT;
+import gg.generations.rarecandy.pokeutils.gfbanm.Anim.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
@@ -56,7 +56,7 @@ public class ModelLoader {
     }
 
     public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, GltfModel gltfModel, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, int animationSpeed) {
-        if (config != null) throw new RuntimeException("Error no config.json found.");
+        if (config == null) throw new RuntimeException("Error no config.json found.");
 
         checkForRootTransformation(objects, gltfModel);
         if (gltfModel.getSceneModels().size() > 1) throw new RuntimeException("Cannot handle more than one scene");
@@ -671,4 +671,5 @@ public class ModelLoader {
 
         return reversedMap;
     }
+
 }

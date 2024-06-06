@@ -103,7 +103,7 @@ public final class TrackMaterial extends Table {
         TrackMaterial.addName(builder, nameOffset);
         return TrackMaterial.endTrackMaterial(builder);
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

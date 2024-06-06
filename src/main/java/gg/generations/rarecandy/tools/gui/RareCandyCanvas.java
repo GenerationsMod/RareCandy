@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.pokeutils.GlbPixelAsset;
-import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.animation.*;
@@ -18,6 +17,7 @@ import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
@@ -27,10 +27,7 @@ import org.lwjgl.opengl.awt.GLData;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -151,7 +148,19 @@ public class RareCandyCanvas extends AWTGLCanvas {
         try (var is = Pipeline.class.getResourceAsStream("/models/grid.glb")) {
             assert is != null;
 
-            load(renderer, new GlbPixelAsset("plane", is.readAllBytes()), model -> {
+            var config = new ModelConfig();
+
+            config.materials = new HashMap<>();
+            config.materials.put("regular", new MaterialReference(null, "plane", CullType.None, BlendType.None, new HashMap<>(), new HashMap<>()));
+
+            config.defaultVariant = new HashMap<>();
+            config.defaultVariant.put("Plane", new VariantDetails("regular", false, new Vector2f()));
+
+            config.variants = new HashMap<>();
+            config.variants.put("regular", new VariantParent(null, config.defaultVariant));
+            config.scale = 100;
+
+            load(renderer, new GlbPixelAsset("plane", is.readAllBytes(), config), model -> {
                 plane = model;
                 renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));
             }, MeshObject::new);

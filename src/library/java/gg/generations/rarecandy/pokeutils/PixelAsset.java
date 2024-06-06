@@ -39,7 +39,7 @@ public class PixelAsset {
     public final Map<String, byte[]> files = new HashMap<>();
     public String modelName;
     public String name;
-    private ModelConfig config;
+    protected ModelConfig config;
 
     public PixelAsset(String modelName, byte[] glbFile) {
         this.name = modelName;

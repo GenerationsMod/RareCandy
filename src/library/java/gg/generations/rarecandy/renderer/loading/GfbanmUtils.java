@@ -56,12 +56,12 @@ public class GfbanmUtils {
                 var node = animationNodes[animation.nodeIdMap.computeIfAbsent(track.getName(), animation::newNode)] = new Animation.AnimationNode();
 
                 if(track.getRotate().getValue() != null) track.getRotate().getValue().process(node.rotationKeys);
-                else node.rotationKeys.add(0, skeleton.boneMap.get(track.getName()).poseRotation);
+                else node.rotationKeys.add(0, skeleton.jointMap.get(track.getName()).poseRotation);
                 if(track.getScale().getValue() != null) track.getScale().getValue().process(node.scaleKeys);
-                else node.scaleKeys.add(0, skeleton.boneMap.get(track.getName()).poseScale);
+                else node.scaleKeys.add(0, skeleton.jointMap.get(track.getName()).poseScale);
 
                 if(track.getTranslate().getValue() != null) track.getTranslate().getValue().process(node.positionKeys);
-                else node.positionKeys.add(0, skeleton.get(track.getName()).posePosition);
+                else node.positionKeys.add(0, skeleton.jointMap.get(track.getName()).posePosition);
             }
         }
         return animationNodes;

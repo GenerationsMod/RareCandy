@@ -39,7 +39,7 @@ public class SmdUtils {
             var states = keyframe.states;
 
             for (var boneState : states) {
-                if (boneState.bone < skeleton.boneArray.length - 1) {
+                if (boneState.bone < skeleton.bones.length - 1) {
                     var id = nodeMap.get(boneState.bone);
                     var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
 

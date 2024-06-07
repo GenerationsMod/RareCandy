@@ -6,54 +6,59 @@ import gg.generations.rarecandy.pokeutils.ModelNode;
 import gg.generations.rarecandy.renderer.rendering.Bone;
 import org.joml.Matrix4f;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Skeleton {
-    public final Bone[] boneArray;
+    public final Map<String, ModelNode> jointMap;
+    public final Bone[] bones;
     public final Map<String, Bone> boneMap;
     public final ModelNode rootNode;
 
-    public final int jointSize;
-    private final SkinModel rawSkin;
-    private final List<NodeModel> rawNodes;
+    public Skeleton(Skeleton skeleton) {
+        this.bones = skeleton.bones;
+        this.jointMap = skeleton.jointMap;
+        this.boneMap = skeleton.boneMap;
+        this.rootNode = skeleton.rootNode;
+    }
+
 
     public Skeleton(List<NodeModel> nodes, SkinModel skeleton) {
-        var boneCount = nodes.size();
-        this.rawSkin = skeleton;
-        this.rawNodes = nodes;
-        this.boneArray = new Bone[boneCount];
+        this.rootNode = new ModelNode(findRoot(nodes.get(0)), null);
+        var jointList = new ArrayList<ModelNode>();
+        populateJoints(rootNode, jointList);
+
+        jointMap = jointList.stream().collect(Collectors.toMap(a -> a.name, a -> a));
+
+        var boneCount = skeleton.getJoints().size();
+        this.bones = new Bone[boneCount];
         this.boneMap = new HashMap<>(boneCount);
-        var root = findRoot(skeleton);
-        this.rootNode = new ModelNode(root, null);
+
         var array = new float[16];
 
-        jointSize = skeleton.getJoints().size();
 
-        for (var i = 0; i < nodes.size(); i++) {
-            var jointNode = nodes.get(i);
+        for (int i = 0; i < boneCount; i++) {
+            var name = skeleton.getJoints().get(i).getName();
+            var invertBindPose = skeleton.getInverseBindMatrix(i, array);
+            Matrix4f inverseBindMatrix = new Matrix4f().set(invertBindPose);
 
-            var id = rawSkin.getJoints().indexOf(jointNode);
-
-
-            Matrix4f inverseBindMatrix = null;
-
-            if (id != -1) {
-                inverseBindMatrix = new Matrix4f().set(rawSkin.getInverseBindMatrix(id, array));
-            }
-
-            var bone = new Bone(jointNode, id, inverseBindMatrix);
-            this.boneArray[i] = bone;
-            this.boneMap.put(jointNode.getName(), bone);
+            var bone = new Bone(name, inverseBindMatrix);
+            this.bones[i] = bone;
+            this.boneMap.put(name, bone);
         }
     }
 
-    private NodeModel findRoot(SkinModel skeleton) {
-        if (skeleton.getSkeleton() != null) return skeleton.getSkeleton();
+    private void populateJoints(ModelNode joint, List<ModelNode> jointList) {
+        jointList.add(joint);
+        for (var child : joint.children) {
+            populateJoints(child, jointList);
+        }
+    }
 
-        var root = skeleton.getJoints().get(0);
-
+    private NodeModel findRoot(NodeModel root) {
         while (root.getParent() != null) {
             root = root.getParent();
         }
@@ -61,18 +66,14 @@ public class Skeleton {
         return root;
     }
 
-    public Skeleton(Skeleton skeleton) {
-        this(skeleton.rawNodes, skeleton.rawSkin);
-    }
-
     public Bone get(String name) {
         return boneMap.get(name);
     }
 
     public Bone get(int id) {
-        if (id > boneArray.length)
+        if (id > bones.length)
             throw new RuntimeException("Animation is referencing bones which are out of bounds. Model is missing bone " + id);
-        return boneArray[id];
+        return bones[id];
     }
 
     public String getName(int id) {
@@ -86,8 +87,8 @@ public class Skeleton {
     }
 
     public int getId(Bone bone) {
-        for (int i = 0; i < boneArray.length; i++) {
-            if (bone.equals(boneArray[i])) return i;
+        for (int i = 0; i < bones.length; i++) {
+            if (bone.equals(bones[i])) return i;
         }
 
         return 0;

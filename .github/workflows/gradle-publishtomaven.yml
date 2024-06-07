@@ -10,7 +10,7 @@ name: Gradle Publish to Maven
 on:
   push:
     branches:
-      - legacy
+      - legacy-new
 
 jobs:
   gradle:

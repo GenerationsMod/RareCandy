@@ -5,6 +5,7 @@ import com.traneptora.jxlatte.JXLOptions;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL13C;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;
@@ -29,11 +30,15 @@ public class Texture implements ITexture {
     private TextureDetails details;
     public int id;
 
-    public Texture(ByteBuffer buffer, int width, int height) {
-        details = new TextureDetails(buffer, width, height);
+    public Texture(ByteBuffer buffer, Type type, int width, int height) {
+        this(new TextureDetails(buffer, type, width, height));
     }
 
-    private record TextureDetails(ByteBuffer buffer, int width, int height) implements Closeable {
+    public Texture(TextureDetails textureDetails) {
+        this.details = textureDetails;
+    }
+
+    private record TextureDetails(ByteBuffer buffer, Type type, int width, int height) implements Closeable {
         @Override
         public void close() {
             MemoryUtil.memFree(buffer());
@@ -42,7 +47,7 @@ public class Texture implements ITexture {
         public int init() {
             var id = GL11.glGenTextures();
             GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, id);
-            GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, width, height, 0, GL11C.GL_RGBA, GL11C.GL_UNSIGNED_BYTE, buffer);
+            GL11C.glTexImage2D(GL11C.GL_TEXTURE_2D, 0, type.internalFormat, width, height, 0, type.format, type.type, buffer);
 
             GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_S, GL11C.GL_REPEAT);
             GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_T, GL11C.GL_REPEAT);
@@ -73,31 +78,11 @@ public class Texture implements ITexture {
     }
 
     public static Texture read(byte[] imageBytes, String name) throws IOException {
-        BufferedImage pixelData;
-        BufferedImage temp;
-
-
-        if (name.endsWith("jxl")) {
-            temp = new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage();
-        } else {
-
-            temp = ImageIO.read(new ByteArrayInputStream(imageBytes));
-        }
-
-        var width = temp.getWidth();
-        var height = temp.getHeight();
-        pixelData = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int p = temp.getRGB(x, y);
-                pixelData.setRGB(x, y, p);
-            }
-        }
-
-        return new Texture(read(pixelData), pixelData.getWidth(), pixelData.getHeight());
+        BufferedImage temp = name.endsWith("jxl") ? new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage() : ImageIO.read(new ByteArrayInputStream(imageBytes));
+        return new Texture(read(temp));
     }
 
-    public static ByteBuffer read(BufferedImage image) {
+    public static TextureDetails read(BufferedImage image) {
         if (image == null) {
             return null;
         }
@@ -105,19 +90,30 @@ public class Texture implements ITexture {
         var buffer = image.getData().getDataBuffer();
 
         ByteBuffer readyData;
+        Type type;
 
-        if (buffer instanceof DataBufferFloat intBuffer) {
-            var rawData = intBuffer.getData();
-            readyData = MemoryUtil.memAlloc(rawData.length * 4);
+        if (buffer instanceof DataBufferFloat floatBuffer) {
+            var length = floatBuffer.getSize();
 
-            for (var hdrChannel : rawData) {
-                var channelValue = hdrToRgb(hdrChannel);
-                readyData.put((byte) channelValue);
+            var channels = floatBuffer.getBankData().length;
+
+            readyData = MemoryUtil.memAlloc(length * Float.BYTES * channels);
+            var rawData = floatBuffer.getBankData();
+
+
+            for (int i = 0; i < length; i++) {
+                for (int channel = 0; channel < channels; channel++) {
+                    readyData.putFloat(rawData[channel][i]);
+                }
             }
 
             readyData.flip();
+
+            type = channels == 3 ? Type.RGB_FLOAT : Type.RGBA_FLOAT;
         } else if (buffer instanceof DataBufferInt floatBuffer) {
             var rawData = floatBuffer.getData();
+            var isRGBA = image.getType() == BufferedImage.TYPE_INT_ARGB;
+
             readyData = MemoryUtil.memAlloc(rawData.length * 4);
 
             for (var pixel : rawData) {
@@ -128,18 +124,64 @@ public class Texture implements ITexture {
             }
 
             readyData.flip();
+
+            type = isRGBA ? Type.RGBA_BYTE : Type.RGB_BYTE;
         } else if (buffer instanceof DataBufferByte dataBufferByte) {
             var rawData = dataBufferByte.getData();
-            readyData = MemoryUtil.memAlloc(rawData.length);
+            var isRGBA = image.getType() == BufferedImage.TYPE_INT_ARGB;
 
+            readyData = MemoryUtil.memAlloc(rawData.length);
             readyData.put(rawData);
             readyData.flip();
+
+            type = isRGBA ? Type.RGBA_BYTE : Type.RGB_BYTE;
         } else throw new RuntimeException("Unknown Data Type: " + buffer.getClass().getName());
 
-        return readyData;
+        return new TextureDetails(readyData, type, image.getWidth(), image.getHeight());
     }
 
-    private static int hdrToRgb(float hdr) {
+    private static double hdrToRgb(float hdr) {
         return (int) Math.min(Math.max(Math.pow(hdr, 1.0 / 2.2) * 255, 0), 255);
+    }
+
+    public enum Type {
+        RGBA_BYTE(GL30.GL_RGBA8, GL30.GL_RGBA, GL30.GL_UNSIGNED_BYTE, true, true),
+        RGB_BYTE(GL30.GL_RGB8, GL30.GL_RGB, GL30.GL_UNSIGNED_BYTE, true, false),
+        RGBA_FLOAT(GL30.GL_RGBA32F, GL30.GL_RGBA, GL30.GL_FLOAT, false, true),
+        RGB_FLOAT(GL30.GL_RGB32F, GL30.GL_RGB, GL30.GL_FLOAT, false, false);
+
+        private final int internalFormat;
+        private final int format;
+        private final int type;
+        private final boolean isByte;
+        private final boolean hasAlpha;
+
+        Type(int internalFormat, int format, int type, boolean isByte, boolean hasAlpha) {
+            this.internalFormat = internalFormat;
+            this.format = format;
+            this.type = type;
+            this.isByte = isByte;
+            this.hasAlpha = hasAlpha;
+        }
+
+        public int getInternalFormat() {
+            return internalFormat;
+        }
+
+        public int getFormat() {
+            return format;
+        }
+
+        public int getType() {
+            return type;
+        }
+
+        public boolean isByte() {
+            return isByte;
+        }
+
+        public boolean isHasAlpha() {
+            return hasAlpha;
+        }
     }
 }

@@ -155,7 +155,7 @@ public class ImageUtils {
             return image;
         } catch (IOException e) {
 //            logger.severe(e.toString());
-            return null;
+            throw new RuntimeException(e);
         }
     }
 }

@@ -75,7 +75,10 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     @Override
     public boolean isReady() {
         if (objects.isEmpty()) return false;
-        for (T object : objects) if (!object.isReady()) return false;
+        for (int i = 0; i < objects.size(); i++) {
+            T object = objects.get(i);
+            if (!object.isReady()) return false;
+        }
         return true;
     }
 
@@ -91,7 +94,9 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
     @Override
     public <V extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances, V obj) {
-        for (T object : this.objects) {
+        List<T> ts = this.objects;
+        for (int i = 0; i < ts.size(); i++) {
+            T object = ts.get(i);
             if (object != null) {
                 object.render(stage, instances, object);
             }

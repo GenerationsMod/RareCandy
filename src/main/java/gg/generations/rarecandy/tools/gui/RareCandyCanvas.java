@@ -33,6 +33,7 @@ import java.util.function.Supplier;
 
 
 public class RareCandyCanvas extends AWTGLCanvas {
+    private final ModelLoader loader = new ModelLoader();
     public static Matrix4f projectionMatrix;
 
     private static float lightLevel = 1.0f;
@@ -217,7 +218,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
-        var loader = renderer.getLoader();
         loader.createObject(
                 () -> is,
                 (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {

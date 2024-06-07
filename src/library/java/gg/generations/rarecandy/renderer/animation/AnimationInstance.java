@@ -25,7 +25,7 @@ public class AnimationInstance<T> {
     public AnimationInstance(Animation animation) {
         this.animation = animation;
 
-        animation.offsets.keySet().forEach(k -> offsets.put(k, new Transform()));
+        if(animation != null) animation.offsets.keySet().forEach(k -> offsets.put(k, new Transform()));
     }
 
     public void update(double secondsPassed) {

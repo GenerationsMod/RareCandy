@@ -39,23 +39,38 @@ public class TextureLoader extends ITextureLoader {
         }
     }
 
-    @Override
-    public TextureReference generateDirectReference(String path) {
+    public ITexture generateDirectReference(String path) {
         try (var is = Pipeline.class.getResourceAsStream("/textures/" + path)) {
             assert is != null;
-            return TextureReference.read(is.readAllBytes(), path, true);
+            return Texture.read(is.readAllBytes(), path);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Override
-    protected ITexture loadFromReference(TextureReference reference) {
-        return new Texture(reference);
+    public void register(String id, String fileName, byte[] data) {
+        try {
+            register(id, Texture.read(data, fileName));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        };
     }
 
     @Override
     public Set<String> getTextureEntries() {
         return MAP.keySet();
+    }
+
+    public void reload() {
+        register("dark", generateDirectReference("dark.png"));
+        register("neutral", generateDirectReference("neutral.png"));
+        register("bright", generateDirectReference("bright.png"));
+        register("paradox_mask", generateDirectReference("paradox.png"));
+        register("blank", generateDirectReference("blank.png"));
+        register("burnt_concrete", generateDirectReference("burnt_concrete.png"));
+        register("concrete", generateDirectReference("concrete.png"));
+        register("glass", generateDirectReference("glass.png"));
+        register("metal", generateDirectReference("metal.png"));
+        register("silver", generateDirectReference("silver.png"));
     }
 }

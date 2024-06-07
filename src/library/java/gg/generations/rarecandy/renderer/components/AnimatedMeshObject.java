@@ -26,7 +26,6 @@ public class AnimatedMeshObject extends MeshObject {
 
     @Override
     protected boolean shouldRender(ObjectInstance instance) {
-        return super.shouldRender(instance) ||
-                (instance instanceof AnimatedObjectInstance animationInstance && animationInstance.currentAnimation != null && hideDuringAnimation.check(animationInstance.currentAnimation.getAnimation().name));
+        return super.shouldRender(instance) || (instance instanceof AnimatedObjectInstance animationInstance && animationInstance.currentAnimation != null && hideDuringAnimation.check(animationInstance.currentAnimation.getAnimation()));
     }
 }

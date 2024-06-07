@@ -9,8 +9,6 @@ import org.joml.Vector3f;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class Animation {
     public static final int FPS_60 = 1000;
@@ -105,11 +103,11 @@ public class Animation {
         return boneTransforms;
     }
 
-    private static final float[] matrix = new float[16];
+    private static final Matrix4f matrix = new Matrix4f();
 
     protected void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
         var name = node.name;
-        var nodeTransform = node.transform;
+        var nodeTransform = matrix.set(node.transform);
         if (node.id == -1) node.id = nodeIdMap.getOrDefault(name, -1);
         var bone = skeleton.get(name);
 
@@ -123,9 +121,9 @@ public class Animation {
                 var translation = name.equalsIgnoreCase("origin") ? AnimationMath.calcInterpolatedPosition(animTime, animNode) : TRANSLATE;
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
 
-                if (bone != null && this.isNaN(nodeTransform)) {
-                    bone.lastSuccessfulTransform = new Matrix4f(nodeTransform);
-                }
+//                if (bone != null && this.isNaN(nodeTransform)) {
+//                    bone.lastSuccessfulTransform = nodeTransform.set(nodeTransform);
+//                }
             }
         } else {
             if (bone != null) {
@@ -138,9 +136,9 @@ public class Animation {
 
         var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
         if (bone != null && bone.jointId != -1) {
-            if (isNaN(globalTransform)) {
-                globalTransform = parentTransform.mul(bone.lastSuccessfulTransform, new Matrix4f());
-            }
+//            if (isNaN(globalTransform)) {
+//                globalTransform = parentTransform.mul(bone.lastSuccessfulTransform, new Matrix4f());
+//            }
 
             boneTransforms[bone.jointId] = globalTransform.mul(bone.inversePoseMatrix, new Matrix4f());
         }

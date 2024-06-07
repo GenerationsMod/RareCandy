@@ -14,12 +14,12 @@ public class TextureTest {
     public static void main(String[] args) throws IOException {
         var path = Path.of("D:\\Git Repos\\RareCandy\\run\\converter\\in\\alcremie\\toppings.png");
 
-        displayImage(TextureReference.read(Files.readAllBytes(path), path.getFileName().toString(), true));
+//        displayImage(TextureReference.read(Files.readAllBytes(path), path.getFileName().toString(), true));
     }
 
-    public static void displayImage(TextureReference reference) {
+//    public static void displayImage(TextureReference reference) {
 //        displayImage(reference.data().getWidth(), reference.data().getHeight(), reference.data().getPixelsRGBA(), reference.name());
-    }
+//    }
 
     public static void displayImage(int width, int height, ByteBuffer pixelData, String imageName) {
         // Create a new BufferedImage with the specified width and height

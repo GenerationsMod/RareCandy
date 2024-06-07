@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
+import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.joml.Matrix4f;
@@ -14,6 +15,7 @@ public class MinecraftSimulator {
     public final Matrix4f projectionMatrix;
     public final Matrix4f viewMatrix = new Matrix4f().lookAt(0.1f, 0.01f, -2, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     public final PokemonTest test;
+    private ModelLoader loader = new ModelLoader();
 
     public MinecraftSimulator(PokemonTest test, int sizeMultiplier) {
         this.test = test;
@@ -56,7 +58,6 @@ public class MinecraftSimulator {
         }
 
         window.destroy();
-        scene.close();
     }
 
     public static void main(String[] args) {

@@ -7,7 +7,6 @@ import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
 import gg.generations.rarecandy.renderer.ThreadSafety;
@@ -557,7 +556,7 @@ public class ModelLoader {
 
             try {
                 var id = asset.name + "-" + key;
-                ITextureLoader.instance().register(id, TextureReference.read(entry.getValue(), key, true));
+                ITextureLoader.instance().register(id, Texture.read(entry.getValue(), key));
 
                 map.put(key, id);
             } catch (IOException e) {

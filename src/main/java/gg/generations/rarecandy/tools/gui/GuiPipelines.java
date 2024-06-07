@@ -57,10 +57,6 @@ public class GuiPipelines {
                 material.blendType().disable();
             });
 
-    public static final Pipeline BONE = new Pipeline.Builder(ROOT)
-            .shader(builtin("animated/bone.vs.glsl"), builtin("animated/bone.fs.glsl"))
-            .build();
-
     private static final Pipeline.Builder BASE = new Pipeline.Builder(ROOT)
             .configure(GuiPipelines::addDiffuse)
             .configure(GuiPipelines::addLight);
@@ -198,7 +194,7 @@ public class GuiPipelines {
         try (var is = Pipeline.class.getResourceAsStream("/shaders/" + name)) {
             assert is != null;
             return new String(is.readAllBytes());
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to read built in shader", e);
         }
     }

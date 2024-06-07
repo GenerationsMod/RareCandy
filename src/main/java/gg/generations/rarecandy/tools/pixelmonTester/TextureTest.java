@@ -1,13 +1,10 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
-import gg.generations.rarecandy.pokeutils.reader.TextureReference;
-
 import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class TextureTest {

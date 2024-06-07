@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.tools;
 
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.pokeutils.reader.TextureReference;
 import gg.generations.rarecandy.renderer.loading.ITexture;
 import gg.generations.rarecandy.renderer.loading.Texture;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
@@ -65,7 +64,7 @@ public class TextureLoader extends ITextureLoader {
     }
 
     public ITexture generateDirectReference(String path) {
-        try (var is = Pipeline.class.getResourceAsStream("/textures/" + path)) {
+        try (var is = TextureLoader.class.getResourceAsStream("/textures/" + path)) {
             assert is != null;
             long startTime = System.nanoTime();
             ITexture texture = Texture.read(is.readAllBytes(), path);
@@ -73,7 +72,7 @@ public class TextureLoader extends ITextureLoader {
             long duration = (endTime - startTime) / 1000000;
             System.out.println("Loaded direct reference for: Path = " + path + ", Load Time = " + duration + " ms");
             return texture;
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -87,7 +86,7 @@ public class TextureLoader extends ITextureLoader {
         register("dark", generateDirectReference("dark.png"));
         register("neutral", generateDirectReference("neutral.png"));
         register("bright", generateDirectReference("bright.png"));
-        register("paradox_mask", generateDirectReference("paradox.png"));
+        register("paradox_mask", generateDirectReference("paradox_mask.png"));
         register("blank", generateDirectReference("blank.png"));
         register("burnt_concrete", generateDirectReference("burnt_concrete.png"));
         register("concrete", generateDirectReference("concrete.png"));

@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  */
 public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
-    public final List<T> objects = new CopyOnWriteArrayList<>();
+    public final List<T> objects = new ArrayList<>();
     private final List<Consumer<T>> queue = new ArrayList<>();
     private final boolean smartRender = false;
     public final Vector3f dimensions = new Vector3f();

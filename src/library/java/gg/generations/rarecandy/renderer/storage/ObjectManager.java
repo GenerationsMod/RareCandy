@@ -32,7 +32,7 @@ public class ObjectManager {
         for (var entry : objects.entrySet()) {
             var object = entry.getKey();
 
-            if (object.isReady()) {
+            if (object != null && object.isReady()) {
                 object.update();
                 object.render(stage, entry.getValue());
             }

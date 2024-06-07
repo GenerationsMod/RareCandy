@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.renderer.model;
 
+import gg.generations.rarecandy.pokeutils.DataUtils;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL30;
 
@@ -16,6 +17,7 @@ public class GLModel implements Closeable {
 
     public Vector3f dimensions = new Vector3f();
     public int ebo = -1;
+    public int[] vbos;
 
     public void runDrawCalls() {
         for (var drawCommand : meshDrawCommands) {
@@ -41,5 +43,7 @@ public class GLModel implements Closeable {
     public void close() throws IOException {
         GL30.glDeleteVertexArrays(vao);
         GL30.glDeleteBuffers(ebo);
+
+        DataUtils.deleteBuffer(vbos);
     }
 }

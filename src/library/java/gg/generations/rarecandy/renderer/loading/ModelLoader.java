@@ -344,44 +344,6 @@ public class ModelLoader {
         return pos;
     }
 
-    private static List<String> collectShownVariants(MeshModel meshModel, List<String> variantsList) {
-        if (variantsList == null) {
-            return null;
-        } else if ((meshModel.getExtensions() != null && !meshModel.getExtensions().containsKey("KHR_materials_variants"))) {
-            var map = (Map<String, Object>) meshModel.getExtensions().get("KHR_materials_variants");
-            var variants = (List<Integer>) map.get("variants");
-            var variantList = new ArrayList<String>();
-
-            for (var i : variants) {
-                var variant = variantsList.get(i);
-                variantList.add(variant);
-            }
-
-            return variantList;
-        } else {
-            return variantsList;
-        }
-    }
-
-    public static <T> Map<String, Map<String, T>> switchKeys(Map<String, Map<String, T>> inputMap) {
-        Map<String, Map<String, T>> switchedMap = new HashMap<>();
-
-        for (String outerKey : inputMap.keySet()) {
-            Map<String, T> innerMap = inputMap.get(outerKey);
-
-            for (String innerKey : innerMap.keySet()) {
-                T value = innerMap.get(innerKey);
-
-                // Swap the keys
-                Map<String, T> switchedInnerMap = switchedMap.getOrDefault(innerKey, new HashMap<>());
-                switchedInnerMap.put(outerKey, value);
-                switchedMap.put(innerKey, switchedInnerMap);
-            }
-        }
-
-        return switchedMap;
-    }
-
     private static void applyTransforms(Matrix4f transform, NodeModel node) {
         if (node.getScale() != null) transform.scale(new Vector3f(node.getScale()));
         if (node.getRotation() != null)
@@ -400,22 +362,6 @@ public class ModelLoader {
             while (node.getParent() != null) node = node.getParent();
             var rootTransformation = new Matrix4f().set(node.createGlobalTransformSupplier().get());
             objects.setRootTransformation(rootTransformation);
-        }
-    }
-
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, MeshModel model, List<Material> materials, List<String> variantsList, List<String> hiddenList, Map<String, Vector2f> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations) {
-        for (var primitiveModel : model.getMeshPrimitiveModels()) {
-            var variants = createMeshVariantMap(primitiveModel, materials, variantsList);
-            var glModel = processPrimitiveModel(primitiveModel, glCalls);
-            var renderObject = objSupplier.get();
-
-            if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-                animatedMeshObject.setup(variants, hiddenList, offsetMap, glModel, model.getName(), skeleton, animations, ModelConfig.HideDuringAnimation.NONE);
-            } else {
-                renderObject.setup(variants, hiddenList, offsetMap, glModel, model.getName());
-            }
-
-            objects.add(renderObject);
         }
     }
 
@@ -449,30 +395,34 @@ public class ModelLoader {
             model.vao = GL30.glGenVertexArrays();
             GL30.glBindVertexArray(model.vao);
 
+//            // FIXME: this is for old models which dont get proper scaling for
+//            var buf = position.getBufferViewModel().getBufferViewData();
+//            var smallestVertexX = 0f;
+//            var smallestVertexY = 0f;
+//            var smallestVertexZ = 0f;
+//            var largestVertexX = 0f;
+//            var largestVertexY = 0f;
+//            var largestVertexZ = 0f;
+//            for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
+//                var xPoint = buf.getFloat(i);
+//                var yPoint = buf.getFloat(i + 4);
+//                var zPoint = buf.getFloat(i + 8);
+//                smallestVertexX = Math.min(smallestVertexX, xPoint);
+//                smallestVertexY = Math.min(smallestVertexY, yPoint);
+//                smallestVertexZ = Math.min(smallestVertexZ, zPoint);
+//                largestVertexX = Math.max(largestVertexX, xPoint);
+//                largestVertexY = Math.max(largestVertexY, yPoint);
+//                largestVertexZ = Math.max(largestVertexZ, zPoint);
+//            }
+//            model.dimensions = new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ);
+
+            model.vbos = new int[attributes.containsKey("JOINTS_0") ? 5 : 3];
+
+            bindAccessorModel(model, attributes, "POSITION", 0);
+
             var position = attributes.get("POSITION");
             DataUtils.bindArrayBuffer(position.getBufferViewModel());
             vertexAttribPointer(position, 0);
-
-            // FIXME: this is for old models which dont get proper scaling for
-            var buf = position.getBufferViewModel().getBufferViewData();
-            var smallestVertexX = 0f;
-            var smallestVertexY = 0f;
-            var smallestVertexZ = 0f;
-            var largestVertexX = 0f;
-            var largestVertexY = 0f;
-            var largestVertexZ = 0f;
-            for (int i = 0; i < buf.capacity(); i += 12) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
-                var xPoint = buf.getFloat(i);
-                var yPoint = buf.getFloat(i + 4);
-                var zPoint = buf.getFloat(i + 8);
-                smallestVertexX = Math.min(smallestVertexX, xPoint);
-                smallestVertexY = Math.min(smallestVertexY, yPoint);
-                smallestVertexZ = Math.min(smallestVertexZ, zPoint);
-                largestVertexX = Math.max(largestVertexX, xPoint);
-                largestVertexY = Math.max(largestVertexY, yPoint);
-                largestVertexZ = Math.max(largestVertexZ, zPoint);
-            }
-            model.dimensions = new Vector3f(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ);
 
             var uvs = attributes.get("TEXCOORD_0");
             DataUtils.bindArrayBuffer(uvs.getBufferViewModel());
@@ -502,6 +452,12 @@ public class ModelLoader {
             model.meshDrawCommands.add(new MeshDrawCommand(model.vao, mode, primitiveModel.getIndices().getComponentType(), model.ebo, primitiveModel.getIndices().getCount()));
         });
         return model;
+    }
+
+    private static void bindAccessorModel(GLModel model, Map<String, AccessorModel> attributes, String name, int binding) {
+        var position = attributes.get(name);
+        model.vbos[binding] = DataUtils.bindArrayBuffer(position.getBufferViewModel());
+        vertexAttribPointer(position, binding);
     }
 
     private static void vertexAttribPointer(AccessorModel data, int binding) {

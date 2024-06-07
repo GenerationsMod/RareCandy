@@ -9,15 +9,21 @@ import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.joml.Vector2f;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class MeshObject extends RenderObject {
+    private Map<Material, List<Consumer<Pipeline>>> EMPTY = Collections.emptyMap();
     public GLModel model;
     public String name;
+
+    private static void render(Material k, List<Consumer<Pipeline>> v) {
+        var pl = k.getPipeline();
+
+        pl.bind(k);
+        v.forEach(a -> a.accept(pl));
+        pl.unbind(k);
+    }
 
     public void setup(Map<String, Material> variants, List<String> shouldRender, Map<String, Vector2f> offset, GLModel model, String name) {
         this.name = name;
@@ -29,8 +35,8 @@ public class MeshObject extends RenderObject {
         this.ready = true;
     }
 
-    public <T extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances, T object) {
-        Map<Material, List<Consumer<Pipeline>>> map = new HashMap<>();
+    public <T extends RenderObject> void render(List<ObjectInstance> instances, T object) {
+        Map<RenderStage, Map<Material, List<Consumer<Pipeline>>>> map = new HashMap<>();
 
         for (var instance : instances) {
             if (object.shouldRender(instance)) {
@@ -39,23 +45,21 @@ public class MeshObject extends RenderObject {
 
             var material = object.getMaterial(instance.variant());
 
-            if(stage == RenderStage.SOLID && material.blendType() != BlendType.None || stage == RenderStage.TRANSPARENT && material.blendType() == BlendType.None) return;
+            var stage = RenderStage.SOLID;
 
-            map.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
+            if(material.blendType() != BlendType.None) stage = RenderStage.TRANSPARENT;
+
+            var stages = map.computeIfAbsent(stage, s -> new HashMap<>());
+
+            stages.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
                 pipeline.updateOtherUniforms(instance, object);
                 pipeline.updateTexUniforms(instance, object);
                 model.runDrawCalls();
             });
         }
 
-
-        map.forEach((k, v) -> {
-            var pl = k.getPipeline();
-
-            pl.bind(k);
-            v.forEach(a -> a.accept(pl));
-            pl.unbind(k);
-        });
+        map.getOrDefault(RenderStage.SOLID, EMPTY).forEach(MeshObject::render);
+        map.getOrDefault(RenderStage.TRANSPARENT, EMPTY).forEach(MeshObject::render);
     }
 
     @Override

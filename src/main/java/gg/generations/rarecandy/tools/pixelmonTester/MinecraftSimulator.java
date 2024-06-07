@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools.pixelmonTester;
 
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
-import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
@@ -53,8 +52,8 @@ public class MinecraftSimulator {
 
             var timePassed = (System.currentTimeMillis() - START_TIME);
 
-            scene.render(false, timePassed, RenderStage.SOLID);
-            scene.render(false, timePassed, RenderStage.TRANSPARENT);            window.swapBuffers();
+            scene.render(false, timePassed);
+            scene.render(false, timePassed);            window.swapBuffers();
         }
 
         window.destroy();

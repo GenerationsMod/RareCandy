@@ -2,7 +2,6 @@ package gg.generations.rarecandy.renderer.rendering;
 
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.ThreadSafety;
-import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.storage.ObjectManager;
 
 import java.util.Queue;
@@ -26,7 +25,7 @@ public class RareCandy {
         TASKS.add(r);
     }
 
-    public void render(boolean clearInstances, double secondsPassed, RenderStage stage) {
+    public void render(boolean clearInstances, double secondsPassed) {
         var task = TASKS.poll();
         while (task != null) {
             task.run();
@@ -34,7 +33,7 @@ public class RareCandy {
         }
 
         objectManager.update(secondsPassed);
-        objectManager.render(stage);
+        objectManager.render();
 
         if (clearInstances) {
             this.objectManager.clearObjects();

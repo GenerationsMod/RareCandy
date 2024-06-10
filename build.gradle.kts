@@ -58,7 +58,7 @@ dependencies {
     shadow(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows"))
     shadow(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
 
-    shadow(implementation("com.traneptora:jxlatte:2.1.0")!!)
+    shadow(implementation("com.traneptora:jxlatte:2.0.0")!!)
 
     shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.5.26")!!)
 

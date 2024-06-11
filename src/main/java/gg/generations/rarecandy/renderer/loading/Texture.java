@@ -15,14 +15,6 @@ import static org.lwjgl.stb.STBImage.stbi_info_from_memory;
 import static org.lwjgl.stb.STBImage.stbi_load_from_memory;
 
 public class Texture implements ITexture {
-    private static final JXLOptions options;
-
-    static {
-        options = new JXLOptions();
-        options.hdr = JXLOptions.HDR_OFF;
-        options.threads = 4;
-    }
-
     private TextureDetails details;
     public int id;
 

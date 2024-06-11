@@ -31,6 +31,7 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.stb.STBImage;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -554,14 +555,14 @@ public class ModelLoader {
         for (var entry : images) {
             var key = entry.getKey();
 
-            try {
+//            try {
                 var id = asset.name + "-" + key;
-                ITextureLoader.instance().register(id, Texture.read(entry.getValue(), key));
+                ITextureLoader.instance().register(id, key, entry.getValue());
 
                 map.put(key, id);
-            } catch (IOException e) {
-                System.out.print("Error couldn't load: " + key); //TODO: Logger solution.
-            }
+//            } catch (IOException e) {
+//                System.out.print("Error couldn't load: " + key); //TODO: Logger solution.
+//            }
         }
 
         return map;

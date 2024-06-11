@@ -2,21 +2,29 @@ package gg.generations.rarecandy.renderer.loading;
 
 import com.traneptora.jxlatte.JXLDecoder;
 import com.traneptora.jxlatte.JXLOptions;
+import jdk.incubator.vector.FloatVector;
+import jdk.incubator.vector.Vector;
+import jdk.incubator.vector.VectorMask;
+import jdk.incubator.vector.VectorShuffle;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL13C;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.stb.STBImage;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferFloat;
-import java.awt.image.DataBufferInt;
+import java.awt.image.*;
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+
+import static com.traneptora.jxlatte.util.MathHelper.SPECIES;
+import static org.lwjgl.stb.STBImage.*;
+import static org.lwjgl.system.MemoryStack.stackPush;
 
 public class Texture implements ITexture {
     private static final JXLOptions options;
@@ -78,8 +86,49 @@ public class Texture implements ITexture {
     }
 
     public static Texture read(byte[] imageBytes, String name) throws IOException {
-        BufferedImage temp = name.endsWith("jxl") ? new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage() : ImageIO.read(new ByteArrayInputStream(imageBytes));
-        return new Texture(read(temp));
+        TextureDetails temp;
+        if (name.endsWith("jxl"))
+            temp = read(new JXLDecoder(new ByteArrayInputStream(imageBytes), options).decode().asBufferedImage());
+        else temp = read(imageBytes);
+        return new Texture(temp);
+    }
+
+    public static TextureDetails read(byte[] bytes) {
+        ByteBuffer imageBuffer = MemoryUtil.memAlloc(bytes.length).put(bytes).flip();
+
+        IntBuffer wBuffer = MemoryUtil.memAllocInt(1);
+        IntBuffer hBuffer = MemoryUtil.memAllocInt(1);
+        IntBuffer compBuffer = MemoryUtil.memAllocInt(1);
+
+        // Use info to read image metadata without decoding the entire image.
+        // We don't need this for this demo, just testing the API.
+        if (!stbi_info_from_memory(imageBuffer, wBuffer, hBuffer, compBuffer)) {
+//               throw new RuntimeException("Failed to read image information: " + stbi_failure_reason());
+
+            return null;
+        }
+
+        // Decode the image
+        var image = stbi_load_from_memory(imageBuffer, wBuffer, hBuffer, compBuffer, 0);
+        if (image == null) {
+
+            return null;
+//            throw new RuntimeException("Failed to load image: " + stbi_failure_reason());
+        }
+
+        var w = wBuffer.get(0);
+        var h = hBuffer.get(0);
+        var comp = compBuffer.get(0);
+
+        MemoryUtil.memFree(wBuffer);
+        MemoryUtil.memFree(hBuffer);
+        MemoryUtil.memFree(compBuffer);
+        MemoryUtil.memFree(imageBuffer);
+
+        if (comp != 3 && comp != 4) throw new RuntimeException("Inccorect amount of color channels");
+
+
+        return new TextureDetails(image, comp == 3 ? Type.RGB_BYTE : Type.RGBA_BYTE, w, h);
     }
 
     public static TextureDetails read(BufferedImage image) {
@@ -100,11 +149,21 @@ public class Texture implements ITexture {
             readyData = MemoryUtil.memAlloc(length * Float.BYTES * channels);
             var rawData = floatBuffer.getBankData();
 
-
-            for (int i = 0; i < length; i++) {
-                for (int channel = 0; channel < channels; channel++) {
-                    readyData.putFloat(rawData[channel][i]);
+            if(channels == 3) {
+                for (int i = 0; i < length; i++) {
+                    readyData.putFloat(rawData[0][i]);
+                    readyData.putFloat(rawData[1][i]);
+                    readyData.putFloat(rawData[2][i]);
                 }
+            } else if(channels == 4) {
+                for (int i = 0; i < length; i++) {
+                    readyData.putFloat(rawData[0][i]);
+                    readyData.putFloat(rawData[1][i]);
+                    readyData.putFloat(rawData[2][i]);
+                    readyData.putFloat(rawData[3][i]);
+                }
+            }else {
+                throw new RuntimeException("Float buffer lacks 3 or 4 banks.");
             }
 
             readyData.flip();
@@ -116,11 +175,19 @@ public class Texture implements ITexture {
 
             readyData = MemoryUtil.memAlloc(rawData.length * 4);
 
-            for (var pixel : rawData) {
-                readyData.put((byte) ((pixel >> 16) & 0xFF));
-                readyData.put((byte) ((pixel >> 8) & 0xFF));
-                readyData.put((byte) (pixel & 0xFF));
-                readyData.put((byte) ((pixel >> 24) & 0xFF));
+            if(isRGBA) {
+                for (var pixel : rawData) {
+                    readyData.put((byte) ((pixel >> 16) & 0xFF));
+                    readyData.put((byte) ((pixel >> 8) & 0xFF));
+                    readyData.put((byte) (pixel & 0xFF));
+                    readyData.put((byte) ((pixel >> 24) & 0xFF));
+                }
+            } else {
+                for (var pixel : rawData) {
+                    readyData.put((byte) ((pixel >> 16) & 0xFF));
+                    readyData.put((byte) ((pixel >> 8) & 0xFF));
+                    readyData.put((byte) (pixel & 0xFF));
+                }
             }
 
             readyData.flip();

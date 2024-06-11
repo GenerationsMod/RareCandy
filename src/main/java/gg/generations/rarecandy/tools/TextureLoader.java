@@ -27,13 +27,13 @@ public class TextureLoader extends ITextureLoader {
         long startTime = System.nanoTime();
         MAP.computeIfAbsent(name, s -> {
             long endTime = System.nanoTime();
-            long duration = (endTime - startTime) / 1000000;
+            float duration = ((endTime - startTime) / 1000000f);
 
-            if (texture != null) {
-                System.out.println("Loaded texture: ID = " + name + " in = " + duration + " ms");
-            } else {
-                System.err.println("Failed to load texture: ID = " + name + " (texture is null)");
-            }
+//            if (texture != null) {
+//                System.out.println("Loaded texture: ID = " + name + " in = " + duration + " ms");
+//            } else {
+//                System.err.println("Failed to load texture: ID = " + name + " (texture is null)");
+//            }
             return texture;
         });
     }
@@ -44,7 +44,7 @@ public class TextureLoader extends ITextureLoader {
             long startTime = System.nanoTime();
             ITexture texture = Texture.read(data, fileName);
             long endTime = System.nanoTime();
-            long duration = (endTime - startTime) / 1000000;
+            float duration = (endTime - startTime) / 1000000f;
             System.out.println("Loaded texture data for: ID = " + id + " in = " + duration + " ms");
             register(id, texture);
         } catch (IOException e) {
@@ -69,7 +69,7 @@ public class TextureLoader extends ITextureLoader {
             long startTime = System.nanoTime();
             ITexture texture = Texture.read(is.readAllBytes(), path);
             long endTime = System.nanoTime();
-            long duration = (endTime - startTime) / 1000000;
+            float duration = (endTime - startTime) / 1000000f;
             System.out.println("Loaded direct reference for: Path = " + path + ", Load Time = " + duration + " ms");
             return texture;
         } catch (Exception e) {

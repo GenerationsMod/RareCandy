@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.6.17-SNAPSHOT"
+version = "2.7.0-SNAPSHOT"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -59,8 +59,6 @@ dependencies {
     shadow(implementation("org.lwjgl", "lwjgl-nfd"))
     shadow(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows"))
     shadow(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
-
-    shadow(implementation("com.traneptora:jxlatte:2.0.0")!!)
 
     shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.5.26")!!)
 

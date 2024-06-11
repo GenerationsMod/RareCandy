@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
-import com.traneptora.jxlatte.JXLDecoder;
-
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -37,7 +36,7 @@ public class ImageNodePopup extends JPopupMenu {
                 var imagePair = guiHandler.asset.getImageFiles().stream().filter(a -> a.equals(name)).findFirst().get();
 
                 try {
-                    BufferedImage image = new JXLDecoder(new ByteArrayInputStream(imagePair.getValue())).decode().asBufferedImage();
+                    BufferedImage image = ImageIO.read(new ByteArrayInputStream(imagePair.getValue()));
                     new ImageViewer(imagePair.getKey(), image);
                     setVisible(true);
                 } catch (IOException ex) {
@@ -55,7 +54,7 @@ public class ImageNodePopup extends JPopupMenu {
         var model = (DefaultTreeModel) tree.getModel();
         var target = (DefaultMutableTreeNode) pathNode.getLastPathComponent();
 
-        var path = DialogueUtils.chooseFile("Images;jxl");
+        var path = DialogueUtils.chooseFile("Images;png");
         assert path != null;
         var name = path.getFileName().toString();
 

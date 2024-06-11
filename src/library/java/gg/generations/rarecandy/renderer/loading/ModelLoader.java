@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.renderer.loading;
 
-import de.javagl.jgltf.model.*;
+import de.javagl.jgltf.model.GltfModel;
+import de.javagl.jgltf.model.MeshPrimitiveModel;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import gg.generations.rarecandy.pokeutils.*;
@@ -9,7 +10,8 @@ import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
 import gg.generations.rarecandy.renderer.ThreadSafety;
-import gg.generations.rarecandy.renderer.animation.*;
+import gg.generations.rarecandy.renderer.animation.Animation;
+import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
@@ -30,7 +32,6 @@ import org.lwjgl.assimp.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -552,7 +553,6 @@ public class ModelLoader {
             if(asset.getModelFile() == null) return;
 
             if (config != null) obj.scale = config.scale;
-//            var model = read(asset);
             var smdAnims = readSmdAnimations(asset);
             var gfbAnims = readGfbAnimations(asset);
             var trAnims = readtrAnimations(asset);

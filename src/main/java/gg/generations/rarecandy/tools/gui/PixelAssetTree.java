@@ -109,7 +109,7 @@ public class PixelAssetTree extends JTree {
                 } catch (IOException ignored) {
                 }
                 tree.add(glbNode);
-            } else if (s.endsWith("jxl")) {
+            } else if (s.endsWith("png")) {
                 imagesNode.add(node(s));
             }/* else if(s.equals("config.json")) {
                 tree.add(new ModConfigTreeNode(asset.getConfig()));

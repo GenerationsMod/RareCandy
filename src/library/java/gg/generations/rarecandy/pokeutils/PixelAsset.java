@@ -128,11 +128,7 @@ public class PixelAsset {
     }
 
     public List<Map.Entry<String, byte[]>> getImageFiles() {
-        return files.entrySet().stream().filter(a -> {
-            var key = a.getKey();
-
-            return key.endsWith("jxl") || key.endsWith("jpg") || key.endsWith("png");
-        }).toList();
+        return files.entrySet().stream().filter(a -> a.getKey().endsWith("png")).toList();
     }
 
 

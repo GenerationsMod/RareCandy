@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarFile;
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 import org.tukaani.xz.XZInputStream;
@@ -19,7 +20,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * Pixelmon Asset (.pk) file.
@@ -87,20 +87,14 @@ public class PixelAsset {
 
     public static PixelAsset of(Path path, @Nullable String debugName) {
         if(Files.isRegularFile(path)) {
-            return new PixelAsset(getSevenZipFile(builder -> builder.setPath(path)), debugName);
+            return new PixelAsset(getSevenZipFile(path), debugName);
         } else {
             return new PixelAsset(path, debugName);
         }
     }
 
     public PixelAsset(InputStream is, @Nullable String debugName) {
-        this(getSevenZipFile(builder -> {
-            try {
-                builder.setByteArray(is.readAllBytes());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }), debugName);
+        this(getSevenZipFile(is), debugName);
     }
 
     public PixelAsset(SevenZFile is, @Nullable String debugName) {
@@ -138,15 +132,22 @@ public class PixelAsset {
         }
     }
 
-    public static SevenZFile getSevenZipFile(Consumer<SevenZFile.Builder> consumer) {
+    public static SevenZFile getSevenZipFile(InputStream stream) {
         try {
-            var builder = SevenZFile.builder();
-            consumer.accept(builder);
-            return builder.get();
+            return new SevenZFile(new SeekableInMemoryByteChannel(stream.readAllBytes()));
         } catch (IOException e) {
             throw new RuntimeException("Failed to read file.", e);
         }
     }
+
+    public static SevenZFile getSevenZipFile(Path path) {
+        try {
+            return new SevenZFile(path.toFile());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read file.", e);
+        }
+    }
+
 
     public byte[] getModelFile() {
         return files.get(modelName);

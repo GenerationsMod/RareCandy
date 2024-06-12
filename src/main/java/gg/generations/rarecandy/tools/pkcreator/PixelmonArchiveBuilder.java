@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.tools.pkcreator;
 
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
-import org.tukaani.xz.LZMA2Options;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -17,8 +16,6 @@ import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
  * Utility for writing and reading Pixelmon: Generation's model format.
  */
 public class PixelmonArchiveBuilder {
-    private static final LZMA2Options OPTIONS = new LZMA2Options();
-
     public static void convertToPk(Path relativeFolder, List<Path> files, Path output) {
         try {
             if (!Files.exists(output)) {

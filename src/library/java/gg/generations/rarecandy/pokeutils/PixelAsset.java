@@ -1,6 +1,9 @@
 package gg.generations.rarecandy.pokeutils;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
@@ -16,7 +19,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Pixelmon Asset (.pk) file.
@@ -82,18 +85,34 @@ public class PixelAsset {
         }
     }
 
+    public static PixelAsset of(Path path, @Nullable String debugName) {
+        if(Files.isRegularFile(path)) {
+            return new PixelAsset(getSevenZipFile(builder -> builder.setPath(path)), debugName);
+        } else {
+            return new PixelAsset(path, debugName);
+        }
+    }
+
     public PixelAsset(InputStream is, @Nullable String debugName) {
+        this(getSevenZipFile(builder -> {
+            try {
+                builder.setByteArray(is.readAllBytes());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }), debugName);
+    }
+
+    public PixelAsset(SevenZFile is, @Nullable String debugName) {
         this.name = debugName;
 
         try {
-            var tarFile = getTarFile(Objects.requireNonNull(is, "Input Stream is null"));
-
-            for (var entry : tarFile.getEntries()) {
+            for (var entry : is.getEntries()) {
                 if(entry.getName().endsWith("/")) continue;
 
                 if (entry.getName().endsWith(".glb")) this.modelName = entry.getName();
 
-                files.put(entry.getName(), tarFile.getInputStream(entry).readAllBytes());
+                files.put(entry.getName(), is.getInputStream(entry).readAllBytes());
             }
 
             if (files.containsKey("config.json")) {
@@ -114,6 +133,16 @@ public class PixelAsset {
         try {
             var xzInputStream = new XZInputStream(inputStream);
             return new TarFile(xzInputStream.readAllBytes());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read file.", e);
+        }
+    }
+
+    public static SevenZFile getSevenZipFile(Consumer<SevenZFile.Builder> consumer) {
+        try {
+            var builder = SevenZFile.builder();
+            consumer.accept(builder);
+            return builder.get();
         } catch (IOException e) {
             throw new RuntimeException("Failed to read file.", e);
         }

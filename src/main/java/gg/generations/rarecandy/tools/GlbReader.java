@@ -5,7 +5,10 @@ import de.javagl.jgltf.model.ImageModel;
 import de.javagl.jgltf.model.creation.AccessorModels;
 import de.javagl.jgltf.model.creation.GltfModelBuilder;
 import de.javagl.jgltf.model.creation.MeshPrimitiveBuilder;
-import de.javagl.jgltf.model.impl.*;
+import de.javagl.jgltf.model.impl.DefaultAccessorModel;
+import de.javagl.jgltf.model.impl.DefaultMeshModel;
+import de.javagl.jgltf.model.impl.DefaultNodeModel;
+import de.javagl.jgltf.model.impl.DefaultSceneModel;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import de.javagl.jgltf.model.io.v2.GltfModelWriterV2;
 import de.javagl.jgltf.model.v2.MaterialModelV2;
@@ -13,11 +16,9 @@ import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.util.ImageUtils;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
+import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 import org.lwjgl.util.nfd.NativeFileDialog;
-import org.tukaani.xz.XZOutputStream;
 
 import javax.imageio.ImageIO;
 import java.io.BufferedInputStream;
@@ -30,8 +31,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static gg.generations.rarecandy.tools.gui.GuiHandler.OPTIONS;
 
 public class GlbReader {
     private static final GltfModelReader reader = new GltfModelReader();
@@ -140,18 +139,24 @@ public class GlbReader {
 
                         asset = new PixelAsset(path1);
 
-                        try (var xzWriter = new XZOutputStream(Files.newOutputStream(path1.toAbsolutePath().getParent().resolve(asset.name)), OPTIONS)) {
-                            try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
-                                for (var file : asset.files.entrySet()) {
-                                    var entry = new TarArchiveEntry(file.getKey());
-                                    entry.setSize(file.getValue().length);
-                                    tarWriter.putArchiveEntry(entry);
-                                    IOUtils.copy(new BufferedInputStream(new ByteArrayInputStream(file.getValue())), tarWriter);
-                                    tarWriter.closeArchiveEntry();
+                        try (var sevenZOutput = new SevenZOutputFile(path1.toAbsolutePath().getParent().resolve(asset.name).toFile())) {
+                            for (var file : asset.files.entrySet()) {
+                                var entry = new SevenZArchiveEntry();
+                                sevenZOutput.putArchiveEntry(entry);
+                                entry.setName(file.getKey());
+                                entry.setSize(file.getValue().length);
+                                try (var is = new BufferedInputStream(new ByteArrayInputStream(file.getValue()))) {
+                                    byte[] buffer = new byte[1024];
+                                    int length;
+                                    while ((length = is.read(buffer)) > 0) {
+                                        sevenZOutput.write(buffer, 0, length);
+                                    }
                                 }
+                                sevenZOutput.closeArchiveEntry();
                             }
-                        }
 
+                            sevenZOutput.finish();
+                        }
                     }
                 }
 

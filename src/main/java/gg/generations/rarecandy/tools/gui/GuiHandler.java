@@ -1,25 +1,16 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.PixelAsset;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.utils.IOUtils;
 import org.tukaani.xz.LZMA2Options;
-import org.tukaani.xz.XZOutputStream;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import static gg.generations.rarecandy.renderer.LoggerUtil.print;
 
 public class GuiHandler implements KeyListener {
     public static final LZMA2Options OPTIONS = new LZMA2Options();
@@ -59,52 +50,54 @@ public class GuiHandler implements KeyListener {
     }
 
     public void save(Path savePath) {
-        if (dirty) {
-            try {
-                if (!Files.exists(savePath)) {
-                    Files.deleteIfExists(savePath);
-                    Files.createDirectories(savePath.getParent());
-                    Files.createFile(savePath);
-                }
+//        if (dirty) {
+//            try {
+//                if (!Files.exists(savePath)) {
+//                    Files.deleteIfExists(savePath);
+//                    Files.createDirectories(savePath.getParent());
+//                    Files.createFile(savePath);
+//                }
+//
+//                var saveBox = new JDialog(frame, "Saving File", true);
+//                var progressBar = (JProgressBar) saveBox.add(BorderLayout.CENTER, new JProgressBar(0, 100));
+//                var fileChunk = 100 / asset.files.size();
+//                saveBox.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+//                saveBox.setSize(300, 50);
+//                saveBox.setLocationRelativeTo(frame);
+//                SwingUtilities.invokeLater(() -> saveBox.setVisible(true));
+//
+//                new Thread(() -> {
+//                    try (var xzWriter = new XZOutputStream(Files.newOutputStream(assetPath), OPTIONS)) {
+//                        try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
+//                            print(tarWriter.getBytesWritten());
+//                            for (var file : asset.files.entrySet()) {
+//                                var entry = new TarArchiveEntry(file.getKey());
+//                                entry.setSize(file.getValue().length);
+//                                tarWriter.putArchiveEntry(entry);
+////                                tarWriter.write(file.getValue());
+//                                IOUtils.copy(new BufferedInputStream(new ByteArrayInputStream(file.getValue())), tarWriter);
+//                                tarWriter.closeArchiveEntry();
+//                                SwingUtilities.invokeLater(() -> progressBar.setValue(progressBar.getValue() + fileChunk));
+//                            }
+//
+//                            print(tarWriter.getBytesWritten());
+//                        }
+//                    } catch (IOException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//
+//
+//                    SwingUtilities.invokeLater(() -> saveBox.setVisible(false));
+//                    frame.setTitle(currentTitle.substring(0, currentTitle.length() - 1));
+//                }).start();
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
 
-                var saveBox = new JDialog(frame, "Saving File", true);
-                var progressBar = (JProgressBar) saveBox.add(BorderLayout.CENTER, new JProgressBar(0, 100));
-                var fileChunk = 100 / asset.files.size();
-                saveBox.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-                saveBox.setSize(300, 50);
-                saveBox.setLocationRelativeTo(frame);
-                SwingUtilities.invokeLater(() -> saveBox.setVisible(true));
+//            dirty = false;
+//        }
 
-                new Thread(() -> {
-                    try (var xzWriter = new XZOutputStream(Files.newOutputStream(assetPath), OPTIONS)) {
-                        try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
-                            print(tarWriter.getBytesWritten());
-                            for (var file : asset.files.entrySet()) {
-                                var entry = new TarArchiveEntry(file.getKey());
-                                entry.setSize(file.getValue().length);
-                                tarWriter.putArchiveEntry(entry);
-//                                tarWriter.write(file.getValue());
-                                IOUtils.copy(new BufferedInputStream(new ByteArrayInputStream(file.getValue())), tarWriter);
-                                tarWriter.closeArchiveEntry();
-                                SwingUtilities.invokeLater(() -> progressBar.setValue(progressBar.getValue() + fileChunk));
-                            }
-
-                            print(tarWriter.getBytesWritten());
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
-
-                    SwingUtilities.invokeLater(() -> saveBox.setVisible(false));
-                    frame.setTitle(currentTitle.substring(0, currentTitle.length() - 1));
-                }).start();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            dirty = false;
-        }
+        System.out.println("Saving disabled for now.");
     }
 
     public void markDirty() {

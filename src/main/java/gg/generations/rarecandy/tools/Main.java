@@ -26,13 +26,13 @@ public class Main {
     public static final List<Command> ARGUMENTS = List.of(
             new Command("archiveExplorer", "Opens a AWT Gui allowing you to view the structure of a PK file", Main::archiveExplorer),
             new Command("converter", "Lets you convert individual files inside of converter/in into their opposite. eg: pk -> glb, glb -> pk, smd -> smdx, etc", Main::converter),
-            new Command("pixelmonArchiveBuilder", "Allows you to build an entire pokemon. each pokemon should match their folder name eg: converter/in/koraidon should have a glb called koraidon.glb and all the anims", Main::pixelmonArchiveBuilder),
-            new Command("eyeFixer (swsh)", "Used to convert all pairs of iris and eye textures in a folder into the format used in Sword and Shield pokemon model eyes", Main::eyeFixer),
-            new Command("mouthFixer (swsh)", "Used to convert mouth textures in a folder into the format used in Sword and Shield pokemon model mouth", Main::mouthFixer),
-            new Command("longBoi (swsh)", "Used to convert all selected non eye related textures into a long boi (mirrored version of itself) that makes setting up Sword and Shield pokemon models easier the format used in Sword and Shield pokemon model eyes.", Main::longBoi),
-            new Command("Glb Convert", "Experimental converter for a full glb into the new config.json based form.", Main::glbConverter),
-            new Command("Model Viewer", "Simplified viewer for opening and reviewing models before packaging", Main::modelViewer),
-            new Command("GFBANM/TRACM converter", "Converts gfbanm and tracms to json and back.", Main::gfbanmConvert)
+            new Command("pixelmonArchiveBuilder", "Allows you to build an entire pokemon. each pokemon should match their folder name eg: converter/in/koraidon should have a glb called koraidon.glb and all the anims", Main::pixelmonArchiveBuilder)//,
+//            new Command("eyeFixer (swsh)", "Used to convert all pairs of iris and eye textures in a folder into the format used in Sword and Shield pokemon model eyes", Main::eyeFixer),
+//            new Command("mouthFixer (swsh)", "Used to convert mouth textures in a folder into the format used in Sword and Shield pokemon model mouth", Main::mouthFixer),
+//            new Command("longBoi (swsh)", "Used to convert all selected non eye related textures into a long boi (mirrored version of itself) that makes setting up Sword and Shield pokemon models easier the format used in Sword and Shield pokemon model eyes.", Main::longBoi),
+//            new Command("Glb Convert", "Experimental converter for a full glb into the new config.json based form.", Main::glbConverter),
+//            new Command("Model Viewer", "Simplified viewer for opening and reviewing models before packaging", Main::modelViewer),
+//            new Command("GFBANM/TRACM converter", "Converts gfbanm and tracms to json and back.", Main::gfbanmConvert)
             );
 
     private static void gfbanmConvert(String[] args) {

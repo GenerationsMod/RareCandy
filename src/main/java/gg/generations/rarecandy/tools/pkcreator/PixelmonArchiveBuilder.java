@@ -1,10 +1,7 @@
 package gg.generations.rarecandy.tools.pkcreator;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 import org.tukaani.xz.LZMA2Options;
-import org.tukaani.xz.XZOutputStream;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -31,26 +28,29 @@ public class PixelmonArchiveBuilder {
 
             files = files.stream().filter(path -> !(path.toString().endsWith("fbx") || path.toString().endsWith("dae"))).toList();
 
-            try (var xzWriter = new XZOutputStream(Files.newOutputStream(output), OPTIONS)) {
-                try (var tarWriter = new TarArchiveOutputStream(xzWriter)) {
-                    for (var archiveFile : files) {
-                        processFileName(archiveFile, relativeFolder.resolve(output.getFileName().toString().substring(0, output.getFileName().toString().length() - 3))).ifPresent(name -> {
-                            try {
-                                var entry = new TarArchiveEntry(archiveFile, name);
-                                tarWriter.putArchiveEntry(entry);
-                                if (Files.isRegularFile(archiveFile)) {
-                                    try (var is = new BufferedInputStream(Files.newInputStream(archiveFile))) {
-                                        IOUtils.copy(is, tarWriter);
+            try (var sevenZOutput = new SevenZOutputFile(output.toFile())) {
+                for (var file : files) {
+                    processFileName(file, relativeFolder.resolve(output.getFileName().toString().substring(0, output.getFileName().toString().length() - 3))).ifPresent(name -> {
+                        try {
+                            var entry = sevenZOutput.createArchiveEntry(file, name);
+                            sevenZOutput.putArchiveEntry(entry);
+                            if (Files.isRegularFile(file)) {
+                                try (var is = new BufferedInputStream(Files.newInputStream(file))) {
+                                    byte[] buffer = new byte[1024];
+                                    int length;
+                                    while ((length = is.read(buffer)) > 0) {
+                                        sevenZOutput.write(buffer, 0, length);
                                     }
                                 }
-
-                                tarWriter.closeArchiveEntry();
-                            } catch (IOException e) {
-                                printError(e);
                             }
-                        });
-                    }
+
+                            sevenZOutput.closeArchiveEntry();
+                        } catch (IOException e) {
+                            printError(e);
+                        }
+                    });
                 }
+                sevenZOutput.finish();
             }
         } catch (IOException e) {
             printError(e);

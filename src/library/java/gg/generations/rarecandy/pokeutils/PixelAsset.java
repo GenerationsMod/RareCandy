@@ -25,7 +25,7 @@ import java.util.Map;
  * Pixelmon Asset (.pk) file.
  */
 public class PixelAsset {
-    public static final Gson GSON = new GsonBuilder().setPrettyPrinting()
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().setLenient()
             .registerTypeAdapter(VariantParent.class, new VariantParent.Serializer())
             .registerTypeAdapter(MaterialReference.class, new MaterialReference.Serializer())
             .registerTypeAdapter(Vector2f.class, (JsonDeserializer<Vector2f>) (json, typeOfT, context) -> {

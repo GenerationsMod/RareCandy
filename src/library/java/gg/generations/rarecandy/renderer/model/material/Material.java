@@ -67,7 +67,7 @@ public class Material implements Closeable {
     public void close() throws IOException {
         if(images != null) {
             for (var texture : images.values()) {
-                if(texture.equals(".")) ITextureLoader.instance().remove(texture);
+                if(texture.contains(".")) ITextureLoader.instance().remove(texture);
             }
         }
     }

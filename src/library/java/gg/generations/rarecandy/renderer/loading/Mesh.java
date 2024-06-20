@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.renderer.loading;
 
+import gg.generations.rarecandy.pokeutils.MeshOptions;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.rendering.Bone;
 import org.joml.Vector2f;
@@ -10,6 +11,7 @@ import org.lwjgl.assimp.AIScene;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
@@ -23,13 +25,16 @@ public record Mesh(
         List<Bone> bones
 ) {
 
-    public static Mesh[] readMeshData(Skeleton skeleton, AIScene scene) {
+    public static Mesh[] readMeshData(Skeleton skeleton, AIScene scene, Map<String, MeshOptions> options) {
         var meshes = new Mesh[scene.mNumMeshes()];
 
         for (int i = 0; i < scene.mNumMeshes(); i++) {
 
             var mesh = AIMesh.create(scene.mMeshes().get(i));
             var name = mesh.mName().dataString();
+
+            var invertFace = options.containsKey(name) && options.get(name).invert();
+
             var material = mesh.mMaterialIndex();
             var indices = new ArrayList<Integer>();
             var positions = new ArrayList<Vector3f>();
@@ -42,9 +47,9 @@ public record Mesh(
 
             for (int j = 0; j < mesh.mNumFaces(); j++) {
                 var aiFace = aiFaces.get(j);
-                indices.add(aiFace.mIndices().get(0));
+                indices.add(aiFace.mIndices().get(invertFace ? 2 : 0));
                 indices.add(aiFace.mIndices().get(1));
-                indices.add(aiFace.mIndices().get(2));
+                indices.add(aiFace.mIndices().get(invertFace ? 0 : 2));
             }
 
             // Positions

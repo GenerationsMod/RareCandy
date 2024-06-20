@@ -38,6 +38,7 @@ public class PixelAsset {
 
                 return vec;
             })
+            .registerTypeAdapter(MeshOptions.class, new MeshOptions.Serializer())
             .create();
 
     public final Map<String, byte[]> files = new HashMap<>();

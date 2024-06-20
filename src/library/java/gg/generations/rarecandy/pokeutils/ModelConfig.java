@@ -20,6 +20,8 @@ public class ModelConfig {
 
     public List<String> ignoreScaleInAnimation;
 
+    public Map<String, MeshOptions> modelOptions;
+
     public List<String> getMaterialsForAnimation(String trackName) {
         var list = new ArrayList<String>();
         list.add(trackName);

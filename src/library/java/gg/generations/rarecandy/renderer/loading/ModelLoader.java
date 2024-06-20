@@ -83,7 +83,7 @@ public class ModelLoader {
 
         Skeleton skeleton = new Skeleton(rootNode);
 
-        var meshes = Mesh.readMeshData(skeleton, gltfModel);
+        var meshes = Mesh.readMeshData(skeleton, gltfModel, config.modelOptions == null ? Collections.emptyMap() : config.modelOptions);
 
         for (var entry : trFilesMap.entrySet()) {
             var name = entry.getKey();

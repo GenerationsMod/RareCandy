@@ -4,7 +4,7 @@ import org.lwjgl.opengl.GL11;
 
 public enum CullType {
     Back(GL11.GL_BACK),
-    Forward(GL11.GL_FRONT),
+    Forward(GL11.GL_BACK),
     None(-1);
 
     private final int glConstant;

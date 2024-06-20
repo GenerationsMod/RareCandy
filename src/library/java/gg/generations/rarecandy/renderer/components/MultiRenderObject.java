@@ -92,11 +92,18 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
 
     @Override
     public <V extends RenderObject> void render(List<ObjectInstance> instances, V obj) {
-        List<T> ts = this.objects;
-        for (int i = 0, tsSize = ts.size(); i < tsSize; i++) {
-            T object = ts.get(i);
+        for (T object : this.objects) {
             if (object != null && object.isReady()) {
                 object.render(instances, object);
+            }
+        }
+    }
+
+    @Override
+    public <V extends RenderObject> void render(ObjectInstance instance, V obj) {
+        for (T object : this.objects) {
+            if (object != null && object.isReady()) {
+                object.render(instance, object);
             }
         }
     }

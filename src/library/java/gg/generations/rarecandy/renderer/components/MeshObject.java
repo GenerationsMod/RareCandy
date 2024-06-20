@@ -64,6 +64,30 @@ public class MeshObject extends RenderObject {
         map.getOrDefault(RenderStage.TRANSPARENT, EMPTY).forEach(MeshObject::render);
     }
 
+    public <T extends RenderObject> void render(ObjectInstance instance, T object) {
+        Map<Material, List<Consumer<Pipeline>>> solidMap = new HashMap<>();
+        Map<Material, List<Consumer<Pipeline>>> transparentMap = new HashMap<>();
+        Map<RenderStage, Map<Material, List<Consumer<Pipeline>>>> map = new HashMap<>();
+
+        if (object.shouldRender(instance)) return;
+
+        var material = object.getMaterial(instance.variant());
+
+        var stage = RenderStage.SOLID;
+
+        if(material.blendType() != BlendType.None) stage = RenderStage.TRANSPARENT;
+        var stages = stage == RenderStage.SOLID ? solidMap : transparentMap;
+
+        stages.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
+            pipeline.updateOtherUniforms(instance, object);
+            pipeline.updateTexUniforms(instance, object);
+            model.runDrawCalls();
+        });
+
+        solidMap.forEach(MeshObject::render);
+        transparentMap.forEach(MeshObject::render);
+    }
+
     @Override
     public void close() throws IOException {
         super.close();

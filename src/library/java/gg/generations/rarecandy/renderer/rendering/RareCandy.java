@@ -34,7 +34,6 @@ public class RareCandy {
 
         objectManager.update(secondsPassed);
         objectManager.render();
-        objectManager.render();
 
         if (clearInstances) {
             this.objectManager.clearObjects();

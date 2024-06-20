@@ -27,6 +27,11 @@ public abstract class RenderObject implements Closeable {
         render(instances, this);
     }
 
+    public void render(ObjectInstance instance) {
+        render(instance, this);
+    }
+
+
     public void update() {
     }
 
@@ -60,6 +65,8 @@ public abstract class RenderObject implements Closeable {
     }
 
     protected abstract <T extends RenderObject> void render(List<ObjectInstance> instances, T object);
+
+    protected abstract <T extends RenderObject> void render(ObjectInstance instance, T object);
 
     protected boolean shouldRender(ObjectInstance instance) {
         return shouldRenderList != null && shouldRenderList.contains(instance.variant()); //TODO: check if correct.

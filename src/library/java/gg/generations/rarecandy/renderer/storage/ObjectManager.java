@@ -39,6 +39,15 @@ public class ObjectManager {
         }
     }
 
+    public static void render(RenderObject object, ObjectInstance instance) {
+        if (object == null) return;
+
+        if (object.isReady()) {
+            object.update();
+            object.render(instance);
+        }
+    }
+
     public <T extends ObjectInstance> T add(@NotNull RenderObject object, @NotNull T instance) {
         instance.link(object);
         objects.putIfAbsent(object, new ArrayList<>());

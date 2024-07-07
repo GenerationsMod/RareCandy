@@ -85,10 +85,16 @@ public class Skeleton {
     }
 
     public int getId(Bone bone) {
-        for (int i = 0; i < bones.length; i++) {
-            if (bone.equals(bones[i])) return i;
+        if(bone != null) {
+            for (int i = 0; i < bones.length; i++) {
+                if (bone.equals(bones[i])) return i;
+            }
         }
 
         return 0;
+    }
+
+    public int getId(String name) {
+        return getId(get(name));
     }
 }

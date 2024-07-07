@@ -20,9 +20,13 @@ public record VariantParent(String inherits, Map<String, VariantDetails> details
                 inherits = jsonObject.remove("inherits").getAsJsonPrimitive().getAsString();
             }
 
-            Map<String, VariantDetails> details = context.deserialize(jsonObject, DETAILS_MAP.getType());
+            try {
+                Map<String, VariantDetails> details = context.deserialize(jsonObject, DETAILS_MAP.getType());
+                return new VariantParent(inherits, details);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
-            return new VariantParent(inherits, details);
         }
 
         @Override

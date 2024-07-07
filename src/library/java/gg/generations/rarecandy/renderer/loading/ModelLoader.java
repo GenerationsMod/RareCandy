@@ -21,6 +21,7 @@ import gg.generations.rarecandy.renderer.model.GlCallSupplier;
 import gg.generations.rarecandy.renderer.model.MeshDrawCommand;
 import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.rendering.Bone;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,12 +41,14 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL30C.*;
 
 public class ModelLoader {
     private final ExecutorService modelLoadingPool;
+
+    private static Vector3f temp = new Vector3f();
 
     public ModelLoader() {
         this(4);
@@ -60,7 +63,7 @@ public class ModelLoader {
     }
 
 
-    private static List<Attribute> ATTRIBUTES = List.of(
+    public static List<Attribute> ATTRIBUTES = List.of(
             Attribute.POSITION,
             Attribute.TEXCOORD,
             Attribute.NORMAL,
@@ -82,8 +85,6 @@ public class ModelLoader {
         var rootNode = ModelNode.create(gltfModel.mRootNode());
 
         Skeleton skeleton = new Skeleton(rootNode);
-
-        var meshes = Mesh.readMeshData(skeleton, gltfModel, config.modelOptions == null ? Collections.emptyMap() : config.modelOptions);
 
         for (var entry : trFilesMap.entrySet()) {
             var name = entry.getKey();
@@ -215,7 +216,6 @@ public class ModelLoader {
                 matMap.put(s1, variant.material());
                 if (variant.hide()) hideMap.add(s1);
                 if (variant.offset() != null) offsetMap.put(s1, variant.offset());
-
             });
         }
 
@@ -223,11 +223,17 @@ public class ModelLoader {
         var hidMap = reverseListMap(variantHideMap);
         var offsetMap = reverseMap(variantOffsetMap);
 
-        Stream.of(meshes).flatMap(a -> a.positions().stream()).forEach(objects.dimensions::max);
-        for (var meshModel : meshes) {
-            processPrimitiveModels(objects, supplier, meshModel, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation);
+        var meshes = IntStream.range(0, gltfModel.mNumMeshes()).mapToObj(i -> AIMesh.create(gltfModel.mMeshes().get(i))).toArray(AIMesh[]::new);
+
+        for (AIMesh aiMesh : meshes) {
+            processBones(skeleton, aiMesh);
         }
 
+        skeleton.calculateBoneData();
+
+        for (var mesh : meshes) {
+            processPrimitiveModels(objects, supplier, mesh, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation, config.modelOptions != null ? config.modelOptions : Collections.emptyMap());
+        }
 
         var transform = new Matrix4f();
 
@@ -235,6 +241,20 @@ public class ModelLoader {
 
         Assimp.aiReleaseImport(gltfModel);
 
+    }
+
+    private static void processBones(Skeleton skeleton, AIMesh mesh) {
+
+        if (mesh.mBones() != null) {
+            var aiBones = requireNonNull(mesh.mBones());
+            Bone[] bones = new Bone[aiBones.capacity()];
+
+            for (int i = 0; i < aiBones.capacity(); i++) {
+                bones[i] = Bone.from(AIBone.create(aiBones.get(i)));
+            }
+
+            skeleton.store(bones);
+        }
     }
 
     private static <T extends MeshObject> void traverseTree(Matrix4f transform, ModelNode node, MultiRenderObject<T> objects) {
@@ -266,52 +286,19 @@ public class ModelLoader {
         });
     }
 
-    public static Vector3f calculateDimensions(Mesh[] meshes) {
-        var vec = new Vector3f();
-        var pos = new Vector3f();
-
-        for(var mesh : meshes) {
-            var buf = mesh.positions();
-            var smallestVertexX = 0f;
-                var smallestVertexY = 0f;
-                var smallestVertexZ = 0f;
-                var largestVertexX = 0f;
-                var largestVertexY = 0f;
-                var largestVertexZ = 0f;
-                for (int i = 0; i < buf.size(); i += 3) { // Start at the y entry of every vertex and increment by 12 because there are 12 bytes per vertex
-                    var xPoint = buf.get(i).x();
-                    var yPoint = buf.get(i).y();
-                    var zPoint = buf.get(i).z();
-                    smallestVertexX = Math.min(smallestVertexX, xPoint);
-                    smallestVertexY = Math.min(smallestVertexY, yPoint);
-                    smallestVertexZ = Math.min(smallestVertexZ, zPoint);
-                    largestVertexX = Math.max(largestVertexX, xPoint);
-                    largestVertexY = Math.max(largestVertexY, yPoint);
-                    largestVertexZ = Math.max(largestVertexZ, zPoint);
-                }
-
-                vec.set(largestVertexX - smallestVertexX, largestVertexY - smallestVertexY, largestVertexZ - smallestVertexZ);
-
-                pos.max(vec);
-
-        }
-
-        return pos;
-    }
-
     private static void applyTransforms(Matrix4f transform, ModelNode node) {
         transform.set(node.transform);
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, Mesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Vector2f>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations) {
-        var name = mesh.name();
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, AIMesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Vector2f>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations, Map<String, MeshOptions> meshOptions) {
+        var name = mesh.mName().dataString();
 
         var map = materialMap.get(name);
         var list = hiddenMap.get(name);
         var offset = offsetMap.get(name);
 
-        var glModel = processPrimitiveModel(mesh, skeleton, glCalls);
         var renderObject = objSupplier.get();
+        var glModel = processPrimitiveModel(skeleton, mesh, meshOptions, glCalls, objects.dimensions);
 
         if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
             animatedMeshObject.setup(map, list, offset, glModel, name, skeleton, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
@@ -322,45 +309,80 @@ public class ModelLoader {
         objects.add(renderObject);
     }
 
-    private static GLModel processPrimitiveModel(Mesh mesh, Skeleton skeleton, List<Runnable> glCalls) {
+    private static GLModel processPrimitiveModel(Skeleton skeleton, AIMesh mesh, Map<String, MeshOptions> options, List<Runnable> glCalls, Vector3f dimensions) {
+        var name = mesh.mName().dataString();
+
+        var invertFace = options.containsKey(name) && options.get(name).invert();
+
         var model = new GLModel();
 
         var length = calculateVertexSize(ATTRIBUTES);
-        var amount = mesh.positions().size();
+        var amount = mesh.mNumVertices();
 
         var vertexBuffer = MemoryUtil.memAlloc(length * amount);
 
-        var bones = IntStream.range(0, amount).mapToObj(a -> new VertexBoneData()).toList();
+        var aiFaces = mesh.mFaces();
+        var indexBuffer = MemoryUtil.memAlloc(mesh.mNumFaces() * Integer.BYTES * 3);
 
+        for (int j = 0; j < mesh.mNumFaces(); j++) {
+            var aiFace = aiFaces.get(j).mIndices();
+            indexBuffer.putInt(aiFace.get(invertFace ? 2 : 0)).putInt(aiFace.get(1)).putInt(aiFace.get(invertFace ? 0 : 2));
+        }
+        indexBuffer.flip();
 
-        mesh.bones().forEach(bone -> {
-            var boneId = skeleton.getId(bone);
+        var aiVert = mesh.mVertices();
+        var aiUV = mesh.mTextureCoords(0);
 
-            for(var weight : bone.weights) {
-                if(weight.weight == 0.0) return;
-                else {
-                    bones.get(weight.vertexId).addBoneData(boneId, weight.weight);
+        if (aiUV == null) {
+            throw new RuntimeException("Error UV coordinates not found!");
+        }
+
+        var aiNormals = mesh.mNormals();
+
+        if (aiNormals == null) {
+            throw new RuntimeException("Error Normals not found!");
+        }
+
+        byte[] ids = new byte[amount * 4];
+        float[] weights = new float[amount * 4];
+
+        if (mesh.mBones() != null) {
+            var aiBones = requireNonNull(mesh.mBones());
+
+            for (byte boneIndex = 0; boneIndex < aiBones.capacity(); boneIndex++) {
+                var aiBone = AIBone.create(aiBones.get(boneIndex));
+
+                var weight = aiBone.mWeights();
+
+                var index = skeleton.getId(aiBone.mName().dataString());
+
+                for (int weightId = 0; weightId < weight.capacity(); weightId++) {
+                    var aiWeight = weight.get(weightId);
+                    var vertexId = aiWeight.mVertexId();
+
+                    if(aiWeight.mWeight() > 0f) {
+                        addBoneData(ids, weights, vertexId, (byte) index, aiWeight.mWeight());
+                    }
                 }
             }
-        });
+        }
 
-        var isEmpty = bones.stream().allMatch(VertexBoneData::isEmpty);
+        var isEmpty = IntStream.range(0, ids.length).allMatch(a -> ids[a] == 0);
 
         for (int i = 0; i < amount; i++) {
 
-            var position = mesh.positions().get(i);
-            var uv = mesh.uvs().get(i);
-            var normal = mesh.normals().get(i);
-            var bone = bones.get(i);
+            var position = aiVert.get(i);
+            var uv = aiUV.get(i);
+            var normal = aiNormals.get(i);
 
-            vertexBuffer.putFloat(position.x);
-            vertexBuffer.putFloat(position.y);
-            vertexBuffer.putFloat(position.z);
-            vertexBuffer.putFloat(uv.x);
-            vertexBuffer.putFloat(uv.y);
-            vertexBuffer.putFloat(normal.x);
-            vertexBuffer.putFloat(normal.y);
-            vertexBuffer.putFloat(normal.z);
+            vertexBuffer.putFloat(position.x());
+            vertexBuffer.putFloat(position.y());
+            vertexBuffer.putFloat(position.z());
+            vertexBuffer.putFloat(uv.x());
+            vertexBuffer.putFloat(1 - uv.y());
+            vertexBuffer.putFloat(normal.x());
+            vertexBuffer.putFloat(normal.y());
+            vertexBuffer.putFloat(normal.z());
 
             if(isEmpty) {
                 vertexBuffer.put((byte) 1);
@@ -373,29 +395,27 @@ public class ModelLoader {
                 vertexBuffer.putFloat(0);
                 vertexBuffer.putFloat(0);
             } else {
-                vertexBuffer.put((byte) bone.ids()[0]);
-                vertexBuffer.put((byte) bone.ids()[1]);
-                vertexBuffer.put((byte) bone.ids()[2]);
-                vertexBuffer.put((byte) bone.ids()[3]);
+                vertexBuffer.put(ids[i * 4 + 0]);
+                vertexBuffer.put(ids[i * 4 + 1]);
+                vertexBuffer.put(ids[i * 4 + 2]);
+                vertexBuffer.put(ids[i * 4 + 3]);
 
-                vertexBuffer.putFloat(bone.weights()[0]);
-                vertexBuffer.putFloat(bone.weights()[1]);
-                vertexBuffer.putFloat(bone.weights()[2]);
-                vertexBuffer.putFloat(bone.weights()[3]);
+                vertexBuffer.putFloat(weights[i * 4 + 0]);
+                vertexBuffer.putFloat(weights[i * 4 + 1]);
+                vertexBuffer.putFloat(weights[i * 4 + 2]);
+                vertexBuffer.putFloat(weights[i * 4 + 3]);
             }
+
+            dimensions.max(temp.set(position.x(), position.y(), position.z()));
         }
 
         vertexBuffer.flip();
 
 
-
-        var indexBuffer = MemoryUtil.memAlloc(mesh.indices().size() * 4);
-        indexBuffer.asIntBuffer().put(mesh.indices().stream().mapToInt(a -> a).toArray()).flip();
-
-        var indexSize = mesh.indices().size();
+        var indexSize = mesh.mNumFaces() * 3;
 
         glCalls.add(() -> {
-            generateVao(model, vertexBuffer, DEFAULT_ATTRIBUTES);
+            generateVao(model, vertexBuffer, ATTRIBUTES);
             GL30.glBindVertexArray(model.vao);
             model.ebo = GL15.glGenBuffers();
             glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
@@ -410,6 +430,19 @@ public class ModelLoader {
         return model;
     }
 
+    public static void addBoneData(byte[] ids, float[] weights, int vertexId, byte boneId, float weight) {
+        var length = vertexId * 4;
+        for (var i = 0 ; i < 4; i++) {
+            var blep = length + i;
+
+            if (weights[blep] == 0.0) {
+                ids[blep] = boneId;
+                weights[blep] = weight;
+
+                return;
+            }
+        }
+    }
 
     public static int calculateVertexSize(List<Attribute> layout) {
         var size = 0;

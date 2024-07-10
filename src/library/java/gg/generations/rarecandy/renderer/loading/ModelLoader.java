@@ -727,7 +727,6 @@ public class ModelLoader {
         if (scene == null) throw new RuntimeException(Assimp.aiGetErrorString());
 
         return scene;
-//            return reader.readWithoutReferences(new ByteArrayInputStream(asset.getModelFile()));
     }
 
     public static <T> Map<String, Map<String, T>> reverseMap(Map<String, Map<String, T>> inputMap) {

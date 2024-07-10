@@ -3,7 +3,8 @@ package gg.generations.rarecandy.tools.gui;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.LoggerUtil;
-import gg.generations.rarecandy.renderer.animation.*;
+import gg.generations.rarecandy.renderer.animation.Animation;
+import gg.generations.rarecandy.renderer.animation.AnimationInstance;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
@@ -11,7 +12,6 @@ import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
-import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
 import org.jetbrains.annotations.NotNull;
@@ -22,9 +22,14 @@ import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 import org.lwjgl.opengl.awt.GLData;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -34,10 +39,11 @@ import java.util.function.Supplier;
 
 public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
+    public static float radius = 2.0f;
 
     private ModelLoader loader = new ModelLoader();
 
-    private static float lightLevel = 0.950f;
+    private static float lightLevel = 1;
     private static double time;
 
     public final Matrix4f viewMatrix = new Matrix4f();
@@ -51,10 +57,12 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public MultiRenderObject<AnimatedMeshObject> loadedModel;
     public AnimatedObjectInstance loadedModelInstance;
     private static float previousLightLevel;
+    private String fileName;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
         RareCandyCanvas.lightLevel = lightLevel;
+        System.out.println("Light Level: " + RareCandyCanvas.lightLevel);
     }
 
      static float getLightLevel() {
@@ -66,7 +74,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
+                projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
             }
         });
     }
@@ -109,17 +117,21 @@ public class RareCandyCanvas extends AWTGLCanvas {
         SwingUtilities.invokeLater(renderLoop);
     }
 
-    public void openFile(PixelAsset pkFile) throws IOException {
-        openFile(pkFile, () -> {});
+    public void openFile(PixelAsset pkFile, String name) throws IOException {
+        openFile(pkFile, name, () -> {});
     }
 
-    public void openFile(PixelAsset pkFile, Runnable runnable) throws IOException {
+    public void openFile(PixelAsset pkFile, String name, Runnable runnable) throws IOException {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
         renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
         if(loadedModel != null) loadedModel.close();
 
+        this.fileName = name;
+
         if(pkFile == null) return;
+
+
 
         loadPokemonModel(renderer, pkFile, model -> {
             var i = 0;
@@ -143,7 +155,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GuiPipelines.onInitialize();
         this.renderer = new RareCandy();
 
-        GL11C.glClearColor(0, 0, 0, 1);
+        GL11C.glClearColor(0, 0, 0, 0);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
         loadPlane(renderer, 100, 100, model -> {
@@ -241,7 +253,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         this.addKeyListener(arcballOrbit);
     }
 
-    public static class ArcballOrbit implements MouseMotionListener, MouseWheelListener, MouseListener, KeyListener {
+    public class ArcballOrbit implements MouseMotionListener, MouseWheelListener, MouseListener, KeyListener {
         private final Matrix4f viewMatrix;
         private float radius;
         private float angleX;
@@ -324,7 +336,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         @Override
         public void keyPressed(KeyEvent e) {
-            float lateralStep = 0.001f; // Adjust the step size as needed
+            float lateralStep = 0.01f; // Adjust the step size as needed
 
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_LEFT -> centerOffset.x -= lateralStep;
@@ -333,13 +345,39 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 case KeyEvent.VK_DOWN -> centerOffset.z -= lateralStep;
                 case KeyEvent.VK_PAGE_UP -> centerOffset.y += lateralStep;
                 case KeyEvent.VK_PAGE_DOWN -> centerOffset.y -= lateralStep;
+                case KeyEvent.VK_ENTER -> RareCandyCanvas.this.takeScreenshot();
+                case KeyEvent.VK_OPEN_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.max(lightLevel - 0.01, 0));
+                case KeyEvent.VK_CLOSE_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.min(lightLevel + 0.01, 1));
             }
 
             update();
         }
         @Override
         public void keyReleased(KeyEvent e) {
+        }
+    }
 
+    public static final Path images = Path.of("images");
+
+    public void takeScreenshot() {
+
+        // Save the buffered image to a file
+        try {
+
+            if(Files.notExists(images)) Files.createDirectory(images);
+            BufferedImage img = new Robot().createScreenCapture(new Rectangle(
+                    this.getLocationOnScreen().x,
+                    this.getLocationOnScreen().y,
+                    this.getWidth(),
+                    this.getHeight()));
+
+            var temp = fileName + "-" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default");
+            ImageIO.write(img, "png", images.resolve(temp + ".png").toFile());
+            System.out.println("Screenshot saved to " + temp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (AWTException e) {
+            throw new RuntimeException(e);
         }
     }
 }

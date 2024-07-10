@@ -60,7 +60,7 @@ public class AnimationNodePopup extends JPopupMenu {
         gui.markDirty();
 
         try {
-            gui.getCanvas().openFile(gui.asset);
+            gui.getCanvas().openFile(gui.asset, "");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.PixelAsset;
+import org.apache.commons.io.FilenameUtils;
 import org.tukaani.xz.LZMA2Options;
 
 import javax.swing.*;
@@ -114,7 +115,7 @@ public class GuiHandler implements KeyListener {
             var title = BASE_TITLE + " - " + filePath.getFileName().toString();
             frame.setTitle(title);
             this.currentTitle = title;
-            getCanvas().openFile(asset);
+            getCanvas().openFile(asset, FilenameUtils.getBaseName(filePath.getFileName().toString()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -145,7 +146,7 @@ public class GuiHandler implements KeyListener {
             var title = BASE_TITLE + " - " + filePath.getFileName().toString();
             frame.setTitle(title);
             this.currentTitle = title;
-            getCanvas().openFile(asset);
+            getCanvas().openFile(asset, "");
 
         } catch (IOException e) {
             throw new RuntimeException(e);

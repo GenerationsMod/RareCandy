@@ -3,14 +3,14 @@
 #define ambientLight 0.6f
 
 #define size 100.0
-#define radius 6f
-#define halfRadius radius/2/size
 
 in vec2 texCoord0;
 
 out vec4 outColor;
 
 uniform float lightLevel;
+
+uniform float radius;
 
 float smoothLightDropOff(float distance, float startDistance, float endDistance, float initialIntensity, float finalIntensity) {
     float dropOffFactor = smoothstep(startDistance, endDistance, distance);
@@ -41,7 +41,9 @@ void main() {
         color = black;
     }
 
+    float halfRadius = radius/2/size;
+
     float pct = smoothLightDropOff(distance(texCoord0,vec2(0.5)), halfRadius, halfRadius+(2/size), lightLevel, 0.0);
 
-    outColor = vec4(color * pct, 1.0);
+    outColor = vec4(color, pct);
 }

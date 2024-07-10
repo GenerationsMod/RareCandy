@@ -1,8 +1,10 @@
 package gg.generations.rarecandy.tools.gui;
 
+import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.Transform;
+import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import org.joml.Vector2f;
@@ -10,6 +12,7 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
 import static java.lang.Math.floor;
@@ -60,6 +63,13 @@ public class GuiPipelines {
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
             .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
+            .supplyUniform("radius", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.radius))
+            .prePostDraw(material -> BlendType.Regular.enable(), new Consumer<>() {
+                @Override
+                public void accept(Material material) {
+                    BlendType.Regular.disable();
+                }
+            })
             .shader(builtin("animated/plane.vs.glsl"), builtin("animated/plane.fs.glsl")).build();
 
 

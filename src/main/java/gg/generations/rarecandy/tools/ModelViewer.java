@@ -126,7 +126,7 @@ public class ModelViewer extends JFrame {
                     asset = null;
                     setTitle("ModelViewer");
                     loadButton.setLabel("Load");
-                    canvas.openFile(null);
+                    canvas.openFile(null, "");
                 }
             } catch (IOException ex) {
                 printError(ex);
@@ -137,7 +137,7 @@ public class ModelViewer extends JFrame {
         reloadButton.addActionListener(e -> {
             if (path != null) {
                 try {
-                    canvas.openFile(asset = new PixelAsset(temp, path.getFileName().toString()), this::updateTrees);
+                    canvas.openFile(asset = new PixelAsset(temp, path.getFileName().toString()), "", this::updateTrees);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -179,7 +179,7 @@ public class ModelViewer extends JFrame {
                         }
                     });
 
-                    canvas.openFile(asset, this::updateTrees);
+                    canvas.openFile(asset, "", this::updateTrees);
 
 
                 ModelViewer.this.setTitle("ModelViewer - " + asset.name);

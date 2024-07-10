@@ -349,7 +349,7 @@ public class ModelLoader {
         if (mesh.mBones() != null) {
             var aiBones = requireNonNull(mesh.mBones());
 
-            for (byte boneIndex = 0; boneIndex < aiBones.capacity(); boneIndex++) {
+            for (int boneIndex = 0; boneIndex < aiBones.capacity(); boneIndex++) {
                 var aiBone = AIBone.create(aiBones.get(boneIndex));
 
                 var weight = aiBone.mWeights();

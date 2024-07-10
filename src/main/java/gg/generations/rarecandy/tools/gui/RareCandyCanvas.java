@@ -62,7 +62,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
         RareCandyCanvas.lightLevel = lightLevel;
-        System.out.println("Light Level: " + RareCandyCanvas.lightLevel);
     }
 
      static float getLightLevel() {

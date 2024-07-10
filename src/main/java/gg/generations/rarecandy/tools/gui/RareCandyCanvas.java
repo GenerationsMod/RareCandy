@@ -38,6 +38,7 @@ import java.util.function.Supplier;
 
 
 public class RareCandyCanvas extends AWTGLCanvas {
+    private static CycleVariants runnable;
     public static Matrix4f projectionMatrix;
     public static float radius = 2.0f;
 
@@ -58,6 +59,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public AnimatedObjectInstance loadedModelInstance;
     private static float previousLightLevel;
     private String fileName;
+    private boolean cycling;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
@@ -181,7 +183,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         time = (System.currentTimeMillis() - startTime) / 1000f;
 
+        if (runnable != null) runnable.pre();
+
         renderer.render(false, time);
+
+        if (runnable != null) runnable.post();
         swapBuffers();
 
         if (instances.size() > 1) {
@@ -337,19 +343,25 @@ public class RareCandyCanvas extends AWTGLCanvas {
         public void keyPressed(KeyEvent e) {
             float lateralStep = 0.01f; // Adjust the step size as needed
 
-            switch (e.getKeyCode()) {
-                case KeyEvent.VK_LEFT -> centerOffset.x -= lateralStep;
-                case KeyEvent.VK_RIGHT -> centerOffset.x += lateralStep;
-                case KeyEvent.VK_UP -> centerOffset.z += lateralStep;
-                case KeyEvent.VK_DOWN -> centerOffset.z -= lateralStep;
-                case KeyEvent.VK_PAGE_UP -> centerOffset.y += lateralStep;
-                case KeyEvent.VK_PAGE_DOWN -> centerOffset.y -= lateralStep;
-                case KeyEvent.VK_ENTER -> RareCandyCanvas.this.takeScreenshot();
-                case KeyEvent.VK_OPEN_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.max(lightLevel - 0.01, 0));
-                case KeyEvent.VK_CLOSE_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.min(lightLevel + 0.01, 1));
-            }
+            if(!RareCandyCanvas.this.cycling) {
 
-            update();
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_LEFT -> centerOffset.x -= lateralStep;
+                    case KeyEvent.VK_RIGHT -> centerOffset.x += lateralStep;
+                    case KeyEvent.VK_UP -> centerOffset.z += lateralStep;
+                    case KeyEvent.VK_DOWN -> centerOffset.z -= lateralStep;
+                    case KeyEvent.VK_PAGE_UP -> centerOffset.y += lateralStep;
+                    case KeyEvent.VK_PAGE_DOWN -> centerOffset.y -= lateralStep;
+                    case KeyEvent.VK_ENTER -> RareCandyCanvas.this.takeScreenshot();
+                    case KeyEvent.VK_OPEN_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.max(lightLevel - 0.01, 0));
+                    case KeyEvent.VK_CLOSE_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.min(lightLevel + 0.01, 1));
+                    case KeyEvent.VK_PERIOD -> {
+                        new CycleVariants();
+                    }
+                }
+
+                update();
+            }
         }
         @Override
         public void keyReleased(KeyEvent e) {
@@ -377,6 +389,34 @@ public class RareCandyCanvas extends AWTGLCanvas {
             e.printStackTrace();
         } catch (AWTException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public class CycleVariants  {
+        private final List<String> list;
+        private int index;
+
+        public CycleVariants() {
+            RareCandyCanvas.this.cycling = true;
+            list = List.copyOf(loadedModel.availableVariants());
+
+            if(list.size() == 0) return;
+
+            index = 0;
+            RareCandyCanvas.runnable = this;
+        }
+        public void pre() {
+            if(index >= list.size()) {
+                RareCandyCanvas.runnable = null;
+                cycling = false;
+            } else {
+                loadedModelInstance.setVariant(list.get(index));
+            }
+        }
+
+        public void post() {
+            RareCandyCanvas.this.takeScreenshot();
+            index += 1;
         }
     }
 }

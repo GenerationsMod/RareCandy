@@ -576,6 +576,22 @@ public class ModelLoader {
         return pair.b();
     }
 
+    public MultiRenderObject<MeshObject> generateScreenQuad(Consumer<MultiRenderObject<MeshObject>> onFinish) {
+        var pair = PlaneGenerator.screen();
+
+        var task = ThreadSafety.wrapException(() -> {
+            ThreadSafety.runOnContextThread(() -> {
+                pair.a().forEach(Runnable::run);
+                pair.b().updateDimensions();
+                if (onFinish != null) onFinish.accept(pair.b());
+            });
+        });
+        if (RareCandy.DEBUG_THREADS) task.run();
+        else modelLoadingPool.submit(task);
+
+        return pair.b();
+    }
+
     private <T extends RenderObject> Runnable threadedCreateObject(MultiRenderObject<T> obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
         return ThreadSafety.wrapException(() -> {
             var asset = is.get();

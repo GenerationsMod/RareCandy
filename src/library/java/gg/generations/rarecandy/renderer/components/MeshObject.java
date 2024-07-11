@@ -67,7 +67,6 @@ public class MeshObject extends RenderObject {
     public <T extends RenderObject> void render(ObjectInstance instance, T object) {
         Map<Material, List<Consumer<Pipeline>>> solidMap = new HashMap<>();
         Map<Material, List<Consumer<Pipeline>>> transparentMap = new HashMap<>();
-        Map<RenderStage, Map<Material, List<Consumer<Pipeline>>>> map = new HashMap<>();
 
         if (object.shouldRender(instance)) return;
 

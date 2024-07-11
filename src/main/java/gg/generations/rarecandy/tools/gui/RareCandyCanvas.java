@@ -10,8 +10,10 @@ import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
+import gg.generations.rarecandy.renderer.rendering.FrameBuffer;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
+import gg.generations.rarecandy.renderer.rendering.ScreenRenderer;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
 import org.jetbrains.annotations.NotNull;
@@ -22,19 +24,17 @@ import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 import org.lwjgl.opengl.awt.GLData;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import static org.lwjgl.opengl.GL11.*;
 
 
 public class RareCandyCanvas extends AWTGLCanvas {
@@ -46,6 +46,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     private static float lightLevel = 1;
     private static double time;
+    public static FrameBuffer framebuffer;
 
     public final Matrix4f viewMatrix = new Matrix4f();
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
@@ -54,12 +55,14 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public String currentAnimation = null;
     private RareCandy renderer;
     private MultiRenderObject<MeshObject> plane;
+    private ObjectInstance planeInstance;
 
     public MultiRenderObject<AnimatedMeshObject> loadedModel;
     public AnimatedObjectInstance loadedModelInstance;
     private static float previousLightLevel;
     private String fileName;
     private boolean cycling;
+    private ScreenRenderer screenRenderer;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
@@ -104,6 +107,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
             case "layered" -> GuiPipelines.LAYERED;
             case "paradox" -> GuiPipelines.PARADOX;
             case "plane" -> GuiPipelines.PLANE;
+            case "screen" -> GuiPipelines.SCREEN_QUAD;
             default -> GuiPipelines.SOLID;
         });
 
@@ -125,14 +129,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public void openFile(PixelAsset pkFile, String name, Runnable runnable) throws IOException {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
-        renderer.objectManager.add(plane, new ObjectInstance(new Matrix4f(), viewMatrix, null));
         if(loadedModel != null) loadedModel.close();
 
         this.fileName = name;
 
         if(pkFile == null) return;
-
-
 
         loadPokemonModel(renderer, pkFile, model -> {
             var i = 0;
@@ -159,14 +160,19 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClearColor(0, 0, 0, 0);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        loadPlane(renderer, 100, 100, model -> {
+        framebuffer = new FrameBuffer(getWidth(), getHeight());
+
+//        screenRenderer = new ScreenRenderer(framebuffer);
+
+
+        loadPlane(100, 100, model -> {
             plane = model;
-            renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+            planeInstance = new ObjectInstance(new Matrix4f(), viewMatrix, null);
         });
     }
 
-    private MultiRenderObject<MeshObject> loadPlane(RareCandy renderer, int width, int length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
-        return loader.generatePlane(width, length, onFinish);
+    private MultiRenderObject<MeshObject> loadPlane(int width, int length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
+        return loader.generateScreenQuad(onFinish);
     }
 
     private Vector3f size = new Vector3f();
@@ -174,7 +180,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
     private double fraciton = 1/16f;
     @Override
     public void paintGL() {
-        GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
         if (loadedModelInstance != null) {
             loadedModelInstance.transformationMatrix().identity().scale(loadedModel.scale);
 
@@ -185,7 +190,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         if (runnable != null) runnable.pre();
 
-        renderer.render(false, time);
+        renderToFramebuffer();
+//        screenRenderer.render();
+        renderToScreen();
 
         if (runnable != null) runnable.post();
         swapBuffers();
@@ -210,6 +217,38 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 instance.transformationMatrix().scale(newScale);
             }
         }
+    }
+
+    private int[] originalViewport = new int[4]; // Array to store x, y, width, height
+
+    private void renderToFramebuffer() {
+        framebuffer.bindFramebuffer();
+
+        glGetIntegerv(GL_VIEWPORT, originalViewport);
+
+        GL11C.glViewport(0, 0, 512, 512);
+
+
+        GL11C.glClearColor(0.3f, 0.3f, 0.5f, 0.0f); // Ensure alpha is set to 0 for transparency
+        GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
+
+        renderer.render(false, time);
+
+        framebuffer.unbindFramebuffer();
+
+        glViewport(originalViewport[0], originalViewport[1], originalViewport[2], originalViewport[3]);
+    }
+
+    private void renderToScreen() {
+
+//        BlendType.Regular.enable();
+
+        GL11C.glClearColor(1f, 1f, 1f, 1f); // Ensure alpha is set to 0 for transparency
+        GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
+
+        renderer.render(false, time);
+
+//        BlendType.Regular.disable();
     }
 
     public AnimationInstance createInstance(Animation animation) {
@@ -372,24 +411,26 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     public void takeScreenshot() {
 
-        // Save the buffered image to a file
-        try {
-
-            if(Files.notExists(images)) Files.createDirectory(images);
-            BufferedImage img = new Robot().createScreenCapture(new Rectangle(
-                    this.getLocationOnScreen().x,
-                    this.getLocationOnScreen().y,
-                    this.getWidth(),
-                    this.getHeight()));
-
-            var temp = fileName + "-" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default");
-            ImageIO.write(img, "png", images.resolve(temp + ".png").toFile());
-            System.out.println("Screenshot saved to " + temp);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (AWTException e) {
-            throw new RuntimeException(e);
-        }
+//        // Save the buffered image to a file
+//        try {
+//
+//            if(Files.notExists(images)) Files.createDirectory(images);
+//            BufferedImage img = new Robot().createScreenCapture(new Rectangle(
+//                    this.getLocationOnScreen().x,
+//                    this.getLocationOnScreen().y,
+//                    this.getWidth(),
+//                    this.getHeight()));
+//
+//            var temp = fileName + "-" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default");
+//            ImageIO.write(img, "png", images.resolve(temp + ".png").toFile());
+//            System.out.println("Screenshot saved to " + temp);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (AWTException e) {
+//            throw new RuntimeException(e);
+//        }
+        var temp = fileName + "-" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default") + ".png";
+        framebuffer.captureScreenshot(temp);
     }
 
     public class CycleVariants  {

@@ -1,9 +1,11 @@
 package gg.generations.rarecandy.renderer.rendering;
 
 import gg.generations.rarecandy.renderer.loading.ITexture;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.stb.STBImageResize;
 import org.lwjgl.stb.STBImageWrite;
 
 import java.nio.ByteBuffer;
@@ -64,11 +66,18 @@ public class FrameBuffer implements ITexture {
     }
 
     public void captureScreenshot(String filePath) {
+        var newWidth = (width/2);
+        var newHeight = (height/2);
+
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, framebufferId);
-        ByteBuffer buffer = ByteBuffer.allocateDirect(width * height * 4);
+        ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * 4);
         GL11.glReadPixels(0, 0, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
+        ByteBuffer resizedBuffer = BufferUtils.createByteBuffer(newWidth * newHeight * 4);
+        STBImageResize.stbir_resize_uint8(buffer, width, height, 0, resizedBuffer, newWidth, newHeight, 0, 4);
         STBImageWrite.stbi_flip_vertically_on_write(true);
-        STBImageWrite.stbi_write_png(filePath, width, height, 4, buffer, width * 4);
+        STBImageWrite.stbi_write_png(filePath, newWidth, newHeight, 4, resizedBuffer, newWidth * 4);
+
+
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
     }
 }

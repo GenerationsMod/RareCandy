@@ -27,7 +27,6 @@ public class Transplants {
 
         var difference = new ArrayList<>(mapattack.keySet());
         difference.removeAll(mapsleep.keySet());
-        System.out.println(difference);
 
         var animation = sleepEndTranm.getTrack();
 
@@ -37,7 +36,6 @@ public class Transplants {
             var frame = frames[i];
 
             if(mapattack.containsKey(frame.getBoneName())) {
-                System.out.println("rawr: " + frame.getBoneName());
                 difference.remove(frame.getBoneName());
                 frames[i] = mapattack.get(frame.getBoneName());
             }
@@ -48,15 +46,10 @@ public class Transplants {
         frames = Arrays.copyOf(frames, frames.length + difference.size());
 
         for (int i = 0; i < difference.size(); i++) {
-            System.out.println("rawr1: " + difference.get(i));
             frames[i+originLenght] = mapattack.get(difference.get(i));
         }
 
         animation.setTracks(frames);
-
-        System.out.println();
-
-
 
         Files.write(path.resolve("test.tranm"), sleepEndTranm.serializeToBinary());
     }

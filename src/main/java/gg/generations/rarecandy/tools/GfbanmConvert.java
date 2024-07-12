@@ -1,31 +1,22 @@
 package gg.generations.rarecandy.tools;
 
-import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
-import gg.generations.rarecandy.pokeutils.gfbanm.*;
-import gg.generations.rarecandy.pokeutils.gfbanm.tracks.TrackProcesser;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
+import gg.generations.rarecandy.pokeutils.gfbanm.MaterialTrackT;
+import gg.generations.rarecandy.pokeutils.gfbanm.ShaderEntryT;
 import gg.generations.rarecandy.pokeutils.gfbanm.tracks._boolean.BooleanTrackProcessor;
 import gg.generations.rarecandy.pokeutils.gfbanm.tracks._byte.ByteProcessor;
-import gg.generations.rarecandy.pokeutils.gfbanm.tracks._float.*;
+import gg.generations.rarecandy.pokeutils.gfbanm.tracks._float.FloatTrackProcessor;
 import gg.generations.rarecandy.pokeutils.gfbanm.tracks.data.DataTrack;
 import gg.generations.rarecandy.pokeutils.gfbanm.tracks.rotation.RotationTrackProcessor;
 import gg.generations.rarecandy.pokeutils.gfbanm.tracks.vector.VectorProcessor;
-import gg.generations.rarecandy.pokeutils.tranm.DynamicRotationTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.DynamicVectorTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.FixedRotationTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.FixedVectorTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.Framed16RotationTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.Framed16VectorTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.Framed8RotationTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.Framed8VectorTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.RotationTrack;
+import gg.generations.rarecandy.renderer.LoggerUtil;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.function.Function;
 
 public class GfbanmConvert {
     private static Gson gson = new GsonBuilder().setPrettyPrinting()
@@ -65,7 +56,7 @@ public class GfbanmConvert {
                         if(uScale.isPresent() && uTranslate.isPresent() && material.getName().toLowerCase().contains("eye")) {
                             uTranslate.get().getValue().getValue().adjustValue(0.25f);
                         } else {
-                            System.out.println(uScale.isPresent() + " " + uTranslate.isPresent());
+                            LoggerUtil.print(uScale.isPresent() + " " + uTranslate.isPresent());
                         }
 
                         var array = Arrays.stream(material.getValues()).filter(a -> a.getName().startsWith("ColorUVTranslate"))/*.map(new Function<ShaderEntryT, ShaderEntryT>() {

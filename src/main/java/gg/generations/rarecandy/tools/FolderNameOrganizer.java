@@ -1,5 +1,7 @@
 package gg.generations.rarecandy.tools;
 
+import gg.generations.rarecandy.renderer.LoggerUtil;
+
 import java.io.File;
 import java.util.*;
 
@@ -40,7 +42,7 @@ public class FolderNameOrganizer {
 
         // Print the organized folder names
         for (Map.Entry<String, Set<String>> entry : folderMap.entrySet()) {
-            System.out.println("Key: " + entry.getKey() + ", Values: " + entry.getValue());
+            LoggerUtil.print("Key: " + entry.getKey() + ", Values: " + entry.getValue());
         }
     }
 }

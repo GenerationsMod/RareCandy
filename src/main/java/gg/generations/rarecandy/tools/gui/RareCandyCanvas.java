@@ -64,6 +64,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     private String fileName;
     private boolean cycling;
     private ScreenRenderer screenRenderer;
+    private static boolean animate = true;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
@@ -111,6 +112,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
             case "screen" -> GuiPipelines.SCREEN_QUAD;
             default -> GuiPipelines.SOLID;
         });
+
 
         var renderLoop = new Runnable() {
             @Override
@@ -187,7 +189,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
             size.set(loadedModel.dimensions).mul(loadedModel.scale);
         }
 
-        time = (System.currentTimeMillis() - startTime) / 1000f;
+        if(animate) time = (System.currentTimeMillis() - startTime) / 1000f;
 
         if (runnable != null) runnable.pre();
 
@@ -405,6 +407,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
                     case KeyEvent.VK_PERIOD -> {
                         new CycleVariants();
                     }
+                    case KeyEvent.VK_SPACE -> RareCandyCanvas.animate = !RareCandyCanvas.animate;
                 }
 
                 update();
@@ -415,7 +418,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         }
     }
 
-    public static final Path images = Path.of("images");
+    public static final Path images = Path.of("pack", "assets", "generations_core", "textures", "pokemon");
 
     public void takeScreenshot() throws IOException {
         var path = images.resolve(fileName);
@@ -424,9 +427,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         var temp = images + "/" + fileName + "/" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default") + ".png";
         framebuffer.captureScreenshot(temp);
 
-            System.out.println("Screenshot saved to " + temp);
-
-
+        LoggerUtil.print("Screenshot saved to " + temp);
     }
 
     public class CycleVariants  {

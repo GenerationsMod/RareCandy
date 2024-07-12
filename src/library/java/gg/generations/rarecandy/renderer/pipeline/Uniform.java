@@ -9,7 +9,6 @@ import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
-import java.util.Arrays;
 
 public class Uniform {
     private static final FloatBuffer MAT4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(16);
@@ -42,8 +41,6 @@ public class Uniform {
     public void uploadMat4fs(Matrix4f[] values) {
         for (var i = 0; i < values.length; i++) {
             if (values[i] == null) {
-                System.out.println(Arrays.toString(values));
-
                 throw new RuntimeException("Matrix4f at index " + i + " is null. If you are passing an animation, Is it the right animation for this model?");
             }
 

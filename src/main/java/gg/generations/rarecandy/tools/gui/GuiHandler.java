@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.renderer.LoggerUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.tukaani.xz.LZMA2Options;
 
@@ -98,7 +99,7 @@ public class GuiHandler implements KeyListener {
 //            dirty = false;
 //        }
 
-        System.out.println("Saving disabled for now.");
+        LoggerUtil.print("Saving disabled for now.");
     }
 
     public void markDirty() {

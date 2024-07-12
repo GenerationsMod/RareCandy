@@ -1,10 +1,16 @@
 package gg.generations.rarecandy.tools;
 
-import java.io.*;
-import java.nio.file.Files;
+import gg.generations.rarecandy.renderer.LoggerUtil;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class ModelGlbComparator {
 
@@ -73,9 +79,9 @@ public class ModelGlbComparator {
         Map<String, Set<String>> identicalModelsMap = compareModelGlbFiles(mainFolderPath);
 
         // Organize folder names based on identical model.glb files
-        System.out.println("Folders with Identical model.glb Files:");
+        LoggerUtil.print("Folders with Identical model.glb Files:");
         for (Set<String> folders : identicalModelsMap.values()) {
-            System.out.println("Folders: " + folders);
+            LoggerUtil.print("Folders: " + folders);
         }
     }
 }

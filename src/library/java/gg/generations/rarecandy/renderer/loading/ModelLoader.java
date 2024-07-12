@@ -9,6 +9,7 @@ import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
+import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
@@ -124,8 +125,8 @@ public class ModelLoader {
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
-                e.printStackTrace();
+                LoggerUtil.printError("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
+                LoggerUtil.printError(e);
             }
         }
 

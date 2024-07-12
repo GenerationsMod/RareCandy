@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.tools;
 
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
+import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.loading.ITexture;
 import gg.generations.rarecandy.renderer.loading.Texture;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
@@ -30,9 +31,9 @@ public class TextureLoader extends ITextureLoader {
             long duration = (endTime - startTime) / 1000000;
 
             if (texture != null) {
-                System.out.println("Loaded texture: ID = " + name + " in = " + duration + " ms");
+                LoggerUtil.print("Loaded texture: ID = " + name + " in = " + duration + " ms");
             } else {
-                System.err.println("Failed to load texture: ID = " + name + " (texture is null)");
+                LoggerUtil.printError("Failed to load texture: ID = " + name + " (texture is null)");
             }
             return texture;
         });
@@ -45,7 +46,7 @@ public class TextureLoader extends ITextureLoader {
             ITexture texture = Texture.read(data, fileName);
             long endTime = System.nanoTime();
             long duration = (endTime - startTime) / 1000000;
-            System.out.println("Loaded texture data for: ID = " + id + " in = " + duration + " ms");
+            LoggerUtil.print("Loaded texture data for: ID = " + id + " in = " + duration + " ms");
             register(id, texture);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -70,7 +71,7 @@ public class TextureLoader extends ITextureLoader {
             ITexture texture = Texture.read(is.readAllBytes(), path);
             long endTime = System.nanoTime();
             long duration = (endTime - startTime) / 1000000;
-            System.out.println("Loaded direct reference for: Path = " + path + ", Load Time = " + duration + " ms");
+            LoggerUtil.print("Loaded direct reference for: Path = " + path + ", Load Time = " + duration + " ms");
             return texture;
         } catch (IOException e) {
             throw new RuntimeException(e);

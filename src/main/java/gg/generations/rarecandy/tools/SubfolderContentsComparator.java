@@ -1,13 +1,12 @@
 package gg.generations.rarecandy.tools;
 
+import gg.generations.rarecandy.renderer.LoggerUtil;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import java.io.File;
-import java.util.*;
 
 public class SubfolderContentsComparator {
 
@@ -48,10 +47,10 @@ public class SubfolderContentsComparator {
             uniqueFilesMap.put(entry.getKey(), uniqueFiles);
         }
 
-        System.out.println("Common Files: " + commonFiles);
-        System.out.println("Unique Files per Subfolder:");
+        LoggerUtil.print("Common Files: " + commonFiles);
+        LoggerUtil.print("Unique Files per Subfolder:");
         for (Map.Entry<String, Set<String>> entry : uniqueFilesMap.entrySet()) {
-            System.out.println("Subfolder: " + entry.getKey() + ", Unique Files: " + entry.getValue());
+            LoggerUtil.print("Subfolder: " + entry.getKey() + ", Unique Files: " + entry.getValue());
         }
     }
 

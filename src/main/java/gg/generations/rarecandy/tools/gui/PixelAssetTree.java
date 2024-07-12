@@ -56,12 +56,27 @@ public class PixelAssetTree extends JTree {
                         default ->
                                 new TreeNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
                     }
-                else if (path.getParentPath() != null)
-                    if (path.getParentPath().getLastPathComponent().toString().equals("animations")) {
-                        PixelAssetTree.this.gui.handler.getCanvas().setAnimation(path.getLastPathComponent().toString().replace(".tranm", "").replace(".smd", "").replace(".gfbanm", ""));
-                    } else if (path.getParentPath().getLastPathComponent().toString().equals("variants")) {
-                        PixelAssetTree.this.gui.handler.getCanvas().setVariant(path.getLastPathComponent().toString());
+                else if (path.getParentPath() != null) {
+                    var node = path.getParentPath().getLastPathComponent().toString();
+
+                    switch (node) {
+                        case "animations" -> PixelAssetTree.this.gui.handler.getCanvas().setAnimation(path.getLastPathComponent().toString().replace(".tranm", "").replace(".smd", "").replace(".gfbanm", ""));
+                        case "variants" -> PixelAssetTree.this.gui.handler.getCanvas().setVariant(path.getLastPathComponent().toString());
+                        case "objects" -> {
+                            var object1 = path.getLastPathComponent();
+
+                            var object = object1.toString();
+                            var add = object.startsWith("-");
+
+                            if(add) object = object.substring(1);
+
+                            if(object1 instanceof DefaultMutableTreeNode) {
+                                PixelAssetTree.this.gui.handler.getCanvas().toggleObject(add, object);
+                                ((DefaultMutableTreeNode) object1).setUserObject(!add ? "-" + object : object);
+                            }
+                        }
                     }
+                }
             }
         });
 
@@ -81,6 +96,8 @@ public class PixelAssetTree extends JTree {
         var imagesNode = node("images");
 
         List<String> variants = asset.getConfig() != null && asset.getConfig().variants != null ? List.copyOf(asset.getConfig().variants.keySet()) : new ArrayList<>();
+
+        var objs = asset.getConfig().defaultVariant.keySet();
 
         Set<String> animationStrings = new HashSet<>();
 
@@ -126,6 +143,12 @@ public class PixelAssetTree extends JTree {
             for (var name : variants) modelAnimationsNode.add(node(name));
             tree.add(modelAnimationsNode);
         }
+
+        var modelAnimationsNode = node("objects");
+        for (var name : objs) modelAnimationsNode.add(node(name));
+        tree.add(modelAnimationsNode);
+
+
         setEditable(true);
         setModel(new DefaultTreeModel(tree));
     }

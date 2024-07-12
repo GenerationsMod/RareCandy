@@ -8,6 +8,7 @@ import gg.generations.rarecandy.renderer.animation.AnimationInstance;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
+import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.rendering.FrameBuffer;
@@ -27,12 +28,12 @@ import org.lwjgl.opengl.awt.GLData;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -42,7 +43,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public static Matrix4f projectionMatrix;
     public static float radius = 2.0f;
 
-    private ModelLoader loader = new ModelLoader();
+    private final ModelLoader loader = new ModelLoader();
 
     private static float lightLevel = 1;
     private static double time;
@@ -57,7 +58,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     private MultiRenderObject<MeshObject> plane;
     private ObjectInstance planeInstance;
 
-    public MultiRenderObject<AnimatedMeshObject> loadedModel;
+    public ToggleableMultiRenderObject loadedModel;
     public AnimatedObjectInstance loadedModelInstance;
     private static float previousLightLevel;
     private String fileName;
@@ -135,10 +136,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         if(pkFile == null) return;
 
-        loadPokemonModel(renderer, pkFile, model -> {
+        loadPokemonModel(pkFile, model -> {
             var i = 0;
 
-            loadedModel = model;
+            loadedModel = (ToggleableMultiRenderObject) model;
             var variants = model.availableVariants();
 
             var variant = !variants.isEmpty() ? variants.iterator().next() : null;
@@ -175,9 +176,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
         return loader.generateScreenQuad(onFinish);
     }
 
-    private Vector3f size = new Vector3f();
+    private final Vector3f size = new Vector3f();
 
-    private double fraciton = 1/16f;
+    private final double fraciton = 1/16f;
     @Override
     public void paintGL() {
         if (loadedModelInstance != null) {
@@ -191,7 +192,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
         if (runnable != null) runnable.pre();
 
         renderToFramebuffer();
-//        screenRenderer.render();
         renderToScreen();
 
         if (runnable != null) runnable.post();
@@ -219,7 +219,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         }
     }
 
-    private int[] originalViewport = new int[4]; // Array to store x, y, width, height
+    private final int[] originalViewport = new int[4]; // Array to store x, y, width, height
 
     private void renderToFramebuffer() {
         framebuffer.bindFramebuffer();
@@ -255,19 +255,16 @@ public class RareCandyCanvas extends AWTGLCanvas {
         return new AnimationInstance(animation);
     }
 
-    protected void loadPokemonModel(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
-        load(renderer, is, onFinish, AnimatedMeshObject::new);
-    }
-
-    protected <T extends MeshObject> void load(RareCandy renderer, PixelAsset is, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
+    protected void loadPokemonModel(PixelAsset is, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
         loader.createObject(
+                ToggleableMultiRenderObject::new,
                 () -> is,
                 (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, glCalls, supplier);
+                    ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, glCalls, AnimatedMeshObject::new);
                     return glCalls;
                 },
-                onFinish
+                animatedMeshObjectMultiRenderObject -> onFinish.accept((ToggleableMultiRenderObject) animatedMeshObjectMultiRenderObject)
         );
     }
 
@@ -295,6 +292,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
         this.addMouseWheelListener(arcballOrbit);
         this.addMouseListener(arcballOrbit);
         this.addKeyListener(arcballOrbit);
+    }
+
+    public void toggleObject(boolean add, String object) {
+        if(add) loadedModel.overrides.add(object);
+        else loadedModel.overrides.remove(object);
     }
 
     public class ArcballOrbit implements MouseMotionListener, MouseWheelListener, MouseListener, KeyListener {
@@ -391,7 +393,13 @@ public class RareCandyCanvas extends AWTGLCanvas {
                     case KeyEvent.VK_DOWN -> centerOffset.z -= lateralStep;
                     case KeyEvent.VK_PAGE_UP -> centerOffset.y += lateralStep;
                     case KeyEvent.VK_PAGE_DOWN -> centerOffset.y -= lateralStep;
-                    case KeyEvent.VK_ENTER -> RareCandyCanvas.this.takeScreenshot();
+                    case KeyEvent.VK_ENTER -> {
+                        try {
+                            RareCandyCanvas.this.takeScreenshot();
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
                     case KeyEvent.VK_OPEN_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.max(lightLevel - 0.01, 0));
                     case KeyEvent.VK_CLOSE_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.min(lightLevel + 0.01, 1));
                     case KeyEvent.VK_PERIOD -> {
@@ -409,28 +417,16 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     public static final Path images = Path.of("images");
 
-    public void takeScreenshot() {
+    public void takeScreenshot() throws IOException {
+        var path = images.resolve(fileName);
+        if(Files.notExists(path)) Files.createDirectories(path);
 
-//        // Save the buffered image to a file
-//        try {
-//
-//            if(Files.notExists(images)) Files.createDirectory(images);
-//            BufferedImage img = new Robot().createScreenCapture(new Rectangle(
-//                    this.getLocationOnScreen().x,
-//                    this.getLocationOnScreen().y,
-//                    this.getWidth(),
-//                    this.getHeight()));
-//
-//            var temp = fileName + "-" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default");
-//            ImageIO.write(img, "png", images.resolve(temp + ".png").toFile());
-//            System.out.println("Screenshot saved to " + temp);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (AWTException e) {
-//            throw new RuntimeException(e);
-//        }
-        var temp = fileName + "-" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default") + ".png";
+        var temp = images + "/" + fileName + "/" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default") + ".png";
         framebuffer.captureScreenshot(temp);
+
+            System.out.println("Screenshot saved to " + temp);
+
+
     }
 
     public class CycleVariants  {
@@ -456,8 +452,34 @@ public class RareCandyCanvas extends AWTGLCanvas {
         }
 
         public void post() {
-            RareCandyCanvas.this.takeScreenshot();
+            try {
+                RareCandyCanvas.this.takeScreenshot();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             index += 1;
+        }
+    }
+
+    public static class ToggleableMultiRenderObject extends MultiRenderObject<AnimatedMeshObject> {
+        public List<String> overrides = new ArrayList<>();
+
+        @Override
+        public <V extends RenderObject> void render(List<ObjectInstance> instances, V obj) {
+            for (var object : this.objects) {
+                if (object != null && !overrides.contains(object.name) && object.isReady()) {
+                    object.render(instances, object);
+                }
+            }
+        }
+
+        @Override
+        public <V extends RenderObject> void render(ObjectInstance instance, V obj) {
+            for (var object : this.objects) {
+                if (object != null && !overrides.contains(object.name) && object.isReady()) {
+                    object.render(instance, object);
+                }
+            }
         }
     }
 }

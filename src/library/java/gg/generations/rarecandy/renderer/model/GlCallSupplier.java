@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @FunctionalInterface
-public interface GlCallSupplier<T extends RenderObject> {
+public interface GlCallSupplier<T extends RenderObject, V extends MultiRenderObject<T>> {
 
-    List<Runnable> getCalls(PixelAsset model, Map<String, SMDFile> smdFiles, Map<String, byte[]> gfbamnFiles, Map<String, Pair<byte[], byte[]>> trFiles, Map<String, String> imageFiles, ModelConfig config, MultiRenderObject<T> mro);
+    List<Runnable> getCalls(PixelAsset model, Map<String, SMDFile> smdFiles, Map<String, byte[]> gfbamnFiles, Map<String, Pair<byte[], byte[]>> trFiles, Map<String, String> imageFiles, ModelConfig config, V mro);
 }

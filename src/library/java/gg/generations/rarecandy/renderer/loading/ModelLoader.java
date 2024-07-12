@@ -71,7 +71,7 @@ public class ModelLoader {
             Attribute.BONE_WEIGHTS
     );
 
-    public static <T extends MeshObject> void create2(MultiRenderObject<T> objects, PixelAsset asset, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
+    public static <T extends MeshObject, V extends MultiRenderObject<T>> void create2(V objects, PixelAsset asset, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
         if (config == null) throw new RuntimeException("config.json can't be null.");
 
         Map<String, NodeProvider> animationNodeMap = new HashMap<>();
@@ -552,8 +552,12 @@ public class ModelLoader {
         }
     }
 
-    public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
-        var obj = new MultiRenderObject<T>();
+    public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T, MultiRenderObject<T>> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
+        return createObject(MultiRenderObject::new, is, objectCreator, onFinish);
+    }
+
+    public <T extends RenderObject, V extends MultiRenderObject<T>> V createObject(Supplier<V> supplier, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T, V> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
+        V obj = supplier.get();
         var task = threadedCreateObject(obj, is, objectCreator, onFinish);
         if (RareCandy.DEBUG_THREADS) task.run();
         else modelLoadingPool.submit(task);
@@ -592,7 +596,7 @@ public class ModelLoader {
         return pair.b();
     }
 
-    private <T extends RenderObject> Runnable threadedCreateObject(MultiRenderObject<T> obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
+    private <T extends RenderObject, V extends MultiRenderObject<T>> Runnable threadedCreateObject(V obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T, V> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
         return ThreadSafety.wrapException(() -> {
             var asset = is.get();
             var config = asset.getConfig();

@@ -24,9 +24,11 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 import org.lwjgl.opengl.awt.GLData;
+import org.lwjgl.util.nfd.NativeFileDialog;
 
 import javax.swing.*;
-import java.awt.event.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,13 +47,14 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     private final ModelLoader loader = new ModelLoader();
 
-    private static float lightLevel = 1;
+    public static float lightLevel = 1;
     private static double time;
     public static FrameBuffer framebuffer;
 
     public final Matrix4f viewMatrix = new Matrix4f();
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
     private final int scaleModifier = 0;
+    private final PokeUtilsGui handler;
     public double startTime = System.currentTimeMillis();
     public String currentAnimation = null;
     private RareCandy renderer;
@@ -62,9 +65,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public AnimatedObjectInstance loadedModelInstance;
     private static float previousLightLevel;
     private String fileName;
-    private boolean cycling;
+    public static boolean cycling;
     private ScreenRenderer screenRenderer;
-    private static boolean animate = true;
+    public static boolean animate = true;
+    public static boolean renderingFrame;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
@@ -75,14 +79,19 @@ public class RareCandyCanvas extends AWTGLCanvas {
         return lightLevel;
     }
 
-    public RareCandyCanvas() {
+    public RareCandyCanvas(PokeUtilsGui handler) {
         super(defaultData());
+        this.handler = handler;
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
             }
         });
+
+        NativeFileDialog.NFD_Init();
+        root = DialogueUtils.chooseFolder();
+        if(root == null) root = Path.of("pack");
     }
 
     private static GLData defaultData() {
@@ -100,7 +109,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public static void setup(RareCandyCanvas canvas) {
-        canvas.attachArcBall();
 
         ITextureLoader.setInstance(new TextureLoader());
 
@@ -126,12 +134,13 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public void openFile(PixelAsset pkFile, String name) throws IOException {
-        openFile(pkFile, name, () -> {});
+        openFile(pkFile, name, () -> {}, true);
     }
 
-    public void openFile(PixelAsset pkFile, String name, Runnable runnable) throws IOException {
+    public void openFile(PixelAsset pkFile, String name, Runnable runnable, boolean resetAnimation) throws IOException {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
+        renderer.objectManager.add(plane, planeInstance);
         if(loadedModel != null) loadedModel.close();
 
         this.fileName = name;
@@ -150,6 +159,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
             loadedModelInstance = renderer.objectManager.add(model, instance);
             model.updateDimensions();
             runnable.run();
+
+            if(resetAnimation) setAnimation("idle");
+
         });
     }
 
@@ -170,12 +182,12 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         loadPlane(100, 100, model -> {
             plane = model;
-            planeInstance = new ObjectInstance(new Matrix4f(), viewMatrix, null);
+            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));
         });
     }
 
     private MultiRenderObject<MeshObject> loadPlane(int width, int length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
-        return loader.generateScreenQuad(onFinish);
+        return loader.generatePlane(width, length, onFinish);
     }
 
     private final Vector3f size = new Vector3f();
@@ -224,6 +236,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     private final int[] originalViewport = new int[4]; // Array to store x, y, width, height
 
     private void renderToFramebuffer() {
+        renderingFrame = true;
         framebuffer.bindFramebuffer();
 
         glGetIntegerv(GL_VIEWPORT, originalViewport);
@@ -239,6 +252,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         framebuffer.unbindFramebuffer();
 
         glViewport(originalViewport[0], originalViewport[1], originalViewport[2], originalViewport[3]);
+        renderingFrame = false;
     }
 
     private void renderToScreen() {
@@ -248,6 +262,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClearColor(1f, 1f, 1f, 1f); // Ensure alpha is set to 0 for transparency
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 
+//        ObjectManager.render(plane, planeInstance);
         renderer.render(false, time);
 
 //        BlendType.Regular.disable();
@@ -273,8 +288,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public void setAnimation(@NotNull String animation) {
         AnimatedMeshObject object = loadedModel.objects.get(0);
 
-        if (object.animations != null)
-            LoggerUtil.print(animation);
+//        if (object.animations != null)
+//            LoggerUtil.print(animation);
         if (Objects.requireNonNull(object.animations).containsKey(animation)) {
             loadedModelInstance.changeAnimation(createInstance(object.animations.get(animation)));
         }
@@ -288,12 +303,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
         loadedModelInstance.setVariant(variant);
     }
 
-    public void attachArcBall() {
-        var arcballOrbit = new ArcballOrbit(viewMatrix, 3f, 0.125f, 0f);
+    public void attachArcBall(GuiHandler.ArcballOrbit arcballOrbit) {
         this.addMouseMotionListener(arcballOrbit);
         this.addMouseWheelListener(arcballOrbit);
         this.addMouseListener(arcballOrbit);
-        this.addKeyListener(arcballOrbit);
     }
 
     public void toggleObject(boolean add, String object) {
@@ -301,142 +314,33 @@ public class RareCandyCanvas extends AWTGLCanvas {
         else loadedModel.overrides.remove(object);
     }
 
-    public class ArcballOrbit implements MouseMotionListener, MouseWheelListener, MouseListener, KeyListener {
-        private final Matrix4f viewMatrix;
-        private float radius;
-        private float angleX;
-        private float angleY;
-        private int lastX, lastY;
-        private float offsetX, offsetY;
 
-        private final Vector3f centerOffset = new Vector3f();
+    public static final Path images = Path.of("assets", "generations_core", "textures", "pokemon");
 
-        public ArcballOrbit(Matrix4f viewMatrix, float radius, float angleX, float angleY) {
-            this.viewMatrix = viewMatrix;
-            this.radius = radius;
-            this.angleX = angleX;
-            this.angleY = angleY;
-            update();
-        }
+    private Path root;
 
-        public void update() {
-            viewMatrix.identity().arcball(radius, centerOffset.x, centerOffset.y, centerOffset.z, (angleY + offsetY) * (float) Math.PI * 2f, (angleX + offsetX) * (float) Math.PI * 2f);
-        }
-
-        @Override
-        public void mouseDragged(MouseEvent e) {
-            int x = e.getX();
-            int y = e.getY();
-            offsetX = (x - lastX) * 0.001f;
-            offsetY = (y - lastY) * 0.001f;
-            update();
-        }
-
-        @Override
-        public void mouseMoved(MouseEvent e) {
-
-        }
-
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e) {
-            int scrollAmount = e.getWheelRotation();
-            radius += scrollAmount * 0.1f;
-            update();
-        }
-
-        @Override
-        public void mouseClicked(MouseEvent e) {
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e) {
-            offsetX = 0;
-            offsetY = 0;
-
-            lastX = e.getX();
-            lastY = e.getY();
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            angleX += offsetX;
-            angleY += offsetY;
-            offsetX = 0;
-            offsetY = 0;
-            lastX = 0;
-            lastY = 0;
-
-            update();
-        }
-
-        @Override
-        public void mouseEntered(MouseEvent e) {
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-        }
-
-        @Override
-        public void keyTyped(KeyEvent e) {
-
-        }
-
-        @Override
-        public void keyPressed(KeyEvent e) {
-            float lateralStep = 0.01f; // Adjust the step size as needed
-
-            if(!RareCandyCanvas.this.cycling) {
-
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_LEFT -> centerOffset.x -= lateralStep;
-                    case KeyEvent.VK_RIGHT -> centerOffset.x += lateralStep;
-                    case KeyEvent.VK_UP -> centerOffset.z += lateralStep;
-                    case KeyEvent.VK_DOWN -> centerOffset.z -= lateralStep;
-                    case KeyEvent.VK_PAGE_UP -> centerOffset.y += lateralStep;
-                    case KeyEvent.VK_PAGE_DOWN -> centerOffset.y -= lateralStep;
-                    case KeyEvent.VK_ENTER -> {
-                        try {
-                            RareCandyCanvas.this.takeScreenshot();
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    }
-                    case KeyEvent.VK_OPEN_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.max(lightLevel - 0.01, 0));
-                    case KeyEvent.VK_CLOSE_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.min(lightLevel + 0.01, 1));
-                    case KeyEvent.VK_PERIOD -> {
-                        new CycleVariants();
-                    }
-                    case KeyEvent.VK_SPACE -> RareCandyCanvas.animate = !RareCandyCanvas.animate;
-                }
-
-                update();
-            }
-        }
-        @Override
-        public void keyReleased(KeyEvent e) {
-        }
-    }
-
-    public static final Path images = Path.of("pack", "assets", "generations_core", "textures", "pokemon");
-
-    public void takeScreenshot() throws IOException {
-        var path = images.resolve(fileName);
+    public void takeScreenshot(boolean isPortrait) throws IOException {
+        var path = root.resolve(fileName);
         if(Files.notExists(path)) Files.createDirectories(path);
 
-        var temp = images + "/" + fileName + "/" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default") + ".png";
-        framebuffer.captureScreenshot(temp);
+        var temp = path + "/" + (isPortrait ? "portrait" : "profile") + "/" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default") + ".png";
+        framebuffer.captureScreenshot(temp, isPortrait);
 
         LoggerUtil.print("Screenshot saved to " + temp);
     }
 
-    public class CycleVariants  {
-        private final List<String> list;
+    public static class CycleVariants  {
+        private final RareCandyCanvas canvas;
+        private final boolean isPortrait;
+        private List<String> list;
         private int index;
 
-        public CycleVariants() {
-            RareCandyCanvas.this.cycling = true;
-            list = List.copyOf(loadedModel.availableVariants());
+        public CycleVariants(RareCandyCanvas canvas, boolean isPortrait) {
+            this.canvas = canvas;
+            this.isPortrait = isPortrait;
+            if(canvas.loadedModel == null) return;
+            RareCandyCanvas.cycling = true;
+            list = List.copyOf(canvas.loadedModel.availableVariants());
 
             if(list.size() == 0) return;
 
@@ -448,13 +352,13 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 RareCandyCanvas.runnable = null;
                 cycling = false;
             } else {
-                loadedModelInstance.setVariant(list.get(index));
+                canvas.loadedModelInstance.setVariant(list.get(index));
             }
         }
 
         public void post() {
             try {
-                RareCandyCanvas.this.takeScreenshot();
+                canvas.takeScreenshot(isPortrait);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

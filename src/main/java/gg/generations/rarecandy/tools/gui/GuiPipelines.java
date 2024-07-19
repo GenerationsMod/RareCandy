@@ -62,6 +62,7 @@ public class GuiPipelines {
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
             .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
             .supplyUniform("radius", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.radius))
+            .supplyUniform("render", ctx -> ctx.uniform().uploadBoolean(RareCandyCanvas.renderingFrame))
             .prePostDraw(material -> BlendType.Regular.enable(), material -> BlendType.Regular.disable())
             .shader(builtin("animated/plane.vs.glsl"), builtin("animated/plane.fs.glsl")).build();
 

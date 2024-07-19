@@ -12,12 +12,16 @@ uniform float lightLevel;
 
 uniform float radius;
 
+uniform bool render;
+
 float smoothLightDropOff(float distance, float startDistance, float endDistance, float initialIntensity, float finalIntensity) {
     float dropOffFactor = smoothstep(startDistance, endDistance, distance);
     return mix(initialIntensity, finalIntensity, dropOffFactor);
 }
 
 void main() {
+    if(render) discard;
+
     vec3 black = vec3(0.065, 0.305, 0.418);
     vec3 white = vec3(0.018, 0.162, 0.235);
     vec3 color = black;

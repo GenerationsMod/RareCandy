@@ -4,7 +4,6 @@ import com.github.weisj.darklaf.LafManager;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.tools.TextureLoader;
-import org.lwjgl.opengl.awt.AWTGLCanvas;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,15 +14,8 @@ public class PokeUtilsGui extends JPanel {
     public GuiHandler handler;
     public JTree fileViewer;
     public JPanel canvasPanel;
-    private AWTGLCanvas renderingWindow;
-    // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
-    private JMenuBar toolbar;
-    private JMenu file;
-    private JMenuItem openArchive;
-    private JMenuItem createArchive;
-    private JMenuItem save;
-    private JMenuItem saveAs;
-    private JScrollPane scrollPane1;
+    private RareCandyCanvas renderingWindow;
+
     public PokeUtilsGui() {
         ITextureLoader.setInstance(new TextureLoader());
         LafManager.install(LafManager.themeForPreferredStyle(LafManager.getPreferredThemeStyle()));
@@ -31,24 +23,6 @@ public class PokeUtilsGui extends JPanel {
         canvasPanel.add(renderingWindow);
         fileViewer.setFocusable(true);
         canvasPanel.setFocusable(true);
-        openArchive.addActionListener(e -> {
-            var chosenFile = DialogueUtils.chooseFile("PK;pk");
-            if (chosenFile != null) handler.openAsset(chosenFile);
-        });
-        createArchive.addActionListener(e -> {
-            var chosenFile = DialogueUtils.chooseFile("GLB;glb");
-            if (chosenFile != null) handler.convertGlb(chosenFile);
-        });
-
-        save.addActionListener(e -> handler.save());
-
-        saveAs.addActionListener(e -> {
-            var chosenFile = DialogueUtils.saveFile("PK;pk");
-            if (chosenFile != null) {
-                handler.markDirty();
-                handler.save(chosenFile);
-            }
-        });
 
         PipelineRegistry.setFunction(s-> switch(s) {
             case "masked" -> GuiPipelines.MASKED;
@@ -88,22 +62,32 @@ public class PokeUtilsGui extends JPanel {
     private void createUIComponents() {
 //        System.load("C:/Program Files/RenderDoc/renderdoc.dll");
         this.fileViewer = new PixelAssetTree(this);
-        this.renderingWindow = new RareCandyCanvas();
+        this.renderingWindow = new RareCandyCanvas(this);
     }
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 
     private void initComponents() {
-        // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
         createUIComponents();
 
-        toolbar = new JMenuBar();
-        file = new JMenu();
-        openArchive = new JMenuItem();
-        createArchive = new JMenuItem();
-        save = new JMenuItem();
-        saveAs = new JMenuItem();
+        var toolbar = new AdvancedMenuBar(29, 20, ComponentOrientation.LEFT_TO_RIGHT).addMenu("File").addMenuItem("Open Archive (.pk)", e -> {
+            var chosenFile = DialogueUtils.chooseFile("PK;pk");
+            if (chosenFile != null) handler.openAsset(chosenFile);
+        }).addMenuItem("Create Archive (.glb)", e -> {
+            var chosenFile = DialogueUtils.chooseFile("GLB;glb");
+            if (chosenFile != null) handler.convertGlb(chosenFile);
+        }).addMenuItem("Open Multiple Archives in sequence (.pk)", e -> {
+            var chosenFiles = DialogueUtils.chooseMultipleFiles("PK;pk");
+            if (chosenFiles != null) handler.openAsset(chosenFiles);
+        }).addMenuItem("Save", e -> handler.save()).addMenuItem("Save As", e -> {
+            var chosenFile = DialogueUtils.saveFile("PK;pk");
+            if (chosenFile != null) {
+                handler.markDirty();
+                handler.save(chosenFile);
+            }
+        }).finish();
         var splitPane1 = new JSplitPane();
-        scrollPane1 = new JScrollPane();
+        // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
+        JScrollPane scrollPane1 = new JScrollPane();
         canvasPanel = new JPanel();
 
         //======== this ========
@@ -111,35 +95,6 @@ public class PokeUtilsGui extends JPanel {
         setMaximumSize(null);
         setLayout(new BorderLayout());
 
-        //======== toolbar ========
-        {
-            toolbar.setMaximumSize(new Dimension(29, 20));
-            toolbar.setMinimumSize(new Dimension(29, 20));
-            toolbar.setPreferredSize(new Dimension(29, 20));
-            toolbar.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-
-            //======== file ========
-            {
-                file.setText("File");
-
-                //---- openArchive ----
-                openArchive.setText("Open Archive (.pk)    ");
-                file.add(openArchive);
-
-                //---- convertGlb ----
-                createArchive.setText("Create Archive (.glb)    ");
-                file.add(createArchive);
-
-                //---- save ----
-                save.setText("Save");
-                file.add(save);
-
-                //---- saveAs ----
-                saveAs.setText("Save As");
-                file.add(saveAs);
-            }
-            toolbar.add(file);
-        }
         add(toolbar, BorderLayout.NORTH);
 
         //======== splitPane1 ========

@@ -31,7 +31,7 @@ public class TextureLoader extends ITextureLoader {
             long duration = (endTime - startTime) / 1000000;
 
             if (texture != null) {
-                LoggerUtil.print("Loaded texture: ID = " + name + " in = " + duration + " ms");
+//                LoggerUtil.print("Loaded texture: ID = " + name + " in = " + duration + " ms");
             } else {
                 LoggerUtil.printError("Failed to load texture: ID = " + name + " (texture is null)");
             }

@@ -61,6 +61,27 @@ public class PixelAsset {
         load(path);
     }
 
+    public PixelAsset(Map<String, byte[]> map, String name) {
+        this.name = name;
+
+        for (var entry : map.entrySet()) {
+            if(entry.getKey().endsWith(".glb")) {
+                this.modelName = entry.getKey();
+            } else if(entry.getKey().equals("config.json")) {
+                var json = new String(entry.getValue());
+
+                config = GSON.fromJson(json, ModelConfig.class);
+            }
+
+            files.put(entry.getKey(), entry.getValue());
+        }
+
+
+
+        updateSettings();
+
+    }
+
     public void load(Path dir) {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
             for (Path entry : stream) {

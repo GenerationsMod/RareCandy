@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.tools.pixelmonTester;
 
-import gg.generations.rarecandy.pokeutils.LoosePixelAsset;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
@@ -13,8 +12,6 @@ import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import org.joml.Matrix4f;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -63,19 +60,19 @@ public class PokemonTest {
 //        });
     }
 
-    private PixelAsset getAsset() {
-        try {
-            try (var files = Files.list(path)) {
-                return new LoosePixelAsset(
-                        path,
-                        Paths.get(path.getFileName().toString() + ".glb"),
-                        files.toArray(Path[]::new)
-                );
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Fuck", e);
-        }
-    }
+//    private PixelAsset getAsset() {
+//        try {
+//            try (var files = Files.list(path)) {
+//                return new LoosePixelAsset(
+//                        path,
+//                        Paths.get(path.getFileName().toString() + ".glb"),
+//                        files.toArray(Path[]::new)
+//                );
+//            }
+//        } catch (IOException e) {
+//            throw new RuntimeException("Fuck", e);
+//        }
+//    }
 
     protected <T extends MeshObject> void load(RareCandy renderer, Supplier<PixelAsset> asset, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         loader.createObject(

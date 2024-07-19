@@ -65,9 +65,10 @@ public class FrameBuffer implements ITexture {
         GL30.glDeleteRenderbuffers(rbo);
     }
 
-    public void captureScreenshot(String filePath) {
-        var newWidth = (width/2);
-        var newHeight = (height/2);
+    public void captureScreenshot(String filePath, boolean isPortrait) {
+        var scale = isPortrait ? 2 : 4;
+        var newWidth = (width / scale);
+        var newHeight = (height / scale);
 
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, framebufferId);
         ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * 4);

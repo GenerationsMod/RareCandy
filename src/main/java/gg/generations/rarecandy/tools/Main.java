@@ -1,8 +1,5 @@
 package gg.generations.rarecandy.tools;
 
-import gg.generations.rarecandy.pokeutils.Pair;
-import gg.generations.rarecandy.pokeutils.PixelAsset;
-import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
 import gg.generations.rarecandy.tools.pkcreator.Convert;
@@ -12,12 +9,10 @@ import gg.generations.rarecandy.tools.pokemodding.QuaternionConverterGUI;
 import gg.generations.rarecandy.tools.swsh.EyeTexture;
 import gg.generations.rarecandy.tools.swsh.LongBoi;
 import gg.generations.rarecandy.tools.swsh.MouthTexture;
-import org.lwjgl.util.nfd.NativeFileDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 
 import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
@@ -43,28 +38,28 @@ public class Main {
         }
     }
 
-    private static void modelViewer(String[] strings) {
-        NativeFileDialog.NFD_Init();
-
-        new ModelViewer(pairConsumer -> ModelViewer.createFrame("Load pk or folder?", "PK", () -> {
-            var path = DialogueUtils.chooseFile("PK;pk");
-
-            if (path != null) {
-                try (var is = Files.newInputStream(path)) {
-                    return new Pair<>(path, new PixelAsset(is, path.getFileName().toString()));
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            } else {
-                return null;
-            }
-            }, "Folder", () -> {
-            var path = DialogueUtils.chooseFolder();
-
-                return path != null ? new Pair<>(path, new PixelAsset(path)) : null;
-            }, pairConsumer), true);
-
-    }
+//    private static void modelViewer(String[] strings) {
+//        NativeFileDialog.NFD_Init();
+//
+//        new ModelViewer(pairConsumer -> ModelViewer.createFrame("Load pk or folder?", "PK", () -> {
+//            var path = DialogueUtils.chooseFile("PK;pk");
+//
+//            if (path != null) {
+//                try (var is = Files.newInputStream(path)) {
+//                    return new Pair<>(path, new PixelAsset(is, path.getFileName().toString()));
+//                } catch (IOException ex) {
+//                    throw new RuntimeException(ex);
+//                }
+//            } else {
+//                return null;
+//            }
+//            }, "Folder", () -> {
+//            var path = DialogueUtils.chooseFolder();
+//
+//                return path != null ? new Pair<>(path, new PixelAsset(path)) : null;
+//            }, pairConsumer), true);
+//
+//    }
 
 //    private static void smdToGfbanm(String[] strings) {
 //        try {

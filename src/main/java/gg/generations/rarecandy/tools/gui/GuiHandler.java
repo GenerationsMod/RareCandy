@@ -162,7 +162,7 @@ public class GuiHandler implements KeyListener {
 //            }
         } else if(isShiftPressed) {
             switch (code) {
-                case KeyEvent.VK_PRINTSCREEN -> {
+                case KeyEvent.VK_P -> {
                     new RareCandyCanvas.CycleVariants(getCanvas(), true);
                 }
                 case KeyEvent.VK_O -> {
@@ -179,8 +179,8 @@ public class GuiHandler implements KeyListener {
             }
         } else {
             switch (code) {
-                case KeyEvent.VK_PRINTSCREEN -> {
-                    new RareCandyCanvas.CycleVariants(getCanvas(), true);
+                case KeyEvent.VK_P -> {
+                    new RareCandyCanvas.CycleVariants(getCanvas(), false);
                 }
                 case KeyEvent.VK_O -> {
                     Path chosenFile;

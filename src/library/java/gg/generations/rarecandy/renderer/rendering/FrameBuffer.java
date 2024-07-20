@@ -5,10 +5,14 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
-import org.lwjgl.stb.STBImageResize;
-import org.lwjgl.stb.STBImageWrite;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class FrameBuffer implements ITexture {
     private final int framebufferId;
@@ -65,20 +69,59 @@ public class FrameBuffer implements ITexture {
         GL30.glDeleteRenderbuffers(rbo);
     }
 
-    public void captureScreenshot(String filePath, boolean isPortrait) {
-        var scale = isPortrait ? 2 : 4;
-        var newWidth = (width / scale);
-        var newHeight = (height / scale);
+//    public boolean captureScreenshot(Path filePath, boolean isPortrait) throws IOException {
+//        if (Files.notExists(filePath)) Files.createDirectories(filePath);
+//
+//        var scale = isPortrait ? 2 : 4;
+//        var newWidth = (width / scale);
+//        var newHeight = (height / scale);
+//
+//        GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, framebufferId);
+//        ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * 4);
+//        GL11.glReadPixels(0, 0, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
+//        ByteBuffer resizedBuffer = BufferUtils.createByteBuffer(newWidth * newHeight * 4);
+//        STBImageResize.stbir_resize_uint8(buffer, width, height, 0, resizedBuffer, newWidth, newHeight, 0, 4);
+//        STBImageWrite.stbi_flip_vertically_on_write(true);
+//        var result = STBImageWrite.stbi_write_png(filePath.toString(), newWidth, newHeight, 4, resizedBuffer, newWidth * 4);
+//        GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
+//        return result;
+//    }
+
+    public boolean captureScreenshot(Path filePath, boolean isPortrait) throws IOException {
+        if (Files.notExists(filePath)) Files.createDirectories(filePath);
+        int scale = isPortrait ? 2 : 4;
+        int newWidth = width / scale;
+        int newHeight = height / scale;
 
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, framebufferId);
         ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * 4);
         GL11.glReadPixels(0, 0, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
-        ByteBuffer resizedBuffer = BufferUtils.createByteBuffer(newWidth * newHeight * 4);
-        STBImageResize.stbir_resize_uint8(buffer, width, height, 0, resizedBuffer, newWidth, newHeight, 0, 4);
-        STBImageWrite.stbi_flip_vertically_on_write(true);
-        STBImageWrite.stbi_write_png(filePath, newWidth, newHeight, 4, resizedBuffer, newWidth * 4);
 
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int i = (x + (width * y)) * 4;
+                int r = buffer.get(i) & 0xFF;
+                int g = buffer.get(i + 1) & 0xFF;
+                int b = buffer.get(i + 2) & 0xFF;
+                int a = buffer.get(i + 3) & 0xFF;
+                int argb = (a << 24) | (r << 16) | (g << 8) | b;
+                image.setRGB(x, height - 1 - y, argb); // flip vertically
+            }
+        }
+
+        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = resizedImage.createGraphics();
+        g2d.drawImage(image, 0, 0, newWidth, newHeight, null);
+        g2d.dispose();
 
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
+
+        try {
+            return ImageIO.write(resizedImage, "png", filePath.toFile());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

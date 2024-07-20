@@ -323,10 +323,12 @@ public class RareCandyCanvas extends AWTGLCanvas {
         var path = root.resolve(fileName);
         if(Files.notExists(path)) Files.createDirectories(path);
 
-        var temp = path + "/" + (isPortrait ? "portrait" : "profile") + "/" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default") + ".png";
-        framebuffer.captureScreenshot(temp, isPortrait);
-
-        LoggerUtil.print("Screenshot saved to " + temp);
+        var temp = Path.of((path + "\\" + (isPortrait ? "portrait" : "profile") + "-" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default") + ".png").replace("\\", "/"));
+        if(framebuffer.captureScreenshot(temp, isPortrait)) {
+            LoggerUtil.print("Screenshot saved to " + temp);
+        } else {
+            LoggerUtil.print("Failed to save screenshot to " + temp);
+        }
     }
 
     public static class CycleVariants  {

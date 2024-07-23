@@ -90,8 +90,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
         });
 
         NativeFileDialog.NFD_Init();
-        root = DialogueUtils.chooseFolder();
-        if(root == null) root = Path.of("pack");
+//        root = DialogueUtils.chooseFolder();
+//        if(root == null) root = Path.of("pack");
     }
 
     private static GLData defaultData() {
@@ -259,7 +259,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
 //        BlendType.Regular.enable();
 
-        GL11C.glClearColor(1f, 1f, 1f, 1f); // Ensure alpha is set to 0 for transparency
+        GL11C.glClearColor(0,0,0, 1f); // Ensure alpha is set to 0 for transparency
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 
 //        ObjectManager.render(plane, planeInstance);
@@ -317,7 +317,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     public static final Path images = Path.of("assets", "generations_core", "textures", "pokemon");
 
-    private Path root;
+    private Path root = Path.of("images");
 
     public void takeScreenshot(boolean isPortrait) throws IOException {
         var path = root.resolve(fileName);

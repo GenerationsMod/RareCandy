@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools.gui;
 
 import com.github.weisj.darklaf.LafManager;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.tools.TextureLoader;
 
 import javax.swing.*;
@@ -23,14 +22,6 @@ public class PokeUtilsGui extends JPanel {
         canvasPanel.add(renderingWindow);
         fileViewer.setFocusable(true);
         canvasPanel.setFocusable(true);
-
-        PipelineRegistry.setFunction(s-> switch(s) {
-            case "masked" -> GuiPipelines.MASKED;
-            case "layered" -> GuiPipelines.LAYERED;
-            case "paradox" -> GuiPipelines.PARADOX;
-            case "plane" -> GuiPipelines.PLANE;
-            default -> GuiPipelines.SOLID;
-        });
 
         var renderLoop = new Runnable() {
             @Override

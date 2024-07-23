@@ -89,7 +89,7 @@ public class FrameBuffer implements ITexture {
 
     public boolean captureScreenshot(Path filePath, boolean isPortrait) throws IOException {
         if (Files.notExists(filePath)) Files.createDirectories(filePath);
-        int scale = isPortrait ? 2 : 4;
+        int scale = isPortrait ? 4 : 2;
         int newWidth = width / scale;
         int newHeight = height / scale;
 

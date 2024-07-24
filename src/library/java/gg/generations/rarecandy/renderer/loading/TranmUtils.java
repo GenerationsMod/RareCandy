@@ -6,14 +6,13 @@ import gg.generations.rarecandy.pokeutils.tranm.QuatTrack;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
 import gg.generations.rarecandy.pokeutils.tranm.VectorTrack;
 import gg.generations.rarecandy.renderer.animation.Animation;
-import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.animation.TranmUtil;
 import org.joml.Vector3f;
 
-import java.util.Objects;
-
 public class TranmUtils {
-    public static Animation.AnimationNode[] getNodes(Animation animation, Skeleton skeleton, TRANMT tranm) {
+    private static Vector3f ZERO = new Vector3f();
+
+    public static Animation.AnimationNode[] getNodes(Animation animation, TRANMT tranm) {
 
         if (tranm != null) {
             var animationNodes = new Animation.AnimationNode[tranm.getTrack().getTracks().length]; // BoneGroup
@@ -46,14 +45,16 @@ public class TranmUtils {
 //                    node.scaleKeys.add(0, skeleton.jointMap.get(boneAnim.getBoneName()).poseScale);
 //                }
 
-//                if (!Objects.requireNonNull(boneAnim.getBoneName()).equalsIgnoreCase("origin")) {
-                var translate = boneAnim.getTranslate();
-                switch (translate.getType()) {
-                    case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack(translate.asDynamicVectorTrack(), node.positionKeys);
-                    case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack(translate.asFixedVectorTrack(), node.positionKeys);
-                    case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack(translate.asFramed8VectorTrack(), node.positionKeys);
-                    case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack(translate.asFramed16VectorTrack(), node.positionKeys);
-                }
+
+                    var translate = boneAnim.getTranslate();
+
+                    switch (translate.getType()) {
+                        case VectorTrack.DynamicVectorTrack -> TranmUtil.processDynamicVecTrack(translate.asDynamicVectorTrack(), node.positionKeys);
+                        case VectorTrack.FixedVectorTrack -> TranmUtil.processFixedVecTrack(translate.asFixedVectorTrack(), node.positionKeys);
+                        case VectorTrack.Framed8VectorTrack -> TranmUtil.processFramed8VecTrack(translate.asFramed8VectorTrack(), node.positionKeys);
+                        case VectorTrack.Framed16VectorTrack -> TranmUtil.processFramed16VecTrack(translate.asFramed16VectorTrack(), node.positionKeys);
+                    }
+//                }
 //                } else {
 //                    node.positionKeys.add(0, new Vector3f(0, 0, 0));
 //                }

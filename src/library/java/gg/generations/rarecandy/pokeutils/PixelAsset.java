@@ -8,6 +8,7 @@ import org.apache.commons.compress.archivers.tar.TarFile;
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.tukaani.xz.XZInputStream;
 
 import java.io.ByteArrayInputStream;
@@ -33,6 +34,16 @@ public class PixelAsset {
                 if (json.isJsonArray()) {
                     if (json.getAsJsonArray().size() == 2) {
                         vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat());
+                    }
+                }
+
+                return vec;
+            })
+            .registerTypeAdapter(Vector3f.class, (JsonDeserializer<Vector3f>) (json, typeOfT, context) -> {
+                var vec = new Vector3f();
+                if (json.isJsonArray()) {
+                    if (json.getAsJsonArray().size() == 3) {
+                        vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat());
                     }
                 }
 
@@ -166,7 +177,7 @@ public class PixelAsset {
         try {
             return new SevenZFile(path.toFile());
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read file.", e);
+            throw new RuntimeException("Failed to read file. %s".formatted(path), e);
         }
     }
 

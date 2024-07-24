@@ -130,34 +130,51 @@ public class TranmUtil {
     }
 
     public static void processDynamicVecTrack(DynamicVectorTrackT track, TransformStorage<Vector3f> vecKeys) {
+        processDynamicVecTrack(track, vecKeys, Animation.TRANSLATE);
+    }
+
+    public static void processDynamicVecTrack(DynamicVectorTrackT track, TransformStorage<Vector3f> vecKeys, Vector3f offset) {
         for (int i = 0; i < track.getCo().length; i++) {
             var vec = track.getCo()[i];
-            vecKeys.add(i, new Vector3f(vec.getX(), vec.getY(), vec.getZ()));
+            vecKeys.add(i, new Vector3f().set(offset).add(vec.getX(), vec.getY(), vec.getZ()));
         }
     }
 
+
     public static void processFixedVecTrack(FixedVectorTrackT track, TransformStorage<Vector3f> vecKeys) {
+        processFixedVecTrack(track, vecKeys, Animation.TRANSLATE);
+    }
+
+    public static void processFixedVecTrack(FixedVectorTrackT track, TransformStorage<Vector3f> vecKeys, Vector3f offset) {
         var vec = track.getCo();
-        vecKeys.add(0, new Vector3f(vec.getX(), vec.getY(), vec.getZ()));
+        vecKeys.add(0, new Vector3f().set(offset).add(vec.getX(), vec.getY(), vec.getZ()));
     }
 
     public static void processFramed8VecTrack(Framed8VectorTrackT track, TransformStorage<Vector3f> vecKeys) {
+        processFramed8VecTrack(track, vecKeys, Animation.TRANSLATE);
+    }
+
+    public static void processFramed8VecTrack(Framed8VectorTrackT track, TransformStorage<Vector3f> vecKeys, Vector3f offset) {
         for (int i = 0; i < track.getCo().length; i++) {
             int frame = i;
             var vec = track.getCo()[i];
 
             if (i < track.getFrames().length) frame = track.getFrames()[i];
-            vecKeys.add(frame, new Vector3f(vec.getX(), vec.getY(), vec.getZ()));
+            vecKeys.add(frame, new Vector3f().set(offset).add(vec.getX(), vec.getY(), vec.getZ()));
         }
     }
 
     public static void processFramed16VecTrack(Framed16VectorTrackT track, TransformStorage<Vector3f> vecKeys) {
+        processFramed16VecTrack(track, vecKeys, Animation.TRANSLATE);
+    }
+
+    public static void processFramed16VecTrack(Framed16VectorTrackT track, TransformStorage<Vector3f> vecKeys, Vector3f offset) {
         for (int i = 0; i < track.getCo().length; i++) {
             int frame = i;
             var vec = track.getCo()[i];
 
             if (i < track.getFrames().length) frame = track.getFrames()[i];
-            vecKeys.add(frame, new Vector3f(vec.getX(), vec.getY(), vec.getZ()));
+            vecKeys.add(frame, new Vector3f().set(offset).add(vec.getX(), vec.getY(), vec.getZ()));
         }
     }
 

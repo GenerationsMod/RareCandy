@@ -1,54 +1,46 @@
 package gg.generations.rarecandy.tools;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 public class AssetMoving {
-    private static Path base;
-    private static Path pack;
-    private static Path generations;
-    private static Set<String> species;
+    private static List<Path> files;
 
     public static void main(String[] args) throws IOException {
         NativeFileDialog.NFD_Init();
-        base = DialogueUtils.chooseFolder();
-        if(base == null) return;
-        pack = DialogueUtils.chooseFolder();
-        if(pack == null) return;
-        generations = DialogueUtils.chooseFile("TXT;txt");
-        if(generations == null) return;
+        files = DialogueUtils.chooseMultipleFiles("PK;pk");
+        if(files == null) return;
+        var obj = new JsonObject();
 
-        species = Files.readAllLines(generations).stream().map(String::toLowerCase).collect(Collectors.toSet());
+        for (var file : files) {
+            var name = file.getFileName().toString().replace(".pk", "");
+            var blep = new JsonObject();
 
-        moveFiles("PKs", "models");
-        moveFiles("posers", "posers");
-        moveFiles("resolvers", "resolvers");
-    }
 
-    private static void moveFiles(String main, String folder) throws IOException {
-        var from = base.resolve(main);
-        var to = pack.resolve("packs").resolve(pack).resolve("assets").resolve("generations_core").resolve("bedrock").resolve("pokemon").resolve(folder);
+            obj.add("generations_core:" + name, blep);
+            var variants = PixelAsset.of(file, null).getConfig().variants.keySet();
 
-        if(from != null && to != null) {
-            Files.newDirectoryStream(from, entry -> {
-                var entryString = entry.toString();
-                return species.stream().anyMatch(entryString::contains);
-            }).forEach(x -> {
-                try {
-                    System.out.println(x);
+            for (var variant : variants) {
+                var variantJson = new JsonObject();
+                blep.add(variant, variantJson);
+                variantJson.addProperty("profile", "generations_core:textures/pokemon/%s/profile-%s.png".formatted(name, variant));
+                variantJson.addProperty("portrait", "generations_core:textures/pokemon/%s/portrait-%s.png".formatted(name, variant));
+            }
 
-                    Files.move(x, to.resolve(x.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
         }
+
+        var path = Path.of("sprite_mapping.json");
+
+        if(Files.notExists(path)) Files.createFile(path);
+
+        Files.writeString(path, new GsonBuilder().setPrettyPrinting().create().toJson(obj));
     }
 }

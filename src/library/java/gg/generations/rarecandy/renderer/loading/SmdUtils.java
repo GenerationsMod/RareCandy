@@ -43,7 +43,7 @@ public class SmdUtils {
                     var id = nodeMap.get(boneState.bone);
                     var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
 
-                    var pos = id.equals("origin") ? new Vector3f() : new Vector3f(boneState.posX, boneState.posY, boneState.posZ);
+                    var pos = new Vector3f(boneState.posX, boneState.posY, boneState.posZ);
 
                     list.add(new SmdBoneStateKey(time, pos, new Quaternionf().rotateZYX(boneState.rotZ, boneState.rotY, boneState.rotX)));
                 }

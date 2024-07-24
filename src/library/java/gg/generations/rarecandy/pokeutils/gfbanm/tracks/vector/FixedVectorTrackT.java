@@ -2,7 +2,6 @@
 
 package gg.generations.rarecandy.pokeutils.gfbanm.tracks.vector;
 
-import gg.generations.rarecandy.pokeutils.gfbanm.tracks.TrackProcesser;
 import gg.generations.rarecandy.pokeutils.gfbanm.Vec3T;
 import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import org.joml.Vector3f;
@@ -20,8 +19,8 @@ public class FixedVectorTrackT implements VectorProcessor {
   }
 
   @Override
-  public void process(TransformStorage<Vector3f> keys) {
-    keys.add(0, new Vector3f(co.getX(), co.getY(), co.getZ()));
+  public void process(TransformStorage<Vector3f> keys, Vector3f offset) {
+    keys.add(0, new Vector3f(co.getX(), co.getY(), co.getZ()).add(offset));
   }
 }
 

@@ -10,8 +10,8 @@ public class AnimationMath {
         if (node.positionKeys.size() == 1) return node.getDefaultPosition().value();
 
         var positions = findPositions(animTime, node);
-        var deltaTime = (float) (positions.b().time() - positions.a().time());
-        var factor = (animTime - (float) positions.a().time()) / deltaTime;
+        float factor = (float) ((animTime - (float) positions.a().time()) / (positions.b().time() - positions.a().time()));
+
         var start = new Vector3f(positions.a().value());
         var end = new Vector3f(positions.b().value());
         var delta = new Vector3f(end.sub(start));

@@ -95,7 +95,7 @@ public class ModelLoader {
             if(tranm != null || tracm != null) {
                 animationNames.add(name);
                 if (tranm != null) {
-                    animationNodeMap.putIfAbsent(name, (animation, skeleton1) -> TranmUtils.getNodes(animation, skeleton1, tranm));
+                    animationNodeMap.putIfAbsent(name, (animation, skeleton1) -> TranmUtils.getNodes(animation, tranm));
                     fpsMap.putIfAbsent(name, (int) tranm.getInfo().getAnimationRate());
                 }
 
@@ -136,7 +136,7 @@ public class ModelLoader {
 
             if(value != null) {
                 animationNames.add(key);
-                animationNodeMap.putIfAbsent(key, (NodeProvider) (animation, skeleton12) -> SmdUtils.getNode(animation, skeleton12, value));
+                animationNodeMap.putIfAbsent(key, (animation, skeleton12) -> SmdUtils.getNode(animation, skeleton12, value));
                 fpsMap.putIfAbsent(key, 30);
             }
         }
@@ -153,7 +153,7 @@ public class ModelLoader {
             var nodes = animationNodeMap.getOrDefault(name, (animation, skeleton14) -> null);
             var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
 
-            animations.put(name, new Animation(name, fps, skeleton, nodes, offsets, ignoreScaling));
+            animations.put(name, new Animation(name, fps, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new Vector3f(0, 0, 0)).mul(1/config.scale)));
         }
 
         Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation = new HashMap<>();

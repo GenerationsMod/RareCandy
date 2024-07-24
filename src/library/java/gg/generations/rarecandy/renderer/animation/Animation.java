@@ -6,11 +6,9 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class Animation {
     public static final int FPS_60 = 1000;
@@ -18,12 +16,13 @@ public class Animation {
     public static final int GLB_SPEED = 30;
     public static BiConsumer<Animation, String> animationModifier = (animation, s) -> {
     };
-    protected static Vector3f TRANSLATE = new Vector3f();
+    public static Vector3f TRANSLATE = new Vector3f();
     protected static Vector3f SCALE = new Vector3f(1, 1, 1);
     protected static Vector3f TRANSLATION = new Vector3f();
     public final String name;
     public final double animationDuration;
     protected final Skeleton skeleton;
+    private final Vector3f rootOffset;
     public Map<String, Integer> nodeIdMap = new HashMap<>();
 
     private final AnimationNode[] animationNodes;
@@ -34,11 +33,12 @@ public class Animation {
 
     private boolean ignoreScaling;
 
-    public Animation(String name, int ticksPerSecond, Skeleton skeleton, ModelLoader.NodeProvider animationNodes, Map<String, Offset> offsets, boolean ignoreScaling) {
+    public Animation(String name, int ticksPerSecond, Skeleton skeleton, ModelLoader.NodeProvider animationNodes, Map<String, Offset> offsets, boolean ignoreScaling, Vector3f offset) {
         this.name = name;
         this.ticksPerSecond = ticksPerSecond;
         this.skeleton = skeleton;
         this.animationNodes = animationNodes.getNode(this, skeleton);
+        this.rootOffset = offset;
 
         this.offsets = offsets;
         this.animationDuration = findLastKeyTime();
@@ -94,7 +94,7 @@ public class Animation {
 
     public Matrix4f[] getFrameTransform(AnimationInstance instance) {
         var boneTransforms = new Matrix4f[this.skeleton.bones.length];
-        readNodeHierarchy(instance.getCurrentTime(), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
+        readNodeHierarchy(instance.getCurrentTime(), skeleton.rootNode, new Matrix4f().identity(), boneTransforms, false);
         return boneTransforms;
     }
 
@@ -110,13 +110,13 @@ public class Animation {
 
     public Matrix4f[] getFrameTransform(double secondsPassed) {
         var boneTransforms = new Matrix4f[this.skeleton.bones.length];
-        readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, new Matrix4f().identity(), boneTransforms);
+        readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, new Matrix4f().identity(), boneTransforms, false);
         return boneTransforms;
     }
 
     private static final Matrix4f matrix = new Matrix4f();
 
-    public void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms) {
+    public void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms, boolean offsetUsed) {
         var name = node.name;
         var nodeTransform = matrix.set(node.transform);
 
@@ -129,7 +129,13 @@ public class Animation {
             if (animNode != null) {
                 var scale = ignoreScaling ? SCALE : AnimationMath.calcInterpolatedScaling(animTime, animNode);
                 var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
-                var translation = name.equalsIgnoreCase("origin") ? TRANSLATION : AnimationMath.calcInterpolatedPosition(animTime, animNode);
+                var translation = name.equalsIgnoreCase("origin") ? new Vector3f() : AnimationMath.calcInterpolatedPosition(animTime, animNode);
+
+                if(!offsetUsed) {
+                    offsetUsed = true;
+                    translation.add(rootOffset);
+                }
+
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);
 
 //                if (bone != null && !this.isNaN(nodeTransform)) {
@@ -150,7 +156,7 @@ public class Animation {
         }
 
         for (var child : node.children)
-            readNodeHierarchy(animTime, child, globalTransform, boneTransforms);
+            readNodeHierarchy(animTime, child, globalTransform, boneTransforms, offsetUsed);
     }
 
     private boolean isNaN(Matrix4f nodeTransform) {

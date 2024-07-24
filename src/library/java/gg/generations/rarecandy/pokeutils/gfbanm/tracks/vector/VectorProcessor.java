@@ -2,12 +2,20 @@ package gg.generations.rarecandy.pokeutils.gfbanm.tracks.vector;
 
 import com.google.gson.*;
 import gg.generations.rarecandy.pokeutils.gfbanm.tracks.TrackProcesser;
-import gg.generations.rarecandy.pokeutils.gfbanm.tracks.rotation.*;
+import gg.generations.rarecandy.renderer.animation.Animation;
+import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import org.joml.Vector3f;
 
 import java.lang.reflect.Type;
 
 public interface VectorProcessor extends TrackProcesser<Vector3f> {
+
+    @Override default void process(TransformStorage<Vector3f> rotationKeys) {
+        process(rotationKeys, Animation.TRANSLATE);
+    }
+
+    void process(TransformStorage<Vector3f> rotationKeys, Vector3f offset);
+
     class Serializer implements JsonSerializer<VectorProcessor>, JsonDeserializer<VectorProcessor> {
         @Override
         public VectorProcessor deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {

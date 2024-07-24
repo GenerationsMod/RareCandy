@@ -155,7 +155,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
             var variant = !variants.isEmpty() ? variants.iterator().next() : null;
             var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
-            instance.transformationMatrix().scale(loadedModel.scale);
+
             loadedModelInstance = renderer.objectManager.add(model, instance);
             model.updateDimensions();
             runnable.run();

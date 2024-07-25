@@ -8,7 +8,6 @@ import org.apache.commons.compress.archivers.tar.TarFile;
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
-import org.joml.Vector3f;
 import org.tukaani.xz.XZInputStream;
 
 import java.io.ByteArrayInputStream;
@@ -39,15 +38,68 @@ public class PixelAsset {
 
                 return vec;
             })
-            .registerTypeAdapter(Vector3f.class, (JsonDeserializer<Vector3f>) (json, typeOfT, context) -> {
-                var vec = new Vector3f();
+//            .registerTypeAdapter(Vector3f.class, (JsonDeserializer<Vector3f>) (json, typeOfT, context) -> {
+//                var vec = new Vector3f();
+//                if (json.isJsonArray()) {
+//                    if (json.getAsJsonArray().size() == 3) {
+//                        vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat());
+//                    }
+//                }
+//
+//                return vec;
+//            })
+//            .registerTypeAdapter(Quaternionf.class, (JsonDeserializer<Quaternionf>) (json, typeOfT, context) -> {
+//                var vec = new Quaternionf();
+//                if (json.isJsonArray()) {
+//                    if (json.getAsJsonArray().size() == 3) {
+//                        vec.rotationXYZ(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat());
+//                    } else if (json.getAsJsonArray().size() == 4) {
+//                        vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat(), json.getAsJsonArray().get(3).getAsFloat());
+//                    }
+//                }
+//
+//                return vec;
+//            })
+            .registerTypeAdapter(SkeletalTransform.class, (JsonDeserializer<SkeletalTransform>) (json, typeOfT, context) -> {
+                var transform = new SkeletalTransform();
+
                 if (json.isJsonArray()) {
-                    if (json.getAsJsonArray().size() == 3) {
-                        vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat());
+                    if (json.isJsonArray()) {
+                        if (json.getAsJsonArray().size() == 3) {
+                            transform.position().set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat());
+                        }
+                    }
+
+                } else if(json.isJsonObject()) {
+                    var obj = json.getAsJsonObject();
+
+                    if (obj.has("rotation")) {
+                        var array = obj.getAsJsonArray("rotation");
+                        if (array.size() == 3) {
+                            transform.rotation().rotationXYZ(
+                                    (float) Math.toRadians(array.get(0).getAsFloat()),
+                                    (float) Math.toRadians(array.get(1).getAsFloat()),
+                                    (float) Math.toRadians(array.get(2).getAsFloat()));
+                        } else if (array.size() == 4) {
+                            transform.rotation().set(
+                                    (float) Math.toRadians(array.get(0).getAsFloat()),
+                                    (float) Math.toRadians(array.get(1).getAsFloat()),
+                                    (float) Math.toRadians(array.get(2).getAsFloat()),
+                                    (float) Math.toRadians(array.get(3).getAsFloat())
+                            );
+                        }
+                    }
+
+                    if (obj.has("position")) {
+                        var array = obj.getAsJsonArray("position");
+
+                        if (array.size() == 3) {
+                            transform.position().set(array.get(0).getAsFloat(), array.get(1).getAsFloat(), array.get(2).getAsFloat());
+                        }
                     }
                 }
 
-                return vec;
+                return transform;
             })
             .registerTypeAdapter(MeshOptions.class, new MeshOptions.Serializer())
             .create();

@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.renderer.animation;
 
 import gg.generations.rarecandy.pokeutils.ModelNode;
+import gg.generations.rarecandy.pokeutils.SkeletalTransform;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -22,7 +23,7 @@ public class Animation {
     public final String name;
     public final double animationDuration;
     protected final Skeleton skeleton;
-    private final Vector3f rootOffset;
+    private final SkeletalTransform rootOffset;
     public Map<String, Integer> nodeIdMap = new HashMap<>();
 
     private final AnimationNode[] animationNodes;
@@ -33,7 +34,7 @@ public class Animation {
 
     private boolean ignoreScaling;
 
-    public Animation(String name, int ticksPerSecond, Skeleton skeleton, ModelLoader.NodeProvider animationNodes, Map<String, Offset> offsets, boolean ignoreScaling, Vector3f offset) {
+    public Animation(String name, int ticksPerSecond, Skeleton skeleton, ModelLoader.NodeProvider animationNodes, Map<String, Offset> offsets, boolean ignoreScaling, SkeletalTransform offset) {
         this.name = name;
         this.ticksPerSecond = ticksPerSecond;
         this.skeleton = skeleton;
@@ -133,7 +134,8 @@ public class Animation {
 
                 if(!offsetUsed) {
                     offsetUsed = true;
-                    translation.add(rootOffset);
+                    translation.add(rootOffset.position());
+                    rotation.mul(rootOffset.rotation());
                 }
 
                 nodeTransform.identity().translationRotateScale(translation, rotation, scale);

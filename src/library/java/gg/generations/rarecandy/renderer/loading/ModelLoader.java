@@ -153,7 +153,7 @@ public class ModelLoader {
             var nodes = animationNodeMap.getOrDefault(name, (animation, skeleton14) -> null);
             var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
 
-            animations.put(name, new Animation(name, fps, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new Vector3f(0, 0, 0)).mul(1/config.scale)));
+            animations.put(name, new Animation(name, fps, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale)));
         }
 
         Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation = new HashMap<>();

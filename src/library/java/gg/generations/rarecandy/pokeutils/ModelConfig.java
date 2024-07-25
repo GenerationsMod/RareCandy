@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.pokeutils;
 
 import gg.generations.rarecandy.renderer.animation.Animation;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +17,7 @@ public class ModelConfig {
 
     public Map<String, Integer> animationFpsOverride;
 
-    public Map<String, Vector3f> offsets = new HashMap<>();
+    public Map<String, SkeletalTransform> offsets = new HashMap<>();
 
     public Map<String, List<String>> materialsWithSameMaterialAnimation;
 

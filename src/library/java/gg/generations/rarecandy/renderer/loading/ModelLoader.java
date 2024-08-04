@@ -143,12 +143,16 @@ public class ModelLoader {
 
         Map<String, Animation> animations = new HashMap<>();
 
+        var offSetsToInsert = new HashMap<String, Animation.Offset>();
+
         for(var name : animationNames) {
             var fps = fpsMap.get(name);
             fps = config.animationFpsOverride != null && config.animationFpsOverride.containsKey(name) ? config.animationFpsOverride.get(name) : fps;
 
             var offsets = offsetsMap.getOrDefault(name, new HashMap<>());
-            offsets.forEach((trackName, offset) -> config.getMaterialsForAnimation(trackName).forEach(a -> offsets.put(a, offset)));
+            offsets.forEach((trackName, offset) -> config.getMaterialsForAnimation(trackName).forEach(a -> offSetsToInsert.put(a, offset)));
+            offsets.putAll(offSetsToInsert);
+            offSetsToInsert.clear();
 
             var nodes = animationNodeMap.getOrDefault(name, (animation, skeleton14) -> null);
             var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));

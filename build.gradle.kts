@@ -34,10 +34,10 @@ dependencies {
     compileOnly("org.jetbrains:annotations:24.1.0")
 
     implementation("org.tukaani", "xz", "1.9") { isTransitive = false }
-    implementation("org.apache.commons", "commons-compress", "1.21")
-    implementation("commons-io", "commons-io", "2.16.1")
-    implementation("org.joml", "joml", "1.10.5")
-    implementation("de.javagl", "jgltf-model", "2.0.5")
+    implementation("org.apache.commons", "commons-compress", "1.21")  { isTransitive = false }
+    implementation("commons-io", "commons-io", "2.16.1")  { isTransitive = false }
+    implementation("org.joml", "joml", "1.10.5") { isTransitive = false }
+    implementation("de.javagl", "jgltf-model", "2.0.5") { isTransitive = false }
 
     implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))
     implementation("org.lwjgl", "lwjgl")  { isTransitive = false }
@@ -45,7 +45,7 @@ dependencies {
     implementation("org.lwjgl", "lwjgl-opengl")  { isTransitive = false }
     implementation("org.lwjgl", "lwjgl-stb")  { isTransitive = false }
     implementation("org.lwjgl", "lwjgl-assimp")  { isTransitive = false }
-    implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT")  { isTransitive = false }
+    implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT")
 
     runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-windows")
     runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-windows")
@@ -56,7 +56,7 @@ dependencies {
     implementation("org.slf4j:slf4j-jdk14:2.0.12")!!
 
     // PokeUtils Libs
-    implementation("com.github.weisj:darklaf-core:3.0.2") { isTransitive = false }
+    implementation("com.github.weisj:darklaf-core:3.0.2")
     implementation("com.intellij:forms_rt:7.0.3") { isTransitive = false }
     implementation("org.lwjgl", "lwjgl-nfd") { isTransitive = false }
     runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows")

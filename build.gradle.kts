@@ -140,6 +140,8 @@ publishing {
             }
         }
     }
+
+
 }
 
 fun mcDependency(handler: DependencyHandlerScope, group: String, name: String) {

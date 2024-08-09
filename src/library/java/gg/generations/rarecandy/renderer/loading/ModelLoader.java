@@ -4,6 +4,7 @@ import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.MeshPrimitiveModel;
 import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
+import gg.generations.rarecandy.assimp.*;
 import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
@@ -30,7 +31,6 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.assimp.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 

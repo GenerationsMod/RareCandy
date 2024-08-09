@@ -1,4 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import groovy.util.Node
+import org.gradle.api.publish.maven.internal.artifact.FileBasedMavenArtifact
 
 plugins {
     java
@@ -9,7 +11,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.10"
+version = "2.10.1"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -18,9 +20,17 @@ sourceSets {
         compileClasspath += main.get().compileClasspath
     }
 
+    val patches = create("patches") {
+        compileClasspath += main.get().compileClasspath
+    }
+
+
     main {
         this.compileClasspath += assetLoading.output
+        this.compileClasspath += patches.output
         this.runtimeClasspath += assetLoading.output
+        this.runtimeClasspath += patches.output
+
     }
 }
 
@@ -39,7 +49,7 @@ dependencies {
     compileOnly("org.jetbrains:annotations:24.1.0")
 
     "shadow"(implementation("org.tukaani", "xz", "1.9"))
-    "shadowTools"(implementation("org.apache.commons", "commons-compress", "1.26.1"))
+    "shadow"(implementation("org.apache.commons", "commons-compress", "1.26.1"))
     "shadowTools"(implementation("org.joml", "joml", "1.10.5"))
     "shadowTools"(implementation("de.javagl", "jgltf-model", "2.0.5"))
 
@@ -48,7 +58,7 @@ dependencies {
     "shadowTools"(implementation("org.lwjgl", "lwjgl-glfw"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-opengl"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-stb"))
-    "shadow"(implementation("org.lwjgl", "lwjgl-assimp", "3.3.2"))
+    "shadow"(implementation("org.lwjgl", "lwjgl-assimp", "3.3.2")) //Only now just to keep assimp native from complaining
     "shadow"(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
 
     "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-windows"))
@@ -94,17 +104,10 @@ tasks {
     var rareCandy = register<ShadowJar>("rare_candy") {
         archiveBaseName.set("RareCandy")
         from(sourceSets.getByName("library").output.classesDirs)
-        exclude("src/main/**",
-            "org/lwjgl/system//**",
-            "org/lwjgl/BufferUtils.class",
-            "org/lwjgl/CLongBuffer.class",
-            "org/lwjgl/PointerBuffer.class",
-            "org/lwjgl/Version\$BuildType.class",
-            "org/lwjgl/Version.class",
-            "org/lwjgl/VersionImpl.class",
-            "org/lwjgl/package-info.class")
+        from(sourceSets.getByName("patches").output.classesDirs)
 
-        relocate("org.lwjgl.assimp", "gg.generations.rarecandy.shaded.assimp")
+        exclude("src/main/**", "org/lwjgl/**")
+
         relocate("org.tukaani.xz", "gg.generations.rarecandy.shaded.xz")
         relocate("com.github.benmanes.caffeine.cache", "gg.generations.rarecandy.shaded.caffeine.cache")
         relocate("com.google.flatbuffers", "gg.generations.rarecandy.shaded.flatbuffers")
@@ -113,20 +116,26 @@ tasks {
         relocate("org.checkerframework", "gg.generations.rarecandy.shaded.checkerframework")
         relocate("com.google.errorprone", "gg.generations.rarecandy.shaded.errorprone")
         relocate("org.apache.commons", "gg.generations.rarecandy.shaded.commons")
-
-
+        relocate("windows.x64.org.lwjgl.assimp", "windows.x64.gg.generations.rarecandy.assimp")
+        relocate("org.lwjgl.assimp", "gg.generations.rarecandy.assimp")
 
         configurations = listOf(
             project.configurations.getByName("shadow")
         )
     }
 
-
     build.get().dependsOn(rareCandy.get(), rareCandyTools.get())
 }
 
 publishing {
-    publications.create<MavenPublication>("maven").from(components["java"])
+    publications.create<MavenPublication>("maven") {
+        artifacts.clear()
+        artifact(tasks["rare_candy_tools"]).let { it.classifier = "tools" }
+        artifact(tasks["rare_candy"])
+
+//        artifact(tasks["rare_candy"].outputs.files.files.first())
+    }
+
     repositories {
         mavenLocal()
         maven {

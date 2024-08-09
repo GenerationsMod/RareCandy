@@ -1,10 +1,10 @@
 package gg.generations.rarecandy.pokeutils;
 
+import gg.generations.rarecandy.assimp.AIMatrix4x4;
+import gg.generations.rarecandy.assimp.AINode;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.lwjgl.assimp.AIMatrix4x4;
-import org.lwjgl.assimp.AINode;
 
 import java.util.ArrayList;
 import java.util.List;

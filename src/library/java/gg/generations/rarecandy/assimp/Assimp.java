@@ -168,8 +168,8 @@ import static org.lwjgl.system.libffi.LibFFI.*;
  */
 public class Assimp {
 
-    private static final SharedLibrary DRACO = Library.loadNative(Assimp.class, "org.lwjgl.assimp", "draco", true);
-    private static final SharedLibrary ASSIMP = Library.loadNative(Assimp.class, "org.lwjgl.assimp", "assimp", true);
+    private static final SharedLibrary DRACO = Library.loadNative(Assimp.class, "org.lwjgl.assimp", Platform.mapLibraryNameBundled("draco"), true);
+    private static final SharedLibrary ASSIMP = Library.loadNative(Assimp.class, "org.lwjgl.assimp", Platform.mapLibraryNameBundled("assimp"), true);
 
     /** Contains the function pointers loaded from the assimp {@link SharedLibrary}. */
     public static final class Functions {

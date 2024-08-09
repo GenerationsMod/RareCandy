@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.10.1"
+version = "2.10.2"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -61,11 +61,15 @@ dependencies {
     "shadow"(implementation("org.lwjgl", "lwjgl-assimp", "3.3.2")) //Only now just to keep assimp native from complaining
     "shadow"(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
 
-    "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-windows"))
-    "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-windows"))
-    "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-windows"))
-    "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = "natives-windows"))
-    "shadow"(runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = "natives-windows"))
+    listOf("windows", "macos", "linux", ).forEach { os ->
+        listOf("-arm64", "").forEach { cpu ->
+            "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-$os$cpu"))
+            "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = "natives-$os$cpu"))
+            "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-$os$cpu"))
+            "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = "natives-$os$cpu"))
+            "shadow"(runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = "natives-$os$cpu"))
+        }
+    }
 
     "shadowTools"(implementation("org.slf4j:slf4j-jdk14:2.0.12")!!)
 

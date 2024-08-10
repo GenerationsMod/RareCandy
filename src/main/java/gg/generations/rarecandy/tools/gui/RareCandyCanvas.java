@@ -53,10 +53,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     public final Matrix4f viewMatrix = new Matrix4f();
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
-    private final int scaleModifier = 0;
+    public float scaleModifier = 0;
     private final PokeUtilsGui handler;
     public double startTime = System.currentTimeMillis();
     public String currentAnimation = null;
+    public double originalScaleModifer;
     private RareCandy renderer;
     private MultiRenderObject<MeshObject> plane;
     private ObjectInstance planeInstance;
@@ -158,6 +159,12 @@ public class RareCandyCanvas extends AWTGLCanvas {
             var i = 0;
 
             loadedModel = (ToggleableMultiRenderObject) model;
+
+            scaleModifier = loadedModel.scale;
+            originalScaleModifer = loadedModel.scale;
+
+            handler.scale.reset();
+
             var variants = model.availableVariants();
 
             var variant = !variants.isEmpty() ? variants.iterator().next() : null;
@@ -217,9 +224,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
     @Override
     public void paintGL() {
         if (loadedModelInstance != null) {
-            loadedModelInstance.transformationMatrix().identity().scale(loadedModel.scale);
+            loadedModelInstance.transformationMatrix().identity().scale(scaleModifier);
 
-            size.set(loadedModel.dimensions).mul(loadedModel.scale);
+            size.set(loadedModel.dimensions).mul(scaleModifier);
         }
 
         if(animate) time = (System.currentTimeMillis() - startTime) / 1000f;
@@ -244,13 +251,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
                     }
                 }
             });
-        }
-
-        for (var instance : instances) {
-            if (scaleModifier != 0) {
-                var newScale = 1 - (scaleModifier * 0.1f);
-                instance.transformationMatrix().scale(newScale);
-            }
         }
     }
 

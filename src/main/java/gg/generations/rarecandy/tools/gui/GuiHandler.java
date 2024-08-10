@@ -66,7 +66,7 @@ public class GuiHandler implements KeyListener {
 
     public void save(Path savePath) {
         try {
-            PixelmonArchiveBuilder.convertToPk(TEMP, Files.walk(TEMP).toList(), savePath);
+            PixelmonArchiveBuilder.convertToPk(TEMP, Files.walk(TEMP).toList(), savePath, getCanvas().scaleModifier);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

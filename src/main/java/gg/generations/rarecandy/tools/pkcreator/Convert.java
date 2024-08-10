@@ -126,7 +126,7 @@ public class Convert {
 
                             generateAndWriteJson(scale, pngNames, configFile);
 
-                            PixelmonArchiveBuilder.convertToPk(inputPath, Files.walk(newSubfolder).filter(a -> !a.toString().endsWith("model.smd")).toList(), outPath.resolve(subfolder.getFileName().toString() + ".pk"));
+                            PixelmonArchiveBuilder.convertToPk(inputPath, Files.walk(newSubfolder).filter(a -> !a.toString().endsWith("model.smd")).toList(), outPath.resolve(subfolder.getFileName().toString() + ".pk"), null);
 
                             print("Completed: " + folderName);
                         }

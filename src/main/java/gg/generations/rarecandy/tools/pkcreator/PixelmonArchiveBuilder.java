@@ -1,8 +1,11 @@
 package gg.generations.rarecandy.tools.pkcreator;
 
+import gg.generations.rarecandy.pokeutils.ModelConfig;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,7 +19,7 @@ import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
  * Utility for writing and reading Pixelmon: Generation's model format.
  */
 public class PixelmonArchiveBuilder {
-    public static void convertToPk(Path relativeFolder, List<Path> files, Path output) {
+    public static void convertToPk(Path relativeFolder, List<Path> files, Path output, Float scale) {
         try {
             if (!Files.exists(output)) {
                 Files.createDirectories(output.getParent());
@@ -32,13 +35,24 @@ public class PixelmonArchiveBuilder {
                             var entry = sevenZOutput.createArchiveEntry(file, name);
                             sevenZOutput.putArchiveEntry(entry);
                             if (Files.isRegularFile(file)) {
-                                try (var is = new BufferedInputStream(Files.newInputStream(file))) {
+                                BufferedInputStream is = null;
+
+                                if (file.getFileName().toString().equals("config.json") && scale != null) {
+                                    var config = PixelAsset.GSON.fromJson(Files.readString(file), ModelConfig.class);
+                                    config.scale = scale;
+
+                                    is = new BufferedInputStream(new ByteArrayInputStream(PixelAsset.GSON.toJson(config).getBytes()));
+                                } else {
+                                    is = new BufferedInputStream(Files.newInputStream(file));
+                                }
+
+
                                     byte[] buffer = new byte[1024];
                                     int length;
                                     while ((length = is.read(buffer)) > 0) {
                                         sevenZOutput.write(buffer, 0, length);
                                     }
-                                }
+
                             }
 
                             sevenZOutput.closeArchiveEntry();
@@ -93,9 +107,9 @@ public class PixelmonArchiveBuilder {
                     var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".glb", "") + ".pk");
 
                     if (path.toString().endsWith(".glb")) {
-                        convertToPk(inFolder, List.of(path), outputPath);
+                        convertToPk(inFolder, List.of(path), outputPath, null);
                     } else {
-                        convertToPk(inFolder, Files.walk(path).toList(), outputPath);
+                        convertToPk(inFolder, Files.walk(path).toList(), outputPath, null);
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);

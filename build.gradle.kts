@@ -60,6 +60,7 @@ dependencies {
     "shadowTools"(implementation("org.lwjgl", "lwjgl-stb"))
     "shadow"(implementation("org.lwjgl", "lwjgl-assimp", "3.3.2")) //Only now just to keep assimp native from complaining
     "shadow"(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
+    "shadowTools"(implementation(fileTree(mapOf("dir" to "libs", "include" to "*.jar")))!!)
 
     listOf("windows", "macos", "linux", ).forEach { os ->
         listOf("-arm64", "").forEach { cpu ->

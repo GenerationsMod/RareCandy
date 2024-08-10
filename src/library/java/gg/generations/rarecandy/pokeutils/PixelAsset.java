@@ -1,25 +1,27 @@
 package gg.generations.rarecandy.pokeutils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
+import com.google.gson.*;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.tukaani.xz.XZInputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Pixelmon Asset (.pk) file.
@@ -38,28 +40,41 @@ public class PixelAsset {
 
                 return vec;
             })
-//            .registerTypeAdapter(Vector3f.class, (JsonDeserializer<Vector3f>) (json, typeOfT, context) -> {
-//                var vec = new Vector3f();
-//                if (json.isJsonArray()) {
-//                    if (json.getAsJsonArray().size() == 3) {
-//                        vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat());
-//                    }
-//                }
-//
-//                return vec;
-//            })
-//            .registerTypeAdapter(Quaternionf.class, (JsonDeserializer<Quaternionf>) (json, typeOfT, context) -> {
-//                var vec = new Quaternionf();
-//                if (json.isJsonArray()) {
-//                    if (json.getAsJsonArray().size() == 3) {
-//                        vec.rotationXYZ(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat());
-//                    } else if (json.getAsJsonArray().size() == 4) {
-//                        vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat(), json.getAsJsonArray().get(3).getAsFloat());
-//                    }
-//                }
-//
-//                return vec;
-//            })
+            .registerTypeAdapter(Vector3f.class, new GenericJsonThing<>((json) -> {
+                var array =  new JsonArray();
+                array.add(json.x);
+                array.add(json.y);
+                array.add(json.z);
+                return array;
+            }, (json) -> {
+                var vec = new Vector3f();
+                if (json.isJsonArray()) {
+                    if (json.getAsJsonArray().size() == 3) {
+                        vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat());
+                    }
+                }
+
+                return vec;
+            }))
+            .registerTypeAdapter(Quaternionf.class, new GenericJsonThing<>((json) -> {
+                var array =  new JsonArray();
+                array.add(json.x);
+                array.add(json.y);
+                array.add(json.z);
+                array.add(json.w);
+                return array;
+            }, (json) -> {
+                var vec = new Quaternionf();
+                if (json.isJsonArray()) {
+                    if (json.getAsJsonArray().size() == 3) {
+                        vec.rotationXYZ(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat());
+                    } else if (json.getAsJsonArray().size() == 4) {
+                        vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat(), json.getAsJsonArray().get(3).getAsFloat());
+                    }
+                }
+
+                return vec;
+            }))
             .registerTypeAdapter(SkeletalTransform.class, (JsonDeserializer<SkeletalTransform>) (json, typeOfT, context) -> {
                 var transform = new SkeletalTransform();
 
@@ -254,4 +269,17 @@ public class PixelAsset {
     public byte[] get(String key) {
         return this.files.get(key);
     }
+
+    public record GenericJsonThing<T>(Function<T, JsonElement> serializer, Function<JsonElement, T> deserializer) implements JsonSerializer<T>, JsonDeserializer<T> {
+        @Override
+        public T deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return deserializer.apply(json);
+        }
+
+        @Override
+        public JsonElement serialize(T src, Type typeOfSrc, JsonSerializationContext context) {
+            return serializer.apply(src);
+        }
+    }
+
 }

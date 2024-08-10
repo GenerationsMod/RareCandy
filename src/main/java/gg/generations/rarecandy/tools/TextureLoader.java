@@ -94,5 +94,6 @@ public class TextureLoader extends ITextureLoader {
         register("glass", generateDirectReference("glass.png"));
         register("metal", generateDirectReference("metal.png"));
         register("silver", generateDirectReference("silver.png"));
+        register("smooth_stone", generateDirectReference("smooth_stone.png"));
     }
 }

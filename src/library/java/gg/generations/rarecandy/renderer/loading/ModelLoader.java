@@ -585,6 +585,22 @@ public class ModelLoader {
         return pair.b();
     }
 
+    public MultiRenderObject<MeshObject> generateCube(float width, float length, float height, String image, Consumer<MultiRenderObject<MeshObject>> onFinish) {
+        var pair = PlaneGenerator.generateCube(width, length, height, image);
+
+        var task = ThreadSafety.wrapException(() -> {
+            ThreadSafety.runOnContextThread(() -> {
+                pair.a().forEach(Runnable::run);
+                pair.b().updateDimensions();
+                if (onFinish != null) onFinish.accept(pair.b());
+            });
+        });
+        if (RareCandy.DEBUG_THREADS) task.run();
+        else modelLoadingPool.submit(task);
+
+        return pair.b();
+    }
+
     public MultiRenderObject<MeshObject> generateScreenQuad(Consumer<MultiRenderObject<MeshObject>> onFinish) {
         var pair = PlaneGenerator.screen();
 

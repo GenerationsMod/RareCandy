@@ -69,6 +69,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
     private ScreenRenderer screenRenderer;
     public static boolean animate = true;
     public static boolean renderingFrame;
+    private MultiRenderObject<MeshObject> cube;
+    private ObjectInstance[] cubeInstances;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
@@ -141,6 +143,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
         renderer.objectManager.add(plane, planeInstance);
+
+        for (ObjectInstance instance : cubeInstances) {
+            renderer.objectManager.add(cube, instance);
+        }
+
         if(loadedModel != null) loadedModel.close();
 
         this.fileName = name;
@@ -182,13 +189,27 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         loadPlane(100, 100, model -> {
             plane = model;
-            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f(), viewMatrix, null));
+            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), viewMatrix, null));
+        });
+
+        loadCube(1, 1, 1, model -> {
+            cube = model;
+            cubeInstances = new ObjectInstance[4];
+            cubeInstances[0] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, -0.5f, 0), viewMatrix, null));
+            cubeInstances[1] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 0.5f, -1), viewMatrix, null));
+            cubeInstances[2] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 1.5f, -1), viewMatrix, null));
+            cubeInstances[3] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 02.5f, -1), viewMatrix, null));
         });
     }
 
     private MultiRenderObject<MeshObject> loadPlane(int width, int length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
         return loader.generatePlane(width, length, onFinish);
     }
+
+    private MultiRenderObject<MeshObject> loadCube(int width, int length, int height, Consumer<MultiRenderObject<MeshObject>> onFinish) {
+        return loader.generateCube(width, length, height, "smooth_stone", onFinish);
+    }
+
 
     private final Vector3f size = new Vector3f();
 

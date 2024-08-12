@@ -75,48 +75,17 @@ public class PixelAsset {
 
                 return vec;
             }))
-            .registerTypeAdapter(SkeletalTransform.class, (JsonDeserializer<SkeletalTransform>) (json, typeOfT, context) -> {
-                var transform = new SkeletalTransform();
-
-                if (json.isJsonArray()) {
-                    if (json.isJsonArray()) {
-                        if (json.getAsJsonArray().size() == 3) {
-                            transform.position().set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat());
-                        }
-                    }
-
-                } else if(json.isJsonObject()) {
-                    var obj = json.getAsJsonObject();
-
-                    if (obj.has("rotation")) {
-                        var array = obj.getAsJsonArray("rotation");
-                        if (array.size() == 3) {
-                            transform.rotation().rotationXYZ(
-                                    (float) Math.toRadians(array.get(0).getAsFloat()),
-                                    (float) Math.toRadians(array.get(1).getAsFloat()),
-                                    (float) Math.toRadians(array.get(2).getAsFloat()));
-                        } else if (array.size() == 4) {
-                            transform.rotation().set(
-                                    (float) Math.toRadians(array.get(0).getAsFloat()),
-                                    (float) Math.toRadians(array.get(1).getAsFloat()),
-                                    (float) Math.toRadians(array.get(2).getAsFloat()),
-                                    (float) Math.toRadians(array.get(3).getAsFloat())
-                            );
-                        }
-                    }
-
-                    if (obj.has("position")) {
-                        var array = obj.getAsJsonArray("position");
-
-                        if (array.size() == 3) {
-                            transform.position().set(array.get(0).getAsFloat(), array.get(1).getAsFloat(), array.get(2).getAsFloat());
-                        }
-                    }
+            .registerTypeAdapter(MeshOptions.class, new GenericJsonThing<>(meshOptions -> {
+                var json = new JsonObject();
+                json.addProperty("invert", meshOptions.invert());
+                return json;
+            }, json -> {
+                if (json.isJsonPrimitive()) return new MeshOptions(json.getAsBoolean());
+                else {
+                    var invert = json.getAsJsonObject().getAsJsonPrimitive("invert").getAsBoolean();
+                    return new MeshOptions(invert);
                 }
-
-                return transform;
-            })
-            .registerTypeAdapter(MeshOptions.class, new MeshOptions.Serializer())
+            }))
             .create();
 
     public final Map<String, byte[]> files = new HashMap<>();

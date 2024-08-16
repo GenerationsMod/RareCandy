@@ -12,14 +12,14 @@ import java.util.Map;
 
 public class Material implements Closeable {
     private final String materialName;
-    private Map<String, String> images;
+    private final Map<String, String> images;
 
-    private Map<String, Object> values;
+    private final Map<String, Object> values;
 
-    private CullType cullType;
-    private BlendType blendType;
+    private final CullType cullType;
+    private final BlendType blendType;
 
-    private String shader;
+    private final String shader;
 
     public Material(String materialName, Map<String, String> images, Map<String, Object> values, CullType cullType, BlendType blendType, String shader) {
         this.materialName = materialName;
@@ -70,6 +70,10 @@ public class Material implements Closeable {
                 if(texture.contains(".")) ITextureLoader.instance().remove(texture);
             }
         }
+    }
+
+    public Map<String, String> getImages() {
+        return images;
     }
 
     public boolean getBoolean(String value) {

@@ -153,29 +153,31 @@ public class MaterialReference {
 
         object.asMap().forEach((key, value) -> {
             if(value.isJsonObject()) {
+                if(object.has("type")) {
 
-                var obj = value.getAsJsonObject();
+                    var obj = value.getAsJsonObject();
+                    var val = obj.get("value");
 
-                var val = obj.get("value");
-
-                switch (obj.getAsJsonPrimitive("type").getAsString()) {
-                    case "boolean" -> {
-                        values.put(key, val.getAsBoolean());
+                    switch (obj.getAsJsonPrimitive("type").getAsString()) {
+                        case "boolean" -> {
+                            values.put(key, val.getAsBoolean());
+                        }
+                        case "color" -> {
+                            values.put(key, MaterialReference.color(val));
+                        }
+                        case "float" -> {
+                            values.put(key, val.getAsFloat());
+                        }
                     }
-                    case "color" -> {
-                        values.put(key, MaterialReference.color(val));
-                    }
-                    case "float" -> {
-                        values.put(key, val.getAsFloat());
+                } else {
+                    if(object.has("x") && object.has("y") && object.has("z")) {
+                        values.put(key, new Vector3f(object.getAsJsonPrimitive("x").getAsFloat(), object.getAsJsonPrimitive("y").getAsFloat(), object.getAsJsonPrimitive("z").getAsFloat()));
                     }
                 }
             } else if(value.isJsonPrimitive()) {
-                if(value.getAsJsonPrimitive().isBoolean()) values.put(key, value.getAsBoolean());
-                else if(value.getAsJsonPrimitive().isNumber()) values.put(key, value.getAsFloat());
-                else if(value.getAsJsonPrimitive().isString()) {
-                    if(key.equals("cull")) values.put(key, CullType.from(value.getAsString()));
-                    else values.put(key, color(value));
-                }
+                if (value.getAsJsonPrimitive().isBoolean()) values.put(key, value.getAsBoolean());
+                else if (value.getAsJsonPrimitive().isNumber()) values.put(key, value.getAsFloat());
+                else if (value.getAsJsonPrimitive().isString()) values.put(key, color(value));
             } else if(value.isJsonArray()) values.put(key, color(value));
         });
 

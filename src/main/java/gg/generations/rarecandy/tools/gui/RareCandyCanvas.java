@@ -145,9 +145,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
         renderer.objectManager.clearObjects();
         renderer.objectManager.add(plane, planeInstance);
 
-        for (ObjectInstance instance : cubeInstances) {
-            renderer.objectManager.add(cube, instance);
-        }
+//        for (ObjectInstance instance : cubeInstances) {
+//            renderer.objectManager.add(cube, instance);
+//        }
 
         if(loadedModel != null) loadedModel.close();
 
@@ -199,14 +199,14 @@ public class RareCandyCanvas extends AWTGLCanvas {
             planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), viewMatrix, null));
         });
 
-        loadCube(1, 1, 1, model -> {
-            cube = model;
-            cubeInstances = new ObjectInstance[4];
-            cubeInstances[0] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, -0.5f, 0), viewMatrix, null));
-            cubeInstances[1] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 0.5f, -1), viewMatrix, null));
-            cubeInstances[2] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 1.5f, -1), viewMatrix, null));
-            cubeInstances[3] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 02.5f, -1), viewMatrix, null));
-        });
+//        loadCube(1, 1, 1, model -> {
+//            cube = model;
+//            cubeInstances = new ObjectInstance[4];
+//            cubeInstances[0] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, -0.5f, 0), viewMatrix, null));
+//            cubeInstances[1] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 0.5f, -1), viewMatrix, null));
+//            cubeInstances[2] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 1.5f, -1), viewMatrix, null));
+//            cubeInstances[3] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 02.5f, -1), viewMatrix, null));
+//        });
     }
 
     private MultiRenderObject<MeshObject> loadPlane(int width, int length, Consumer<MultiRenderObject<MeshObject>> onFinish) {

@@ -57,8 +57,6 @@ public class Animation {
                 }
             }
         }
-
-        System.out.println();
     }
 
     public static <T> Map<String, Offset> fillOffsets(T item) {

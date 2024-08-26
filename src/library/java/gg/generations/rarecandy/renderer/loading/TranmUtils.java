@@ -21,6 +21,10 @@ public class TranmUtils {
             for (int i = 0; i < tranm.getTrack().getTracks().length; i++) {
                 var boneAnim = tranm.getTrack().getTracks()[i];
 
+                if(!skeleton.boneIdMap.containsKey(boneAnim.getBoneName())) {
+                    continue;
+                }
+
                 var node = animationNodes[skeleton.boneIdMap.get(boneAnim.getBoneName())] = new Animation.AnimationNode();
 
                 var rotate = boneAnim.getRotate();

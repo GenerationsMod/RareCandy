@@ -20,13 +20,14 @@ public class ModelNode {
     public final Quaternionf poseRotation;
     public final Vector3f poseScale;
     public final List<ModelNode> children = new ArrayList<>();
+
     public int id = -1;
 
     private ModelNode(AINode aiNode, ModelNode parent) {
         this.name = aiNode.mName().dataString();
 
         this.parent = parent;
-        this.transform = from(aiNode.mTransformation());
+        from(this.transform = new Matrix4f(), aiNode.mTransformation());
         this.posePosition = transform.getTranslation(new Vector3f());
         this.poseRotation = transform.getUnnormalizedRotation(new Quaternionf());
         this.poseScale = transform.getScale(new Vector3f());
@@ -46,8 +47,8 @@ public class ModelNode {
     }
 
 
-    public static Matrix4f from(AIMatrix4x4 aiMat4) {
-        return new Matrix4f()
+    public static void from(Matrix4f matrix, AIMatrix4x4 aiMat4) {
+        matrix
                 .m00(aiMat4.a1()).m10(aiMat4.a2()).m20(aiMat4.a3()).m30(aiMat4.a4())
                 .m01(aiMat4.b1()).m11(aiMat4.b2()).m21(aiMat4.b3()).m31(aiMat4.b4())
                 .m02(aiMat4.c1()).m12(aiMat4.c2()).m22(aiMat4.c3()).m32(aiMat4.c4())

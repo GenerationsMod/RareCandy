@@ -2,6 +2,7 @@ package gg.generations.rarecandy.renderer.rendering;
 
 import gg.generations.rarecandy.assimp.AIBone;
 import gg.generations.rarecandy.pokeutils.ModelNode;
+import gg.generations.rarecandy.renderer.animation.Skeleton;
 import org.joml.Matrix4f;
 
 import java.util.Objects;
@@ -34,12 +35,15 @@ public class Bone {
         return name.equals(bone.name);
     }
 
-    public static Bone from(AIBone bone) {
-        var b = new Bone();
-        b.inverseBindMatrix = ModelNode.from(bone.mOffsetMatrix());
-        b.restPose = new Matrix4f().set(b.inverseBindMatrix).invert();
+    public Bone(String name) {
+        this.name = name;
+        this.inverseBindMatrix = new Matrix4f();
+        this.restPose = new Matrix4f();
+    }
 
-        b.name = bone.mName().dataString();
-        return b;
+    public static void configure(Skeleton skeleton, AIBone bone) {
+        var b = skeleton.boneMap.get(bone.mName().dataString());
+        ModelNode.from(b.inverseBindMatrix, bone.mOffsetMatrix());
+        b.restPose.set(b.inverseBindMatrix).invert();
     }
 }

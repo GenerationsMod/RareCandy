@@ -1,18 +1,18 @@
 package gg.generations.rarecandy.renderer.animation;
 
-import de.javagl.jgltf.model.NodeModel;
-import de.javagl.jgltf.model.SkinModel;
 import gg.generations.rarecandy.pokeutils.ModelNode;
 import gg.generations.rarecandy.renderer.rendering.Bone;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Skeleton {
     public final Map<String, ModelNode> jointMap;
     public Bone[] bones;
+    public Map<String, Integer> boneIdMap;
     public final Map<String, Bone> boneMap;
     public final ModelNode rootNode;
 
@@ -21,47 +21,31 @@ public class Skeleton {
         this.jointMap = skeleton.jointMap;
         this.boneMap = skeleton.boneMap;
         this.rootNode = skeleton.rootNode;
+        this.boneIdMap = skeleton.boneIdMap;
     }
 
 
-    public Skeleton(ModelNode rootNode) {
+    public Skeleton(ModelNode rootNode, Set<String> meshNamesToExclude) {
         this.rootNode = rootNode;
+        this.boneIdMap = new HashMap<>();
         var jointList = new ArrayList<ModelNode>();
-        populateJoints(rootNode, jointList);
-
-        jointMap = jointList.stream().collect(Collectors.toMap(a -> a.name, a -> a));
+        populateJoints(rootNode, jointList, meshNamesToExclude);
 
         var boneCount = jointList.size();
         this.bones = new Bone[boneCount];
-        this.boneMap = new HashMap<>(boneCount);
-    }
 
-    private static void populateJoints(ModelNode joint, ArrayList<ModelNode> jointList) {
-        jointList.add(joint);
-        for (var child : joint.children) populateJoints(child, jointList);
-    }
-
-    public void store(Bone[] bones) {
-        for (var bone : bones) {
-            boneMap.put(bone.name, bone);
+        jointMap = jointList.stream().collect(Collectors.toMap(a -> a.name, a -> a));
+        boneMap = jointMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> new Bone(a.getValue().name)));
+        for (int i = 0; i < jointList.size(); i++) {
+            var name = jointList.get(i).name;
+            bones[i] = boneMap.get(name);
+            boneIdMap.put(name, i);
         }
     }
 
-    public void calculateBoneData() {
-        this.bones = boneMap.values().toArray(Bone[]::new);
-    }
-
-
-    private NodeModel findRoot(SkinModel skeleton) {
-        if(skeleton.getSkeleton() != null) return skeleton.getSkeleton();
-
-        var root = skeleton.getJoints().get(0);
-
-        while(root.getParent() != null) {
-            root = root.getParent();
-        }
-
-        return root;
+    private void populateJoints(ModelNode joint, ArrayList<ModelNode> jointList, Set<String> meshNamesToExclude) {
+        if(!meshNamesToExclude.contains(joint.name)) jointList.add(joint);
+        for (var child : joint.children) populateJoints(child, jointList, meshNamesToExclude);
     }
 
     public Bone get(String name) {

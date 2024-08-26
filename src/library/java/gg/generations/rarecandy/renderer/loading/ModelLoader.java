@@ -42,6 +42,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL30C.*;
@@ -75,7 +76,7 @@ public class ModelLoader {
     public static <T extends MeshObject, V extends MultiRenderObject<T>> void create2(V objects, PixelAsset asset, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
         if (config == null) throw new RuntimeException("config.json can't be null.");
 
-        Map<String, NodeProvider> animationNodeMap = new HashMap<>();
+        Map<String, Animation.AnimationNode[]> animationNodeMap = new HashMap<>();
         Map<String, Integer> fpsMap = new HashMap<>();
         Map<String, Map<String, Animation.Offset>> offsetsMap = new HashMap<>();
 
@@ -85,7 +86,16 @@ public class ModelLoader {
 
         var rootNode = ModelNode.create(gltfModel.mRootNode());
 
-        Skeleton skeleton = new Skeleton(rootNode);
+        var meshes = IntStream.range(0, gltfModel.mNumMeshes()).mapToObj(i -> AIMesh.create(gltfModel.mMeshes().get(i))).toArray(AIMesh[]::new);
+
+        var meshNames = config.excludeMeshNamesFromSkeleton ? Stream.of(meshes).map(a -> a.mName().dataString()).collect(Collectors.toSet()) : Set.<String>of();
+
+        Skeleton skeleton = new Skeleton(rootNode, meshNames);
+
+        for (AIMesh aiMesh : meshes) {
+            processBones(skeleton, aiMesh);
+        }
+
 
         for (var entry : trFilesMap.entrySet()) {
             var name = entry.getKey();
@@ -95,7 +105,7 @@ public class ModelLoader {
             if(tranm != null || tracm != null) {
                 animationNames.add(name);
                 if (tranm != null) {
-                    animationNodeMap.putIfAbsent(name, (animation, skeleton1) -> TranmUtils.getNodes(animation, tranm));
+                    animationNodeMap.putIfAbsent(name, TranmUtils.getNodes(skeleton, tranm));
                     fpsMap.putIfAbsent(name, (int) tranm.getInfo().getAnimationRate());
                 }
 
@@ -117,7 +127,7 @@ public class ModelLoader {
                     fpsMap.put(name, (int) gfbAnim.getInfo().getFrameRate());
 
                     if(gfbAnim.getSkeleton() != null) {
-                        animationNodeMap.put(name, (animation, skeleton13) -> GfbanmUtils.getNodes(animation, skeleton13, gfbAnim));
+                        animationNodeMap.put(name, GfbanmUtils.getNodes(skeleton, gfbAnim));
                     }
 
                     if(gfbAnim.getMaterial() != null) {
@@ -136,7 +146,7 @@ public class ModelLoader {
 
             if(value != null) {
                 animationNames.add(key);
-                animationNodeMap.putIfAbsent(key, (animation, skeleton12) -> SmdUtils.getNode(animation, skeleton12, value));
+                animationNodeMap.putIfAbsent(key, SmdUtils.getNode(skeleton, value));
                 fpsMap.putIfAbsent(key, 30);
             }
         }
@@ -144,6 +154,8 @@ public class ModelLoader {
         Map<String, Animation> animations = new HashMap<>();
 
         var offSetsToInsert = new HashMap<String, Animation.Offset>();
+
+        var defaultNodes = Animation.AnimationNode.generateDefaults(skeleton);
 
         for(var name : animationNames) {
             var fps = fpsMap.get(name);
@@ -154,7 +166,7 @@ public class ModelLoader {
             offsets.putAll(offSetsToInsert);
             offSetsToInsert.clear();
 
-            var nodes = animationNodeMap.getOrDefault(name, (animation, skeleton14) -> null);
+            var nodes = animationNodeMap.getOrDefault(name, defaultNodes);
             var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
 
             animations.put(name, new Animation(name, fps, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale)));
@@ -228,14 +240,6 @@ public class ModelLoader {
         var hidMap = reverseListMap(variantHideMap);
         var offsetMap = reverseMap(variantOffsetMap);
 
-        var meshes = IntStream.range(0, gltfModel.mNumMeshes()).mapToObj(i -> AIMesh.create(gltfModel.mMeshes().get(i))).toArray(AIMesh[]::new);
-
-        for (AIMesh aiMesh : meshes) {
-            processBones(skeleton, aiMesh);
-        }
-
-        skeleton.calculateBoneData();
-
         for (var mesh : meshes) {
             processPrimitiveModels(objects, supplier, mesh, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation, config.modelOptions != null ? config.modelOptions : Collections.emptyMap());
         }
@@ -252,13 +256,10 @@ public class ModelLoader {
 
         if (mesh.mBones() != null) {
             var aiBones = requireNonNull(mesh.mBones());
-            Bone[] bones = new Bone[aiBones.capacity()];
 
             for (int i = 0; i < aiBones.capacity(); i++) {
-                bones[i] = Bone.from(AIBone.create(aiBones.get(i)));
+                Bone.configure(skeleton, AIBone.create(aiBones.get(i)));
             }
-
-            skeleton.store(bones);
         }
     }
 

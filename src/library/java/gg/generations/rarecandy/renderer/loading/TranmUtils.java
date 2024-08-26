@@ -6,21 +6,22 @@ import gg.generations.rarecandy.pokeutils.tranm.QuatTrack;
 import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
 import gg.generations.rarecandy.pokeutils.tranm.VectorTrack;
 import gg.generations.rarecandy.renderer.animation.Animation;
+import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.animation.TranmUtil;
 import org.joml.Vector3f;
 
 public class TranmUtils {
     private static Vector3f ZERO = new Vector3f();
 
-    public static Animation.AnimationNode[] getNodes(Animation animation, TRANMT tranm) {
+    public static Animation.AnimationNode[] getNodes(Skeleton skeleton, TRANMT tranm) {
+        var animationNodes = new Animation.AnimationNode[skeleton.jointMap.size()];
+
 
         if (tranm != null) {
-            var animationNodes = new Animation.AnimationNode[tranm.getTrack().getTracks().length]; // BoneGroup
-
             for (int i = 0; i < tranm.getTrack().getTracks().length; i++) {
                 var boneAnim = tranm.getTrack().getTracks()[i];
 
-                var node = animationNodes[animation.nodeIdMap.computeIfAbsent(boneAnim.getBoneName().replace(".trmdl", ""), animation::newNode)] = new Animation.AnimationNode();
+                var node = animationNodes[skeleton.boneIdMap.get(boneAnim.getBoneName())] = new Animation.AnimationNode();
 
                 var rotate = boneAnim.getRotate();
 
@@ -61,10 +62,22 @@ public class TranmUtils {
             }
 
 
-            return animationNodes;
-        } else {
-            return new Animation.AnimationNode[0];
         }
+
+        for (int i = 0; i < animationNodes.length; i++) {
+
+            if(animationNodes[i] == null) {
+                var node = new Animation.AnimationNode();
+                var joint = skeleton.jointMap.get(skeleton.bones[i].name);
+
+                node.rotationKeys.add(0, joint.poseRotation);
+                node.rotationKeys.add(0, joint.poseRotation);
+                node.scaleKeys.add(0, joint.poseScale);
+
+            }
+        }
+
+        return animationNodes;
     }
 
     public static long getFps(Pair<TRANMT, TRACM> rawAnimation) {

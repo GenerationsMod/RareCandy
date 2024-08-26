@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class SmdUtils {
-    public static Animation.AnimationNode[] getNode(Animation animation, Skeleton skeleton, SMDFile item) {
+    public static Animation.AnimationNode[] getNode(Skeleton skeleton, SMDFile item) {
         List<SkeletonBlock.@NotNull Keyframe> skeletonBlock = null;
         Map<Integer, String> nodesMap = null;
 
@@ -28,10 +28,10 @@ public class SmdUtils {
 
         if(skeletonBlock == null || nodesMap == null) throw new RuntimeException("Error!");
 
-        return fillAnimationNodesSmdx(animation, skeleton, skeletonBlock, nodesMap);
+        return fillAnimationNodesSmdx(skeleton, skeletonBlock, nodesMap);
     }
 
-    private static Animation.AnimationNode[] fillAnimationNodesSmdx(Animation animation, Skeleton skeleton, @NotNull List<SkeletonBlock.Keyframe> keyframes, Map<Integer, String> nodeMap) {
+    private static Animation.AnimationNode[] fillAnimationNodesSmdx(Skeleton skeleton, @NotNull List<SkeletonBlock.Keyframe> keyframes, Map<Integer, String> nodeMap) {
         var nodes = new HashMap<String, List<SmdBoneStateKey>>();
 
         for (var keyframe : keyframes) {
@@ -52,9 +52,22 @@ public class SmdUtils {
             nodes.forEach((k, v) -> v.sort(Comparator.comparingInt(SmdBoneStateKey::time)));
         }
 
-        var animationNodes = new Animation.AnimationNode[nodes.size()];
+        var animationNodes = new Animation.AnimationNode[skeleton.jointMap.size()];
         for (var entry : nodes.entrySet()) {
-            animationNodes[animation.nodeIdMap.computeIfAbsent(entry.getKey(), animation::newNode)] = createNode(entry.getValue());
+            animationNodes[skeleton.boneIdMap.get(entry.getKey())] = createNode(entry.getValue());
+        }
+
+        for (int i = 0; i < animationNodes.length; i++) {
+
+            if(animationNodes[i] == null) {
+                var node = new Animation.AnimationNode();
+                var joint = skeleton.jointMap.get(skeleton.bones[i].name);
+
+                node.rotationKeys.add(0, joint.poseRotation);
+                node.rotationKeys.add(0, joint.poseRotation);
+                node.scaleKeys.add(0, joint.poseScale);
+
+            }
         }
 
         return animationNodes;

@@ -11,6 +11,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MaterialReference {
+//    public static Codec<MaterialReference> CODEC = RecordCodecBuilder.create(instance -> {
+//        instance.group(
+//                Codec.STRING.optionalFieldOf("inherits", null).forGetter(a -> a.parent),
+//                Codec.STRING.optionalFieldOf("shader", "solid").forGetter(a -> a.shader),
+//                CullType.CODEC.optionalFieldOf("cull", CullType.None).forGetter(a -> a.cull),
+//                BlendType.CODEC.optionalFieldOf("blend", BlendType.None).forGetter(a -> a.blend)
+//
+//        )
+//    })
+
     public String parent;
     public String shader;
 
@@ -183,6 +193,7 @@ public class MaterialReference {
 
         return values;
     }
+
 
     public static Vector3f color(JsonElement element) {
         if(element.isJsonArray()) {

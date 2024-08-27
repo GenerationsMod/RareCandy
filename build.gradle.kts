@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.11.3"
+version = "2.11.4"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -112,7 +112,7 @@ tasks {
         from(sourceSets.getByName("library").output.classesDirs)
         from(sourceSets.getByName("patches").output.classesDirs)
 
-        exclude("src/main/**", "org/lwjgl/**")
+        exclude("src/main/**", "org/lwjgl/**", "module-info.class")
 
         relocate("org.tukaani.xz", "gg.generations.rarecandy.shaded.xz")
         relocate("com.github.benmanes.caffeine.cache", "gg.generations.rarecandy.shaded.caffeine.cache")

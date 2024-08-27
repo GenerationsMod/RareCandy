@@ -2,15 +2,9 @@ package gg.generations.rarecandy.renderer.loading;
 
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.MeshPrimitiveModel;
-import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
-import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import gg.generations.rarecandy.assimp.*;
 import gg.generations.rarecandy.pokeutils.*;
-import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.pokeutils.tracm.TRACM;
-import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
-import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
@@ -73,12 +67,8 @@ public class ModelLoader {
             Attribute.BONE_WEIGHTS
     );
 
-    public static <T extends MeshObject, V extends MultiRenderObject<T>> void create2(V objects, PixelAsset asset, Map<String, SMDFile> smdFileMap, Map<String, byte[]> gfbFileMap, Map<String, Pair<byte[], byte[]>> trFilesMap, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
+    public static <T extends MeshObject, V extends MultiRenderObject<T>> void create2(V objects, PixelAsset asset, Map<String, AnimResource> animResources, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
         if (config == null) throw new RuntimeException("config.json can't be null.");
-
-        Map<String, Animation.AnimationNode[]> animationNodeMap = new HashMap<>();
-        Map<String, Integer> fpsMap = new HashMap<>();
-        Map<String, Map<String, Animation.Offset>> offsetsMap = new HashMap<>();
 
         Set<String> animationNames = new HashSet<>();
 
@@ -96,82 +86,26 @@ public class ModelLoader {
             processBones(skeleton, aiMesh);
         }
 
-
-        for (var entry : trFilesMap.entrySet()) {
-            var name = entry.getKey();
-            var tranm = entry.getValue().a() != null ? TRANMT.deserializeFromBinary(entry.getValue().a()) : null;
-            var tracm = entry.getValue().b() != null ? TRACM.getRootAsTRACM(ByteBuffer.wrap(entry.getValue().b())) : null;
-
-            if(tranm != null || tracm != null) {
-                animationNames.add(name);
-                if (tranm != null) {
-                    animationNodeMap.putIfAbsent(name, TranmUtils.getNodes(skeleton, tranm));
-                    fpsMap.putIfAbsent(name, (int) tranm.getInfo().getAnimationRate());
-                }
-
-                if (tracm != null) {
-                    offsetsMap.putIfAbsent(name, TracmUtils.getOffsets(tracm));
-                    fpsMap.putIfAbsent(name, (int) tracm.config().framerate());
-                }
-            }
-        }
-
-        for (var entry : gfbFileMap.entrySet()) {
-            var name = entry.getKey();
-
-            try {
-                var gfbAnim = AnimationT.deserializeFromBinary(entry.getValue());
-
-                if(gfbAnim.getMaterial() != null || gfbAnim.getSkeleton() != null) {
-                    animationNames.add(name);
-                    fpsMap.put(name, (int) gfbAnim.getInfo().getFrameRate());
-
-                    if(gfbAnim.getSkeleton() != null) {
-                        animationNodeMap.put(name, GfbanmUtils.getNodes(skeleton, gfbAnim));
-                    }
-
-                    if(gfbAnim.getMaterial() != null) {
-                        offsetsMap.put(name, GfbanmUtils.getOffsets(gfbAnim));
-                    }
-                }
-            } catch (Exception e) {
-                LoggerUtil.printError("Failed to load animation %s due to the following exception: %s".formatted(name, e.getMessage()));
-                LoggerUtil.printError(e);
-            }
-        }
-
-        for (var entry : smdFileMap.entrySet()) {
-            var key = entry.getKey();
-            var value = entry.getValue();
-
-            if(value != null) {
-                animationNames.add(key);
-                animationNodeMap.putIfAbsent(key, SmdUtils.getNode(skeleton, value));
-                fpsMap.putIfAbsent(key, 30);
-            }
-        }
-
         Map<String, Animation> animations = new HashMap<>();
 
         var offSetsToInsert = new HashMap<String, Animation.Offset>();
 
         var defaultNodes = Animation.AnimationNode.generateDefaults(skeleton);
 
-        for(var name : animationNames) {
-            var fps = fpsMap.get(name);
+        animResources.forEach((name, animResource) -> {
+            var fps = animResource.fps();
             fps = config.animationFpsOverride != null && config.animationFpsOverride.containsKey(name) ? config.animationFpsOverride.get(name) : fps;
 
-            var offsets = offsetsMap.getOrDefault(name, new HashMap<>());
+            var offsets = animResource.getOffsets();
             offsets.forEach((trackName, offset) -> config.getMaterialsForAnimation(trackName).forEach(a -> offSetsToInsert.put(a, offset)));
             offsets.putAll(offSetsToInsert);
             offSetsToInsert.clear();
 
-            var nodes = animationNodeMap.getOrDefault(name, defaultNodes);
+            var nodes = animResource.getNodes(skeleton);
             var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
 
-            animations.put(name, new Animation(name, fps, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale)));
-        }
-
+            animations.put(name, new Animation(name, (int) fps, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale)));
+        });
         Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation = new HashMap<>();
 
         var materials = new HashMap<String, Material>();
@@ -602,22 +536,6 @@ public class ModelLoader {
         return pair.b();
     }
 
-    public MultiRenderObject<MeshObject> generateScreenQuad(Consumer<MultiRenderObject<MeshObject>> onFinish) {
-        var pair = PlaneGenerator.screen();
-
-        var task = ThreadSafety.wrapException(() -> {
-            ThreadSafety.runOnContextThread(() -> {
-                pair.a().forEach(Runnable::run);
-                pair.b().updateDimensions();
-                if (onFinish != null) onFinish.accept(pair.b());
-            });
-        });
-        if (RareCandy.DEBUG_THREADS) task.run();
-        else modelLoadingPool.submit(task);
-
-        return pair.b();
-    }
-
     private <T extends RenderObject, V extends MultiRenderObject<T>> Runnable threadedCreateObject(V obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T, V> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
         return ThreadSafety.wrapException(() -> {
             var asset = is.get();
@@ -628,10 +546,13 @@ public class ModelLoader {
             if(asset.getModelFile() == null) return;
 
             if (config != null) obj.scale = config.scale;
-            var smdAnims = readSmdAnimations(asset);
-            var gfbAnims = readGfbAnimations(asset);
-            var trAnims = readtrAnimations(asset);
-            var glCalls = objectCreator.getCalls(asset, smdAnims, gfbAnims, trAnims, images, config, obj);
+
+            var aninResouces = new HashMap<String, AnimResource>();
+
+            SmdResource.read(asset, aninResouces);
+            GfbanmResource.read(asset, aninResouces);
+            TrAnimationResource.read(asset, aninResouces);
+            var glCalls = objectCreator.getCalls(asset, aninResouces, images, config, obj);
             ThreadSafety.runOnContextThread(() -> {
                 glCalls.forEach(Runnable::run);
                 obj.updateDimensions();
@@ -650,74 +571,6 @@ public class ModelLoader {
             ITextureLoader.instance().register(id, key, entry.getValue());
 
             map.put(key, id);
-        }
-
-        return map;
-    }
-
-    private Map<String, byte[]> readGfbAnimations(PixelAsset asset) {
-        return asset.files.entrySet().stream()
-                .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm"))
-                .collect(Collectors.toMap(this::cleanAnimName, Map.Entry::getValue));
-    }
-
-    private HashMap<String, Pair<byte[], byte[]>> readtrAnimations(PixelAsset asset) {
-        var map = new HashMap<String, Pair<byte[], byte[]>>();
-
-        var list = asset.files.keySet().stream().filter(a -> a.endsWith("tranm") || a.endsWith("tracm")).collect(Collectors.toCollection(ArrayList::new));
-
-        while (!list.isEmpty()) {
-            var a = list.remove(0);
-
-            if (a.endsWith(".tranm")) {
-                var index = list.indexOf(a.replace(".tranm", ".tracm"));
-
-                if (index != -1) {
-                    var b = list.remove(index);
-
-                    map.put(a.replace(".tranm", ""), new Pair<>(asset.files.get(a), asset.files.get(b)));
-                } else {
-                    map.put(a.replace(".tranm", ""), new Pair<>(asset.files.get(a), null));
-                }
-            } else {
-                if (a.endsWith(".tracm")) {
-                    var index = list.indexOf(a.replace(".tracm", ".tranm"));
-
-                    if (index != -1) {
-                        var b = list.remove(index);
-
-                        map.put(a.replace(".tracm", ""), new Pair<>(asset.files.get(b), asset.files.get(a)));
-                    } else {
-                        map.put(a.replace(".tracm", ""), new Pair<>(null, asset.files.get(a)));
-                    }
-                }
-            }
-
-        }
-
-        return map;
-    }
-
-
-    public String cleanAnimName(Map.Entry<String, byte[]> entry) {
-        var str = entry.getKey();
-        return cleanAnimName(str);
-    }
-
-    public String cleanAnimName(String str) {
-        var substringEnd = str.lastIndexOf(".") == -1 ? str.length() : str.lastIndexOf(".");
-        var substringStart = str.lastIndexOf("/") == -1 ? 0 : str.lastIndexOf("/");
-        return str.substring(substringStart, substringEnd);
-    }
-
-    private Map<String, SMDFile> readSmdAnimations(PixelAsset pixelAsset) {
-        var files = pixelAsset.getAnimationFiles();
-        var map = new HashMap<String, SMDFile>();
-        var reader = new SMDTextReader();
-
-        for (var entry : files) {
-            var smdFile = reader.read(new String(entry.getValue()));
-            map.put(cleanAnimName(entry.getKey().replace(".smd", "")), smdFile);
         }
 
         return map;

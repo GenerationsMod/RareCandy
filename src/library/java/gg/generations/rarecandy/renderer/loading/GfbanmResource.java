@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.renderer.loading;
 
+import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
@@ -8,8 +9,18 @@ import gg.generations.rarecandy.renderer.animation.TransformStorage;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GfbanmUtils {
-    public static Map<String, Animation.Offset> getOffsets(AnimationT rawAnimation) {
+public record GfbanmResource(AnimationT rawAnimation) implements AnimResource {
+
+    public static void read(PixelAsset asset, HashMap<String, AnimResource> aninResouces) {
+        asset.files.entrySet().stream()
+                .filter(a -> !aninResouces.containsKey(a.getKey()))
+                .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm"))
+                .forEach(entry -> {
+                    aninResouces.put(AnimResource.cleanAnimName(entry.getKey()), new GfbanmResource(AnimationT.deserializeFromBinary(entry.getValue())));
+                });
+    }
+
+    public Map<String, Animation.Offset> getOffsets() {
         var offsets = new HashMap<String, Animation.Offset>();
 
         if(rawAnimation.getMaterial() != null) {
@@ -47,12 +58,17 @@ public class GfbanmUtils {
         return offsets;
     }
 
-    public static Animation.AnimationNode[] getNodes(Skeleton skeleton, AnimationT rawAnimation) {
+    public Animation.AnimationNode[] getNodes(Skeleton skeleton) {
 
         var animationNodes = new Animation.AnimationNode[skeleton.jointMap.size()];
 
         if (rawAnimation.getSkeleton() != null) {
             for (var track : rawAnimation.getSkeleton().getTracks()) {
+
+                if (!skeleton.boneIdMap.containsKey(track.getName())) {
+                    continue;
+                }
+
                 var node = animationNodes[skeleton.boneIdMap.get(track.getName())] = new Animation.AnimationNode();
 
                 if(track.getRotate().getValue() != null) track.getRotate().getValue().process(node.rotationKeys);
@@ -77,7 +93,12 @@ public class GfbanmUtils {
 
             }
         }
-        
+
         return animationNodes;
+    }
+
+    @Override
+    public long fps() {
+        return rawAnimation.getInfo().getFrameRate();
     }
 }

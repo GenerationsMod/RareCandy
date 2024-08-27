@@ -1,19 +1,56 @@
 package gg.generations.rarecandy.renderer.loading;
 
+import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
+import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.NodesBlock;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.msgpack.core.MessagePack;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class SmdUtils {
-    public static Animation.AnimationNode[] getNode(Skeleton skeleton, SMDFile item) {
+public record SmdResource(SMDFile item) implements AnimResource {
+    private static final List<String> EXTENSIONS = List.of("smd", "smdx");
+    private static final SMDTextReader SMD_READER = new SMDTextReader();
+    private static final SMDBinaryReader SMDX_READER = new SMDBinaryReader();
+
+    public static void read(PixelAsset asset, HashMap<String, AnimResource> aninResouces) {
+        var files = asset.files.entrySet().stream().filter(a -> {
+            var name = a.getKey();
+            return EXTENSIONS.stream().anyMatch(name::endsWith);
+        }).toList();
+
+        for (var entry : files) {
+            var split = entry.getKey().split("\\.");
+
+            var smdFile = getFile(split[1], entry.getValue());
+            aninResouces.put(split[0], smdFile);
+        }
+    }
+
+    private static SmdResource getFile(String extension, byte[] data) {
+        return new SmdResource(switch (extension) {
+            case "smd" -> SMD_READER.read(new String(data));
+            case "smdx" -> {
+                try {
+                    yield SMDX_READER.read(MessagePack.newDefaultUnpacker(data));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            default -> throw new RuntimeException("Error! Improper extension for animations: " + extension);
+        });
+    }
+
+    public Animation.AnimationNode[] getNodes(Skeleton skeleton) {
         List<SkeletonBlock.@NotNull Keyframe> skeletonBlock = null;
         Map<Integer, String> nodesMap = null;
 
@@ -54,6 +91,10 @@ public class SmdUtils {
 
         var animationNodes = new Animation.AnimationNode[skeleton.jointMap.size()];
         for (var entry : nodes.entrySet()) {
+            if (!skeleton.boneIdMap.containsKey(entry.getKey())) {
+                continue;
+            }
+
             animationNodes[skeleton.boneIdMap.get(entry.getKey())] = createNode(entry.getValue());
         }
 
@@ -73,7 +114,7 @@ public class SmdUtils {
         return animationNodes;
     }
 
-    public static Animation.AnimationNode createNode(List<SmdBoneStateKey> keys) {
+    private static Animation.AnimationNode createNode(List<SmdBoneStateKey> keys) {
         var animationNode = new Animation.AnimationNode();
 
         if (keys.isEmpty()) {
@@ -92,5 +133,15 @@ public class SmdUtils {
     }
 
     public record SmdBoneStateKey(int time, Vector3f pos, Quaternionf rot) {
+    }
+
+    @Override
+    public Map<String, Animation.Offset> getOffsets() {
+        return new HashMap<>();
+    }
+
+    @Override
+    public long fps() {
+        return 30;
     }
 }

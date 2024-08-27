@@ -7,6 +7,7 @@ import gg.generations.rarecandy.renderer.animation.TransformStorage;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 public class TracmUtils {
     public static Map<String, Animation.Offset> getOffsets(TRACM tracm) {
@@ -26,7 +27,6 @@ public class TracmUtils {
                     for (int k = 0; k < materialTrack.animValuesLength(); k++) {
                         var animValues = materialTrack.animValues(k);
 
-//                        if (animValues != null && animValues.name().equals("UVScaleOffset")) {
                         var list = animValues.list();
 
                         var uOffset = toStorage(list.blue());
@@ -56,13 +56,7 @@ public class TracmUtils {
 
     public static TransformStorage<Float> toStorage(TrackMaterialValueList value) {
         var storage = new TransformStorage<Float>();
-
-        for (int i = 0; i < value.valuesLength(); i++) {
-            var val = value.values(i);
-
-            storage.add(val.time(), val.value());
-        }
-
+        IntStream.range(0, value.valuesLength()).mapToObj(value::values).forEach(val -> storage.add(val.time(), val.value()));
         return storage;
     }
 }

@@ -77,10 +77,10 @@ public class PokemonTest {
     protected <T extends MeshObject> void load(RareCandy renderer, Supplier<PixelAsset> asset, Function<String, Pipeline> pipelineFactory, Consumer<MultiRenderObject<T>> onFinish, Supplier<T> supplier) {
         loader.createObject(
                 asset,
-                (gltfModel, smdFileMap, gfbFileMap, tranmFilesMaps, images, config, object) -> {
+                (gltfModel, animResources, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     try {
-                        ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, tranmFilesMaps, images, config, glCalls, supplier);
+                        ModelLoader.create2(object, gltfModel, animResources, images, config, glCalls, supplier);
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to interpret data", e);
                     }

@@ -297,13 +297,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
         loader.createObject(
                 ToggleableMultiRenderObject::new,
                 () -> is,
-                (gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, object) -> {
+                (gltfModel, animResources, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    ModelLoader.create2(object, gltfModel, smdFileMap, gfbFileMap, tramnAnimations, images, config, glCalls, AnimatedMeshObject::new);
+                    ModelLoader.create2(object, gltfModel, animResources, images, config, glCalls, AnimatedMeshObject::new);
                     return glCalls;
-                },
-                animatedMeshObjectMultiRenderObject -> onFinish.accept((ToggleableMultiRenderObject) animatedMeshObjectMultiRenderObject)
-        );
+                }, onFinish);
     }
 
     public void setAnimation(@NotNull String animation) {

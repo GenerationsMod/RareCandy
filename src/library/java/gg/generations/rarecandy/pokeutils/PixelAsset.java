@@ -222,10 +222,6 @@ public class PixelAsset {
         return files.get(modelName);
     }
 
-    public List<Map.Entry<String, byte[]>> getAnimationFiles() {
-        return files.entrySet().stream().filter(a -> a.getKey().endsWith("smd")).toList();
-    }
-
     public List<Map.Entry<String, byte[]>> getImageFiles() {
         return files.entrySet().stream().filter(a -> a.getKey().endsWith("png")).toList();
     }

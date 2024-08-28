@@ -1,8 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
-import de.javagl.jgltf.model.NamedModelElement;
-import de.javagl.jgltf.model.io.GltfModelReader;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
+
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -10,11 +9,11 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class PixelAssetTree extends JTree {
 
@@ -90,7 +89,7 @@ public class PixelAssetTree extends JTree {
         });
     }
 
-    public void initializeAsset(PixelAsset asset, Path assetPath) {
+    public void initializeAsset(PixelAsset asset, Path assetPath, Set<String> animations) {
         var tree = node(assetPath.getFileName().toString());
         var animationsNode = node("animations");
         var imagesNode = node("images");
@@ -99,33 +98,11 @@ public class PixelAssetTree extends JTree {
 
         var objs = asset.getConfig().defaultVariant.keySet();
 
-        Set<String> animationStrings = new HashSet<>();
-
         for (var s : asset.files.keySet()) {
             if(s.endsWith("tranm") || s.endsWith("tracm") || s.endsWith("gfbanm") || s.endsWith("smd")) {
-                if(!animationStrings.contains(s)) {
-                    animationStrings.add(s.replace(".tracm", "").replace(".tranm", "").replace(".gfbanm", "").replace(".smd", ""));
-                }
-            }
-            else if (s.endsWith("glb")) {
-                var glbNode = node(s);
-                try {
-
-                    var gltf = new GltfModelReader().readWithoutReferences(new ByteArrayInputStream(asset.files.get(s)));
-
-                    if (variants.isEmpty())
-                        variants = gltf.getExtensions() != null && gltf.getExtensions().containsKey("KHR_materials_variants") ? ((List<Map<String, String>>) (((Map<String, Object>) gltf.getExtensions().get("KHR_materials_variants")).get("variants"))).stream().map(a -> a.get("name")).toList() : List.of();
-                    var animations = gltf.getAnimationModels().stream().map(NamedModelElement::getName).toList();
-
-                    if (!animations.isEmpty()) {
-                        var modelAnimationsNode = node("animations");
-                        for (var name : animations) modelAnimationsNode.add(node(name));
-                        glbNode.add(modelAnimationsNode);
-                    }
-
-                } catch (IOException ignored) {
-                }
-                tree.add(glbNode);
+//                if(!animationStrings.contains(s)) {
+//                    animationStrings.add(s.replace(".tracm", "").replace(".tranm", "").replace(".gfbanm", "").replace(".smd", ""));
+//                }
             } else if (s.endsWith("png")) {
                 imagesNode.add(node(s));
             }/* else if(s.equals("config.json")) {
@@ -133,7 +110,7 @@ public class PixelAssetTree extends JTree {
             }*/ else tree.add(node(s));
         }
 
-        animationStrings.stream().sorted().map(this::node).forEach(animationsNode::add);
+        animations.stream().sorted().map(this::node).forEach(animationsNode::add);
 
         if (animationsNode.getChildCount() > 0) tree.add(animationsNode);
         if (imagesNode.getChildCount() > 0) tree.add(imagesNode);

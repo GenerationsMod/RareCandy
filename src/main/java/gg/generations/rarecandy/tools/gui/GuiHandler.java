@@ -57,7 +57,6 @@ public class GuiHandler implements KeyListener {
     public void initializeAsset(PixelAsset asset, Path path) {
         this.asset = asset;
         this.assetPath = path;
-        ((PixelAssetTree) gui.fileViewer).initializeAsset(asset, path);
     }
 
     public void save() {
@@ -96,7 +95,8 @@ public class GuiHandler implements KeyListener {
             var title = BASE_TITLE + " - " + filePath.getFileName().toString();
             frame.setTitle(title);
             this.currentTitle = title;
-            getCanvas().openFile(asset, FilenameUtils.getBaseName(filePath.getFileName().toString()));
+            getCanvas().openFile(asset, FilenameUtils.getBaseName(filePath.getFileName().toString()), () -> ((PixelAssetTree) gui.fileViewer).initializeAsset(asset, assetPath, getCanvas().loadedModel.objects.get(0).animations.keySet()), true);
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

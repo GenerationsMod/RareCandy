@@ -22,6 +22,7 @@ import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -70,17 +71,77 @@ public class ModelLoader {
     public static <T extends MeshObject, V extends MultiRenderObject<T>> void create2(V objects, PixelAsset asset, Map<String, AnimResource> animResources, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
         if (config == null) throw new RuntimeException("config.json can't be null.");
 
-        Set<String> animationNames = new HashSet<>();
+        var scene = ModelLoader.read(asset);
 
-        var gltfModel = ModelLoader.read(asset);
+        var rootNode = ModelNode.create(scene.mRootNode());
 
-        var rootNode = ModelNode.create(gltfModel.mRootNode());
-
-        var meshes = IntStream.range(0, gltfModel.mNumMeshes()).mapToObj(i -> AIMesh.create(gltfModel.mMeshes().get(i))).toArray(AIMesh[]::new);
+        var meshes = IntStream.range(0, scene.mNumMeshes()).mapToObj(i -> AIMesh.create(scene.mMeshes().get(i))).toArray(AIMesh[]::new);
 
         var meshNames = config.excludeMeshNamesFromSkeleton ? Stream.of(meshes).map(a -> a.mName().dataString()).collect(Collectors.toSet()) : Set.<String>of();
 
         Skeleton skeleton = new Skeleton(rootNode, meshNames);
+
+        for (int i = 0; i < scene.mNumAnimations(); i++) {
+            AIAnimation aiAnimation = AIAnimation.create(scene.mAnimations().get(i));
+            var animName = aiAnimation.mName().dataString();
+
+            var fps = aiAnimation.mTicksPerSecond();
+
+            var animationNodes = new Animation.AnimationNode[skeleton.jointMap.size()];
+
+            for (int channelIndex = 0; channelIndex < aiAnimation.mNumChannels(); channelIndex++) {
+                var channel = AINodeAnim.create(aiAnimation.mChannels().get(channelIndex));
+
+                var boneName = channel.mNodeName().dataString();
+
+                if(!skeleton.boneIdMap.containsKey(boneName)) continue;
+
+                var node = animationNodes[skeleton.boneIdMap.get(boneName)] = new Animation.AnimationNode();
+
+
+                for (int posIndex = 0; posIndex < channel.mNumPositionKeys(); posIndex++) {
+                    var posKey = channel.mPositionKeys().get(posIndex);
+
+                    var time = posKey.mTime();
+                    var pos = new Vector3f(posKey.mValue().x(), posKey.mValue().y(), posKey.mValue().z());
+
+                    node.positionKeys.add(time, pos);
+                }
+
+                for (int rotIndex = 0; rotIndex < channel.mNumRotationKeys(); rotIndex++) {
+                    var rotKey = channel.mRotationKeys().get(rotIndex);
+
+                    var time = rotKey.mTime();
+                    var rot = new Quaternionf(rotKey.mValue().x(), rotKey.mValue().y(), rotKey.mValue().z(), rotKey.mValue().w());
+
+                    node.rotationKeys.add(time, rot);
+                }
+
+                for (int scaleIndex = 0; scaleIndex < channel.mNumScalingKeys(); scaleIndex++) {
+                    var scaleKey = channel.mScalingKeys().get(scaleIndex);
+
+                    var time = scaleKey.mTime();
+                    var scale = new Vector3f(scaleKey.mValue().x(), scaleKey.mValue().y(), scaleKey.mValue().z());
+
+                    node.scaleKeys.add(time, scale);
+                }
+            }
+
+            for (int nodeIndex = 0; nodeIndex < animationNodes.length; nodeIndex++) {
+
+                if(animationNodes[nodeIndex] == null) {
+                    var node = new Animation.AnimationNode();
+                    var joint = skeleton.jointMap.get(skeleton.bones[nodeIndex].name);
+
+                    node.rotationKeys.add(0, joint.poseRotation);
+                    node.rotationKeys.add(0, joint.poseRotation);
+                    node.scaleKeys.add(0, joint.poseScale);
+                }
+            }
+
+            animResources.putIfAbsent(animName, new GenericAnimResource((long) fps, animationNodes));
+        }
+
 
         for (AIMesh aiMesh : meshes) {
             processBones(skeleton, aiMesh);
@@ -89,8 +150,6 @@ public class ModelLoader {
         Map<String, Animation> animations = new HashMap<>();
 
         var offSetsToInsert = new HashMap<String, Animation.Offset>();
-
-        var defaultNodes = Animation.AnimationNode.generateDefaults(skeleton);
 
         animResources.forEach((name, animResource) -> {
             var fps = animResource.fps();
@@ -182,7 +241,7 @@ public class ModelLoader {
 
         traverseTree(transform, rootNode, objects);
 
-        Assimp.aiReleaseImport(gltfModel);
+        Assimp.aiReleaseImport(scene);
 
     }
 

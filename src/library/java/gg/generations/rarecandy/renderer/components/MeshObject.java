@@ -20,6 +20,8 @@ public class MeshObject extends RenderObject {
     private static void render(Material k, List<Consumer<Pipeline>> v) {
         var pl = k.getPipeline();
 
+        if(pl == null) return;
+
         pl.bind(k);
         v.forEach(a -> a.accept(pl));
         pl.unbind(k);

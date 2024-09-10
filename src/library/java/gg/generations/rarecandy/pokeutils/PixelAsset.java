@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 /**
  * Pixelmon Asset (.pk) file.
@@ -40,13 +40,13 @@ public class PixelAsset {
 
                 return vec;
             })
-            .registerTypeAdapter(Vector3f.class, new GenericJsonThing<>((json) -> {
+            .registerTypeAdapter(Vector3f.class, new GenericJsonThing<Vector3f>((json, ctx) -> {
                 var array =  new JsonArray();
                 array.add(json.x);
                 array.add(json.y);
                 array.add(json.z);
                 return array;
-            }, (json) -> {
+            }, (json, ctx) -> {
                 var vec = new Vector3f();
                 if (json.isJsonArray()) {
                     if (json.getAsJsonArray().size() == 3) {
@@ -56,14 +56,14 @@ public class PixelAsset {
 
                 return vec;
             }))
-            .registerTypeAdapter(Quaternionf.class, new GenericJsonThing<>((json) -> {
+            .registerTypeAdapter(Quaternionf.class, new GenericJsonThing<Quaternionf>((json, ctx) -> {
                 var array =  new JsonArray();
                 array.add(json.x);
                 array.add(json.y);
                 array.add(json.z);
                 array.add(json.w);
                 return array;
-            }, (json) -> {
+            }, (json, ctx) -> {
                 var vec = new Quaternionf();
                 if (json.isJsonArray()) {
                     if (json.getAsJsonArray().size() == 3) {
@@ -75,15 +75,49 @@ public class PixelAsset {
 
                 return vec;
             }))
-            .registerTypeAdapter(MeshOptions.class, new GenericJsonThing<>(meshOptions -> {
+            .registerTypeAdapter(MeshOptions.class, new GenericJsonThing<MeshOptions>((meshOptions, ctx) -> {
                 var json = new JsonObject();
                 json.addProperty("invert", meshOptions.invert());
                 return json;
-            }, json -> {
+            }, (json, ctx) -> {
                 if (json.isJsonPrimitive()) return new MeshOptions(json.getAsBoolean());
                 else {
                     var invert = json.getAsJsonObject().getAsJsonPrimitive("invert").getAsBoolean();
                     return new MeshOptions(invert);
+                }
+            }))
+            .registerTypeAdapter(SkeletalTransform.class, new GenericJsonThing<SkeletalTransform>(new BiFunction<SkeletalTransform, JsonSerializationContext, JsonElement>() {
+                @Override
+                public JsonElement apply(SkeletalTransform skeletalTransform, JsonSerializationContext jsonSerializationContext) {
+                    var obj = new JsonObject();
+                    var position = skeletalTransform.position();
+                    if (position.x != 0 || position.y != 0 || position.z != 0) {
+                        obj.add("position", jsonSerializationContext.serialize(position));
+                    }
+                    var rotation = skeletalTransform.rotation();
+                    if (rotation.x != 0 || rotation.y != 0 || rotation.z != 0 || rotation.w != 0) {
+                        obj.add("rotation", jsonSerializationContext.serialize(rotation));
+                    }
+                    return obj;
+                }
+            }, new BiFunction<JsonElement, JsonDeserializationContext, SkeletalTransform>() {
+                @Override
+                public SkeletalTransform apply(JsonElement element, JsonDeserializationContext context) {
+                    var obj = element.getAsJsonObject();
+
+                    var position = new Vector3f();
+
+                    if(obj.has("position")) {
+                        position = context.deserialize(obj.get("position"), Vector3f.class);
+                    }
+
+                    var rotation = new Quaternionf();
+
+                    if(obj.has("rotation =")) {
+                        rotation = context.deserialize(obj.get("rotation"), Quaternionf.class);
+                    }
+
+                    return new SkeletalTransform(position, rotation);
                 }
             }))
             .create();
@@ -235,15 +269,17 @@ public class PixelAsset {
         return this.files.get(key);
     }
 
-    public record GenericJsonThing<T>(Function<T, JsonElement> serializer, Function<JsonElement, T> deserializer) implements JsonSerializer<T>, JsonDeserializer<T> {
+    public record GenericJsonThing<T>(BiFunction<T, JsonSerializationContext, JsonElement> serializer, BiFunction<JsonElement, JsonDeserializationContext, T> deserializer) implements JsonSerializer<T>, JsonDeserializer<T> {
+
+
         @Override
         public T deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            return deserializer.apply(json);
+            return deserializer.apply(json, context);
         }
 
         @Override
         public JsonElement serialize(T src, Type typeOfSrc, JsonSerializationContext context) {
-            return serializer.apply(src);
+            return serializer.apply(src, context);
         }
     }
 

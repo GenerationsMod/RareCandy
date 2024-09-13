@@ -45,7 +45,7 @@ vec3 applyEmission(vec3 base, vec3 emissionColor, float intensity) {
     return base + (emissionColor - base) * intensity;
 }
 
-float getMaskIntensity() {
+float getMaskIntensity(int frame) {
     vec2 effectTexCoord = vec2(texCoord0);
 
     if(frame >= 0) {
@@ -60,11 +60,11 @@ float getMaskIntensity() {
     return texture(mask, effectTexCoord).r;
 }
 
-vec4 getColor() {
+vec4 getColor(int frame) {
     vec2 texCoord = texCoord0;
     vec4 color = texture(diffuse, texCoord);
     vec4 layerMasks = adjust(texture(layer, texCoord));
-    float maskColor = adjustScalar(getMaskIntensity());
+    float maskColor = adjustScalar(getMaskIntensity(frame));
 
     vec3 base = mix(color.rgb, color.rgb * baseColor1, layerMasks.r);
     base = mix(base, color.rgb * baseColor2, layerMasks.g);
@@ -82,7 +82,7 @@ vec4 getColor() {
 }
 
 void main() {
-    outColor = getColor();
+    outColor = getColor(frame);
 
     if(outColor.a < 0.004) discard;
 

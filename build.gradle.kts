@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.11.7"
+version = "2.11.8"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -70,6 +70,7 @@ dependencies {
             "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = "natives-$os$cpu"))
             "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = "natives-$os$cpu"))
             "shadow"(runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = "natives-$os$cpu"))
+            "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-$os$cpu"))
         }
     }
 
@@ -79,7 +80,6 @@ dependencies {
     "shadowTools"(implementation("com.github.weisj:darklaf-core:3.0.2")!!)
     "shadowTools"(implementation("com.intellij:forms_rt:7.0.3")!!)
     "shadowTools"(implementation("org.lwjgl", "lwjgl-nfd"))
-    "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows"))
     "shadowTools"(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
 
     "shadow"(implementation("com.google.flatbuffers:flatbuffers-java:23.5.26")!!)

@@ -49,12 +49,12 @@ float getMaskIntensity(int frame) {
     vec2 effectTexCoord = vec2(texCoord0);
 
     if(frame >= 0) {
-        effectTexCoord *= 4f;
+        effectTexCoord *= 4.0;
         effectTexCoord = fract(effectTexCoord);
 
-        effectTexCoord *= (0.25f);
-        effectTexCoord.x += (frame % 4)/4f;
-        effectTexCoord.y +=  (frame/4)/4f;
+        effectTexCoord *= (0.25);
+        effectTexCoord.x += (frame % 4)/4.0;
+        effectTexCoord.y +=  (frame/4)/4.0;
     }
 
     return texture(mask, effectTexCoord).r;

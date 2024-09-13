@@ -19,8 +19,8 @@ void main() {
 
     vec2 effectTexCoord = vec2(texCoord0);
     effectTexCoord *= 0.25;
-    effectTexCoord.x += (frame % 4)/4f;
-    effectTexCoord.y +=  (frame/4)/4f;
+    effectTexCoord.x += (frame % 4)/4.0;
+    effectTexCoord.y +=  (frame/4)/4.0;
 
     outColor.xyz = mix(outColor.xyz, effectColor, texture(effectMask, effectTexCoord).r);
 }

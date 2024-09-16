@@ -49,5 +49,6 @@ void main() {
 
     float pct = smoothLightDropOff(distance(texCoord0,vec2(0.5)), halfRadius, halfRadius+(2/size), lightLevel, 0.0);
 
-    outColor = vec4(color, pct);
+//    outColor = vec4(color, pct);
+    outColor = vec4(1);
 }

@@ -458,15 +458,6 @@ public class ModelLoader {
         } * attrib.amount();
     }
 
-    private static List<Attribute> DEFAULT_ATTRIBUTES = List.of(
-            Attribute.POSITION,
-            Attribute.TEXCOORD,
-            Attribute.NORMAL,
-            Attribute.BONE_IDS,
-            Attribute.BONE_WEIGHTS
-    );
-
-
     public static void generateVao(GLModel model, ByteBuffer vertexBuffer, List<Attribute> layout) {
         model.vao = glGenVertexArrays();
 
@@ -561,6 +552,70 @@ public class ModelLoader {
         if (RareCandy.DEBUG_THREADS) task.run();
         else modelLoadingPool.submit(task);
         return obj;
+    }
+
+    public static <T extends MeshObject, V extends MultiRenderObject<T>> void createMaterialDisplay(V objects, PixelAsset asset, Map<String, AnimResource> animResources, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
+        if (config == null) throw new RuntimeException("config.json can't be null.");
+
+        var materials = new HashMap<String, Material>();
+
+        config.materials.forEach((k, v) -> {
+            var material = MaterialReference.process(k, config.materials, images);
+
+            materials.put(k, material);
+        });
+
+        var defaultVariant = new HashMap<String, Variant>();
+        config.defaultVariant.forEach((k, v) -> {
+            var variant = new Variant(materials.get(v.material()), v.hide(), v.offset());
+            defaultVariant.put(k, variant);
+        });
+
+        var variantMaterialMap = new HashMap<String, Map<String, Material>>();
+        var variantHideMap = new HashMap<String, List<String>>();
+        var variantOffsetMap = new HashMap<String, Map<String, Vector2f>>();
+
+        if(config.variants != null) {
+            for (Map.Entry<String, VariantParent> entry : config.variants.entrySet()) {
+                String variantKey = entry.getKey();
+                VariantParent variantParent = entry.getValue();
+
+                VariantParent child = config.variants.get(variantParent.inherits());
+
+                var map = variantParent.details();
+
+                while (child != null) {
+                    var details = child.details();
+
+                    applyVariantDetails(details, map);
+
+                    child = config.variants.get(child.inherits());
+                }
+
+                applyVariantDetails(config.defaultVariant, map);
+
+                var matMap = variantMaterialMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
+                var hideMap = variantHideMap.computeIfAbsent(variantKey, s3 -> new ArrayList<>());
+                var offsetMap = variantOffsetMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
+
+
+                applyVariant(materials, matMap, hideMap, offsetMap, map);
+            }
+        } else {
+            var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
+            var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
+            var offsetMap = variantOffsetMap.computeIfAbsent("regular", s3 -> new HashMap<>());
+
+
+            defaultVariant.forEach((s1, variant) -> {
+                matMap.put(s1, variant.material());
+                if (variant.hide()) hideMap.add(s1);
+                if (variant.offset() != null) offsetMap.put(s1, variant.offset());
+            });
+        }
+
+        PlaneGenerator.createPlaneMeshObject(objects, supplier, materials, 2, 2);
+
     }
 
     public MultiRenderObject<MeshObject> generatePlane(float width, float length, Consumer<MultiRenderObject<MeshObject>> onFinish) {

@@ -1,6 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import groovy.util.Node
 import org.gradle.api.publish.maven.internal.artifact.FileBasedMavenArtifact
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     java
@@ -8,6 +9,7 @@ plugins {
     `maven-publish`
     idea
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    kotlin("jvm") version "2.0.20"
 }
 
 group = "gg.generations"
@@ -57,6 +59,7 @@ dependencies {
     "shadowTools"(implementation("org.lwjgl", "lwjgl"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-glfw"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-opengl"))
+    "shadowTools"(implementation("org.lwjgl", "lwjgl-nuklear"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-stb"))
     "shadow"(implementation("org.lwjgl", "lwjgl-assimp", "3.3.2")) //Only now just to keep assimp native from complaining
     "shadow"(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
@@ -72,7 +75,10 @@ dependencies {
             "shadow"(runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = "natives-$os$cpu"))
             "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-$os$cpu"))
         }
+
+        "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-nuklear", classifier = "natives-$os"))
     }
+
 
     "shadowTools"(implementation("org.slf4j:slf4j-jdk14:2.0.12")!!)
 
@@ -87,6 +93,7 @@ dependencies {
     //TODO: JT need some funky gradle logic that lets us build a version does and doesn't include gson for the viewer and generations respectively
     "shadowTools"(implementation("com.google.code.gson:gson:2.10.1")!!)
     "shadowTools"(implementation("de.javagl:jgltf-model-builder:2.0.5")!!)
+    implementation(kotlin("stdlib-jdk8"))
 
 
 }
@@ -162,4 +169,13 @@ publishing {
 fun mcDependency(handler: DependencyHandlerScope, group: String, name: String) {
     handler.compileOnly("$group:$name")
     handler.testImplementation("$group:$name")
+}
+
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "17"
+}
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "17"
 }

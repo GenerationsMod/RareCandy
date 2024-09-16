@@ -100,25 +100,22 @@ public class PixelAsset {
                     }
                     return obj;
                 }
-            }, new BiFunction<JsonElement, JsonDeserializationContext, SkeletalTransform>() {
-                @Override
-                public SkeletalTransform apply(JsonElement element, JsonDeserializationContext context) {
-                    var obj = element.getAsJsonObject();
+            }, (element, context) -> {
+                var obj = element.getAsJsonObject();
 
-                    var position = new Vector3f();
+                var position = new Vector3f();
 
-                    if(obj.has("position")) {
-                        position = context.deserialize(obj.get("position"), Vector3f.class);
-                    }
-
-                    var rotation = new Quaternionf();
-
-                    if(obj.has("rotation =")) {
-                        rotation = context.deserialize(obj.get("rotation"), Quaternionf.class);
-                    }
-
-                    return new SkeletalTransform(position, rotation);
+                if(obj.has("position")) {
+                    position = context.deserialize(obj.get("position"), Vector3f.class);
                 }
+
+                var rotation = new Quaternionf();
+
+                if(obj.has("rotation =")) {
+                    rotation = context.deserialize(obj.get("rotation"), Quaternionf.class);
+                }
+
+                return new SkeletalTransform(position, rotation);
             }))
             .create();
 

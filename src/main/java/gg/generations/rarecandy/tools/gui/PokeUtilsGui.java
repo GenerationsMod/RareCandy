@@ -29,22 +29,12 @@ public class PokeUtilsGui extends JPanel {
         canvasPanel.add(renderingWindow);
         fileViewer.setFocusable(true);
         canvasPanel.setFocusable(true);
-
-        var renderLoop = new Runnable() {
-            @Override
-            public void run() {
-                if (renderingWindow.isValid()) renderingWindow.render();
-                SwingUtilities.invokeLater(this);
-            }
-        };
-
-        SwingUtilities.invokeLater(renderLoop);
     }
 
     public static void main(String[] args) {
         var frame = new JFrame();
         var gui = new PokeUtilsGui();
-        frame.setSize(new Dimension(250+512 + (512 - 482), 512));
+        frame.setSize(new Dimension(250+512 + (512), 512));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setContentPane(gui);
         new GuiHandler(frame, gui);
@@ -61,6 +51,8 @@ public class PokeUtilsGui extends JPanel {
 //        System.load("C:/Program Files/RenderDoc/renderdoc.dll");
         this.fileViewer = new PixelAssetTree(this);
         this.renderingWindow = new RareCandyCanvas(this);
+        this.renderingWindow.setPreferredSize(new Dimension(512,512));
+        this.renderingWindow.start();
     }
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 

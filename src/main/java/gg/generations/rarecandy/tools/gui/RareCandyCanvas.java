@@ -20,13 +20,9 @@ import gg.generations.rarecandy.tools.TextureLoader;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.awt.AWTGLCanvas;
-import org.lwjgl.opengl.awt.GLData;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
-import javax.swing.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.IOException;
@@ -34,13 +30,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL11.*;
 
 
-public class RareCandyCanvas extends AWTGLCanvas {
+public class RareCandyCanvas extends BaseCanvas {
     private static CycleVariants runnable;
     public static Matrix4f projectionMatrix;
     public static float radius = 2.0f;
@@ -59,8 +54,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public String currentAnimation = null;
     public double originalScaleModifer;
     private RareCandy renderer;
-    private MultiRenderObject<MeshObject> plane;
-    private ObjectInstance planeInstance;
+//    private MultiRenderObject<MeshObject> plane;
+//    private ObjectInstance planeInstance;
 
     public ToggleableMultiRenderObject loadedModel;
     public AnimatedObjectInstance loadedModelInstance;
@@ -83,35 +78,30 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public RareCandyCanvas(PokeUtilsGui handler) {
-        super(defaultData());
+        super();
         this.handler = handler;
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
-            }
-        });
+
 
         NativeFileDialog.NFD_Init();
 //        root = DialogueUtils.chooseFolder();
 //        if(root == null) root = Path.of("pack");
     }
 
-    private static GLData defaultData() {
-        var data = new GLData();
-        data.profile = GLData.Profile.CORE;
-        data.forwardCompatible = true;
-        data.api = GLData.API.GL;
-        data.majorVersion = 3;
-        data.minorVersion = 2;
-        return data;
+    @Override
+    protected void addListeners() {
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                projectionMatrix = new Matrix4f().ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
+            }
+        });
     }
 
     public static double getTime() {
         return time;
     }
 
-    public static void setup(RareCandyCanvas canvas) {
+    public void setup() {
 
         ITextureLoader.setInstance(new TextureLoader());
 
@@ -124,16 +114,31 @@ public class RareCandyCanvas extends AWTGLCanvas {
             default -> GuiPipelines.SOLID;
         });
 
+        projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
+        GuiPipelines.onInitialize();
+        this.renderer = new RareCandy();
 
-        var renderLoop = new Runnable() {
-            @Override
-            public void run() {
-                if (canvas.isValid()) canvas.render();
-                SwingUtilities.invokeLater(this);
-            }
-        };
+        GL11C.glClearColor(0, 0, 0, 0);
+        GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        SwingUtilities.invokeLater(renderLoop);
+        framebuffer = new FrameBuffer(1024, 1024);
+
+//        screenRenderer = new ScreenRenderer(framebuffer);
+
+
+//        loadPlane(2, 2, model -> {
+//            plane = model;
+//            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().rotateZ((float) Math.toRadians(90)), viewMatrix, null));
+//        });
+
+//        loadCube(1, 1, 1, model -> {
+//            cube = model;
+//            cubeInstances = new ObjectInstance[4];
+//            cubeInstances[0] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, -0.5f, 0), viewMatrix, null));
+//            cubeInstances[1] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 0.5f, -1), viewMatrix, null));
+//            cubeInstances[2] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 1.5f, -1), viewMatrix, null));
+//            cubeInstances[3] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 02.5f, -1), viewMatrix, null));
+//        });
     }
 
     public void openFile(PixelAsset pkFile, String name) throws IOException {
@@ -143,7 +148,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public void openFile(PixelAsset pkFile, String name, Runnable runnable, boolean resetAnimation) throws IOException {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
-        renderer.objectManager.add(plane, planeInstance);
+//        renderer.objectManager.add(plane, planeInstance);
 
 //        for (ObjectInstance instance : cubeInstances) {
 //            renderer.objectManager.add(cube, instance);
@@ -179,36 +184,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
         });
     }
 
-    @Override
-    public void initGL() {
-        projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
-        GL.createCapabilities(true);
-        GuiPipelines.onInitialize();
-        this.renderer = new RareCandy();
-
-        GL11C.glClearColor(0, 0, 0, 0);
-        GL11C.glEnable(GL11C.GL_DEPTH_TEST);
-
-        framebuffer = new FrameBuffer(getWidth(), getHeight());
-
-//        screenRenderer = new ScreenRenderer(framebuffer);
-
-
-        loadPlane(100, 100, model -> {
-            plane = model;
-            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), viewMatrix, null));
-        });
-
-//        loadCube(1, 1, 1, model -> {
-//            cube = model;
-//            cubeInstances = new ObjectInstance[4];
-//            cubeInstances[0] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, -0.5f, 0), viewMatrix, null));
-//            cubeInstances[1] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 0.5f, -1), viewMatrix, null));
-//            cubeInstances[2] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 1.5f, -1), viewMatrix, null));
-//            cubeInstances[3] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 02.5f, -1), viewMatrix, null));
-//        });
-    }
-
     private MultiRenderObject<MeshObject> loadPlane(int width, int length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
         return loader.generatePlane(width, length, onFinish);
     }
@@ -220,9 +195,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     private final Vector3f size = new Vector3f();
 
-    private final double fraciton = 1/16f;
     @Override
-    public void paintGL() {
+    public void beforeRender() {
         if (loadedModelInstance != null) {
             loadedModelInstance.transformationMatrix().identity().scale(scaleModifier);
 
@@ -230,14 +204,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
         }
 
         if(animate) time = (System.currentTimeMillis() - startTime) / 1000f;
-
-        if (runnable != null) runnable.pre();
-
-        renderToFramebuffer();
-        renderToScreen();
-
-        if (runnable != null) runnable.post();
-        swapBuffers();
 
         if (instances.size() > 1) {
             ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
@@ -252,12 +218,27 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 }
             });
         }
+
+        if (runnable != null) runnable.pre();
+    }
+
+    @Override
+    public void paintGL() {
+        if(framebuffer == null) return;
+        renderToFramebuffer();
+        renderToScreen();
+    }
+
+    @Override
+    public void afterRender() {
+        if (runnable != null) runnable.post();
     }
 
     private final int[] originalViewport = new int[4]; // Array to store x, y, width, height
 
     private void renderToFramebuffer() {
         renderingFrame = true;
+
         framebuffer.bindFramebuffer();
 
         glGetIntegerv(GL_VIEWPORT, originalViewport);
@@ -299,7 +280,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 () -> is,
                 (gltfModel, animResources, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    ModelLoader.create2(object, gltfModel, animResources, images, config, glCalls, AnimatedMeshObject::new);
+                    ModelLoader.createMaterialDisplay(object, gltfModel, animResources, images, config, glCalls, AnimatedMeshObject::new);
                     return glCalls;
                 }, onFinish);
     }
@@ -309,9 +290,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
 //        if (object.animations != null)
 //            LoggerUtil.print(animation);
-        if (Objects.requireNonNull(object.animations).containsKey(animation)) {
-            loadedModelInstance.changeAnimation(createInstance(object.animations.get(animation)));
-        }
+//        if (Objects.requireNonNull(object.animations).containsKey(animation)) {
+//            loadedModelInstance.changeAnimation(createInstance(object.animations.get(animation)));
+//        }
     }
 
     public void updateLoadedModel(Consumer<AnimatedMeshObject> consumer) {
@@ -322,7 +303,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         loadedModelInstance.setVariant(variant);
     }
 
-    public void attachArcBall(GuiHandler.ArcballOrbit arcballOrbit) {
+    public void attachArcBall(ArcballOrbit arcballOrbit) {
         this.addMouseMotionListener(arcballOrbit);
         this.addMouseWheelListener(arcballOrbit);
         this.addMouseListener(arcballOrbit);
@@ -332,9 +313,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
         if(add) loadedModel.overrides.add(object);
         else loadedModel.overrides.remove(object);
     }
-
-
-    public static final Path images = Path.of("assets", "generations_core", "textures", "pokemon");
 
     private Path root = Path.of("images");
 
@@ -388,6 +366,28 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public static class ToggleableMultiRenderObject extends MultiRenderObject<AnimatedMeshObject> {
+        public List<String> overrides = new ArrayList<>();
+
+        @Override
+        public <V extends RenderObject> void render(List<ObjectInstance> instances, V obj) {
+            for (var object : this.objects) {
+                if (object != null && !overrides.contains(object.name) && object.isReady()) {
+                    object.render(instances, object);
+                }
+            }
+        }
+
+        @Override
+        public <V extends RenderObject> void render(ObjectInstance instance, V obj) {
+            for (var object : this.objects) {
+                if (object != null && !overrides.contains(object.name) && object.isReady()) {
+                    object.render(instance, object);
+                }
+            }
+        }
+    }
+
+    public static class MaterialMultiRenderObject extends MultiRenderObject<AnimatedMeshObject> {
         public List<String> overrides = new ArrayList<>();
 
         @Override

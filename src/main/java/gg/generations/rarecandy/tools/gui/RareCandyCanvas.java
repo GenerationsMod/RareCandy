@@ -189,7 +189,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClearColor(0, 0, 0, 0);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
-        framebuffer = new FrameBuffer(getWidth(), getHeight());
+        framebuffer = new FrameBuffer(512, 512);
 
 //        screenRenderer = new ScreenRenderer(framebuffer);
 

@@ -17,9 +17,11 @@ import static org.lwjgl.stb.STBImage.stbi_load_from_memory;
 public class Texture implements ITexture {
     private TextureDetails details;
     public int id;
+    private int res;
 
     public Texture(TextureDetails textureDetails) {
         this.details = textureDetails;
+        this.res = textureDetails.width();
     }
 
     private record TextureDetails(ByteBuffer buffer, Type type, int width, int height) implements Closeable {
@@ -54,6 +56,16 @@ public class Texture implements ITexture {
         assert (slot >= 0 && slot <= 31);
         GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + slot);
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, this.id);
+    }
+
+    @Override
+    public int width() {
+        return res;
+    }
+
+    @Override
+    public int height() {
+        return res;
     }
 
     @Override

@@ -1,8 +1,8 @@
 package gg.generations.rarecandy.pokeutils;
 
-import org.joml.Vector2f;
+import gg.generations.rarecandy.renderer.animation.Transform;
 
-public record VariantDetails(String material, Boolean hide, Vector2f offset) {
+public record VariantDetails(String material, Boolean hide, Transform offset) {
     public VariantDetails fillIn(VariantDetails filler) {
         var newMaterial = material;
         var newHide = hide;

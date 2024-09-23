@@ -1,9 +1,9 @@
 package gg.generations.rarecandy.renderer.model;
 
+import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.model.material.Material;
-import org.joml.Vector2f;
 
-public record Variant(Material material, boolean hide, Vector2f offset) {
+public record Variant(Material material, boolean hide, Transform offset) {
     public Variant(Material material) {
         this(material, false, null);
     }

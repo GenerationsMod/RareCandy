@@ -4,10 +4,14 @@ import com.google.gson.*;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class MaterialReference {
@@ -217,5 +221,160 @@ public class MaterialReference {
         } else {
             return new Vector3f(1.0f, 1.0f, 1.0f);
         }
+    }
+
+    // Tolerance for floating-point comparison (epsilon)
+    private static final float EPSILON = 1e-6f;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MaterialReference that = (MaterialReference) o;
+
+        // Compare simple fields
+        if (!Objects.equals(parent, that.parent)) return false;
+        if (!Objects.equals(shader, that.shader)) return false;
+        if (!Objects.equals(cull, that.cull)) return false;
+        if (!Objects.equals(blend, that.blend)) return false;
+
+        // Compare the images map based on byte content
+        if (!compareImages(images, that.images)) return false;
+
+        // Compare the values map
+        if (!compareValues(values, that.values)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(parent, shader, cull, blend);
+        result = 31 * result + hashImages(images);
+        result = 31 * result + hashValues(values);
+        return result;
+    }
+
+    // Helper method to compare images based on exact byte content of key-value pairs
+    private boolean compareImages(Map<String, String> images1, Map<String, String> images2) {
+        if (images1 == images2) return true;
+        if (images1 == null || images2 == null || images1.size() != images2.size()) return false;
+
+        for (Map.Entry<String, String> entry : images1.entrySet()) {
+            String key1 = entry.getKey();
+            String value1 = entry.getValue();
+            String value2 = images2.get(key1);
+
+            // Compare key and value byte arrays
+            if (value2 == null ||
+                    !Arrays.equals(key1.getBytes(StandardCharsets.UTF_8), key1.getBytes(StandardCharsets.UTF_8)) ||
+                    !Arrays.equals(value1.getBytes(StandardCharsets.UTF_8), value2.getBytes(StandardCharsets.UTF_8))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Helper method to hash images based on byte content
+    private int hashImages(Map<String, String> images) {
+        if (images == null) return 0;
+        return images.entrySet().stream()
+                .mapToInt(e -> Arrays.hashCode(e.getKey().getBytes(StandardCharsets.UTF_8)) ^
+                        Arrays.hashCode(e.getValue().getBytes(StandardCharsets.UTF_8)))
+                .sum();
+    }
+
+    // Helper method to compare values map
+    private boolean compareValues(Map<String, Object> values1, Map<String, Object> values2) {
+        if (values1 == values2) return true;
+        if (values1 == null || values2 == null || values1.size() != values2.size()) return false;
+
+        for (Map.Entry<String, Object> entry : values1.entrySet()) {
+            String key1 = entry.getKey();
+            Object value1 = entry.getValue();
+            Object value2 = values2.get(key1);
+
+            if (value2 == null || !deepEquals(value1, value2)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Helper method to deeply compare objects in values map
+    private boolean deepEquals(Object o1, Object o2) {
+        if (o1 == o2) return true;
+        if (o1 == null || o2 == null) return false;
+
+        // Handle specific types
+        if (o1 instanceof Vector3f && o2 instanceof Vector3f) {
+            return compareVector3f((Vector3f) o1, (Vector3f) o2);
+        }
+        if (o1 instanceof Vector4f && o2 instanceof Vector4f) {
+            return compareVector4f((Vector4f) o1, (Vector4f) o2);
+        }
+        if (o1 instanceof Boolean && o2 instanceof Boolean) {
+            return o1.equals(o2); // Booleans can be compared directly
+        }
+        if (o1 instanceof Number && o2 instanceof Number) {
+            return ((Number) o1).doubleValue() == ((Number) o2).doubleValue(); // Compare numbers as doubles
+        }
+        if (o1 instanceof String && o2 instanceof String) {
+            // Compare strings by byte content
+            return Arrays.equals(((String) o1).getBytes(StandardCharsets.UTF_8),
+                    ((String) o2).getBytes(StandardCharsets.UTF_8));
+        }
+
+        // Default to regular equals for other types
+        return Objects.equals(o1, o2);
+    }
+
+    // Helper method to hash the values map
+    private int hashValues(Map<String, Object> values) {
+        if (values == null) return 0;
+        return values.entrySet().stream()
+                .mapToInt(e -> Objects.hash(e.getKey(), deepHashCode(e.getValue())))
+                .sum();
+    }
+
+    // Helper method to deeply hash objects in values map
+    private int deepHashCode(Object o) {
+        if (o == null) return 0;
+
+        // Handle specific types
+        if (o instanceof Vector3f) {
+            return Arrays.hashCode(new float[] { ((Vector3f) o).x, ((Vector3f) o).y, ((Vector3f) o).z });
+        }
+        if (o instanceof Vector4f) {
+            return Arrays.hashCode(new float[] { ((Vector4f) o).x, ((Vector4f) o).y, ((Vector4f) o).z, ((Vector4f) o).w });
+        }
+        if (o instanceof Boolean) {
+            return Boolean.hashCode((Boolean) o);
+        }
+        if (o instanceof Number) {
+            return Double.hashCode(((Number) o).doubleValue());
+        }
+        if (o instanceof String) {
+            // Hash the byte content of the string
+            return Arrays.hashCode(((String) o).getBytes(StandardCharsets.UTF_8));
+        }
+
+        // Default to regular hashCode for other types
+        return o.hashCode();
+    }
+
+    // Helper method to compare Vector3f components with an epsilon tolerance
+    private boolean compareVector3f(Vector3f v1, Vector3f v2) {
+        return Math.abs(v1.x - v2.x) < EPSILON &&
+                Math.abs(v1.y - v2.y) < EPSILON &&
+                Math.abs(v1.z - v2.z) < EPSILON;
+    }
+
+    // Helper method to compare Vector4f components with an epsilon tolerance
+    private boolean compareVector4f(Vector4f v1, Vector4f v2) {
+        return Math.abs(v1.x - v2.x) < EPSILON &&
+                Math.abs(v1.y - v2.y) < EPSILON &&
+                Math.abs(v1.z - v2.z) < EPSILON &&
+                Math.abs(v1.w - v2.w) < EPSILON;
     }
 }

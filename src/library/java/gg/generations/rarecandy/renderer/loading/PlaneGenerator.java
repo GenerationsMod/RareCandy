@@ -68,6 +68,46 @@ public class PlaneGenerator {
         return new Pair<>(glCalls, obj);
     }
 
+
+    public static Pair<GLModel, List<Runnable>> generatePlaneRunnable(float width, float length) {
+        var model = new GLModel();
+
+        var attributes = List.of(Attribute.POSITION, Attribute.TEXCOORD);
+
+        var vertexlength = calculateVertexSize(attributes);
+        var amount = 4;
+
+        var vertexBuffer = MemoryUtil.memAlloc(vertexlength * amount)
+                .putFloat(-width / 2).putFloat(0.0f).putFloat(-length / 2).putFloat(0.0f).putFloat(0.0f)
+                .putFloat(width / 2).putFloat(0.0f).putFloat(-length / 2).putFloat(1.0f).putFloat(0.0f)
+                .putFloat(-width / 2).putFloat(0.0f).putFloat(length / 2).putFloat(0.0f).putFloat(1.0f)
+                .putFloat(width / 2).putFloat( 0.0f).putFloat(length / 2).putFloat(1.0f).putFloat(1.0f)
+                .flip();
+
+
+        var indexBuffer = MemoryUtil.memAlloc(6 * 2).asShortBuffer()
+                .put((short) 0).put((short) 1).put((short) 2)
+                .put((short) 1).put((short) 3).put((short) 2)
+                .flip();
+
+
+
+        List<Runnable> glCalls = List.of(() -> {
+            generateVao(model, vertexBuffer, attributes);
+            GL30.glBindVertexArray(model.vao);
+
+            model.ebo = GL15.glGenBuffers();
+            GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
+            GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
+
+            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES, GL11.GL_UNSIGNED_SHORT, model.ebo, 6));
+            MemoryUtil.memFree(vertexBuffer);
+            MemoryUtil.memFree(indexBuffer);
+        });
+
+        return new Pair<>(model, glCalls);
+    }
+
     public static Pair<List<Runnable>, MultiRenderObject<MeshObject>> generateCube(float width, float height, float length, String image) {
         var model = new GLModel();
 

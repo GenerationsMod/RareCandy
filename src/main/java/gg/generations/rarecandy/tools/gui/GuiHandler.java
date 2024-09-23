@@ -19,7 +19,7 @@ import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.lightLevel;
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.setup;
 
 public class GuiHandler implements KeyListener {
-    private static final Path TEMP = Path.of("temp");
+    public static final Path TEMP = Path.of("temp");
     public static final LZMA2Options OPTIONS = new LZMA2Options();
     private static final String BASE_TITLE = "Pk Explorer";
     private final PokeUtilsGui gui;
@@ -109,7 +109,7 @@ public class GuiHandler implements KeyListener {
         getCanvas().openFile(asset, FilenameUtils.getBaseName(assetPath.getFileName().toString()));
     }
 
-    public Map<String, byte[]> move(Path path) throws IOException {
+    public static Map<String, byte[]> move(Path path) throws IOException {
         FileUtils.deleteDirectory(TEMP.toFile());
         Files.createDirectories(TEMP);
 

@@ -6,7 +6,6 @@ import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
-import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
@@ -25,20 +24,30 @@ public class GuiPipelines {
                 ctx.uniform().uploadMat4fs(mats);
             })
             .supplyUniform("offset", ctx -> {
-                Transform offsets = null;
+                Transform transform = ctx.object().getTransform(ctx.instance().variant());
+
                 if (ctx.instance() instanceof AnimatedObjectInstance instance) {
-                    if (instance.getOffset(ctx.getMaterial().getMaterialName()) != null)
-                        offsets = instance.getOffset(ctx.getMaterial().getMaterialName());
+                    var t = instance.getTransform(ctx.getMaterial().getMaterialName());
+
+                    if (t != null) {
+                        transform = t;
+                    }
                 }
 
-                Vector2f translate = offsets != null ? offsets.offset() : ctx.object().getOffsets(ctx.instance().variant());
-
-
-                ctx.uniform().uploadVec2f(translate);
+                ctx.uniform().uploadVec2f(transform.offset());
             })
             .supplyUniform("scale", ctx -> {
-                var offsets = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getOffset(ctx.getMaterial().getMaterialName()) != null ? instance.getOffset(ctx.getMaterial().getMaterialName()) : AnimationController.NO_OFFSET : AnimationController.NO_OFFSET;
-                ctx.uniform().uploadVec2f(offsets.scale());
+                Transform transform = ctx.object().getTransform(ctx.instance().variant());
+
+                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
+                    var t = instance.getTransform(ctx.getMaterial().getMaterialName());
+
+                    if (t != null) {
+                        transform = t;
+                    }
+                }
+
+                ctx.uniform().uploadVec2f(transform.scale());
             })
             .prePostDraw(material -> {
                 if(material.getBoolean("disableDepth")) {

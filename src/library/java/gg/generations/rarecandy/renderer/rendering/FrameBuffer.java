@@ -63,6 +63,15 @@ public class FrameBuffer implements ITexture {
     }
 
     @Override
+    public int width() {
+        return width;
+    }
+
+    public int height() {
+        return height;
+    }
+
+    @Override
     public void close() {
         GL30.glDeleteFramebuffers(framebufferId);
         GL11.glDeleteTextures(textureId);
@@ -86,6 +95,80 @@ public class FrameBuffer implements ITexture {
 //        GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
 //        return result;
 //    }
+
+    public boolean regularScreenshot(Path filePath, int res) throws IOException {
+        if (Files.notExists(filePath)) Files.createDirectories(filePath);
+        int newWidth = res;
+        int newHeight = res;
+
+        GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, framebufferId);
+        ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * 4);
+        GL11.glReadPixels(0, 0, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
+
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int i = (x + (width * y)) * 4;
+                int r = buffer.get(i) & 0xFF;
+                int g = buffer.get(i + 1) & 0xFF;
+                int b = buffer.get(i + 2) & 0xFF;
+                int a = buffer.get(i + 3) & 0xFF;
+                int argb = (a << 24) | (r << 16) | (g << 8) | b;
+                image.setRGB(x, height - 1 - y, argb); // flip vertically
+            }
+        }
+
+        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = resizedImage.createGraphics();
+        g2d.drawImage(image, 0, 0, newWidth, newHeight, null);
+        g2d.dispose();
+
+        GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
+
+        try {
+            return ImageIO.write(resizedImage, "png", filePath.toFile());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean regularScreenshot(Path filePath) throws IOException {
+        if (Files.notExists(filePath)) Files.createDirectories(filePath);
+        int newWidth = width;
+        int newHeight = height;
+
+        GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, framebufferId);
+        ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * 4);
+        GL11.glReadPixels(0, 0, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
+
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int i = (x + (width * y)) * 4;
+                int r = buffer.get(i) & 0xFF;
+                int g = buffer.get(i + 1) & 0xFF;
+                int b = buffer.get(i + 2) & 0xFF;
+                int a = buffer.get(i + 3) & 0xFF;
+                int argb = (a << 24) | (r << 16) | (g << 8) | b;
+                image.setRGB(x, height - 1 - y, argb); // flip vertically
+            }
+        }
+
+        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = resizedImage.createGraphics();
+        g2d.drawImage(image, 0, 0, newWidth, newHeight, null);
+        g2d.dispose();
+
+        GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
+
+        try {
+            return ImageIO.write(resizedImage, "png", filePath.toFile());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     public boolean captureScreenshot(Path filePath, boolean isPortrait) throws IOException {
         if (Files.notExists(filePath)) Files.createDirectories(filePath);

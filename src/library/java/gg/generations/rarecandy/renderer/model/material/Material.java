@@ -19,7 +19,7 @@ public class Material implements Closeable {
     private final CullType cullType;
     private final BlendType blendType;
 
-    private final String shader;
+    private String shader;
 
     public Material(String materialName, Map<String, String> images, Map<String, Object> values, CullType cullType, BlendType blendType, String shader) {
         this.materialName = materialName;
@@ -78,5 +78,13 @@ public class Material implements Closeable {
 
     public boolean getBoolean(String value) {
         return getValue(value) instanceof Boolean bool ? bool : false;
+    }
+
+    public int maxTextureSize() {
+        return images.values().stream().map(ITextureLoader.instance()::getTexture).mapToInt(ITexture::width).max().getAsInt();
+    }
+
+    public void setShader(String solid) {
+        shader = solid;
     }
 }

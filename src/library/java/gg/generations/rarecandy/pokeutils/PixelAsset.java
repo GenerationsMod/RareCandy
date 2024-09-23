@@ -1,6 +1,8 @@
 package gg.generations.rarecandy.pokeutils;
 
 import com.google.gson.*;
+import gg.generations.rarecandy.renderer.animation.AnimationController;
+import gg.generations.rarecandy.renderer.animation.Transform;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
@@ -18,10 +20,12 @@ import java.lang.reflect.Type;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.stream.Collector;
 
 /**
  * Pixelmon Asset (.pk) file.
@@ -40,6 +44,45 @@ public class PixelAsset {
 
                 return vec;
             })
+            .registerTypeAdapter(VariantDetails.class, new GenericJsonThing<VariantDetails>(new BiFunction<VariantDetails, JsonSerializationContext, JsonElement>() {
+                @Override
+                public JsonElement apply(VariantDetails variantDetails, JsonSerializationContext ctx) {
+                    var obj = new JsonObject();
+                    if (variantDetails.material() != null) obj.addProperty("material", variantDetails.material());
+                    if (variantDetails.hide() != null) obj.addProperty("hide", variantDetails.hide());
+                    if (variantDetails.offset() != null && variantDetails.offset() != AnimationController.NO_OFFSET)
+                        obj.add("offset", ctx.serialize(variantDetails.offset()));
+
+                    return obj;
+                }
+            }, new BiFunction<JsonElement, JsonDeserializationContext, VariantDetails>() {
+                @Override
+                public VariantDetails apply(JsonElement jsonElement, JsonDeserializationContext ctx) {
+                    var obj = jsonElement.getAsJsonObject();
+                    var material = obj.has("material") ? obj.getAsJsonPrimitive("material").getAsString() : null;
+                    var hide = obj.has("hide") ? obj.getAsJsonPrimitive("material").getAsBoolean() : null;
+                    Transform offset = obj.has("offset") ? ctx.deserialize(obj.get("offset"), Transform.class) : null;
+                    return new VariantDetails(material, hide, offset);
+                }
+            }))
+            .registerTypeAdapter(Transform.class, new GenericJsonThing<>((transform, ctx) -> {
+                if (transform.scale().x == 1 && transform.scale().y == 1) {
+                    return ctx.serialize(transform.offset());
+                } else {
+                    var obj = new JsonObject();
+                    obj.add("scale", ctx.serialize(transform.scale()));
+                    obj.add("offset", ctx.serialize(transform.offset()));
+                    return obj;
+                }
+            }, (jsonElement, ctx) -> {
+                if (jsonElement.isJsonArray()) return new Transform(ctx.deserialize(jsonElement, Vector2f.class));
+                else {
+                    var obj = jsonElement.getAsJsonObject();
+                    Vector2f scale = ctx.deserialize(obj.get("scale"), Vector2f.class);
+                    Vector2f offset = ctx.deserialize(obj.get("offset"), Vector2f.class);
+                    return new Transform(scale, offset);
+                }
+            }))
             .registerTypeAdapter(Vector3f.class, new GenericJsonThing<Vector3f>((json, ctx) -> {
                 var array =  new JsonArray();
                 array.add(json.x);
@@ -75,16 +118,32 @@ public class PixelAsset {
 
                 return vec;
             }))
-            .registerTypeAdapter(MeshOptions.class, new GenericJsonThing<MeshOptions>((meshOptions, ctx) -> {
+            .registerTypeAdapter(MeshOptions.class, new GenericJsonThing<>((meshOptions, ctx) -> {
                 var json = new JsonObject();
                 json.addProperty("invert", meshOptions.invert());
+                json.add("aliases", meshOptions.aliases().stream().collect(Collector.of(
+                        JsonArray::new, JsonArray::add,
+                        (jsonElements, jsonElements2) -> {
+                            jsonElements.addAll(jsonElements2);
+                            return jsonElements;
+                        }
+                )));
                 return json;
             }, (json, ctx) -> {
-                if (json.isJsonPrimitive()) return new MeshOptions(json.getAsBoolean());
+                var invert = false;
+                var aliases = Collections.<String>emptyList();
+
+                if (json.isJsonPrimitive()) invert = json.getAsBoolean();
+                else if (json.isJsonArray())
+                    aliases = json.getAsJsonArray().asList().stream().map(JsonElement::getAsJsonPrimitive).map(JsonPrimitive::getAsString).toList();
                 else {
-                    var invert = json.getAsJsonObject().getAsJsonPrimitive("invert").getAsBoolean();
-                    return new MeshOptions(invert);
+                    var obj = json.getAsJsonObject();
+
+                    if (obj.has("invert")) invert = obj.getAsJsonPrimitive("invert").getAsBoolean();
+                    if (obj.has("aliases")) aliases = obj.getAsJsonArray("aliases").asList().stream().map(JsonElement::getAsJsonPrimitive).map(JsonPrimitive::getAsString).toList();
                 }
+
+                return new MeshOptions(invert, aliases);
             }))
             .registerTypeAdapter(SkeletalTransform.class, new GenericJsonThing<SkeletalTransform>(new BiFunction<SkeletalTransform, JsonSerializationContext, JsonElement>() {
                 @Override

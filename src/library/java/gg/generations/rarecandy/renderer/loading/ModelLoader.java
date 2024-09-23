@@ -8,6 +8,7 @@ import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
+import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
@@ -23,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
-import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
@@ -175,34 +175,41 @@ public class ModelLoader {
             materials.put(k, material);
         });
 
+        Map<String, List<String>> aliases = config.aliases != null ? config.aliases : Collections.emptyMap();
+
         var defaultVariant = new HashMap<String, Variant>();
+
         config.defaultVariant.forEach((k, v) -> {
             var variant = new Variant(materials.get(v.material()), v.hide(), v.offset());
-            defaultVariant.put(k, variant);
+
+            if(!aliases.isEmpty() && aliases.containsKey(k)) {
+                for (String s : aliases.get(k)) {
+                    defaultVariant.put(s, variant);
+                }
+            }
+            else defaultVariant.put(k, variant);
+
         });
 
         var variantMaterialMap = new HashMap<String, Map<String, Material>>();
         var variantHideMap = new HashMap<String, List<String>>();
-        var variantOffsetMap = new HashMap<String, Map<String, Vector2f>>();
-
+        var variantOffsetMap = new HashMap<String, Map<String, Transform>>();
 
         if(config.hideDuringAnimation != null) {
             hideDuringAnimation = config.hideDuringAnimation;
         }
 
         if(config.variants != null) {
-            for (Map.Entry<String, VariantParent> entry : config.variants.entrySet()) {
-                String variantKey = entry.getKey();
-                VariantParent variantParent = entry.getValue();
+            config.variants.forEach((variantKey, variantParent) -> {
 
                 VariantParent child = config.variants.get(variantParent.inherits());
 
                 var map = variantParent.details();
 
                 while (child != null) {
-                     var details = child.details();
+                    var details = child.details();
 
-                     applyVariantDetails(details, map);
+                    applyVariantDetails(details, map);
 
                     child = config.variants.get(child.inherits());
                 }
@@ -214,8 +221,8 @@ public class ModelLoader {
                 var offsetMap = variantOffsetMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
 
 
-                applyVariant(materials, matMap, hideMap, offsetMap, map);
-            }
+                applyVariant(materials, matMap, hideMap, offsetMap, map, aliases);
+            });
         } else {
             var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
             var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
@@ -234,7 +241,7 @@ public class ModelLoader {
         var offsetMap = reverseMap(variantOffsetMap);
 
         for (var mesh : meshes) {
-            processPrimitiveModels(objects, supplier, mesh, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation, config.modelOptions != null ? config.modelOptions : Collections.emptyMap());
+            processPrimitiveModels(objects, supplier, mesh, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation, config.modelOptions != null ? config.modelOptions : Collections.<String, MeshOptions>emptyMap());
         }
 
         var transform = new Matrix4f();
@@ -277,11 +284,22 @@ public class ModelLoader {
         }
     }
 
-    private static void applyVariant(Map<String, Material> materials, Map<String, Material> matMap, List<String> hideMap, Map<String, Vector2f> offsetMap, Map<String, VariantDetails> variantMap) {
+    private static void applyVariant(Map<String, Material> materials, Map<String, Material> matMap, List<String> hideMap, Map<String, Transform> offsetMap, Map<String, VariantDetails> variantMap, Map<String, List<String>> aliases) {
         variantMap.forEach((k, v) -> {
-            matMap.put(k, materials.get(v.material()));
-            if (v.hide() != null && v.hide()) hideMap.add(k);
-            if (v.offset() != null) offsetMap.put(k, v.offset());
+            Material mat = materials.get(v.material());
+            boolean hide = v.hide() != null && v.hide();
+            var offset = v.offset() != null ? v.offset() : null;
+
+            if(!aliases.isEmpty() && aliases.containsKey(k)) aliases.get(k).forEach(s -> {
+                matMap.put(s, mat);
+                if(hide) hideMap.add(s);
+                if(offset != null) offsetMap.put(s, offset);
+            });
+            else {
+                matMap.put(k, mat);
+                if(hide) hideMap.add(k);
+                if(offset != null) offsetMap.put(k, offset);
+            }
         });
     }
 
@@ -289,7 +307,7 @@ public class ModelLoader {
         transform.set(node.transform);
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, AIMesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Vector2f>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations, Map<String, MeshOptions> meshOptions) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, AIMesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Transform>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations, Map<String, MeshOptions> meshOptions) {
         var name = mesh.mName().dataString();
 
         var map = materialMap.get(name);
@@ -620,7 +638,8 @@ public class ModelLoader {
         });
     }
 
-    private Map<String, String> readImages(PixelAsset asset) {
+
+    public static Map<String, String> readImages(PixelAsset asset) {
         var images = asset.getImageFiles();
         var map = new HashMap<String, String>();
         for (var entry : images) {

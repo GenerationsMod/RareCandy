@@ -1,11 +1,11 @@
 package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.renderer.animation.AnimationController;
+import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import org.joml.Vector2f;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -21,7 +21,7 @@ public abstract class RenderObject implements Closeable {
     protected boolean ready = false;
     protected Matrix4f matrixOffset = new Matrix4f().identity();
     protected List<String> shouldRenderList;
-    protected Map<String, Vector2f> offsets;
+    protected Map<String, Transform> offsets;
 
     public void render(List<ObjectInstance> instances) {
         render(instances, this);
@@ -60,8 +60,8 @@ public abstract class RenderObject implements Closeable {
         return variants.get(variant);
     }
 
-    public Vector2f getOffsets(@Nullable String variant) {
-        return offsets != null ? offsets.getOrDefault(variant, AnimationController.NO_UV_OFFSET) : AnimationController.NO_UV_OFFSET;
+    public Transform getTransform(@Nullable String variant) {
+        return offsets != null ? offsets.getOrDefault(variant, AnimationController.NO_OFFSET) : AnimationController.NO_OFFSET;
     }
 
     protected abstract <T extends RenderObject> void render(List<ObjectInstance> instances, T object);

@@ -25,6 +25,8 @@ public class ModelConfig {
 
     public Map<String, MeshOptions> modelOptions;
 
+    public Map<String, List<String>> aliases;
+
     public boolean excludeMeshNamesFromSkeleton = false;
 
     public List<String> getMaterialsForAnimation(String trackName) {

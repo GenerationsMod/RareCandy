@@ -1,12 +1,12 @@
 package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.pokeutils.BlendType;
+import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
-import org.joml.Vector2f;
 
 import java.io.IOException;
 import java.util.*;
@@ -27,7 +27,7 @@ public class MeshObject extends RenderObject {
         pl.unbind(k);
     }
 
-    public void setup(Map<String, Material> variants, List<String> shouldRender, Map<String, Vector2f> offset, GLModel model, String name) {
+    public void setup(Map<String, Material> variants, List<String> shouldRender, Map<String, Transform> offset, GLModel model, String name) {
         this.name = name;
         this.variants = variants;
         this.shouldRenderList = shouldRender;

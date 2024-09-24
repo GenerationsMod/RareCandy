@@ -316,7 +316,7 @@ public class PixelAsset {
     }
 
     public List<Map.Entry<String, byte[]>> getImageFiles() {
-        return files.entrySet().stream().filter(a -> a.getKey().endsWith("png")).toList();
+        return files.entrySet().stream().filter(a -> a.getKey().endsWith("png") || a.getKey().endsWith("dds")).toList();
     }
 
 

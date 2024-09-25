@@ -86,8 +86,8 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public Material getVariant(@Nullable String materialId) {
-        return objects.get(0).getVariant(materialId);
+    public Material getMaterial(@Nullable String materialId) {
+        return objects.get(0).getMaterial(materialId);
     }
 
     @Override

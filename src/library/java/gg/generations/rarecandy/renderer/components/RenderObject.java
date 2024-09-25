@@ -2,6 +2,7 @@ package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.Transform;
+import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
@@ -15,13 +16,11 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class RenderObject implements Closeable {
-    protected Map<String, Material> variants = new HashMap<>();
+    protected Map<String, Variant> variants = new HashMap<>();
     protected String defaultVariant = null;
 
     protected boolean ready = false;
     protected Matrix4f matrixOffset = new Matrix4f().identity();
-    protected List<String> shouldRenderList;
-    protected Map<String, Transform> offsets;
 
     public void render(List<ObjectInstance> instances) {
         render(instances, this);
@@ -52,16 +51,14 @@ public abstract class RenderObject implements Closeable {
     }
 
     public Material getMaterial(@Nullable String materialId) {
-        return getVariant(materialId);
-    }
-
-    public Material getVariant(@Nullable String materialId) {
         var variant = materialId != null && variants.containsKey(materialId) ? materialId : defaultVariant;
-        return variants.get(variant);
+        return getVariant(variant).material();
     }
 
-    public Transform getTransform(@Nullable String variant) {
-        return offsets != null ? offsets.getOrDefault(variant, AnimationController.NO_OFFSET) : AnimationController.NO_OFFSET;
+    public Transform getTransform(@Nullable String variantId) {
+        var variant = getVariant(variantId);
+
+        return variant != null && variant.offset() != null ? variant.offset() : AnimationController.NO_OFFSET;
     }
 
     protected abstract <T extends RenderObject> void render(List<ObjectInstance> instances, T object);
@@ -69,14 +66,25 @@ public abstract class RenderObject implements Closeable {
     protected abstract <T extends RenderObject> void render(ObjectInstance instance, T object);
 
     protected boolean shouldRender(ObjectInstance instance) {
-        return shouldRenderList != null && shouldRenderList.contains(instance.variant()); //TODO: check if correct.
+        var variant = getVariant(instance);
+        return variant == null || variant.hide();
+    }
+
+    protected Variant getVariant(ObjectInstance instance) {
+        var id = instance.variant() == null ? defaultVariant : instance.variant();
+
+        return variants.getOrDefault(id, null);
+    }
+
+    protected Variant getVariant(String variant) {
+        return variants.getOrDefault(variant, null);
     }
 
     @Override
     public void close() throws IOException {
-        for (Material a : variants.values()) {
+        for (var a : variants.values()) {
             if(a != null) {
-                a.close();
+                a.material().close();
             }
         }
     }

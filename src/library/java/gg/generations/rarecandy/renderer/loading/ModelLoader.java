@@ -8,7 +8,6 @@ import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
-import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
@@ -191,9 +190,7 @@ public class ModelLoader {
 
         });
 
-        var variantMaterialMap = new HashMap<String, Map<String, Material>>();
-        var variantHideMap = new HashMap<String, List<String>>();
-        var variantOffsetMap = new HashMap<String, Map<String, Transform>>();
+        var variants = new HashMap<String, Map<String, Variant>>();
 
         if(config.hideDuringAnimation != null) {
             hideDuringAnimation = config.hideDuringAnimation;
@@ -216,32 +213,16 @@ public class ModelLoader {
 
                 applyVariantDetails(config.defaultVariant, map);
 
-                var matMap = variantMaterialMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
-                var hideMap = variantHideMap.computeIfAbsent(variantKey, s3 -> new ArrayList<>());
-                var offsetMap = variantOffsetMap.computeIfAbsent(variantKey, s3 -> new HashMap<>());
-
-
-                applyVariant(materials, matMap, hideMap, offsetMap, map, aliases);
+                applyVariant(variantKey, variants, materials, map, aliases);
             });
         } else {
-            var matMap = variantMaterialMap.computeIfAbsent("regular", s3 -> new HashMap<>());
-            var hideMap = variantHideMap.computeIfAbsent("regular", s3 -> new ArrayList<>());
-            var offsetMap = variantOffsetMap.computeIfAbsent("regular", s3 -> new HashMap<>());
-
-
             defaultVariant.forEach((s1, variant) -> {
-                matMap.put(s1, variant.material());
-                if (variant.hide()) hideMap.add(s1);
-                if (variant.offset() != null) offsetMap.put(s1, variant.offset());
+                defaultVariant.forEach((s, variant1) -> variants.computeIfAbsent(s, a -> new HashMap<>()).put("regular", variant1));
             });
         }
 
-        var matMap = reverseMap(variantMaterialMap);
-        var hidMap = reverseListMap(variantHideMap);
-        var offsetMap = reverseMap(variantOffsetMap);
-
         for (var mesh : meshes) {
-            processPrimitiveModels(objects, supplier, mesh, matMap, hidMap, offsetMap, glCalls, skeleton, animations, hideDuringAnimation, config.modelOptions != null ? config.modelOptions : Collections.<String, MeshOptions>emptyMap());
+            processPrimitiveModels(objects, supplier, mesh, variants, glCalls, skeleton, animations, hideDuringAnimation, config.modelOptions != null ? config.modelOptions : Collections.<String, MeshOptions>emptyMap());
         }
 
         var transform = new Matrix4f();
@@ -284,21 +265,22 @@ public class ModelLoader {
         }
     }
 
-    private static void applyVariant(Map<String, Material> materials, Map<String, Material> matMap, List<String> hideMap, Map<String, Transform> offsetMap, Map<String, VariantDetails> variantMap, Map<String, List<String>> aliases) {
+    private static void applyVariant(
+            String variantKey,
+            Map<String, Map<String, Variant>> variants,
+            Map<String, Material> materials,
+            Map<String, VariantDetails> variantMap,
+            Map<String, List<String>> aliases) {
         variantMap.forEach((k, v) -> {
             Material mat = materials.get(v.material());
             boolean hide = v.hide() != null && v.hide();
             var offset = v.offset() != null ? v.offset() : null;
 
-            if(!aliases.isEmpty() && aliases.containsKey(k)) aliases.get(k).forEach(s -> {
-                matMap.put(s, mat);
-                if(hide) hideMap.add(s);
-                if(offset != null) offsetMap.put(s, offset);
-            });
+            var variant = new Variant(mat, hide, offset);
+
+            if(!aliases.isEmpty() && aliases.containsKey(k)) aliases.get(k).forEach(s -> variants.computeIfAbsent(s, s1 -> new HashMap<>()).put(variantKey, variant));
             else {
-                matMap.put(k, mat);
-                if(hide) hideMap.add(k);
-                if(offset != null) offsetMap.put(k, offset);
+                variants.computeIfAbsent(k, s1 -> new HashMap<>()).put(variantKey, variant);
             }
         });
     }
@@ -307,20 +289,18 @@ public class ModelLoader {
         transform.set(node.transform);
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, AIMesh mesh, Map<String, Map<String, Material>> materialMap, Map<String, List<String>> hiddenMap, Map<String, Map<String, Transform>> offsetMap, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations, Map<String, MeshOptions> meshOptions) {
+    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, AIMesh mesh, Map<String, Map<String, Variant>> variants, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations, Map<String, MeshOptions> meshOptions) {
         var name = mesh.mName().dataString();
-
-        var map = materialMap.get(name);
-        var list = hiddenMap.get(name);
-        var offset = offsetMap.get(name);
 
         var renderObject = objSupplier.get();
         var glModel = processPrimitiveModel(skeleton, mesh, meshOptions, glCalls, objects.dimensions);
 
+        var variant = variants.get(name);
+
         if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-            animatedMeshObject.setup(map, list, offset, glModel, name, skeleton, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
+            animatedMeshObject.setup(variant, glModel, name, skeleton, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
         } else {
-            renderObject.setup(map, list, offset, glModel, name);
+            renderObject.setup(variant, glModel, name);
         }
 
         objects.add(renderObject);

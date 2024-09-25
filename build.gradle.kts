@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.11.11"
+version = "2.11.12"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -62,6 +62,8 @@ dependencies {
     "shadow"(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
     "shadowTools"(implementation(fileTree(mapOf("dir" to "libs", "include" to "*.jar")))!!)
     "shadow"(implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")!!)
+    "shadow"(implementation("io.github.mudbill:dds-lwjgl:3.0.0")!!)
+
 
     listOf("windows", "macos", "linux", ).forEach { os ->
         listOf("-arm64", "").forEach { cpu ->

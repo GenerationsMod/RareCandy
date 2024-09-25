@@ -7,6 +7,7 @@ import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.MeshDrawCommand;
+import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
@@ -14,7 +15,6 @@ import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +62,7 @@ public class PlaneGenerator {
         var obj = new MultiRenderObject<MeshObject>();
 
         var mesh = new MeshObject();
-        mesh.setup(Map.of("plane", new Material("plane", new HashMap<>(), new HashMap<>(), CullType.None, BlendType.None, "plane")), new ArrayList<>(), new HashMap<>(), model, "plane");
+        mesh.setup(Map.of("plane", new Variant(new Material("plane", new HashMap<>(), new HashMap<>(), CullType.None, BlendType.None, "plane"))), model, "plane");
         obj.add(mesh);
 
         return new Pair<>(glCalls, obj);
@@ -184,7 +184,7 @@ public class PlaneGenerator {
         var obj = new MultiRenderObject<MeshObject>();
 
         var mesh = new MeshObject();
-        mesh.setup(Map.of("cube", new Material("cube", Map.of("diffuse", image), new HashMap<>(), CullType.None, BlendType.None, "solid")), new ArrayList<>(), new HashMap<>(), model, "cube");
+        mesh.setup(Map.of("cube", new Variant(new Material("cube", Map.of("diffuse", image), new HashMap<>(), CullType.None, BlendType.None, "solid"))), model, "cube");
         obj.add(mesh);
 
         return new Pair<>(glCalls, obj);
@@ -228,7 +228,7 @@ public class PlaneGenerator {
         var obj = new MultiRenderObject<MeshObject>();
 
         var mesh = new MeshObject();
-        mesh.setup(Map.of("plane", new Material("plane", new HashMap<>(), new HashMap<>(), CullType.None, BlendType.None, "screen")), new ArrayList<>(), new HashMap<>(), model, "plane");
+        mesh.setup(Map.of("plane", new Variant(new Material("plane", new HashMap<>(), new HashMap<>(), CullType.None, BlendType.None, "screen"))), model, "plane");
         obj.add(mesh);
 
         return new Pair<>(glCalls, obj);

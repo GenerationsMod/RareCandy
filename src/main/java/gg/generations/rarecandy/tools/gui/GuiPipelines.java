@@ -89,7 +89,7 @@ public class GuiPipelines {
 
     private static void addDiffuse(Pipeline.Builder builder) {
         builder.supplyUniform("diffuse", ctx -> {
-            var texture = ctx.object().getVariant(ctx.instance().variant()).getDiffuseTexture();
+            var texture = ctx.object().getMaterial(ctx.instance().variant()).getDiffuseTexture();
 
             if(texture == null) {
                 texture = ITextureLoader.instance().getNuetralFallback();
@@ -111,7 +111,7 @@ public class GuiPipelines {
     private static void addLight(Pipeline.Builder builder) {
         builder.supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
                 .supplyUniform("emission", ctx -> {
-                    var texture = ctx.object().getVariant(ctx.instance().variant()).getTexture("emission");
+                    var texture = ctx.object().getMaterial(ctx.instance().variant()).getTexture("emission");
 
                     if(texture == null) {
                         texture = ITextureLoader.instance().getDarkFallback();
@@ -154,7 +154,7 @@ public class GuiPipelines {
     public static final Pipeline MASKED = new Pipeline.Builder(BASE)
             .shader(builtin("animated/animated.vs.glsl"), builtin("animated/masked.fs.glsl"))
             .supplyUniform("diffuse", ctx -> {
-                var texture = ctx.object().getVariant(ctx.instance().variant()).getDiffuseTexture();
+                var texture = ctx.object().getMaterial(ctx.instance().variant()).getDiffuseTexture();
 
                 if(texture == null) {
                     texture = ITextureLoader.instance().getBrightFallback();

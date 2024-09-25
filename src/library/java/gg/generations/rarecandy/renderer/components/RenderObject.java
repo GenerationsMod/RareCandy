@@ -51,13 +51,13 @@ public abstract class RenderObject implements Closeable {
         return variant == null || variant.hide();
     }
 
-    protected Variant getVariant(ObjectInstance instance) {
+    public Variant getVariant(ObjectInstance instance) {
         var id = instance.variant() == null ? defaultVariant : instance.variant();
 
         return variants.getOrDefault(id, null);
     }
 
-    protected Variant getVariant(String variant) {
+    public Variant getVariant(String variant) {
         return variants.getOrDefault(variant, null);
     }
 

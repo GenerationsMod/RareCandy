@@ -91,19 +91,19 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public <V extends RenderObject> void render(List<ObjectInstance> instances, V obj) {
+    public <V extends RenderObject> void render(List<ObjectInstance> instances) {
         for (T object : this.objects) {
             if (object != null && object.isReady()) {
-                object.render(instances, object);
+                object.render(instances);
             }
         }
     }
 
     @Override
-    public <V extends RenderObject> void render(ObjectInstance instance, V obj) {
+    public <V extends RenderObject> void render(ObjectInstance instance) {
         for (T object : this.objects) {
             if (object != null && object.isReady()) {
-                object.render(instance, object);
+                object.render(instance);
             }
         }
     }
@@ -111,7 +111,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     public void updateDimensions() {
         for (RenderObject object : objects) {
             if (object instanceof MeshObject mesh) {
-                dimensions.max(mesh.model.dimensions);
+                dimensions.max(mesh.model.getDimensions());
             }
         }
     }

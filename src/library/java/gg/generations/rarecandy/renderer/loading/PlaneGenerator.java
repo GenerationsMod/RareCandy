@@ -6,25 +6,20 @@ import gg.generations.rarecandy.pokeutils.Pair;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.model.GLModel;
-import gg.generations.rarecandy.renderer.model.MeshDrawCommand;
 import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL15C;
-import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static gg.generations.rarecandy.renderer.loading.ModelLoader.calculateVertexSize;
-import static gg.generations.rarecandy.renderer.loading.ModelLoader.generateVao;
 
 public class PlaneGenerator {
     public static Pair<List<Runnable>, MultiRenderObject<MeshObject>> generatePlane(float width, float length) {
-        var model = new GLModel();
 
         var attributes = List.of(Attribute.POSITION, Attribute.TEXCOORD);
 
@@ -39,25 +34,14 @@ public class PlaneGenerator {
                 .flip();
 
 
-        var indexBuffer = MemoryUtil.memAlloc(6 * 2).asShortBuffer()
-                .put((short) 0).put((short) 1).put((short) 2)
-                .put((short) 1).put((short) 3).put((short) 2)
+        var indexBuffer = MemoryUtil.memAlloc(6 * 2)
+                .putShort((short) 0).putShort((short) 1).putShort((short) 2)
+                .putShort((short) 1).putShort((short) 3).putShort((short) 2)
                 .flip();
 
 
-
-        List<Runnable> glCalls = List.of(() -> {
-            generateVao(model, vertexBuffer, attributes);
-            GL30.glBindVertexArray(model.vao);
-
-            model.ebo = GL15.glGenBuffers();
-            GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
-            GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
-
-            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES, GL11.GL_UNSIGNED_SHORT, model.ebo, 6));
-            MemoryUtil.memFree(vertexBuffer);
-            MemoryUtil.memFree(indexBuffer);
-        });
+        var glCalls = new ArrayList<Runnable>();
+        var model = new GLModel(vertexBuffer, indexBuffer, glCalls, 6, GL11.GL_UNSIGNED_SHORT, attributes);
 
         var obj = new MultiRenderObject<MeshObject>();
 
@@ -70,8 +54,6 @@ public class PlaneGenerator {
 
 
     public static Pair<GLModel, List<Runnable>> generatePlaneRunnable(float width, float length) {
-        var model = new GLModel();
-
         var attributes = List.of(Attribute.POSITION, Attribute.TEXCOORD);
 
         var vertexlength = calculateVertexSize(attributes);
@@ -85,31 +67,19 @@ public class PlaneGenerator {
                 .flip();
 
 
-        var indexBuffer = MemoryUtil.memAlloc(6 * 2).asShortBuffer()
-                .put((short) 0).put((short) 1).put((short) 2)
-                .put((short) 1).put((short) 3).put((short) 2)
+        var indexBuffer = MemoryUtil.memAlloc(6 * 2)
+                .putShort((short) 0).putShort((short) 1).putShort((short) 2)
+                .putShort((short) 1).putShort((short) 3).putShort((short) 2)
                 .flip();
 
 
-
-        List<Runnable> glCalls = List.of(() -> {
-            generateVao(model, vertexBuffer, attributes);
-            GL30.glBindVertexArray(model.vao);
-
-            model.ebo = GL15.glGenBuffers();
-            GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
-            GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
-
-            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES, GL11.GL_UNSIGNED_SHORT, model.ebo, 6));
-            MemoryUtil.memFree(vertexBuffer);
-            MemoryUtil.memFree(indexBuffer);
-        });
+        List<Runnable> glCalls = new ArrayList<>();
+        var model = new GLModel(vertexBuffer, indexBuffer, glCalls, 6, GL11.GL_UNSIGNED_SHORT, attributes);
 
         return new Pair<>(model, glCalls);
     }
 
     public static Pair<List<Runnable>, MultiRenderObject<MeshObject>> generateCube(float width, float height, float length, String image) {
-        var model = new GLModel();
 
         var attributes = List.of(Attribute.POSITION, Attribute.TEXCOORD);
 
@@ -148,38 +118,28 @@ public class PlaneGenerator {
                 .putFloat(width / 2).putFloat(-height / 2).putFloat(length / 2).putFloat(0.0f).putFloat(1.0f) // Reuse Bottom-right-front
                 .flip();
 
-        var indexBuffer = MemoryUtil.memAlloc(36 * 2).asShortBuffer()
-                .put((short) 0).put((short) 1).put((short) 2) // Back face
-                .put((short) 2).put((short) 3).put((short) 0)
+        var indexBuffer = MemoryUtil.memAlloc(36 * 2)
+                .putShort((short) 0).putShort((short) 1).putShort((short) 2) // Back face
+                .putShort((short) 2).putShort((short) 3).putShort((short) 0)
 
-                .put((short) 4).put((short) 5).put((short) 6) // Front face
-                .put((short) 6).put((short) 7).put((short) 4)
+                .putShort((short) 4).putShort((short) 5).putShort((short) 6) // Front face
+                .putShort((short) 6).putShort((short) 7).putShort((short) 4)
 
-                .put((short) 8).put((short) 9).put((short) 10) // Bottom face
-                .put((short) 10).put((short) 11).put((short) 8)
+                .putShort((short) 8).putShort((short) 9).putShort((short) 10) // Bottom face
+                .putShort((short) 10).putShort((short) 11).putShort((short) 8)
 
-                .put((short) 12).put((short) 13).put((short) 14) // Top face
-                .put((short) 14).put((short) 15).put((short) 12)
+                .putShort((short) 12).putShort((short) 13).putShort((short) 14) // Top face
+                .putShort((short) 14).putShort((short) 15).putShort((short) 12)
 
-                .put((short) 16).put((short) 17).put((short) 18) // Left face
-                .put((short) 18).put((short) 19).put((short) 16)
+                .putShort((short) 16).putShort((short) 17).putShort((short) 18) // Left face
+                .putShort((short) 18).putShort((short) 19).putShort((short) 16)
 
-                .put((short) 20).put((short) 21).put((short) 22) // Right face
-                .put((short) 22).put((short) 23).put((short) 20)
+                .putShort((short) 20).putShort((short) 21).putShort((short) 22) // Right face
+                .putShort((short) 22).putShort((short) 23).putShort((short) 20)
                 .flip();
 
-        List<Runnable> glCalls = List.of(() -> {
-            generateVao(model, vertexBuffer, attributes);
-            GL30.glBindVertexArray(model.vao);
-
-            model.ebo = GL15.glGenBuffers();
-            GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
-            GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
-
-            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES, GL11.GL_UNSIGNED_SHORT, model.ebo, 36));
-            MemoryUtil.memFree(vertexBuffer);
-            MemoryUtil.memFree(indexBuffer);
-        });
+        List<Runnable> glCalls = new ArrayList<>();
+        var model = new GLModel(vertexBuffer, indexBuffer, glCalls, 36, GL11.GL_UNSIGNED_SHORT, attributes);
 
         var obj = new MultiRenderObject<MeshObject>();
 
@@ -189,49 +149,4 @@ public class PlaneGenerator {
 
         return new Pair<>(glCalls, obj);
     }
-
-    public static Pair<List<Runnable>, MultiRenderObject<MeshObject>> screen() {
-        var model = new GLModel();
-
-        var attributes = List.of(Attribute.TEXCOORD, Attribute.TEXCOORD);
-
-        var vertexlength = calculateVertexSize(attributes);
-        var amount = 4;
-
-        var vertexBuffer = MemoryUtil.memAlloc(vertexlength * amount)
-                .putFloat(-1.0f).putFloat( 1.0f).putFloat(0.0f).putFloat(1.0f)
-                .putFloat(-1.0f).putFloat(-1.0f).putFloat(0.0f).putFloat(0.0f)
-                .putFloat(1.0f).putFloat(-1.0f).putFloat(1.0f).putFloat(0.0f)
-                .putFloat(1.0f).putFloat( 1.0f).putFloat(1.0f).putFloat(1.0f);
-
-
-        var indexBuffer = MemoryUtil.memAlloc(6 * 2).asShortBuffer()
-                .put((short) 0).put((short) 1).put((short) 2)
-                .put((short) 1).put((short) 3).put((short) 2)
-                .flip();
-
-
-
-        List<Runnable> glCalls = List.of(() -> {
-            generateVao(model, vertexBuffer, attributes);
-            GL30.glBindVertexArray(model.vao);
-
-            model.ebo = GL15.glGenBuffers();
-            GL15.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
-            GL15.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
-
-            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES, GL11.GL_UNSIGNED_SHORT, model.ebo, 6));
-            MemoryUtil.memFree(vertexBuffer);
-            MemoryUtil.memFree(indexBuffer);
-        });
-
-        var obj = new MultiRenderObject<MeshObject>();
-
-        var mesh = new MeshObject();
-        mesh.setup(Map.of("plane", new Variant(new Material("plane", new HashMap<>(), new HashMap<>(), CullType.None, BlendType.None, "screen"))), model, "plane");
-        obj.add(mesh);
-
-        return new Pair<>(glCalls, obj);
-    }
-
 }

@@ -12,12 +12,8 @@ import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.components.RenderObject;
-import gg.generations.rarecandy.renderer.model.GLModel;
-import gg.generations.rarecandy.renderer.model.GlCallSupplier;
-import gg.generations.rarecandy.renderer.model.MeshDrawCommand;
-import gg.generations.rarecandy.renderer.model.Variant;
+import gg.generations.rarecandy.renderer.model.*;
 import gg.generations.rarecandy.renderer.model.material.Material;
-import gg.generations.rarecandy.renderer.rendering.Bone;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,9 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL30C.*;
@@ -67,7 +61,7 @@ public class ModelLoader {
             Attribute.BONE_WEIGHTS
     );
 
-    public static <T extends MeshObject, V extends MultiRenderObject<T>> void create2(V objects, PixelAsset asset, Map<String, AnimResource> animResources, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier) {
+    public static <T extends MeshObject, V extends MultiRenderObject<T>> void processModel(V objects, PixelAsset asset, Map<String, AnimResource> animResources, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, RenderModel.Provider renderModelSuppler) {
         if (config == null) throw new RuntimeException("config.json can't be null.");
 
         var scene = ModelLoader.read(asset);
@@ -75,11 +69,51 @@ public class ModelLoader {
         var rootNode = ModelNode.create(scene.mRootNode());
 
         var meshes = IntStream.range(0, scene.mNumMeshes()).mapToObj(i -> AIMesh.create(scene.mMeshes().get(i))).toArray(AIMesh[]::new);
+        
+        Skeleton skeleton = new Skeleton(rootNode, meshes, config.excludeMeshNamesFromSkeleton);
+        
+        var animations = processAnimations(scene, skeleton, animResources, config);
 
-        var meshNames = config.excludeMeshNamesFromSkeleton ? Stream.of(meshes).map(a -> a.mName().dataString()).collect(Collectors.toSet()) : Set.<String>of();
+        var variants = processVariants(config, images);
 
-        Skeleton skeleton = new Skeleton(rootNode, meshNames);
+        for (var mesh : meshes) {
+            processPrimitiveModels(renderModelSuppler, objects, supplier, mesh, variants, glCalls, skeleton, animations, config.hideDuringAnimation, config.modelOptions != null ? config.modelOptions : Collections.<String, MeshOptions>emptyMap());
+        }
 
+        var transform = new Matrix4f();
+
+        traverseTree(transform, rootNode, objects);
+
+        Assimp.aiReleaseImport(scene);
+
+    }
+
+    private static Map<String, Animation> processAnimations(AIScene scene, Skeleton skeleton, Map<String, AnimResource> animResources, ModelConfig config) {
+        extractAssimpAnimations(scene, skeleton, animResources);
+
+        Map<String, Animation> animations = new HashMap<>();
+
+        var offSetsToInsert = new HashMap<String, Animation.Offset>();
+
+        animResources.forEach((name, animResource) -> {
+            var fps = animResource.fps();
+            fps = config.animationFpsOverride != null && config.animationFpsOverride.containsKey(name) ? config.animationFpsOverride.get(name) : fps;
+
+            var offsets = animResource.getOffsets();
+            offsets.forEach((trackName, offset) -> config.getMaterialsForAnimation(trackName).forEach(a -> offSetsToInsert.put(a, offset)));
+            offsets.putAll(offSetsToInsert);
+            offSetsToInsert.clear();
+
+            var nodes = animResource.getNodes(skeleton);
+            var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
+
+            animations.put(name, new Animation(name, (int) fps, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale)));
+        });
+
+        return animations;
+    }
+
+    private static void extractAssimpAnimations(AIScene scene, Skeleton skeleton, Map<String, AnimResource> animResources) {
         for (int i = 0; i < scene.mNumAnimations(); i++) {
             AIAnimation aiAnimation = AIAnimation.create(scene.mAnimations().get(i));
             var animName = aiAnimation.mName().dataString();
@@ -140,44 +174,16 @@ public class ModelLoader {
 
             animResources.putIfAbsent(animName, new GenericAnimResource((long) fps, animationNodes));
         }
+    }
 
-
-        for (AIMesh aiMesh : meshes) {
-            processBones(skeleton, aiMesh);
-        }
-
-        Map<String, Animation> animations = new HashMap<>();
-
-        var offSetsToInsert = new HashMap<String, Animation.Offset>();
-
-        animResources.forEach((name, animResource) -> {
-            var fps = animResource.fps();
-            fps = config.animationFpsOverride != null && config.animationFpsOverride.containsKey(name) ? config.animationFpsOverride.get(name) : fps;
-
-            var offsets = animResource.getOffsets();
-            offsets.forEach((trackName, offset) -> config.getMaterialsForAnimation(trackName).forEach(a -> offSetsToInsert.put(a, offset)));
-            offsets.putAll(offSetsToInsert);
-            offSetsToInsert.clear();
-
-            var nodes = animResource.getNodes(skeleton);
-            var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
-
-            animations.put(name, new Animation(name, (int) fps, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale)));
-        });
-        Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimation = new HashMap<>();
-
-        var materials = new HashMap<String, Material>();
-
-        config.materials.forEach((k, v) -> {
-            var material = MaterialReference.process(k, config.materials, images);
-
-            materials.put(k, material);
-        });
-
-        Map<String, List<String>> aliases = config.aliases != null ? config.aliases : Collections.emptyMap();
+    private static Map<String, Map<String, Variant>> processVariants(ModelConfig config, Map<String, String> images) {
+        var materials = config.prepMaterials(images);
 
         var defaultVariant = new HashMap<String, Variant>();
+        
+        Map<String, List<String>> aliases = config.aliases != null ? config.aliases : Collections.emptyMap();
 
+        
         config.defaultVariant.forEach((k, v) -> {
             var variant = new Variant(materials.get(v.material()), v.hide(), v.offset());
 
@@ -191,10 +197,6 @@ public class ModelLoader {
         });
 
         var variants = new HashMap<String, Map<String, Variant>>();
-
-        if(config.hideDuringAnimation != null) {
-            hideDuringAnimation = config.hideDuringAnimation;
-        }
 
         if(config.variants != null) {
             config.variants.forEach((variantKey, variantParent) -> {
@@ -220,28 +222,8 @@ public class ModelLoader {
                 defaultVariant.forEach((s, variant1) -> variants.computeIfAbsent(s, a -> new HashMap<>()).put("regular", variant1));
             });
         }
-
-        for (var mesh : meshes) {
-            processPrimitiveModels(objects, supplier, mesh, variants, glCalls, skeleton, animations, hideDuringAnimation, config.modelOptions != null ? config.modelOptions : Collections.<String, MeshOptions>emptyMap());
-        }
-
-        var transform = new Matrix4f();
-
-        traverseTree(transform, rootNode, objects);
-
-        Assimp.aiReleaseImport(scene);
-
-    }
-
-    private static void processBones(Skeleton skeleton, AIMesh mesh) {
-
-        if (mesh.mBones() != null) {
-            var aiBones = requireNonNull(mesh.mBones());
-
-            for (int i = 0; i < aiBones.capacity(); i++) {
-                Bone.configure(skeleton, AIBone.create(aiBones.get(i)));
-            }
-        }
+        
+        return variants;
     }
 
     private static <T extends MeshObject> void traverseTree(Matrix4f transform, ModelNode node, MultiRenderObject<T> objects) {
@@ -289,16 +271,16 @@ public class ModelLoader {
         transform.set(node.transform);
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(MultiRenderObject<T> objects, Supplier<T> objSupplier, AIMesh mesh, Map<String, Map<String, Variant>> variants, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations, Map<String, MeshOptions> meshOptions) {
+    private static <T extends MeshObject> void processPrimitiveModels(RenderModel.Provider provider, MultiRenderObject<T> objects, Supplier<T> objSupplier, AIMesh mesh, Map<String, Map<String, Variant>> variants, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations, Map<String, MeshOptions> meshOptions) {
         var name = mesh.mName().dataString();
 
         var renderObject = objSupplier.get();
-        var glModel = processPrimitiveModel(skeleton, mesh, meshOptions, glCalls, objects.dimensions);
+        var glModel = processPrimitiveModel(skeleton, mesh, meshOptions, glCalls, objects.dimensions, provider);
 
         var variant = variants.get(name);
 
         if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-            animatedMeshObject.setup(variant, glModel, name, skeleton, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
+            animatedMeshObject.setup(variant, glModel, name, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
         } else {
             renderObject.setup(variant, glModel, name);
         }
@@ -306,12 +288,10 @@ public class ModelLoader {
         objects.add(renderObject);
     }
 
-    private static GLModel processPrimitiveModel(Skeleton skeleton, AIMesh mesh, Map<String, MeshOptions> options, List<Runnable> glCalls, Vector3f dimensions) {
+    private static RenderModel processPrimitiveModel(Skeleton skeleton, AIMesh mesh, Map<String, MeshOptions> options, List<Runnable> glCalls, Vector3f dimensions, RenderModel.Provider renderModelSupplier) {
         var name = mesh.mName().dataString();
 
         var invertFace = options.containsKey(name) && options.get(name).invert();
-
-        var model = new GLModel();
 
         var length = calculateVertexSize(ATTRIBUTES);
         var amount = mesh.mNumVertices();
@@ -411,20 +391,7 @@ public class ModelLoader {
 
         var indexSize = mesh.mNumFaces() * 3;
 
-        glCalls.add(() -> {
-            generateVao(model, vertexBuffer, ATTRIBUTES);
-            GL30.glBindVertexArray(model.vao);
-            model.ebo = GL15.glGenBuffers();
-            glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
-            glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES, GL_UNSIGNED_INT, model.ebo, indexSize));
-            MemoryUtil.memFree(vertexBuffer);
-            MemoryUtil.memFree(indexBuffer);
-        });
-
-        return model;
+        return renderModelSupplier.create(vertexBuffer, indexBuffer, glCalls, indexSize, GL11.GL_UNSIGNED_INT, ATTRIBUTES);
     }
 
     public static void addBoneData(byte[] ids, float[] weights, int vertexId, byte boneId, float weight) {

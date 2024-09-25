@@ -7,6 +7,7 @@ import gg.generations.rarecandy.renderer.animation.ThreeStageAnimationInstance;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
@@ -80,7 +81,7 @@ public class PokemonTest {
                 (gltfModel, animResources, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
                     try {
-                        ModelLoader.create2(object, gltfModel, animResources, images, config, glCalls, supplier);
+                        ModelLoader.processModel(object, gltfModel, animResources, images, config, glCalls, supplier, GLModel::new);
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to interpret data", e);
                     }

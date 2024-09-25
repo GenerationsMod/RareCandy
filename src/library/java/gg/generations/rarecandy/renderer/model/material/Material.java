@@ -4,7 +4,6 @@ import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.CullType;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.loading.ITexture;
-import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -34,8 +33,8 @@ public class Material implements Closeable {
         return getTexture("diffuse");
     }
 
-    public Pipeline getPipeline() {
-        return PipelineRegistry.get(shader);
+    public String getPipeline() {
+        return shader;
     }
 
     public CullType cullType() {

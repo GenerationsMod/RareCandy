@@ -10,6 +10,7 @@ import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.rendering.FrameBuffer;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
@@ -299,7 +300,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 () -> is,
                 (gltfModel, animResources, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
-                    ModelLoader.create2(object, gltfModel, animResources, images, config, glCalls, AnimatedMeshObject::new);
+                    ModelLoader.processModel(object, gltfModel, animResources, images, config, glCalls, AnimatedMeshObject::new, GLModel::new);
                     return glCalls;
                 }, onFinish);
     }
@@ -391,19 +392,19 @@ public class RareCandyCanvas extends AWTGLCanvas {
         public List<String> overrides = new ArrayList<>();
 
         @Override
-        public <V extends RenderObject> void render(List<ObjectInstance> instances, V obj) {
+        public <V extends RenderObject> void render(List<ObjectInstance> instances) {
             for (var object : this.objects) {
                 if (object != null && !overrides.contains(object.name) && object.isReady()) {
-                    object.render(instances, object);
+                    object.render(instances);
                 }
             }
         }
 
         @Override
-        public <V extends RenderObject> void render(ObjectInstance instance, V obj) {
+        public <V extends RenderObject> void render(ObjectInstance instance) {
             for (var object : this.objects) {
                 if (object != null && !overrides.contains(object.name) && object.isReady()) {
-                    object.render(instance, object);
+                    object.render(instance);
                 }
             }
         }

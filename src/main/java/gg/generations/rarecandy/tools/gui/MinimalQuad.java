@@ -8,6 +8,7 @@ import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.loading.PlaneGenerator;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.rendering.FrameBuffer;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
@@ -141,7 +142,7 @@ public class MinimalQuad {
 
         if (material == null) return;
 
-        var pipeline = material.getPipeline();
+        var pipeline = PipelineRegistry.get(material.getPipeline());
 
         pipeline.bind(material);
         pipeline.updateOtherUniforms(instance, object);

@@ -40,10 +40,4 @@ public class Bone {
         this.inverseBindMatrix = new Matrix4f();
         this.restPose = new Matrix4f();
     }
-
-    public static void configure(Skeleton skeleton, AIBone bone) {
-        var b = skeleton.boneMap.get(bone.mName().dataString());
-        ModelNode.from(b.inverseBindMatrix, bone.mOffsetMatrix());
-        b.restPose.set(b.inverseBindMatrix).invert();
-    }
 }

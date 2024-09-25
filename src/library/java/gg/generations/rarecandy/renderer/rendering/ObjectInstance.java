@@ -17,7 +17,6 @@ public class ObjectInstance {
 
     public void link(RenderObject object) {
         this.object = object;
-        object.applyTransformOffset(transformationMatrix);
     }
 
     public Matrix4f transformationMatrix() {

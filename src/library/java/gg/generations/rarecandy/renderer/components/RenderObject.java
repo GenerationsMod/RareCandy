@@ -6,7 +6,6 @@ import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -20,30 +19,12 @@ public abstract class RenderObject implements Closeable {
     protected String defaultVariant = null;
 
     protected boolean ready = false;
-    protected Matrix4f matrixOffset = new Matrix4f().identity();
-
-    public void render(List<ObjectInstance> instances) {
-        render(instances, this);
-    }
-
-    public void render(ObjectInstance instance) {
-        render(instance, this);
-    }
-
 
     public void update() {
     }
 
     public boolean isReady() {
         return ready;
-    }
-
-    public void setMatrixOffset(Matrix4f mat4f) {
-        matrixOffset.set(mat4f);
-    }
-
-    public void applyTransformOffset(Matrix4f currentTransform) {
-        currentTransform.mul(matrixOffset);
     }
 
     public Set<String> availableVariants() {
@@ -61,11 +42,11 @@ public abstract class RenderObject implements Closeable {
         return variant != null && variant.offset() != null ? variant.offset() : AnimationController.NO_OFFSET;
     }
 
-    protected abstract <T extends RenderObject> void render(List<ObjectInstance> instances, T object);
+    public abstract <T extends RenderObject> void render(List<ObjectInstance> instances);
 
-    protected abstract <T extends RenderObject> void render(ObjectInstance instance, T object);
+    public abstract <T extends RenderObject> void render(ObjectInstance instance);
 
-    protected boolean shouldRender(ObjectInstance instance) {
+    public boolean shouldRender(ObjectInstance instance) {
         var variant = getVariant(instance);
         return variant == null || variant.hide();
     }

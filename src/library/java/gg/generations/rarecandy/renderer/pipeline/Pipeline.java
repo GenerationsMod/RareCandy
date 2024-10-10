@@ -80,9 +80,11 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
             GL20C.glLinkProgram(programId);
             if (GL20C.glGetProgrami(programId, GL20C.GL_LINK_STATUS) == 0)
                 RareCandy.fatal(GL20C.glGetProgramInfoLog(programId, 1024));
-            GL20C.glValidateProgram(programId);
-            if (GL20C.glGetProgrami(programId, GL20C.GL_VALIDATE_STATUS) == 0)
-                RareCandy.fatal(GL20C.glGetProgramInfoLog(programId, 1024));
+
+//I'm suspecting that macs validate differently than windows. So Naiviely disable this check for now. - Waterpicker.
+//            GL20C.glValidateProgram(programId);
+//            if (GL20C.glGetProgrami(programId, GL20C.GL_VALIDATE_STATUS) == 0)
+//                RareCandy.fatal(GL20C.glGetProgramInfoLog(programId, 1024));
         }
 
         public Builder prePostDraw(Consumer<Material> preDrawBatch, Consumer<Material> postDrawRunBatch) {

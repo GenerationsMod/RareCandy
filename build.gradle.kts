@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.11.14"
+version = "2.11.15"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -124,7 +124,12 @@ tasks {
         relocate("org.checkerframework", "gg.generations.rarecandy.shaded.checkerframework")
         relocate("com.google.errorprone", "gg.generations.rarecandy.shaded.errorprone")
         relocate("org.apache.commons", "gg.generations.rarecandy.shaded.commons")
+        relocate("windows.arm64.org.lwjgl.assimp", "windows.arm64.gg.generations.rarecandy.assimp")
         relocate("windows.x64.org.lwjgl.assimp", "windows.x64.gg.generations.rarecandy.assimp")
+        relocate("linux.arm64.org.lwjgl.assimp", "linux.arm64.gg.generations.rarecandy.assimp")
+        relocate("linux.x64.org.lwjgl.assimp", "linux.x64.gg.generations.rarecandy.assimp")
+        relocate("macos.arm64.org.lwjgl.assimp", "macos.arm64.gg.generations.rarecandy.assimp")
+        relocate("macos.x64.org.lwjgl.assimp", "macos.x64.gg.generations.rarecandy.assimp")
         relocate("org.lwjgl.assimp", "gg.generations.rarecandy.assimp")
 
         configurations = listOf(

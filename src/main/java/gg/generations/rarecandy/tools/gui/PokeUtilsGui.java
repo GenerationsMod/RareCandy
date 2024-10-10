@@ -42,7 +42,11 @@ public class PokeUtilsGui extends JPanel {
     }
 
     public static void main(String[] args) {
-        System.loadLibrary("renderdoc");
+        try {
+            System.loadLibrary("renderdoc");
+        } catch (Exception e) {
+            System.out.println("Renderdoc not loaded. Continuing without.");
+        }
         var frame = new JFrame();
         var gui = new PokeUtilsGui();
         frame.setSize(new Dimension(250+512 + (512 - 482), 512));

@@ -215,7 +215,11 @@ public class MinimalQuad {
     }
 
     public static void main(String[] args) throws IOException {
-        System.loadLibrary("renderdoc");
+        try {
+            System.loadLibrary("renderdoc");
+        } catch (Exception e) {
+            System.out.println("Renderdoc not loaded. Continuing without.");
+        }
 
 
         new MinimalQuad().run();

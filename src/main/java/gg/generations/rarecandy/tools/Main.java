@@ -3,7 +3,7 @@ package gg.generations.rarecandy.tools;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
-import gg.generations.rarecandy.tools.pkcreator.Convert;
+//import gg.generations.rarecandy.tools.pkcreator.Convert;
 import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 import gg.generations.rarecandy.tools.pokemodding.QuaternionConverterGUI;
@@ -191,21 +191,21 @@ public class Main {
         }
     }
 
-    private static void regimented(String[] args) {
-        try {
-            Convert.main(args);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void glbConverter(String[] args) {
-        try {
-            GlbReader.main(args);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    private static void regimented(String[] args) {
+//        try {
+//            Convert.main(args);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+//
+//    private static void glbConverter(String[] args) {
+//        try {
+//            GlbReader.main(args);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     private static void archiveExplorer(String[] args) {
         PokeUtilsGui.main(args);

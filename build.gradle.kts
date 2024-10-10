@@ -51,7 +51,6 @@ dependencies {
     "shadow"(implementation("org.tukaani", "xz", "1.9"))
     "shadow"(implementation("org.apache.commons", "commons-compress", "1.26.1"))
     "shadowTools"(implementation("org.joml", "joml", "1.10.5"))
-    "shadowTools"(implementation("de.javagl", "jgltf-model", "2.0.5"))
 
     "shadowTools"(implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))!!)
     "shadowTools"(implementation("org.lwjgl", "lwjgl"))
@@ -88,7 +87,6 @@ dependencies {
 
     //TODO: JT need some funky gradle logic that lets us build a version does and doesn't include gson for the viewer and generations respectively
     "shadowTools"(implementation("com.google.code.gson:gson:2.10.1")!!)
-    "shadowTools"(implementation("de.javagl:jgltf-model-builder:2.0.5")!!)
 
 
 }

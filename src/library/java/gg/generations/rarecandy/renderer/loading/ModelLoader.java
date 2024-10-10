@@ -1,7 +1,5 @@
 package gg.generations.rarecandy.renderer.loading;
 
-import de.javagl.jgltf.model.GltfModel;
-import de.javagl.jgltf.model.MeshPrimitiveModel;
 import gg.generations.rarecandy.assimp.*;
 import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
@@ -471,49 +469,6 @@ public class ModelLoader {
                 false,
                 0,
                 0);
-    }
-
-    public static List<String> getVariants(GltfModel model) {
-        try {
-            if (model.getExtensions() == null || model.getExtensions().isEmpty() || !model.getExtensions().containsKey("KHR_materials_variants"))
-                return null;
-
-            var variantMap = (Map<String, Object>) model.getExtensions().get("KHR_materials_variants");
-            var variantList = (List<Map<String, String>>) variantMap.get("variants");
-            var variantNames = new ArrayList<String>();
-
-            for (Map<String, String> a : variantList) {
-                var name = a.get("name");
-                variantNames.add(name);
-            }
-            return variantNames;
-        } catch (Exception e) {
-            throw new RuntimeException("Malformed Variant List in GLTF model.", e);
-        }
-    }
-
-    public static <T> Map<String, T> createMeshVariantMap(MeshPrimitiveModel primitiveModel, List<T> materials, List<String> variantsList) {
-        if (variantsList == null) {
-            var materialId = primitiveModel.getMaterialModel().getName();
-            return Collections.singletonMap("default", materials.stream().filter(a -> a.toString().equals(materialId)).findAny().get());
-        } else {
-            var map = (Map<String, Object>) primitiveModel.getExtensions().get("KHR_materials_variants");
-            var mappings = (List<Map<String, Object>>) map.get("mappings");
-            var variantMap = new HashMap<String, T>();
-
-            for (var mapping : mappings) {
-                if (!mapping.containsKey("material")) continue;
-                var material = materials.get((Integer) mapping.get("material"));
-                var variants = (List<Integer>) mapping.get("variants");
-
-                for (var i : variants) {
-                    var variant = variantsList.get(i);
-                    variantMap.put(variant, material);
-                }
-            }
-
-            return variantMap;
-        }
     }
 
     public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T, MultiRenderObject<T>> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {

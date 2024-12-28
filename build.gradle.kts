@@ -39,6 +39,7 @@ repositories {
     mavenLocal()
     maven("https://jitpack.io")
     maven("https://maven.generations.gg/releases")
+    maven("https://raw.github.com/SpinyOwl/repo/releases")
 }
 
 dependencies {
@@ -52,12 +53,12 @@ dependencies {
     "shadow"(implementation("org.apache.commons", "commons-compress", "1.26.1"))
     "shadowTools"(implementation("org.joml", "joml", "1.10.5"))
 
-    "shadowTools"(implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))!!)
+    "shadowTools"(implementation(platform("org.lwjgl:lwjgl-bom:3.3.3"))!!)
     "shadowTools"(implementation("org.lwjgl", "lwjgl"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-glfw"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-opengl"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-stb"))
-    "shadow"(implementation("org.lwjgl", "lwjgl-assimp", "3.3.2")) //Only now just to keep assimp native from complaining
+    "shadow"(implementation("org.lwjgl", "lwjgl-assimp", "3.3.3")) //Only now just to keep assimp native from complaining
     "shadow"(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
     "shadow"(implementation("org.msgpack", "msgpack-core", "0.8.17"))
     "shadowTools"(implementation(fileTree(mapOf("dir" to "libs", "include" to "*.jar")))!!)
@@ -82,7 +83,7 @@ dependencies {
     "shadowTools"(implementation("com.github.weisj:darklaf-core:3.0.2")!!)
     "shadowTools"(implementation("com.intellij:forms_rt:7.0.3")!!)
     "shadowTools"(implementation("org.lwjgl", "lwjgl-nfd"))
-    "shadowTools"(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
+    "shadowTools"(implementation("com.spinyowl", "legui", "4.2.0"))
 
     "shadow"(implementation("com.google.flatbuffers:flatbuffers-java:23.5.26")!!)
 

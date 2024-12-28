@@ -46,12 +46,12 @@ public class GuiHandler implements KeyListener {
         frame.transferFocus();
         arcBall = new ArcballOrbit(getCanvas(), 3f, 0.125f, 0f);
         getCanvas().attachArcBall(arcBall);
-        getCanvas().addKeyListener(this);
+//        getCanvas().addKeyListener(this);
         setup(getCanvas());
     }
 
     public RareCandyCanvas getCanvas() {
-        return (RareCandyCanvas) gui.canvasPanel.getComponents()[0];
+        return null; //(RareCandyCanvas) gui.canvasPanel.getComponents()[0];
     }
 
     public void initializeAsset(PixelAsset asset, Path path) {

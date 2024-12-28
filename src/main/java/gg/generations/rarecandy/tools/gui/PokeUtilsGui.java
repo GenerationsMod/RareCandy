@@ -26,14 +26,14 @@ public class PokeUtilsGui extends JPanel {
         ITextureLoader.setInstance(new TextureLoader());
         LafManager.install(LafManager.themeForPreferredStyle(LafManager.getPreferredThemeStyle()));
         initComponents();
-        canvasPanel.add(renderingWindow);
+//        canvasPanel.add(renderingWindow);
         fileViewer.setFocusable(true);
         canvasPanel.setFocusable(true);
 
         var renderLoop = new Runnable() {
             @Override
             public void run() {
-                if (renderingWindow.isValid()) renderingWindow.render();
+//                if (renderingWindow.isValid()) renderingWindow.render();
                 SwingUtilities.invokeLater(this);
             }
         };

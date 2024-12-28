@@ -1,9 +1,9 @@
 package gg.generations.rarecandy.renderer.animation;
 
-import gg.generations.rarecandy.assimp.AIBone;
-import gg.generations.rarecandy.assimp.AIMesh;
 import gg.generations.rarecandy.pokeutils.ModelNode;
 import gg.generations.rarecandy.renderer.rendering.Bone;
+import org.lwjgl.assimp.AIBone;
+import org.lwjgl.assimp.AIMesh;
 
 import java.util.*;
 import java.util.stream.Collectors;

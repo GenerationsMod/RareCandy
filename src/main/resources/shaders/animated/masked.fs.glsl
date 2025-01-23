@@ -14,17 +14,21 @@ uniform vec3 color;
 uniform float lightLevel;
 uniform bool useLight;
 
-#process
-
-void main() {
-    outColor = texture(diffuse, texCoord0);
-    if (outColor.a < 0.01) discard;
+vec4 getColor(vec2 texCord) {
+    vec4 outColor = texture(diffuse, texCoord0);
 
     float mask = texture(mask, texCoord0).x;
 
     outColor.xyz = mix(outColor.xyz, outColor.xyz * color, mask);
+    return outColor;
+}
 
-    outColor = process(outColor);
+#process
+
+void main() {
+    outColor = process(texCoord0);
+
+    if (outColor.a < 0.004) discard;
 
     if(useLight) outColor.xyz *= max(texture(emission, texCoord0).r, lightLevel);
 }

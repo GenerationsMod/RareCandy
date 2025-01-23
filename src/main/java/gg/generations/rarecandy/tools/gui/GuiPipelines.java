@@ -264,11 +264,12 @@ public class GuiPipelines {
         var effects = List.of("cartoon", "galaxy", "paradox", "shadow", "sketch", "vintage", "passthrough");
 
         for (var effect : effects) {
+
             var solid = createSolid(effect);
             var masked = createMasked(effect);
             var layered = createLayered(effect);
 
-            if(effect.equals("paradox")) {
+            if(effect.equals("paradox") || effect.equals("galaxy")) {
                 addParadox(solid, "solid");
                 addParadox(masked, "masked");
                 addParadox(layered, "layered");

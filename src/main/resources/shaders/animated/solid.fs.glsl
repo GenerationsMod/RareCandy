@@ -13,12 +13,16 @@ uniform float lightLevel;
 
 uniform bool useLight;
 
+vec4 getColor(vec2 texCord) {
+    return texture(diffuse, texCord);
+}
+
 #process
 
 void main() {
-    outColor = process(texture(diffuse, texCoord0));
+    outColor = process(texCoord0);
 
-    if (outColor.a < 0.01) discard;
+    if (outColor.a < 0.004) discard;
 
     if(useLight) outColor.xyz *= max(texture(emission, texCoord0).r, lightLevel);
 }

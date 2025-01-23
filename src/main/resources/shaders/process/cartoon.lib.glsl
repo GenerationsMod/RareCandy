@@ -40,7 +40,9 @@ vec3 bilateralFilter(vec2 uv) {
     return colorSum / weightSum;
 }
 
-vec4 process(vec4 inColor) {
+vec4 process(vec2 uv) {
+    vec4 inColor = getColor(uv);
+
     float edge = detectEdge(texCoord0);
 
     vec3 color = texture(diffuse, texCoord0).rgb;

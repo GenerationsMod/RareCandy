@@ -31,8 +31,6 @@ uniform float emiIntensity3;
 uniform float emiIntensity4;
 uniform float emiIntensity5;
 
-#process
-
 float adjustScalar(float color) {
     return clamp(color * 2, 0.0, 1.0);
 }
@@ -49,8 +47,7 @@ float getMaskIntensity() {
     return clamp(texture(mask, texCoord0).r * 2, 0.0, 1.0);
 }
 
-vec4 getColor() {
-    vec2 texCoord = texCoord0;
+vec4 getColor(vec2 texCoord) {
     vec4 color = texture(diffuse, texCoord);
     vec4 layerMasks = clamp(texture(layer, texCoord) * 2, 0, 1);
     float maskColor = getMaskIntensity();
@@ -70,12 +67,12 @@ vec4 getColor() {
     return vec4(base, color.a);
 }
 
+#process
 
 void main() {
-    outColor = getColor();
-    outColor = process(outColor);
+    outColor = process(texCoord0);
 
-    if(outColor.a < 0.004) discard;
+    if (outColor.a < 0.004) discard;
 
     if(useLight) outColor.xyz *= max(texture(emission, texCoord0).r, lightLevel);
 }

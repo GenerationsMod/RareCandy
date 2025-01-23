@@ -1,5 +1,6 @@
-vec4 process(vec4 inColor) {
-    vec2 wrappedUV = fract(texCoord0 * 5.0);
+vec4 process(vec2 uv) {
+    vec4 inColor = getColor(uv);
+    vec2 wrappedUV = fract(uv * 5.0);
 
     float gradient = sin(wrappedUV.x * 3.14159) * sin(wrappedUV.y * 3.14159);
 

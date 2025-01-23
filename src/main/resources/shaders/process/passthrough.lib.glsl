@@ -1,3 +1,3 @@
-vec4 process(vec4 inColor) {
-    return inColor;
+vec4 process(vec2 uv) {
+    return getColor(uv);
 }

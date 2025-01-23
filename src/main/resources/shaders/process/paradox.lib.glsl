@@ -16,6 +16,7 @@ float getParadoxIntensity() {
     return clamp(texture(paradoxMask, effectTexCoord).r * 2, 0.0, 1.0);
 }
 
-vec4 process(vec4 color) {
+vec4 process(vec2 uv) {
+    vec4 color = getColor(uv);
     return mix(color, vec4(1.0), getParadoxIntensity());
 }

@@ -1,7 +1,8 @@
 #define shadowBase vec3(0.04, 0.04, 0.1)
 #define shadowHighlight vec3(0.07, 0.07, 0.08)
 
-vec4 process(vec4 inColor) {
+vec4 process(vec2 uv) {
+    vec4 inColor = getColor(uv);
     float luminance = dot(inColor.rgb, vec3(0.299, 0.587, 0.114));
     vec3 grayscaleColor = vec3(luminance);
 

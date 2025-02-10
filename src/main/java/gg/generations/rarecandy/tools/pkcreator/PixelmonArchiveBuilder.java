@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools.pkcreator;
 
+import com.google.gson.JsonObject;
 import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
@@ -38,8 +39,8 @@ public class PixelmonArchiveBuilder {
                                 BufferedInputStream is = null;
 
                                 if (file.getFileName().toString().equals("config.json") && scale != null) {
-                                    var config = PixelAsset.GSON.fromJson(Files.readString(file), ModelConfig.class);
-                                    config.scale = scale;
+                                    var config = PixelAsset.GSON.fromJson(Files.readString(file), JsonObject.class);
+                                    config.addProperty("scale", scale);
 
                                     is = new BufferedInputStream(new ByteArrayInputStream(PixelAsset.GSON.toJson(config).getBytes()));
                                 } else {

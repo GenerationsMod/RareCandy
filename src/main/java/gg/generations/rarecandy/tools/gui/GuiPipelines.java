@@ -261,7 +261,7 @@ public class GuiPipelines {
     public static void onInitialize() {
         shaderMap = new HashMap<>();
 
-        var effects = List.of("cartoon", "galaxy", "paradox", "shadow", "sketch", "vintage", "passthrough");
+        var effects = List.of("pastel", "galaxy", "paradox", "shadow", "sketch", "vintage", "passthrough");
 
         for (var effect : effects) {
 

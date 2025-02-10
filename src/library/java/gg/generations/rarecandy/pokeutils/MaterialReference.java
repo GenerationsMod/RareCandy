@@ -83,8 +83,8 @@ public class MaterialReference {
 
 
                 //TODO: Check if the parent's values are overriden vs it overriding child.
-                reference.images.forEach((key, value) -> images.merge(key, value, (old, value1) -> old));
-                reference.values.forEach((key, value) -> values.merge(key, value, (old, value1) -> old));
+                reference.images.forEach(images::putIfAbsent);
+                reference.values.forEach(values::putIfAbsent);
 
                 parent = reference.parent;
             }
@@ -100,13 +100,16 @@ public class MaterialReference {
                 map.put(a.getKey(), a.getValue());
             }
         }
+
+        if(shader == null) shader = "solid";
+
         return new Material(name, map, values, cull, blend, shader + (effect != null ? "_" + effect : ""));
     }
     public static final class Serializer implements JsonDeserializer<MaterialReference> {
         @Override
         public MaterialReference deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
-            String shader = "solid";
+            String shader = null;
 
             String effect = null;
 
@@ -157,7 +160,7 @@ public class MaterialReference {
                     }
                 }
             } else {
-                shader = jsonObject.has("shader") ? jsonObject.getAsJsonPrimitive("shader").getAsString() : "solid";
+                shader = jsonObject.has("shader") ? jsonObject.getAsJsonPrimitive("shader").getAsString() : null;
                 effect = jsonObject.has("effect") ? jsonObject.getAsJsonPrimitive("effect").getAsString() : null;
                 cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.None;
                 blend = jsonObject.has("blend") ? BlendType.from(jsonObject.getAsJsonPrimitive("blend").getAsString()) : BlendType.None;

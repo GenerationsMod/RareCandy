@@ -22,6 +22,7 @@ vec4 getColor(vec2 texCord) {
 void main() {
     outColor = process(texCoord0);
 
+
     if (outColor.a < 0.004) discard;
 
     if(useLight) outColor.xyz *= max(texture(emission, texCoord0).r, lightLevel);

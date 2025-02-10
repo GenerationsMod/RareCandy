@@ -18,6 +18,8 @@ public record VariantParent(String inherits, Map<String, VariantDetails> details
 
             if(jsonObject.has("inherits")) {
                 inherits = jsonObject.remove("inherits").getAsJsonPrimitive().getAsString();
+            } else if(jsonObject.has("parent")) {
+                inherits = jsonObject.remove("parent").getAsJsonPrimitive().getAsString();
             }
 
             try {

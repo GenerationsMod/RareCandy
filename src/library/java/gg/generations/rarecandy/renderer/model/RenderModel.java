@@ -3,6 +3,7 @@ package gg.generations.rarecandy.renderer.model;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.Attribute;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.joml.Vector3f;
 
 import java.io.Closeable;
@@ -14,7 +15,7 @@ public interface RenderModel extends Closeable {
 
     Vector3f getDimensions();
 
-    public <T extends RenderObject> void render(List<ObjectInstance> instances, T object);
+    public <T extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances, T object);
 
     public <T extends RenderObject> void render(ObjectInstance instance, T object);
 

@@ -1,21 +1,27 @@
 package gg.generations.rarecandy.pokeutils;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 
 public enum BlendType {
-    None(-1, -1), Regular(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+    None(-1, -1, -1, -1), Regular(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
-    private final int src;
-    private final int dst;
+    private final int rgbSrc;
+    private final int rgbDst;
+    private final int alphaSrc;
+    private final int alphaDst;
 
-    BlendType(int src, int dst) {
-        this.src = src;
-        this.dst = dst;
+    BlendType(int rgbSrc, int rgbDst, int alphaSrc, int alphaDst) {
+        this.rgbSrc = rgbSrc;
+        this.rgbDst = rgbDst;
+        this.alphaSrc = alphaSrc;
+        this.alphaDst = alphaDst;
     }
 
     public void enable() {
+        if(this != BlendType.Regular) return;
+        GL20.glBlendFuncSeparate(rgbSrc, rgbDst, alphaSrc, alphaDst);
         GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(src, dst);
     }
 
     public static BlendType from(String cull) {
@@ -29,6 +35,7 @@ public enum BlendType {
 
 
     public void disable() {
+        if(this != BlendType.Regular) return;
         GL11.glDisable(GL11.GL_BLEND);
     }
 }

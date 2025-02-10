@@ -2,6 +2,7 @@ package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -96,10 +97,10 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public <V extends RenderObject> void render(List<ObjectInstance> instances) {
+    public <V extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances) {
         for (T object : this.objects) {
             if (object != null && object.isReady()) {
-                object.render(instances);
+                object.render(stage, instances);
             }
         }
     }

@@ -12,10 +12,7 @@ import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
-import gg.generations.rarecandy.renderer.rendering.FrameBuffer;
-import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
-import gg.generations.rarecandy.renderer.rendering.RareCandy;
-import gg.generations.rarecandy.renderer.rendering.ScreenRenderer;
+import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
 import org.jetbrains.annotations.NotNull;
@@ -259,7 +256,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClearColor(0.3f, 0.3f, 0.5f, 0.0f); // Ensure alpha is set to 0 for transparency
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 
-        renderer.render(false, time);
+        renderer.render(RenderStage.SOLID, false, time);
+        renderer.render(RenderStage.TRANSPARENT, false, time);
 
         framebuffer.unbindFramebuffer();
 
@@ -275,7 +273,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 
 //        ObjectManager.render(plane, planeInstance);
-        renderer.render(false, time);
+        renderer.render(RenderStage.SOLID, false, time);
+        renderer.render(RenderStage.TRANSPARENT, false, time);
 
 //        BlendType.Regular.disable();
     }
@@ -382,10 +381,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
         public List<String> overrides = new ArrayList<>();
 
         @Override
-        public <V extends RenderObject> void render(List<ObjectInstance> instances) {
+        public <V extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances) {
             for (var object : this.objects) {
                 if (object != null && !overrides.contains(object.name) && object.isReady()) {
-                    object.render(instances);
+                    object.render(stage, instances);
                 }
             }
         }

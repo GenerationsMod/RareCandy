@@ -5,6 +5,7 @@ import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
@@ -42,7 +43,7 @@ public abstract class RenderObject implements Closeable {
         return variant != null && variant.offset() != null ? variant.offset() : AnimationController.NO_OFFSET;
     }
 
-    public abstract <T extends RenderObject> void render(List<ObjectInstance> instances);
+    public abstract <T extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances);
 
     public abstract <T extends RenderObject> void render(ObjectInstance instance);
 
@@ -65,7 +66,9 @@ public abstract class RenderObject implements Closeable {
     public void close() throws IOException {
         for (var a : variants.values()) {
             if(a != null) {
-                a.material().close();
+                var material = a.material();
+
+                if(material != null) material.close();
             }
         }
     }

@@ -37,9 +37,10 @@ public class MaterialReference {
 
     public Map<String, Object> values;
 
-    public MaterialReference(String parent, String shader, CullType cull, BlendType blend, Map<String, String> images, Map<String, Object> values) {
+    public MaterialReference(String parent, String shader, String effect, CullType cull, BlendType blend, Map<String, String> images, Map<String, Object> values) {
         this.parent = parent;
         this.shader = shader;
+        this.effect = effect;
         this.cull = cull;
         this.blend = blend;
         this.images = images;
@@ -52,6 +53,7 @@ public class MaterialReference {
         var cull = reference.cull;
         var blend = reference.blend;
         var shader = reference.shader;
+        var effect = reference.effect;
         var images = new HashMap<>(reference.images);
         var values = new HashMap<>(reference.values);
         var parent = reference.parent;
@@ -62,18 +64,25 @@ public class MaterialReference {
             if(reference == null) parent = null;
             else {
 
-                if (!shader.equals(reference.shader)) {
+                if (shader == null) {
                     shader = reference.shader;
                 }
 
-                if (!cull.equals(reference.cull)) {
+                if (effect == null) {
+                    effect = reference.effect;
+                }
+
+
+                if (cull == null) {
                     cull = reference.cull;
                 }
 
-                if (!blend.equals(reference.blend)) {
+                if (blend == null) {
                     blend = reference.blend;
                 }
 
+
+                //TODO: Check if the parent's values are overriden vs it overriding child.
                 reference.images.forEach((key, value) -> images.merge(key, value, (old, value1) -> old));
                 reference.values.forEach((key, value) -> values.merge(key, value, (old, value1) -> old));
 
@@ -91,7 +100,7 @@ public class MaterialReference {
                 map.put(a.getKey(), a.getValue());
             }
         }
-        return new Material(name, map, values, cull, blend, shader);
+        return new Material(name, map, values, cull, blend, shader + (effect != null ? "_" + effect : ""));
     }
     public static final class Serializer implements JsonDeserializer<MaterialReference> {
         @Override
@@ -111,7 +120,7 @@ public class MaterialReference {
 
             var jsonObject = json.getAsJsonObject();
 
-            String parent = jsonObject.has("inherits") ? jsonObject.get("inherits").getAsString() : null;
+            String parent = jsonObject.has("inherits") ? jsonObject.get("inherits").getAsString() : jsonObject.has("parent") ? jsonObject.get("parent").getAsString() : null;
 
             if(jsonObject.has("type")) {
 
@@ -156,7 +165,7 @@ public class MaterialReference {
                 values = jsonObject.has("values") ? values(jsonObject.getAsJsonObject("values")) : new HashMap<>();
             }
 
-            return new MaterialReference(parent, shader + (effect != null ? "_" + effect : ""), cull, blend, images, values);
+            return new MaterialReference(parent, shader, effect, cull, blend, images, values);
 
 //            throw new JsonParseException("Material type %s invalid".formatted(type));
         }
@@ -239,6 +248,7 @@ public class MaterialReference {
         // Compare simple fields
         if (!Objects.equals(parent, that.parent)) return false;
         if (!Objects.equals(shader, that.shader)) return false;
+        if (!Objects.equals(effect, that.effect)) return false;
         if (!Objects.equals(cull, that.cull)) return false;
         if (!Objects.equals(blend, that.blend)) return false;
 
@@ -253,7 +263,7 @@ public class MaterialReference {
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(parent, shader, cull, blend);
+        int result = Objects.hash(parent, shader, effect, cull, blend);
         result = 31 * result + hashImages(images);
         result = 31 * result + hashValues(values);
         return result;

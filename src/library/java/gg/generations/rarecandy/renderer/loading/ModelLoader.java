@@ -221,7 +221,7 @@ public class ModelLoader {
             });
         }
         
-        return variants;
+         return variants;
     }
 
     private static <T extends MeshObject> void traverseTree(Matrix4f transform, ModelNode node, MultiRenderObject<T> objects) {

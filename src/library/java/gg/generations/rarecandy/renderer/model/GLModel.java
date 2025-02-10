@@ -93,10 +93,7 @@ public class GLModel implements RenderModel {
 
     private Map<Material, List<Consumer<Pipeline>>> EMPTY = Collections.emptyMap();
 
-    public <T extends RenderObject> void render(List<ObjectInstance> instances, T object) {
-
-
-        Map<RenderStage, Map<Material, List<Consumer<Pipeline>>>> map = new HashMap<>();
+    public <T extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances, T object) {
 
         for (var instance : instances) {
             if (object.shouldRender(instance)) {
@@ -105,55 +102,46 @@ public class GLModel implements RenderModel {
 
             var material = object.getMaterial(instance.variant());
 
-            var stage = RenderStage.SOLID;
+            var transparent = material.blendType() != BlendType.None;
 
-            if(material.blendType() != BlendType.None) stage = RenderStage.TRANSPARENT;
-
-            var stages = map.computeIfAbsent(stage, s -> new HashMap<>());
-
-            stages.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
-                pipeline.updateOtherUniforms(instance, object);
-                pipeline.updateTexUniforms(instance, object);
-                runDrawCalls();
-            });
+            if(transparent && stage == RenderStage.TRANSPARENT || stage == RenderStage.SOLID) {
+                render(material, instance, object);
+            }
         }
-
-
-
-        map.getOrDefault(RenderStage.SOLID, EMPTY).forEach(GLModel::render);
-        map.getOrDefault(RenderStage.TRANSPARENT, EMPTY).forEach(GLModel::render);
     }
 
     public <T extends RenderObject> void render(ObjectInstance instance, T object) {
-        Map<Material, List<Consumer<Pipeline>>> solidMap = new HashMap<>();
-        Map<Material, List<Consumer<Pipeline>>> transparentMap = new HashMap<>();
-
-        if (object.shouldRender(instance)) return;
-
-        var material = object.getMaterial(instance.variant());
-
-        var stage = RenderStage.SOLID;
-
-        if(material.blendType() != BlendType.None) stage = RenderStage.TRANSPARENT;
-        var stages = stage == RenderStage.SOLID ? solidMap : transparentMap;
-
-        stages.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
-            pipeline.updateOtherUniforms(instance, object);
-            pipeline.updateTexUniforms(instance, object);
-            runDrawCalls();
-        });
-
-        solidMap.forEach(GLModel::render);
-        transparentMap.forEach(GLModel::render);
+//        Map<Material, List<Consumer<Pipeline>>> solidMap = new HashMap<>();
+//        Map<Material, List<Consumer<Pipeline>>> transparentMap = new HashMap<>();
+//
+//        if (object.shouldRender(instance)) return;
+//
+//        var material = object.getMaterial(instance.variant());
+//
+//        var stage = RenderStage.SOLID;
+//
+//        if(material.blendType() != BlendType.None) stage = RenderStage.TRANSPARENT;
+//        var stages = stage == RenderStage.SOLID ? solidMap : transparentMap;
+//
+//        stages.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
+//            pipeline.updateOtherUniforms(instance, object);
+//            pipeline.updateTexUniforms(instance, object);
+//            runDrawCalls();
+//        });
+//
+//        solidMap.forEach(GLModel::render);
+//        transparentMap.forEach(GLModel::render);
     }
 
-    private static void render(Material k, List<Consumer<Pipeline>> v) {
+    private <T extends RenderObject> void render(Material k, ObjectInstance instance, T object) {
         var pl = PipelineRegistry.get(k.getPipeline());
 
         if(pl == null) return;
 
         pl.bind(k);
-        v.forEach(a -> a.accept(pl));
+        pl.updateOtherUniforms(instance, object);
+        pl.updateTexUniforms(instance, object);
+        runDrawCalls();
         pl.unbind(k);
     }
 

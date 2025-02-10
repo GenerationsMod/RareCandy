@@ -181,7 +181,7 @@ public class MinimalQuad {
 
             if(reference.values.containsKey("useLight")) values.put("useLight", reference.values.get("useLight"));
 
-            newMaterial.put(name, new MaterialReference(null, "solid", reference.cull, reference.blend, images1, values));
+            newMaterial.put(name, new MaterialReference(null, "solid","", reference.cull, reference.blend, images1, values));
         }
 
         System.out.println();

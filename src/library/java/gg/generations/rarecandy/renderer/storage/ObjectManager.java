@@ -3,6 +3,7 @@ package gg.generations.rarecandy.renderer.storage;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -15,26 +16,29 @@ public class ObjectManager {
     private final Map<RenderObject, List<ObjectInstance>> objects = new HashMap<>();
 
     public void update(double secondsPassed) {
-        for (var objects : objects.values())
-            if (!objects.isEmpty())
-                for (var objectInstance : objects)
+        for (var entries : objects.entrySet()) {
+            var value = entries.getValue();
+            var object = entries.getKey();
+            if(object.isReady()) object.update();
+
+            for (var objectInstance : value)
                     if (objectInstance instanceof AnimatedObjectInstance animatedObjectInstance)
                         if (animatedObjectInstance.currentAnimation != null)
                             if (!animationController.playingInstances.contains((animatedObjectInstance.currentAnimation)))
                                 animationController.playingInstances.add(animatedObjectInstance.currentAnimation);
+        }
 
 
         animationController.render(secondsPassed);
     }
 
-    public void render() {
+    public void render(RenderStage stage) {
         for (var entry : objects.entrySet()) {
             var object = entry.getKey();
             if (object == null) continue;
 
             if (object.isReady()) {
-                object.update();
-                object.render(entry.getValue());
+                object.render(stage, entry.getValue());
             }
         }
     }

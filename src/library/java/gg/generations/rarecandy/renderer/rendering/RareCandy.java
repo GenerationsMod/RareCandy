@@ -25,7 +25,7 @@ public class RareCandy {
         TASKS.add(r);
     }
 
-    public void render(boolean clearInstances, double secondsPassed) {
+    public void render(RenderStage stage, boolean clearInstances, double secondsPassed) {
         var task = TASKS.poll();
         while (task != null) {
             task.run();
@@ -33,7 +33,7 @@ public class RareCandy {
         }
 
         objectManager.update(secondsPassed);
-        objectManager.render();
+        objectManager.render(stage);
 
         if (clearInstances) {
             this.objectManager.clearObjects();

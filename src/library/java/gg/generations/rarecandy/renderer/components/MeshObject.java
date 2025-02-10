@@ -3,6 +3,7 @@ package gg.generations.rarecandy.renderer.components;
 import gg.generations.rarecandy.renderer.model.RenderModel;
 import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,8 +22,8 @@ public class MeshObject extends RenderObject {
         this.ready = true;
     }
 
-    public <T extends RenderObject> void render(List<ObjectInstance> instances) {
-        model.render(instances, this);
+    public <T extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances) {
+        model.render(stage, instances, this);
     }
 
     public <T extends RenderObject> void render(ObjectInstance instance) {

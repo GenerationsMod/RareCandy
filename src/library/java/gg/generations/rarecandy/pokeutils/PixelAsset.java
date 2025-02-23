@@ -40,21 +40,23 @@ public class PixelAsset {
                     if (json.getAsJsonArray().size() == 2) {
                         vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat());
                     }
+                } else if(json.isJsonObject()) {
+                    var obj = json.getAsJsonObject();
+
+                    if(obj.has("x")) vec.x = obj.getAsJsonPrimitive("x").getAsFloat();
+                    if(obj.has("y")) vec.y = obj.getAsJsonPrimitive("y").getAsFloat();
                 }
 
                 return vec;
             })
-            .registerTypeAdapter(VariantDetails.class, new GenericJsonThing<VariantDetails>(new BiFunction<VariantDetails, JsonSerializationContext, JsonElement>() {
-                @Override
-                public JsonElement apply(VariantDetails variantDetails, JsonSerializationContext ctx) {
-                    var obj = new JsonObject();
-                    if (variantDetails.material() != null) obj.addProperty("material", variantDetails.material());
-                    if (variantDetails.hide() != null) obj.addProperty("hide", variantDetails.hide());
-                    if (variantDetails.offset() != null && variantDetails.offset() != AnimationController.NO_OFFSET)
-                        obj.add("offset", ctx.serialize(variantDetails.offset()));
+            .registerTypeAdapter(VariantDetails.class, new GenericJsonThing<VariantDetails>((variantDetails, ctx) -> {
+                var obj = new JsonObject();
+                if (variantDetails.material() != null) obj.addProperty("material", variantDetails.material());
+                if (variantDetails.hide() != null) obj.addProperty("hide", variantDetails.hide());
+                if (variantDetails.offset() != null && variantDetails.offset() != AnimationController.NO_OFFSET)
+                    obj.add("transform", ctx.serialize(variantDetails.offset()));
 
-                    return obj;
-                }
+                return obj;
             }, new BiFunction<JsonElement, JsonDeserializationContext, VariantDetails>() {
                 @Override
                 public VariantDetails apply(JsonElement jsonElement, JsonDeserializationContext ctx) {
@@ -62,6 +64,7 @@ public class PixelAsset {
                     var material = obj.has("material") ? obj.getAsJsonPrimitive("material").getAsString() : null;
                     var hide = obj.has("hide") ? obj.getAsJsonPrimitive("hide").getAsBoolean() : null;
                     Transform offset = obj.has("offset") ? ctx.deserialize(obj.get("offset"), Transform.class) : null;
+                    offset = offset == null && obj.has("transform") ? ctx.deserialize(obj.get("transform"), Transform.class) : null;
                     return new VariantDetails(material, hide, offset);
                 }
             }))
@@ -95,7 +98,14 @@ public class PixelAsset {
                     if (json.getAsJsonArray().size() == 3) {
                         vec.set(json.getAsJsonArray().get(0).getAsFloat(), json.getAsJsonArray().get(1).getAsFloat(), json.getAsJsonArray().get(2).getAsFloat());
                     }
+                } else if(json.isJsonObject()) {
+                    var obj = json.getAsJsonObject();
+
+                    if(obj.has("x")) vec.x = obj.getAsJsonPrimitive("x").getAsFloat();
+                    if(obj.has("y")) vec.y = obj.getAsJsonPrimitive("y").getAsFloat();
+                    if(obj.has("z")) vec.y = obj.getAsJsonPrimitive("z").getAsFloat();
                 }
+
 
                 return vec;
             }))

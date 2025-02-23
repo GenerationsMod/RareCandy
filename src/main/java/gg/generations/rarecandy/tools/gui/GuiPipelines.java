@@ -34,12 +34,16 @@ public class GuiPipelines {
                 if (ctx.instance() instanceof AnimatedObjectInstance instance) {
                     var t = instance.getTransform(ctx.getMaterial().getMaterialName());
 
-                    if (t != null) {
+                    if (t != null && !t.isUnit()) {
                         transform = t;
                     }
                 }
 
-                ctx.uniform().uploadVec2f(transform.offset());
+                var offset = transform.offset();
+
+                if(offset == null) offset = Transform.DEFAULT_OFFSET;
+
+                ctx.uniform().uploadVec2f(offset);
             })
             .supplyUniform("scale", ctx -> {
                 Transform transform = ctx.object().getTransform(ctx.instance().variant());
@@ -47,12 +51,16 @@ public class GuiPipelines {
                 if (ctx.instance() instanceof AnimatedObjectInstance instance) {
                     var t = instance.getTransform(ctx.getMaterial().getMaterialName());
 
-                    if (t != null) {
+                    if (t != null && !t.isUnit()) {
                         transform = t;
                     }
                 }
 
-                ctx.uniform().uploadVec2f(transform.scale());
+                var scale = transform.scale();
+
+                if(scale == null) scale = Transform.DEFAULT_SCALE;
+
+                ctx.uniform().uploadVec2f(scale);
             })
             .prePostDraw(material -> {
                 if(material.getBoolean("disableDepth")) {

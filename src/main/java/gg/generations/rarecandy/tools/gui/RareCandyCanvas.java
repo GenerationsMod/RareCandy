@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
+import com.spinyowl.legui.system.context.CallbackKeeper;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.LoggerUtil;
@@ -34,7 +35,7 @@ import java.util.function.Consumer;
 import static org.lwjgl.opengl.GL11.*;
 
 
-public class RareCandyCanvas /*extends Canvas*/ {
+public class RareCandyCanvas extends GLFWCanvas {
     private static CycleVariants runnable;
     public static Matrix4f projectionMatrix;
     public static float radius = 2.0f;
@@ -48,7 +49,7 @@ public class RareCandyCanvas /*extends Canvas*/ {
     public final Matrix4f viewMatrix = new Matrix4f();
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
     public float scaleModifier = 0;
-//    private final PokeUtilsGui handler;
+    private final PokeUtilsGui handler;
     public double startTime = System.currentTimeMillis();
     public String currentAnimation = null;
     public double originalScaleModifer;
@@ -77,9 +78,11 @@ public class RareCandyCanvas /*extends Canvas*/ {
     }
 
     public RareCandyCanvas(PokeUtilsGui handler) {
-//        super(defaultData());
-//        this.handler = handler;
-//        addComponentListener(new ComponentAdapter() {
+        super(1024, 1024, "Rare Candy");
+
+        this.handler = handler;
+
+        //        addComponentListener(new ComponentAdapter() {
 //            @Override
 //            public void componentResized(ComponentEvent e) {
 //                projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
@@ -87,8 +90,8 @@ public class RareCandyCanvas /*extends Canvas*/ {
 //        });
 
         NativeFileDialog.NFD_Init();
-//        root = DialogueUtils.chooseFolder();
-//        if(root == null) root = Path.of("pack");
+        root = DialogueUtils.chooseFolder();
+        if(root == null) root = Path.of("pack");
     }
 
 //    private static GLData defaultData() {
@@ -109,15 +112,15 @@ public class RareCandyCanvas /*extends Canvas*/ {
 
         ITextureLoader.setInstance(new TextureLoader());
 
-        var renderLoop = new Runnable() {
-            @Override
-            public void run() {
-//                if (canvas.isValid()) canvas.render();
-                SwingUtilities.invokeLater(this);
-            }
-        };
-
-        SwingUtilities.invokeLater(renderLoop);
+//        var renderLoop = new Runnable() {
+//            @Override
+//            public void run() {
+////                if (canvas.isValid()) canvas.render();
+//                SwingUtilities.invokeLater(this);
+//            }
+//        };
+//
+//        SwingUtilities.invokeLater(renderLoop);
     }
 
     public void openFile(PixelAsset pkFile, String name) throws IOException {
@@ -200,6 +203,16 @@ public class RareCandyCanvas /*extends Canvas*/ {
         return loader.generateCube(width, length, height, "smooth_stone", onFinish);
     }
 
+    @Override
+    protected CallbackKeeper getCallBackKeeper() {
+        return null;
+    }
+
+    @Override
+    protected void resize(int width, int height) {
+        super.resize(width, height);
+        projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) width / height, 0.1f, 1000.0f);
+    }
 
     private final Vector3f size = new Vector3f();
 

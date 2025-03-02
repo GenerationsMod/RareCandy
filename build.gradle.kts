@@ -58,6 +58,8 @@ dependencies {
     "shadowTools"(implementation("org.lwjgl", "lwjgl-glfw"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-opengl"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-stb"))
+    "shadowTools"(implementation("org.lwjgl", "lwjgl-yoga"))
+    "shadowTools"(implementation("org.lwjgl", "lwjgl-nanovg"))
     "shadow"(implementation("org.lwjgl", "lwjgl-assimp", "3.3.3")) //Only now just to keep assimp native from complaining
     "shadow"(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
     "shadow"(implementation("org.msgpack", "msgpack-core", "0.8.17"))
@@ -65,6 +67,10 @@ dependencies {
     "shadow"(implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")!!)
     "shadow"(implementation("io.github.mudbill:dds-lwjgl:3.0.0")!!)
 
+    "shadowTools"(implementation("com.google.guava:guava:33.4.0-jre")!!)
+    "shadowTools"(implementation("com.squareup.moshi:moshi-kotlin:1.15.2")!!)
+
+    "shadowTools"(implementation("org.liquidengine:cbchain:1.0.0")!!)
 
     listOf("windows", "macos", "linux", ).forEach { os ->
         listOf("-arm64", "").forEach { cpu ->
@@ -74,6 +80,8 @@ dependencies {
             "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = "natives-$os$cpu"))
             "shadow"(runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = "natives-$os$cpu"))
             "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-$os$cpu"))
+            "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-nanovg", classifier = "natives-$os$cpu"))
+            "shadowTools"(runtimeOnly("org.lwjgl", "lwjgl-yoga", classifier = "natives-$os$cpu"))
         }
     }
 

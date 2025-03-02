@@ -51,7 +51,7 @@ public class GuiHandler implements KeyListener {
     }
 
     public RareCandyCanvas getCanvas() {
-        return null; //(RareCandyCanvas) gui.canvasPanel.getComponents()[0];
+        return gui.handler.getCanvas();
     }
 
     public void initializeAsset(PixelAsset asset, Path path) {

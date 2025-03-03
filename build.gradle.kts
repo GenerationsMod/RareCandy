@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.11.24"
+version = "2.11.25"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 

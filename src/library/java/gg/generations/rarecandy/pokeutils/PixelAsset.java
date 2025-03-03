@@ -64,7 +64,7 @@ public class PixelAsset {
                     var material = obj.has("material") ? obj.getAsJsonPrimitive("material").getAsString() : null;
                     var hide = obj.has("hide") ? obj.getAsJsonPrimitive("hide").getAsBoolean() : null;
                     Transform offset = obj.has("offset") ? ctx.deserialize(obj.get("offset"), Transform.class) : null;
-                    offset = offset == null && obj.has("transform") ? ctx.deserialize(obj.get("transform"), Transform.class) : null;
+                    if(offset == null && obj.has("transform")) offset = ctx.deserialize(obj.get("transform"), Transform.class);
                     return new VariantDetails(material, hide, offset);
                 }
             }))

@@ -3,13 +3,13 @@ package gg.generations.rarecandy.pokeutils;
 import com.google.gson.*;
 import gg.generations.rarecandy.pokeutils.codec.JsonIo;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
+import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 import org.apache.commons.compress.archivers.tar.TarFile;
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.jetbrains.annotations.Nullable;
 import org.tukaani.xz.XZInputStream;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+
+import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
 
 /**
  * Pixelmon Asset (.pk) file.
@@ -61,6 +63,47 @@ public class PixelAsset {
 
         updateSettings();
 
+    }
+
+    public static PixelAsset open(Path path) {
+        return new PixelAsset(getSevenZipFile(path), null);
+    }
+
+    public static void save(Path path, PixelAsset pk) {
+        var files = pk.files;
+        files.put("config.json", JsonIo.write(ModelConfig.CODEC, pk.config));
+
+        save(path, files);
+    }
+
+    public static void save(Path path, Map<String, byte[]> files) {
+        try (var sevenZOutput = new SevenZOutputFile(path.toFile())) {
+            for (var pair : files.entrySet()) {
+                var name = pair.getKey();
+                var data = pair.getValue();
+                try {
+                    // Create an archive entry
+                    var entry = sevenZOutput.createArchiveEntry(new File(name), name);
+                    sevenZOutput.putArchiveEntry(entry);
+
+                    // Handle file input stream
+                    try (BufferedInputStream is = new BufferedInputStream(new ByteArrayInputStream(data))) {
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = is.read(buffer)) > 0) {
+                            sevenZOutput.write(buffer, 0, length);
+                        }
+                    }
+
+                    sevenZOutput.closeArchiveEntry();
+                } catch (IOException e) {
+                    printError(e);
+                }
+            }
+            sevenZOutput.finish();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void load(Path dir) {

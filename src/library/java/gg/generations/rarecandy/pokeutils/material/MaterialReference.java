@@ -29,11 +29,11 @@ public class MaterialReference {
             var dynamic = new Dynamic<>(dynamicOps, t);
 
             return dynamic.get("type").asString().flatMap(type -> dynamic.get("value").flatMap(tDynamic -> switch (type) {
-                case "boolean" -> Codec.BOOL.parse(tDynamic).map(Object.class::cast);
-                case "float" -> Codec.FLOAT.parse(tDynamic).map(Object.class::cast);
-                case "color" -> COLOR_CODEC.parse(tDynamic).map(Object.class::cast);
-                default -> DataResult.error(() -> "Unknown type: " + type);
-            })).result().map(DataResult::success)
+                        case "boolean" -> Codec.BOOL.parse(tDynamic).map(Object.class::cast);
+                        case "float" -> Codec.FLOAT.parse(tDynamic).map(Object.class::cast);
+                        case "color" -> COLOR_CODEC.parse(tDynamic).map(Object.class::cast);
+                        default -> DataResult.error(() -> "Unknown type: " + type);
+                    })).result().map(DataResult::success)
                     .orElseGet(() -> {
 
                         DataResult<Object> floatResult = Codec.FLOAT.parse(dynamic).map(Object.class::cast);
@@ -101,7 +101,7 @@ public class MaterialReference {
             }
 
             var optionalX = dynamic.get("x").map(a -> a.asFloat(1.0f)).result();
-            if (optionalX.isEmpty()) return DataResult.error(() ->"optionalX was empty.");
+            if (optionalX.isEmpty()) return DataResult.error(() -> "optionalX was empty.");
             var optionalY = dynamic.get("y").map(a -> a.asFloat(1.0f)).result();
             if (optionalY.isEmpty()) return DataResult.error(() -> "optionalY was empty.");
             var optionalZ = dynamic.get("z").map(a -> a.asFloat(1.0f)).result();
@@ -123,14 +123,62 @@ public class MaterialReference {
     }));
 
     public static final Codec<MaterialReference> CODEC = Codecs.processing(BASE_CDOEC, dynamic -> {
+        var modifer = MaterialReference.applyTypeModifier(dynamic);
+        if (modifer.isPresent()) return modifer.get();
+
         var inherits = dynamic.remove("inherits");
 
-        if(inherits.asString().result().isPresent()) {
+        if (inherits.asString().result().isPresent()) {
             dynamic.set("parent", inherits);
         }
 
         return dynamic;
     }, Function.identity());
+
+    private static <T> Optional<Dynamic<T>> applyTypeModifier(Dynamic<T> dynamic) {
+        var type = dynamic.get("type").asString().result();
+
+        if (type.isPresent()) {
+            var material = new Dynamic<>(dynamic.getOps());
+
+            var texturesToAdd = new HashMap<Dynamic<?>, Dynamic<?>>();
+            var valuesToAdd = new HashMap<Dynamic<?>, Dynamic<?>>();
+
+            dynamic.get("texture").asString().result().ifPresent(a -> texturesToAdd.put(dynamic.createString("diffuse"), dynamic.createString(a)));
+
+            switch (type.get()) {
+                case "masked" -> {
+                    var color = dynamic.get("color").decode(COLOR_CODEC).result().map(Pair::getFirst).orElse(new Vector3f(1, 1, 1));
+
+                    COLOR_CODEC.encodeStart(dynamic.getOps(), color).result().map(a -> new Dynamic<T>(dynamic.getOps(), a)).ifPresent(colorDynamic -> {
+                        valuesToAdd.put(dynamic.createString("color"), colorDynamic);
+                    });
+
+                    dynamic.get("mask").asString().result().ifPresent(texture -> {
+                        texturesToAdd.put(dynamic.createString("mask"), dynamic.createString(texture));
+                    });
+
+                    material = material.set("shader", dynamic.createString("masked"));
+                }
+                case "transparent" -> material = material.set("blend", dynamic.createString("regular"));
+                case "cull" -> material = material.set("cull", dynamic.createString("forward"));
+                case "unlit_cull" -> {
+                    material = material.set("cull", dynamic.createString("forward"));
+                    valuesToAdd.put(dynamic.createString("useLight"), dynamic.createBoolean(false));
+                }
+                case "unlit" -> valuesToAdd.put(dynamic.createString("useLight"), dynamic.createBoolean(false));
+            }
+
+            if (!valuesToAdd.isEmpty()) material = material.set("images", dynamic.createMap(texturesToAdd));
+
+            if (!valuesToAdd.isEmpty()) material = material.set("values", dynamic.createMap(valuesToAdd));
+
+            return Optional.of(material);
+        }
+
+        return Optional.empty();
+    }
+
 
     public String parent;
     public String shader;
@@ -165,7 +213,7 @@ public class MaterialReference {
         var values = reference.values;
         var parent = reference.parent;
 
-        if(parent != null) {
+        if (parent != null) {
             while (parent != null) {
                 reference = materialreferences.get(parent);
 
@@ -324,10 +372,10 @@ public class MaterialReference {
 
         // Handle specific types
         if (o instanceof Vector3f) {
-            return Arrays.hashCode(new float[] { ((Vector3f) o).x, ((Vector3f) o).y, ((Vector3f) o).z });
+            return Arrays.hashCode(new float[]{((Vector3f) o).x, ((Vector3f) o).y, ((Vector3f) o).z});
         }
         if (o instanceof Vector4f) {
-            return Arrays.hashCode(new float[] { ((Vector4f) o).x, ((Vector4f) o).y, ((Vector4f) o).z, ((Vector4f) o).w });
+            return Arrays.hashCode(new float[]{((Vector4f) o).x, ((Vector4f) o).y, ((Vector4f) o).z, ((Vector4f) o).w});
         }
         if (o instanceof Boolean) {
             return Boolean.hashCode((Boolean) o);
@@ -357,35 +405,6 @@ public class MaterialReference {
                 Math.abs(v1.y - v2.y) < EPSILON &&
                 Math.abs(v1.z - v2.z) < EPSILON &&
                 Math.abs(v1.w - v2.w) < EPSILON;
-    }
-
-    private static MaterialReference applyTypeModifier(MaterialReference material, Dynamic<?> dynamic) {
-        dynamic.get("texture").asString().result().ifPresent(texture -> material.images.putIfAbsent("diffuse", texture));
-
-        dynamic.get("type").asString().result().filter(type -> !type.isEmpty()).ifPresent(type -> {
-            switch (type) {
-                case "masked" -> {
-                    Vector3f color = dynamic.get("color")
-                            .flatMap(COLOR_CODEC::parse)
-                            .result()
-                            .orElse(new Vector3f(1, 1, 1));
-                    material.values.put("color", color);
-                    dynamic.get("mask").asString().result()
-                            .filter(mask -> !mask.isEmpty())
-                            .ifPresent(mask -> material.images.putIfAbsent("mask", mask));
-                    material.shader = "masked";
-                }
-                case "transparent" -> material.blend = BlendType.Regular;
-                case "cull" -> material.cull = CullType.Forward;
-                case "unlit_cull" -> {
-                    material.cull = CullType.Forward;
-                    material.values.put("useLight", false);
-                }
-                case "unlit" -> material.values.put("useLight", false);
-            }
-        });
-
-        return material;
     }
 
     private static final List<String> EFFECTS = List.of("shadow", "galaxy", "sketch", "vintage", "pastel");

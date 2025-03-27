@@ -1,9 +1,9 @@
 package gg.generations.rarecandy.tools;
 
+import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
-//import gg.generations.rarecandy.tools.pkcreator.Convert;
 import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 import gg.generations.rarecandy.tools.pokemodding.QuaternionConverterGUI;
@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
 
@@ -33,6 +34,12 @@ public class Main {
                 } catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
+            }),
+            new Command("makeUpToDate", "This will make sure a pk file's config is up to code.", new Consumer<String[]>() {
+                @Override
+                public void accept(String[] strings) {
+                    update(strings);
+                }
             })
             //,
 
@@ -43,6 +50,27 @@ public class Main {
 //            new Command("Model Viewer", "Simplified viewer for opening and reviewing models before packaging", Main::modelViewer),
 //            new Command("GFBANM/TRACM converter", "Converts gfbanm and tracms to json and back.", Main::gfbanmConvert)
             );
+
+    private static void update(String[] strings) {
+        NativeFileDialog.NFD_Init();
+
+        var path = DialogueUtils.chooseFile("pk;PK");
+
+        while(path !=null) {
+            try {
+                var pk = PixelAsset.open(path);
+                PixelAsset.save(path, pk);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Couldn't convert " + path);
+            }
+
+
+
+            path = DialogueUtils.chooseFile("pk;PK");
+        }
+
+    }
 
     private static void gfbanmConvert(String[] args) {
         try {

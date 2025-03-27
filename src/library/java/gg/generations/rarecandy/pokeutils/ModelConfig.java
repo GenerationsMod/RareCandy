@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.pokeutils;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import gg.generations.rarecandy.pokeutils.codec.ModelConfigCodecs;
 import gg.generations.rarecandy.pokeutils.material.MaterialReference;
@@ -12,6 +13,7 @@ import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.model.material.Material;
 
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * ModelConfig class responsible for storing model configurations,
@@ -167,7 +169,7 @@ public class ModelConfig {
     /**
      * Codec for ModelConfig class
      */
-    public static final Codec<ModelConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+    public static final Codec<ModelConfig> BASE_CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.FLOAT.optionalFieldOf("scale", 1.0f).forGetter(c -> c.scale),
             Codecs.processing(Codecs.map(Codec.STRING, MaterialReference.CODEC), a -> a, MaterialReference::editEffects).fieldOf("materials").forGetter(c -> c.materials),
             Codecs.map(Codec.STRING, ModelConfigCodecs.VARIANT_DETAILS).optionalFieldOf("defaultVariant",Map.of()).forGetter(c -> c.defaultVariant),
@@ -198,4 +200,17 @@ public class ModelConfig {
         config.excludeMeshNamesFromSkeleton = excludeMeshNamesFromSkeleton;
         return config;
     }));
+
+    public static final Codec<ModelConfig> CODEC = Codecs.processing(BASE_CODEC, new Function<Dynamic<?>, Dynamic<?>>() {
+        @Override
+        public Dynamic<?> apply(Dynamic<?> dynamic) {
+            var variants = dynamic.get("variants");
+
+            if(variants.result().isEmpty()) {
+                dynamic = dynamic.set("variants", dynamic.emptyMap().set("regular", dynamic.emptyMap()));
+            }
+
+            return dynamic;
+        }
+    }, Function.identity());
 }

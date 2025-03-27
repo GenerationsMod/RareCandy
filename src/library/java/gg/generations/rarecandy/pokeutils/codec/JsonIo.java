@@ -9,7 +9,11 @@ public class JsonIo {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().setLenient().create();
 
     public static <A> A read(Codec<A> codec, byte[] bytes) {
-        return codec.parse(JsonOps.INSTANCE, GSON.fromJson(new String(bytes), JsonElement.class)).result().get();
+        return read(codec, new String(bytes));
+    }
+
+    public static <A> A read(Codec<A> codec, String bytes) {
+        return codec.parse(JsonOps.INSTANCE, GSON.fromJson(bytes, JsonElement.class)).result().get();
     }
 
     public static byte[] write(Codec<ModelConfig> codec, ModelConfig config) {

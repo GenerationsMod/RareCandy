@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.renderer.animation;
 
-import gg.generations.rarecandy.pokeutils.tranm.*;
+import gg.generations.rarecandy.pokeutils.animation.format.tranm.*;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector3i;

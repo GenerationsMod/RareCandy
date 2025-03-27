@@ -2,15 +2,15 @@ package gg.generations.rarecandy.tools;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
-import gg.generations.rarecandy.pokeutils.gfbanm.MaterialTrackT;
-import gg.generations.rarecandy.pokeutils.gfbanm.ShaderEntryT;
-import gg.generations.rarecandy.pokeutils.gfbanm.tracks._boolean.BooleanTrackProcessor;
-import gg.generations.rarecandy.pokeutils.gfbanm.tracks._byte.ByteProcessor;
-import gg.generations.rarecandy.pokeutils.gfbanm.tracks._float.FloatTrackProcessor;
-import gg.generations.rarecandy.pokeutils.gfbanm.tracks.data.DataTrack;
-import gg.generations.rarecandy.pokeutils.gfbanm.tracks.rotation.RotationTrackProcessor;
-import gg.generations.rarecandy.pokeutils.gfbanm.tracks.vector.VectorProcessor;
+import gg.generations.rarecandy.pokeutils.animation.format.gfbanm.AnimationT;
+import gg.generations.rarecandy.pokeutils.animation.format.gfbanm.MaterialTrackT;
+import gg.generations.rarecandy.pokeutils.animation.format.gfbanm.ShaderEntryT;
+import gg.generations.rarecandy.pokeutils.animation.format.gfbanm.tracks._boolean.BooleanTrackProcessor;
+import gg.generations.rarecandy.pokeutils.animation.format.gfbanm.tracks._byte.ByteProcessor;
+import gg.generations.rarecandy.pokeutils.animation.format.gfbanm.tracks._float.FloatTrackProcessor;
+import gg.generations.rarecandy.pokeutils.animation.format.gfbanm.tracks.data.DataTrack;
+import gg.generations.rarecandy.pokeutils.animation.format.gfbanm.tracks.rotation.RotationTrackProcessor;
+import gg.generations.rarecandy.pokeutils.animation.format.gfbanm.tracks.vector.VectorProcessor;
 import gg.generations.rarecandy.renderer.LoggerUtil;
 
 import java.io.IOException;

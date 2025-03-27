@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.renderer.model;
 
-import gg.generations.rarecandy.pokeutils.BlendType;
+import gg.generations.rarecandy.pokeutils.material.BlendType;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.Attribute;
 import gg.generations.rarecandy.renderer.model.material.Material;

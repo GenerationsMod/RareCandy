@@ -1,6 +1,6 @@
 //package gg.generations.modelconfigviewer;
 //
-//import gg.generations.rarecandy.pokeutils.BlendType;
+//import gg.generations.rarecandy.pokeutils.material.BlendType;
 //
 //import javax.swing.*;
 //import java.awt.*;

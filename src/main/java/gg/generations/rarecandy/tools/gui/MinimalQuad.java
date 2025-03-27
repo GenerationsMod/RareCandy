@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.pokeutils.MaterialReference;
+import gg.generations.rarecandy.pokeutils.material.MaterialReference;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.components.MeshObject;

@@ -1,5 +1,7 @@
 package gg.generations.rarecandy.pokeutils;
 
+import gg.generations.rarecandy.pokeutils.material.BlendType;
+import gg.generations.rarecandy.pokeutils.material.CullType;
 import gg.generations.rarecandy.renderer.model.material.Material;
 
 import java.util.Map;

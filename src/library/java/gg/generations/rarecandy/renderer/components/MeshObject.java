@@ -18,6 +18,7 @@ public class MeshObject extends RenderObject {
         this.name = name;
         this.variants = variants;
         this.model = model;
+
         this.defaultVariant = new ArrayList<>(variants.keySet()).get(0);
         this.ready = true;
     }

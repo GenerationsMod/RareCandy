@@ -1,7 +1,13 @@
 package gg.generations.rarecandy.renderer.loading;
 
 import gg.generations.rarecandy.assimp.*;
-import gg.generations.rarecandy.pokeutils.*;
+import gg.generations.rarecandy.pokeutils.ModelConfig;
+import gg.generations.rarecandy.pokeutils.ModelNode;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.SkeletalTransform;
+import gg.generations.rarecandy.pokeutils.material.MeshOptions;
+import gg.generations.rarecandy.pokeutils.material.VariantDetails;
+import gg.generations.rarecandy.pokeutils.material.VariantParent;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.Animation;
@@ -10,7 +16,10 @@ import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.components.RenderObject;
-import gg.generations.rarecandy.renderer.model.*;
+import gg.generations.rarecandy.renderer.model.GLModel;
+import gg.generations.rarecandy.renderer.model.GlCallSupplier;
+import gg.generations.rarecandy.renderer.model.RenderModel;
+import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +28,8 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.*;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
@@ -63,18 +73,20 @@ public class ModelLoader {
         if (config == null) throw new RuntimeException("config.json can't be null.");
 
         var scene = ModelLoader.read(asset);
-
         var rootNode = ModelNode.create(scene.mRootNode());
-
         var meshes = IntStream.range(0, scene.mNumMeshes()).mapToObj(i -> AIMesh.create(scene.mMeshes().get(i))).toArray(AIMesh[]::new);
-        
         Skeleton skeleton = new Skeleton(rootNode, meshes, config.excludeMeshNamesFromSkeleton);
-        
         var animations = processAnimations(scene, skeleton, animResources, config);
 
         var variants = processVariants(config, images);
 
         for (var mesh : meshes) {
+            if(!variants.containsKey(mesh.mName().dataString())) {
+                variants.put(mesh.mName().dataString(), Map.of("hidden", new Variant(null, true, null)));
+
+                System.out.println("Mesh: " + mesh.mName().dataString() + " lacks any variants. Hidingt.");
+            }
+
             processPrimitiveModels(renderModelSuppler, objects, supplier, mesh, variants, config.meshesToRenderFirst != null ? config.meshesToRenderFirst : Collections.emptyList(), glCalls, skeleton, animations, config.hideDuringAnimation, config.modelOptions != null ? config.modelOptions : Collections.<String, MeshOptions>emptyMap());
         }
 
@@ -176,12 +188,10 @@ public class ModelLoader {
 
     private static Map<String, Map<String, Variant>> processVariants(ModelConfig config, Map<String, String> images) {
         var materials = config.prepMaterials(images);
-
         var defaultVariant = new HashMap<String, Variant>();
-        
         Map<String, List<String>> aliases = config.aliases != null ? config.aliases : Collections.emptyMap();
 
-        
+
         config.defaultVariant.forEach((k, v) -> {
             var variant = new Variant(materials.get(v.material()), v.hide(), v.offset());
 
@@ -195,7 +205,6 @@ public class ModelLoader {
         });
 
         var variants = new HashMap<String, Map<String, Variant>>();
-
         if(config.variants != null) {
             config.variants.forEach((variantKey, variantParent) -> {
 
@@ -220,8 +229,8 @@ public class ModelLoader {
                 defaultVariant.forEach((s, variant1) -> variants.computeIfAbsent(s, a -> new HashMap<>()).put("regular", variant1));
             });
         }
-        
-         return variants;
+
+        return variants;
     }
 
     private static <T extends MeshObject> void traverseTree(Matrix4f transform, ModelNode node, MultiRenderObject<T> objects) {
@@ -477,6 +486,8 @@ public class ModelLoader {
 
     public <T extends RenderObject, V extends MultiRenderObject<T>> V createObject(Supplier<V> supplier, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T, V> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
         V obj = supplier.get();
+
+        System.out.println("Test");
         var task = threadedCreateObject(obj, is, objectCreator, onFinish);
         if (RareCandy.DEBUG_THREADS) task.run();
         else modelLoadingPool.submit(task);
@@ -522,7 +533,10 @@ public class ModelLoader {
 
             var images = readImages(asset);
 
-            if(asset.getModelFile() == null) return;
+            if(asset.getModelFile() == null) {
+                System.out.println("What?");
+                return;
+            }
 
             if (config != null) obj.scale = config.scale;
 

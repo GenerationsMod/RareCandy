@@ -39,6 +39,7 @@ repositories {
     mavenLocal()
     maven("https://jitpack.io")
     maven("https://maven.generations.gg/releases")
+    maven("https://libraries.minecraft.net")
 }
 
 dependencies {
@@ -63,7 +64,7 @@ dependencies {
     "shadowTools"(implementation(fileTree(mapOf("dir" to "libs", "include" to "*.jar")))!!)
     "shadow"(implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")!!)
     "shadow"(implementation("io.github.mudbill:dds-lwjgl:3.0.0")!!)
-
+    "shadowTools"(implementation("com.mojang:datafixerupper:6.0.8")!!)
 
     listOf("windows", "macos", "linux", ).forEach { os ->
         listOf("-arm64", "").forEach { cpu ->

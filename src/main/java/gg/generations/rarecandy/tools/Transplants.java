@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.tools;
 
-import gg.generations.rarecandy.pokeutils.tranm.BoneTrackT;
-import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
+import gg.generations.rarecandy.pokeutils.animation.format.tranm.BoneTrackT;
+import gg.generations.rarecandy.pokeutils.animation.format.tranm.TRANMT;
 
 import java.io.IOException;
 import java.nio.file.Files;

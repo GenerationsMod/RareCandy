@@ -11,7 +11,6 @@ import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.GLModel;
-import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
@@ -284,11 +283,13 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     protected void loadPokemonModel(PixelAsset is, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
+        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
         loader.createObject(
                 ToggleableMultiRenderObject::new,
                 () -> is,
                 (gltfModel, animResources, images, config, object) -> {
                     var glCalls = new ArrayList<Runnable>();
+                    System.out.println("Blep");
                     ModelLoader.processModel(object, gltfModel, animResources, images, config, glCalls, AnimatedMeshObject::new, GLModel::new);
                     return glCalls;
                 }, onFinish);

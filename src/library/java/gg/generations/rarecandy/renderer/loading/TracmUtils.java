@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.renderer.loading;
 
-import gg.generations.rarecandy.pokeutils.tracm.TRACM;
-import gg.generations.rarecandy.pokeutils.tracm.TrackMaterialValueList;
+import gg.generations.rarecandy.pokeutils.animation.format.tracm.TRACM;
+import gg.generations.rarecandy.pokeutils.animation.format.tracm.TrackMaterialValueList;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.TransformStorage;
 

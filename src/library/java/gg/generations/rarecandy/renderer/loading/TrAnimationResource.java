@@ -1,11 +1,11 @@
 package gg.generations.rarecandy.renderer.loading;
 
 import gg.generations.rarecandy.pokeutils.PixelAsset;
-import gg.generations.rarecandy.pokeutils.tracm.TRACM;
-import gg.generations.rarecandy.pokeutils.tracm.TrackMaterialValueList;
-import gg.generations.rarecandy.pokeutils.tranm.QuatTrack;
-import gg.generations.rarecandy.pokeutils.tranm.TRANMT;
-import gg.generations.rarecandy.pokeutils.tranm.VectorTrack;
+import gg.generations.rarecandy.pokeutils.animation.format.tracm.TRACM;
+import gg.generations.rarecandy.pokeutils.animation.format.tracm.TrackMaterialValueList;
+import gg.generations.rarecandy.pokeutils.animation.format.tranm.QuatTrack;
+import gg.generations.rarecandy.pokeutils.animation.format.tranm.TRANMT;
+import gg.generations.rarecandy.pokeutils.animation.format.tranm.VectorTrack;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.animation.TranmUtil;

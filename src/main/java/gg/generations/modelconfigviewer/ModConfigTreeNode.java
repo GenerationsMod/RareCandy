@@ -1,6 +1,6 @@
 //package gg.generations.modelconfigviewer;
 //
-//import gg.generations.rarecandy.pokeutils.MaterialReference;
+//import gg.generations.rarecandy.pokeutils.material.MaterialReference;
 //import gg.generations.rarecandy.pokeutils.ModelConfig;
 //
 //import javax.swing.*;

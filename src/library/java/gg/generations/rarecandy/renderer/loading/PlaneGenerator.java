@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.renderer.loading;
 
-import gg.generations.rarecandy.pokeutils.BlendType;
-import gg.generations.rarecandy.pokeutils.CullType;
+import gg.generations.rarecandy.pokeutils.material.BlendType;
+import gg.generations.rarecandy.pokeutils.material.CullType;
 import gg.generations.rarecandy.pokeutils.Pair;
 import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;

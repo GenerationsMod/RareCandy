@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.pokeutils.BlendType;
+import gg.generations.rarecandy.pokeutils.material.BlendType;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.Transform;
@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
 import static java.lang.Math.floor;

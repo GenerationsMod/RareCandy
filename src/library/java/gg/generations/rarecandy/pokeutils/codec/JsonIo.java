@@ -1,8 +1,6 @@
 package gg.generations.rarecandy.pokeutils.codec;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
+import com.google.gson.*;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import gg.generations.rarecandy.pokeutils.ModelConfig;
@@ -15,6 +13,8 @@ public class JsonIo {
     }
 
     public static byte[] write(Codec<ModelConfig> codec, ModelConfig config) {
-        return GSON.toJson(codec.encodeStart(JsonOps.INSTANCE, config).result().get()).getBytes();
+        var element = codec.encodeStart(JsonOps.INSTANCE, config).result().orElse(new JsonObject());
+
+        return GSON.toJson(element).getBytes();
     }
 }

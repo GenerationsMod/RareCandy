@@ -116,8 +116,8 @@ public class MaterialReference {
             Codecs.nullable(Codec.STRING, "effect", a -> a.effect),
             Codecs.nullable(Codec.STRING.xmap(Function.identity(), String::toLowerCase).xmap(CullType::from, Enum::name), "cull", a -> a.cull),
             Codecs.nullable(Codec.STRING.xmap(Function.identity(), String::toLowerCase).xmap(BlendType::from, Enum::name), "blend", a -> a.blend),
-            Codecs.nullable(Codecs.map(Codec.STRING, Codec.STRING), "images", a -> a.images.isEmpty() ? null : a.images),
-            Codecs.nullable(Codecs.map(Codec.STRING, VALUE_CODEC), "values", a -> a.values.isEmpty() ? null : a.values)
+            Codecs.nullable(Codecs.map(Codec.STRING, Codec.STRING), "images", a -> a.images == null || a.images.isEmpty() ? null : a.images),
+            Codecs.nullable(Codecs.map(Codec.STRING, VALUE_CODEC), "values", a -> a.values == null || a.values.isEmpty() ? null : a.values)
     ).apply(instance, (Optional<String> parent, Optional<String> shader, Optional<String> effect, Optional<CullType> cull, Optional<BlendType> blend, Optional<Map<String, String>> images, Optional<Map<String, Object>> values) -> {
         return new MaterialReference(parent.orElse(null), shader.orElse(null), effect.orElse(null), cull.orElse(null), blend.orElse(null), images.orElse(null), values.orElse(null));
     }));
@@ -161,8 +161,8 @@ public class MaterialReference {
         BlendType blend = null;
         String shader = reference.shader;
         String effect = reference.effect;
-        var images = reference.images != null ? new HashMap<>(reference.images) : new HashMap<String, String>();
-        var values = reference.values != null ? new HashMap<>(reference.values) : new HashMap<String, Object>();
+        var images = reference.images;
+        var values = reference.values;
         var parent = reference.parent;
 
         if(parent != null) {
@@ -176,9 +176,8 @@ public class MaterialReference {
                     effect = Util.useOrDefault(effect, reference.effect, "");
                     cull = Util.useOrDefault(cull, reference.cull, CullType.None);
                     blend = Util.useOrDefault(blend, reference.blend, BlendType.None);
-
-                    reference.images.forEach(images::putIfAbsent);
-                    reference.values.forEach(values::putIfAbsent);
+                    images = Util.mergeMaps(images, reference.images);
+                    values = Util.mergeMaps(values, reference.values);
 
                     parent = reference.parent;
                 }
@@ -186,6 +185,8 @@ public class MaterialReference {
         } else {
             cull = Util.defaultIfNull(reference.cull, CullType.None);
             blend = Util.defaultIfNull(reference.blend, BlendType.None);
+            images = Util.defaultIfNull(reference.images, Collections.emptyMap());
+            values = Util.defaultIfNull(reference.values, Collections.emptyMap());
         }
 
         var map = new HashMap<String, String>();
@@ -393,17 +394,15 @@ public class MaterialReference {
         var newMap = new HashMap<String, MaterialReference>();
 
         map.forEach((key, materialReference) -> {
-            var effect = EFFECTS.stream().filter(key::startsWith).findFirst();
-
-            var reference = materialReference;
-
-            if (effect.isPresent()) {
+            var effect = EFFECTS.stream().filter(key::contains).findFirst();
+            if (effect.isEmpty() || !effect.get().equals(materialReference.effect)) {
+                newMap.put(key, materialReference);
+            } else {
                 var parent = key.replace(effect.get() + "_", "");
-                System.out.println(key + " -> " + parent);
-                reference = new MaterialReference(parent, null, effect.get(), CullType.None, BlendType.None, new HashMap<>(), new HashMap<>());
+                var updatedReference = new MaterialReference(parent, null, effect.get(), null, null, null, null);
+                newMap.put(key, updatedReference);
             }
 
-            newMap.put(key, reference);
         });
         return newMap;
     }

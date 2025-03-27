@@ -51,7 +51,7 @@ public class ModelConfigCodecs {
 
                 var entries = Stream.concat(
                         variantParent.inherits() != null
-                                ? Stream.of(Pair.of(ops.createString("inherits"), ops.createString(variantParent.inherits())))
+                                ? Stream.of(Pair.of(ops.createString("parent"), ops.createString(variantParent.inherits())))
                                 : Stream.empty(),
                         variantParent.details().entrySet().stream()
                                 .flatMap(entry -> VARIANT_DETAILS.encodeStart(ops, entry.getValue()).result().stream().map(val -> Pair.of(ops.createString(entry.getKey()), val)))

@@ -3,7 +3,8 @@ package gg.generations.rarecandy.pokeutils.codec;
 import com.google.gson.*;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
-import gg.generations.rarecandy.pokeutils.ModelConfig;
+
+import java.util.Optional;
 
 public class JsonIo {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().setLenient().create();
@@ -16,9 +17,16 @@ public class JsonIo {
         return codec.parse(JsonOps.INSTANCE, GSON.fromJson(bytes, JsonElement.class)).result().get();
     }
 
-    public static byte[] write(Codec<ModelConfig> codec, ModelConfig config) {
-        var element = codec.encodeStart(JsonOps.INSTANCE, config).result().orElse(new JsonObject());
+    public static <T> Optional<JsonElement> writeJson(Codec<T> codec, T input) {
+        return codec.encodeStart(JsonOps.INSTANCE, input).result();
+    }
 
-        return GSON.toJson(element).getBytes();
+
+    public static <T> Optional<String> write(Codec<T> codec, T config) {
+        return writeJson(codec, config).map(GSON::toJson);
+    }
+
+    public static <T> Optional<byte[]> writeAsBytes(Codec<T> codec, T config) {
+        return write(codec, config).map(String::getBytes);
     }
 }

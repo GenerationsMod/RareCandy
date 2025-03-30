@@ -21,7 +21,7 @@ import static org.lwjgl.system.libffi.LibFFI.*;
  * <pre><code>
  * aiReturn (*{@link #invoke}) (
  *     struct aiFile *pFile,
- *     size_t offset,
+ *     size_t transform,
  *     aiOrigin origin
  * )</code></pre>
  */
@@ -53,7 +53,7 @@ public interface AIFileSeekI extends CallbackI {
      *
      * @param pFile  file pointer to seek
      * @param offset number of bytes to shift from origin
-     * @param origin position used as reference for the offset
+     * @param origin position used as reference for the transform
      *
      * @return an {@code aiReturn} value
      */

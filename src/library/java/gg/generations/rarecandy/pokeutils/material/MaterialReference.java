@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.pokeutils.material;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import gg.generations.rarecandy.pokeutils.util.Codecs;
@@ -15,102 +14,64 @@ import java.util.*;
 import java.util.function.Function;
 
 public class MaterialReference {
-    public static Codec<Object> VALUE_CODEC = Codec.of(new Encoder<>() {
-        @Override
-        public <T> DataResult<T> encode(Object o, DynamicOps<T> dynamicOps, T t) {
-            if (o instanceof Boolean value) return DataResult.success(dynamicOps.createBoolean(value));
-            else if (o instanceof Float value) return DataResult.success(dynamicOps.createFloat(value));
-            else if (o instanceof Vector3f vec) return COLOR_CODEC.encodeStart(dynamicOps, vec);
-            else return DataResult.error(() -> "Unsupported value type for encoding: " + o.getClass().getName());
+    public static DataResult<Dynamic<?>> encodeValue(Object o) {
+        if (o instanceof Boolean value)
+            return DataResult.success(JsonOps.INSTANCE.createBoolean(value))
+                    .map(json -> new Dynamic<>(JsonOps.INSTANCE, json));
+        else if (o instanceof Float value)
+            return DataResult.success(JsonOps.INSTANCE.createFloat(value))
+                    .map(json -> new Dynamic<>(JsonOps.INSTANCE, json));
+        else if (o instanceof Vector3f vec)
+            return COLOR_CODEC.encodeStart(JsonOps.INSTANCE, vec)
+                    .map(json -> new Dynamic<>(JsonOps.INSTANCE, json));
+        else return DataResult.error(() -> "Unsupported value type for encoding: " + o.getClass().getName());
+    }
+
+    public static <T> DataResult<Object> decodeValue(Dynamic<T> dynamic) {
+        DataResult<Object> boolResult = Codec.BOOL.parse(dynamic).map(Object.class::cast);
+        if (boolResult.result().isPresent())
+            return boolResult;
+
+
+        DataResult<Object> floatResult = Codec.FLOAT.parse(dynamic).map(Object.class::cast);
+        if (floatResult.result().isPresent())
+            return floatResult;
+
+        DataResult<Object> colorResult = COLOR_CODEC.parse(dynamic).map(Object.class::cast);
+        if (colorResult.result().isPresent())
+            return colorResult;
+
+        return DataResult.error(() -> "Unknown raw value type: " + dynamic);
+    }
+
+    public static Codec<Object> VALUE_CODEC = Codec.PASSTHROUGH.flatXmap(MaterialReference::decodeValue, MaterialReference::encodeValue);
+
+    public static Codec<Vector3f> COLOR_CODEC = Codec.STRING.flatXmap(string -> {
+        var value = string.replace("#", "");
+
+        try {
+            int colorValue = Integer.parseInt(value, 16);
+            int r = (colorValue >> 16) & 0xFF;
+            int g = (colorValue >> 8) & 0xFF;
+            int b = colorValue & 0xFF;
+            return DataResult.success(new Vector3f(r / 255f, g / 255f, b / 255f));
+        } catch (NumberFormatException ignored) {
+            return DataResult.error(() -> "Couldn't parse string.");
         }
-    }, new Decoder<>() {
-        @Override
-        public <T> DataResult<Pair<Object, T>> decode(DynamicOps<T> dynamicOps, T t) {
-            var dynamic = new Dynamic<>(dynamicOps, t);
+    }, vector3f -> DataResult.success(colorToString(vector3f)));
 
-            return dynamic.get("type").asString().flatMap(type -> dynamic.get("value").flatMap(tDynamic -> switch (type) {
-                        case "boolean" -> Codec.BOOL.parse(tDynamic).map(Object.class::cast);
-                        case "float" -> Codec.FLOAT.parse(tDynamic).map(Object.class::cast);
-                        case "color" -> COLOR_CODEC.parse(tDynamic).map(Object.class::cast);
-                        default -> DataResult.error(() -> "Unknown type: " + type);
-                    })).result().map(DataResult::success)
-                    .orElseGet(() -> {
+    private static float clamp(float v) {
+        return Math.max(0f, Math.min(1f, v));
+    }
 
-                        DataResult<Object> floatResult = Codec.FLOAT.parse(dynamic).map(Object.class::cast);
-                        if (floatResult.result().isPresent()) return floatResult;
+    public static String colorToString(Vector3f color) {
+        int r = Math.round(clamp(color.x()) * 255);
+        int g = Math.round(clamp(color.y()) * 255);
+        int b = Math.round(clamp(color.z()) * 255);
+        return String.format("#%02X%02X%02X", r, g, b);
+    }
 
-                        DataResult<Object> boolResult = Codec.BOOL.parse(dynamic).map(Object.class::cast);
-                        if (boolResult.result().isPresent()) return boolResult;
-
-                        DataResult<Object> colorResult = COLOR_CODEC.parse(dynamic).map(Object.class::cast);
-                        if (colorResult.result().isPresent()) return colorResult;
-
-                        return DataResult.error(() -> "Unknown raw value type: " + dynamic);
-                    }).map(v -> Pair.of(v, t));
-        }
-    });
-
-    public static Codec<Vector3f> COLOR_CODEC = Codec.of(new Encoder<>() {
-        @Override
-        public <T> DataResult<T> encode(Vector3f vector3f, DynamicOps<T> dynamicOps, T t) {
-            int r = Math.round(clamp(vector3f.x()) * 255);
-            int g = Math.round(clamp(vector3f.y()) * 255);
-            int b = Math.round(clamp(vector3f.z()) * 255);
-            String hex = String.format("#%02X%02X%02X", r, g, b);
-            return DataResult.success(dynamicOps.createString(hex));
-        }
-
-        private float clamp(float v) {
-            return Math.max(0f, Math.min(1f, v));
-        }
-    }, new Decoder<>() {
-        @Override
-        public <T> DataResult<Pair<Vector3f, T>> decode(DynamicOps<T> dynamicOps, T t) {
-            var dynamic = new Dynamic<T>(dynamicOps, t);
-
-            var list = dynamic.readList(Codec.FLOAT).result();
-
-            if (list.isPresent()) {
-                var values = list.get();
-
-                float x = 1.0f, y = 1.0f, z = 1.0f;
-
-                if (values.size() >= 3) {
-                    x = values.get(0);
-                    y = values.get(1);
-                    z = values.get(2);
-                }
-
-                return DataResult.success(Pair.of(new Vector3f(x, y, z), t));
-            }
-
-            var string = dynamic.asString().result();
-
-            if (string.isPresent()) {
-                var value = string.get().replace("#", "");
-
-                try {
-                    int colorValue = Integer.parseInt(value, 16);
-                    int r = (colorValue >> 16) & 0xFF;
-                    int g = (colorValue >> 8) & 0xFF;
-                    int b = colorValue & 0xFF;
-                    return DataResult.success(Pair.of(new Vector3f(r / 255f, g / 255f, b / 255f), t));
-                } catch (NumberFormatException ignored) {
-                    return DataResult.error(() -> "Couldn't parse string.");
-                }
-            }
-
-            var optionalX = dynamic.get("x").map(a -> a.asFloat(1.0f)).result();
-            if (optionalX.isEmpty()) return DataResult.error(() -> "optionalX was empty.");
-            var optionalY = dynamic.get("y").map(a -> a.asFloat(1.0f)).result();
-            if (optionalY.isEmpty()) return DataResult.error(() -> "optionalY was empty.");
-            var optionalZ = dynamic.get("z").map(a -> a.asFloat(1.0f)).result();
-            if (optionalZ.isEmpty()) return DataResult.error(() -> "optionalZ was empty.");
-            return DataResult.success(Pair.of(new Vector3f(optionalX.get(), optionalY.get(), optionalZ.get()), t));
-        }
-    });
-
-    public static Codec<MaterialReference> BASE_CDOEC = RecordCodecBuilder.create(instance -> instance.group(
+    public static Codec<MaterialReference> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codecs.nullable(Codec.STRING, "parent", a -> a.parent),
             Codecs.nullable(Codec.STRING, "shader", a -> a.shader),
             Codecs.nullable(Codec.STRING, "effect", a -> a.effect),
@@ -121,63 +82,6 @@ public class MaterialReference {
     ).apply(instance, (Optional<String> parent, Optional<String> shader, Optional<String> effect, Optional<CullType> cull, Optional<BlendType> blend, Optional<Map<String, String>> images, Optional<Map<String, Object>> values) -> {
         return new MaterialReference(parent.orElse(null), shader.orElse(null), effect.orElse(null), cull.orElse(null), blend.orElse(null), images.orElse(null), values.orElse(null));
     }));
-
-    public static final Codec<MaterialReference> CODEC = Codecs.processing(BASE_CDOEC, dynamic -> {
-        var modifer = MaterialReference.applyTypeModifier(dynamic);
-        if (modifer.isPresent()) return modifer.get();
-
-        var inherits = dynamic.remove("inherits");
-
-        if (inherits.asString().result().isPresent()) {
-            dynamic.set("parent", inherits);
-        }
-
-        return dynamic;
-    }, Function.identity());
-
-    private static <T> Optional<Dynamic<T>> applyTypeModifier(Dynamic<T> dynamic) {
-        var type = dynamic.get("type").asString().result();
-
-        if (type.isPresent()) {
-            var material = new Dynamic<>(dynamic.getOps());
-
-            var texturesToAdd = new HashMap<Dynamic<?>, Dynamic<?>>();
-            var valuesToAdd = new HashMap<Dynamic<?>, Dynamic<?>>();
-
-            dynamic.get("texture").asString().result().ifPresent(a -> texturesToAdd.put(dynamic.createString("diffuse"), dynamic.createString(a)));
-
-            switch (type.get()) {
-                case "masked" -> {
-                    var color = dynamic.get("color").decode(COLOR_CODEC).result().map(Pair::getFirst).orElse(new Vector3f(1, 1, 1));
-
-                    COLOR_CODEC.encodeStart(dynamic.getOps(), color).result().map(a -> new Dynamic<T>(dynamic.getOps(), a)).ifPresent(colorDynamic -> {
-                        valuesToAdd.put(dynamic.createString("color"), colorDynamic);
-                    });
-
-                    dynamic.get("mask").asString().result().ifPresent(texture -> {
-                        texturesToAdd.put(dynamic.createString("mask"), dynamic.createString(texture));
-                    });
-
-                    material = material.set("shader", dynamic.createString("masked"));
-                }
-                case "transparent" -> material = material.set("blend", dynamic.createString("regular"));
-                case "cull" -> material = material.set("cull", dynamic.createString("forward"));
-                case "unlit_cull" -> {
-                    material = material.set("cull", dynamic.createString("forward"));
-                    valuesToAdd.put(dynamic.createString("useLight"), dynamic.createBoolean(false));
-                }
-                case "unlit" -> valuesToAdd.put(dynamic.createString("useLight"), dynamic.createBoolean(false));
-            }
-
-            if (!valuesToAdd.isEmpty()) material = material.set("images", dynamic.createMap(texturesToAdd));
-
-            if (!valuesToAdd.isEmpty()) material = material.set("values", dynamic.createMap(valuesToAdd));
-
-            return Optional.of(material);
-        }
-
-        return Optional.empty();
-    }
 
 
     public String parent;
@@ -407,22 +311,4 @@ public class MaterialReference {
                 Math.abs(v1.w - v2.w) < EPSILON;
     }
 
-    private static final List<String> EFFECTS = List.of("shadow", "galaxy", "sketch", "vintage", "pastel");
-
-    public static Map<String, MaterialReference> editEffects(Map<String, MaterialReference> map) {
-        var newMap = new HashMap<String, MaterialReference>();
-
-        map.forEach((key, materialReference) -> {
-            var effect = EFFECTS.stream().filter(key::contains).findFirst();
-            if (effect.isEmpty() || !effect.get().equals(materialReference.effect)) {
-                newMap.put(key, materialReference);
-            } else {
-                var parent = key.replace(effect.get() + "_", "");
-                var updatedReference = new MaterialReference(parent, null, effect.get(), null, null, null, null);
-                newMap.put(key, updatedReference);
-            }
-
-        });
-        return newMap;
-    }
 }

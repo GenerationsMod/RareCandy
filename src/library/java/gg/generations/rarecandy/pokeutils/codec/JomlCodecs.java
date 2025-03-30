@@ -15,33 +15,14 @@ import java.util.function.Function;
 
 public class JomlCodecs {
 
-    public static final Codec<Vector2f> VECTOR2F = Codec.either(
-            Codec.FLOAT.listOf().flatXmap(
+    public static final Codec<Vector2f> VECTOR2F = Codec.FLOAT.listOf().flatXmap(
                     list -> list.size() >= 2 ? DataResult.success(new Vector2f(list.get(0), list.get(1))) : DataResult.error(() -> "Expected list of 2+ floats for Vector2f"),
                     v -> DataResult.success(List.of(v.x, v.y))
-            ),
-            RecordCodecBuilder.<Vector2f>create(builder -> builder.group(
-                    Codec.FLOAT.fieldOf("x").forGetter(v -> v.x),
-                    Codec.FLOAT.fieldOf("y").forGetter(v -> v.y)
-            ).apply(builder, Vector2f::new))
-    ).xmap(
-            either -> either.map(Function.identity(), Function.identity()),
-            Either::left
-    );
+            );
 
-    public static final Codec<Vector3f> VECTOR3F = Codec.either(
-            Codec.FLOAT.listOf().flatXmap(
-                    list -> list.size() >= 3 ? DataResult.success(new Vector3f(list.get(0), list.get(1), list.get(2))) : DataResult.error(() -> "Expected list of 3+ floats for Vector3f"),
-                    v -> DataResult.success(List.of(v.x, v.y, v.z))
-            ),
-            RecordCodecBuilder.<Vector3f>create(builder -> builder.group(
-                    Codec.FLOAT.fieldOf("x").forGetter(v -> v.x),
-                    Codec.FLOAT.fieldOf("y").forGetter(v -> v.y),
-                    Codec.FLOAT.fieldOf("z").forGetter(v -> v.z)
-            ).apply(builder, Vector3f::new))
-    ).xmap(
-            either -> either.map(Function.identity(), Function.identity()),
-            Either::left
+    public static Codec<Vector3f> VECTOR3F = Codec.FLOAT.listOf().flatXmap(
+            list -> list.size() >= 3 ? DataResult.success(new Vector3f(list.get(0), list.get(1), list.get(2))) : DataResult.error(() -> "Expected list of 3+ floats for Vector3f"),
+            v -> DataResult.success(List.of(v.x, v.y, v.z))
     );
 
     public static final Codec<Vector4f> VECTOR4F = Codec.either(
@@ -60,7 +41,14 @@ public class JomlCodecs {
             Either::left
     );
 
-    public static final Codec<Quaternionf> QUATERNIONF = Codec.either(
+    public static final Codec<Quaternionf> QUATERNIONF = VECTOR3F.xmap(new Function<Vector3f, Quaternionf>() {
+        @Override
+        public Quaternionf apply(Vector3f vector3f) {
+            return new Quaternionf().rotateXYZ(vector3f.x, vector3f.y, vector3f.z);
+        }
+    }, quaternionf -> quaternionf.getEulerAnglesXYZ(new Vector3f()));
+
+    public static final Codec<Quaternionf> QUATERNIONF_OLD = Codec.either(
             Codec.FLOAT.listOf().flatXmap(
                     list -> {
                         if (list.size() == 3) {
@@ -83,16 +71,9 @@ public class JomlCodecs {
             ).apply(builder, Quaternionf::new))
     ).xmap(either -> either.map(Function.identity(), Function.identity()), Either::left);
 
-    public static final Codec<Transform> BASE_TRANSFORM_CODEC = RecordCodecBuilder.create(instance -> instance.group(
+    public static final Codec<Transform> TRANSFORM = RecordCodecBuilder.create(instance -> instance.group(
             VECTOR2F.optionalFieldOf("scale", Transform.DEFAULT_SCALE).forGetter(Transform::scale),
-            VECTOR2F.optionalFieldOf("offset", Transform.DEFAULT_OFFSET).forGetter(Transform::offset)
+            VECTOR2F.optionalFieldOf("transform", Transform.DEFAULT_OFFSET).forGetter(Transform::offset)
     ).apply(instance, Transform::new));
 
-    public static final Codec<Transform> TRANSFORM = Codec.either(
-            VECTOR2F,
-            BASE_TRANSFORM_CODEC
-    ).xmap(
-            either -> either.map(Transform::new, Function.identity()),
-            Either::right
-    );
 }

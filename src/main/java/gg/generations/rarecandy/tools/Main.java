@@ -1,6 +1,12 @@
 package gg.generations.rarecandy.tools;
 
+import com.google.gson.JsonElement;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.codec.JsonIo;
+import gg.generations.rarecandy.pokeutils.codec.ModelConfigDatatFixer;
+import gg.generations.rarecandy.pokeutils.codec.References;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
@@ -10,6 +16,7 @@ import gg.generations.rarecandy.tools.pokemodding.QuaternionConverterGUI;
 import gg.generations.rarecandy.tools.swsh.EyeTexture;
 import gg.generations.rarecandy.tools.swsh.LongBoi;
 import gg.generations.rarecandy.tools.swsh.MouthTexture;
+import it.unimi.dsi.fastutil.objects.ReferenceSets;
 import org.lwjgl.util.nfd.NativeFileDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,20 +61,38 @@ public class Main {
     private static void update(String[] strings) {
         NativeFileDialog.NFD_Init();
 
-        var path = DialogueUtils.chooseFile("pk;PK");
+        var path = DialogueUtils.chooseFile("json;JSON");
 
-        while(path !=null) {
+        if(path != null) {
+            byte[] json = null;
+
             try {
-                var pk = PixelAsset.open(path);
-                PixelAsset.save(path, pk);
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("Couldn't convert " + path);
+                json = Files.readAllBytes(path);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
+            var dynamic = JsonIo.read(Codec.PASSTHROUGH, json);
 
+//            System.out.println("Before:\n" + dynamic);
 
+            var datafix = ModelConfigDatatFixer.createDataFixer();
+            dynamic = datafix.update(References.MODEL_CONFIG, dynamic, 0, 2);
+            dynamic.set("version", dynamic.createInt(2));
 
-            path = DialogueUtils.chooseFile("pk;PK");
+            System.out.println(new String(JsonIo.write(Codec.PASSTHROUGH, dynamic)));
+
+//        while(path !=null) {
+//            try {
+//                var pk = PixelAsset.open(path);
+//                PixelAsset.save(path, pk);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                System.out.println("Couldn't convert " + path);
+//            }
+//
+//
+//
+//            path = DialogueUtils.chooseFile("pk;PK");
         }
 
     }

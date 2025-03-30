@@ -193,7 +193,7 @@ public class ModelLoader {
 
 
         config.defaultVariant.forEach((k, v) -> {
-            var variant = new Variant(materials.get(v.material()), v.hide(), v.offset());
+            var variant = new Variant(materials.get(v.material()), v.hide(), v.transform());
 
             if(!aliases.isEmpty() && aliases.containsKey(k)) {
                 for (String s : aliases.get(k)) {
@@ -263,7 +263,7 @@ public class ModelLoader {
         variantMap.forEach((k, v) -> {
             Material mat = materials.get(v.material());
             boolean hide = v.hide() != null && v.hide();
-            var offset = v.offset() != null ? v.offset() : null;
+            var offset = v.transform() != null ? v.transform() : null;
 
             var variant = new Variant(mat, hide, offset);
 

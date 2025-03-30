@@ -21,7 +21,7 @@ import static org.lwjgl.system.MemoryUtil.*;
  * 
  * <p>You may think of an {@code aiAnimMesh} as a `patch` for the host mesh, which replaces only certain vertex data streams at a particular time. Each mesh
  * stores n attached attached meshes ({@link AIMesh}{@code ::mAnimMeshes}). The actual relationship between the time line and anim meshes is established by
- * {@code aiMeshAnim}, which references singular mesh attachments by their ID and binds them to a time offset.</p>
+ * {@code aiMeshAnim}, which references singular mesh attachments by their ID and binds them to a time transform.</p>
  * 
  * <h3>Layout</h3>
  * 

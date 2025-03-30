@@ -27,7 +27,7 @@ public class GuiPipelines {
                 var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
                 ctx.uniform().uploadMat4fs(mats);
             })
-            .supplyUniform("offset", ctx -> {
+            .supplyUniform("transform", ctx -> {
                 Transform transform = ctx.object().getTransform(ctx.instance().variant());
 
                 if (ctx.instance() instanceof AnimatedObjectInstance instance) {

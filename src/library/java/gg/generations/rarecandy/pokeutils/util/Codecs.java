@@ -24,8 +24,12 @@ public class Codecs {
         return new OptionalFieldCodec<F>(elementCodec, names);
     }
 
-    public static <T> Codec<T> processing(Codec<T> codec, Function<Dynamic<?>, Dynamic<?>> pre, Function<T, T> post) {
-        return Codec.PASSTHROUGH.xmap(pre, Function.identity()).flatXmap(codec::parse, t -> codec.encodeStart(JsonOps.INSTANCE, post.apply(t)).map(a -> new Dynamic<>(JsonOps.INSTANCE, a)));
+    public static <T> Codec<T> processing(Codec<T> codec, Function<Dynamic<?>, Dynamic<?>> pre, Function<T, T> instance) {
+        return processing(codec, pre, instance, Function.identity());
+    }
+
+    public static <T> Codec<T> processing(Codec<T> codec, Function<Dynamic<?>, Dynamic<?>> pre, Function<T, T> instance, Function<Dynamic<?>, Dynamic<?>> post) {
+        return Codec.PASSTHROUGH.xmap(pre, Function.identity()).flatXmap(codec::parse, t -> codec.encodeStart(JsonOps.INSTANCE, instance.apply(t)).map(a -> new Dynamic<>(JsonOps.INSTANCE, a)).map(post));
     }
 
     public static class OptionalFieldCodec<A> extends MapCodec<Optional<A>> {

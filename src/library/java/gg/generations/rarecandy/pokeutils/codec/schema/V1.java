@@ -2,70 +2,43 @@ package gg.generations.rarecandy.pokeutils.codec.schema;
 
 import com.mojang.datafixers.DSL;
 import com.mojang.datafixers.schemas.Schema;
-import com.mojang.datafixers.types.Type;
 import com.mojang.datafixers.types.templates.TypeTemplate;
-import gg.generations.rarecandy.pokeutils.codec.ModelCOnfigTypes;
+import gg.generations.rarecandy.pokeutils.codec.References;
+import gg.generations.rarecandy.pokeutils.codec.TypeTemplates;
 
 import java.util.Map;
-import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
+
+import static gg.generations.rarecandy.pokeutils.codec.schema.BaseSchema.*;
 
 public class V1 extends Schema {
-
     public V1(int versionKey, Schema parent) {
         super(versionKey, parent);
+    }
 
-        registerType(false, ModelCOnfigTypes.OBJECT_VALUE, () -> or(
-                DSL.constType(DSL.floatType()),
-                DSL.constType(DSL.bool()),
-                ModelCOnfigTypes.COLOR.in(this),
-                DSL.taggedChoice("type", DSL.string(), Map.of(
-                        "boolean", DSL.constType(DSL.bool()),
-                        "float", DSL.constType(DSL.floatType()),
-                        "color", ModelCOnfigTypes.COLOR.in(this))
-                ))
-        );
+    @Override
+    public void registerTypes(Schema schema, Map<String, Supplier<TypeTemplate>> entityTypes, Map<String, Supplier<TypeTemplate>> blockEntityTypes) {
+        super.registerTypes(schema, entityTypes, blockEntityTypes);
 
-        registerType(false, ModelCOnfigTypes.COLOR, () -> or(
-                DSL.list(DSL.constType(DSL.floatType())),
-                DSL.constType(DSL.string()),
-                DSL.fields(
-                        "x", DSL.constType(DSL.floatType()),
-                        "y", DSL.constType(DSL.floatType()),
-                        "z", DSL.constType(DSL.floatType())
-                )
+//        schema.registerType(false, References.PARENT, () -> nullableField("parent", TypeTemplates.STRING));
+
+        schema.registerType(false, References.VARIANT_PARENT, () -> DSL.allWithRemainder(
+                nullableField("parent", TypeTemplates.STRING),
+                nullableField("details", map(References.VARIANT_DETAILS.in(schema)))
         ));
 
-        registerType(false, ModelCOnfigTypes.MATERIAL_REFERENCE, () -> DSL.allWithRemainder(
-                DSL.or(
-                        DSL.field("parent", nullable("parent", DSL.string())),
-                        DSL.field("inherits", nullable("inherits", DSL.string()))
-                ),
-                DSL.field("shader", nullable("shader", DSL.string())),
-                DSL.field("effect", nullable("effect", DSL.string())),
-                DSL.field("effect", nullable("effect", DSL.string())),
-                DSL.field("effect", nullable("effect", DSL.string())),
-                DSL.field("images", nullable("images", DSL.compoundList(
-                        DSL.constType(DSL.string()),
-                        DSL.constType(DSL.string())
-                ))),
-                DSL.field("values", nullable("values", DSL.compoundList(
-                        DSL.constType(DSL.string()),
-                        ModelCOnfigTypes.OBJECT_VALUE.in(this))
-                ))));
-    }
+        schema.registerType(false, References.VECTOR2F, () -> TypeTemplates.FLOAT_LIST);
 
-    private TypeTemplate or(TypeTemplate... templates) {
-        return Stream.of(templates).reduce(DSL::or).orElse(DSL.emptyPart());
-    }
+        schema.registerType(false, References.COLOR, () -> TypeTemplates.STRING);
 
-
-    public static TypeTemplate nullable(String name, TypeTemplate template) {
-        return DSL.optionalFields(name, template);
-    }
-
-    public static TypeTemplate nullable(String name, Type<?> type) {
-        return nullable(name, DSL.constType(type));
+        schema.registerType(false, References.MATERIAL_REFERENCE, () -> DSL.and(
+                nullableField("parent", TypeTemplates.STRING),
+                nullableField("shader", TypeTemplates.STRING),
+                nullableField("blend", TypeTemplates.STRING),
+                nullableField("cull", TypeTemplates.STRING),
+                nullableField("effect", TypeTemplates.STRING),
+                nullableField("images", map(TypeTemplates.STRING)),
+                nullableField("values", map(References.OBJECT_VALUE.in(schema)))
+        ));
     }
 }

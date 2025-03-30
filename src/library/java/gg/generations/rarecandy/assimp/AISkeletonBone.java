@@ -22,8 +22,8 @@ import static org.lwjgl.system.MemoryUtil.*;
  * 
  * <p>The skeleton-bone stores a pointer to its used armature. If there is no armature this value if set to {@code nullptr}.</p>
  * 
- * <p>A skeleton bone stores its offset-matrix, which is the absolute transformation for the bone. The bone stores the locale transformation to its parent as
- * well. You can compute the offset matrix by multiplying the hierarchy like:</p>
+ * <p>A skeleton bone stores its transform-matrix, which is the absolute transformation for the bone. The bone stores the locale transformation to its parent as
+ * well. You can compute the transform matrix by multiplying the hierarchy like:</p>
  * 
  * <pre><code>
  * Tree: s1 -&gt; s2 -&gt; s3

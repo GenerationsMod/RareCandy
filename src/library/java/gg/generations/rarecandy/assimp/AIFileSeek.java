@@ -16,7 +16,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
  * <pre><code>
  * aiReturn (*{@link #invoke}) (
  *     struct aiFile *pFile,
- *     size_t offset,
+ *     size_t transform,
  *     aiOrigin origin
  * )</code></pre>
  */

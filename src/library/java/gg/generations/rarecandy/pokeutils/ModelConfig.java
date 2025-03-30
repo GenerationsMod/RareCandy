@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.pokeutils;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import gg.generations.rarecandy.pokeutils.codec.ModelConfigCodecs;
 import gg.generations.rarecandy.pokeutils.material.MaterialReference;
@@ -13,7 +12,6 @@ import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.model.material.Material;
 
 import java.util.*;
-import java.util.function.Function;
 
 /**
  * ModelConfig class responsible for storing model configurations,
@@ -134,6 +132,10 @@ public class ModelConfig {
          * Default instance indicating no hiding rules.
          */
         public static final HideDuringAnimation NONE = new HideDuringAnimation();
+        public static final Codec<HideDuringAnimation> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.BOOL.optionalFieldOf("blackList", false).forGetter(HideDuringAnimation::blackList),
+                Codec.STRING.listOf().optionalFieldOf("animations", List.of()).forGetter(HideDuringAnimation::animations)
+        ).apply(instance, HideDuringAnimation::new));
 
         /**
          * Default constructor creating an instance with no rules.
@@ -169,17 +171,17 @@ public class ModelConfig {
     /**
      * Codec for ModelConfig class
      */
-    public static final Codec<ModelConfig> BASE_CODEC = RecordCodecBuilder.create(instance -> instance.group(
+    public static final Codec<ModelConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.FLOAT.optionalFieldOf("scale", 1.0f).forGetter(c -> c.scale),
-            Codecs.processing(Codecs.map(Codec.STRING, MaterialReference.CODEC), a -> a, MaterialReference::editEffects).fieldOf("materials").forGetter(c -> c.materials),
-            Codecs.map(Codec.STRING, ModelConfigCodecs.VARIANT_DETAILS).optionalFieldOf("defaultVariant",Map.of()).forGetter(c -> c.defaultVariant),
-            Codecs.map(Codec.STRING, ModelConfigCodecs.VARIANT_PARENT).optionalFieldOf("variants", Map.of()).forGetter(c -> c.variants),
-            Codecs.map(Codec.STRING, ModelConfigCodecs.HIDE_DURING_ANIMATION).optionalFieldOf("hideDuringAnimation", Map.of()).forGetter(c -> c.hideDuringAnimation),
+            Codecs.processing(Codecs.map(Codec.STRING, MaterialReference.CODEC), a -> a, ModelConfigCodecs::editEffects).fieldOf("materials").forGetter(c -> c.materials),
+            Codecs.map(Codec.STRING, VariantDetails.CODEC).optionalFieldOf("defaultVariant",Map.of()).forGetter(c -> c.defaultVariant),
+            Codecs.map(Codec.STRING, VariantParent.CODEC).optionalFieldOf("variants", Map.of()).forGetter(c -> c.variants),
+            Codecs.map(Codec.STRING, HideDuringAnimation.CODEC).optionalFieldOf("hideDuringAnimation", Map.of()).forGetter(c -> c.hideDuringAnimation),
             Codecs.map(Codec.STRING, Codec.INT).optionalFieldOf("animationFpsOverride", Map.of()).forGetter(c -> c.animationFpsOverride),
-            Codecs.map(Codec.STRING, ModelConfigCodecs.SKELETAL_TRANSFORM).optionalFieldOf("offsets", Map.of()).forGetter(c -> c.offsets),
+            Codecs.map(Codec.STRING, SkeletalTransform.CODEC).optionalFieldOf("offsets", Map.of()).forGetter(c -> c.offsets),
             Codecs.map(Codec.STRING, Codec.STRING.listOf()).optionalFieldOf("materialsWithSameMaterialAnimation", Map.of()).forGetter(c -> c.materialsWithSameMaterialAnimation),
             Codec.STRING.listOf().optionalFieldOf("ignoreScaleInAnimation", List.of()).forGetter(c -> c.ignoreScaleInAnimation),
-            Codecs.map(Codec.STRING, ModelConfigCodecs.MESH_OPTIONS).optionalFieldOf("modelOptions", Map.of()).forGetter(c -> c.modelOptions),
+            Codecs.map(Codec.STRING, MeshOptions.CODEC).optionalFieldOf("modelOptions", Map.of()).forGetter(c -> c.modelOptions),
             Codec.STRING.listOf().optionalFieldOf("meshesToRenderFirst", List.of()).forGetter(c -> c.meshesToRenderFirst),
             Codecs.map(Codec.STRING, Codec.STRING.listOf()).optionalFieldOf("aliases", Map.of()).forGetter(c -> c.aliases),
             Codec.BOOL.optionalFieldOf("excludeMeshNamesFromSkeleton", false).forGetter(c -> c.excludeMeshNamesFromSkeleton)
@@ -201,16 +203,4 @@ public class ModelConfig {
         return config;
     }));
 
-    public static final Codec<ModelConfig> CODEC = Codecs.processing(BASE_CODEC, new Function<Dynamic<?>, Dynamic<?>>() {
-        @Override
-        public Dynamic<?> apply(Dynamic<?> dynamic) {
-            var variants = dynamic.get("variants");
-
-            if(variants.result().isEmpty()) {
-                dynamic = dynamic.set("variants", dynamic.emptyMap().set("regular", dynamic.emptyMap()));
-            }
-
-            return dynamic;
-        }
-    }, Function.identity());
 }

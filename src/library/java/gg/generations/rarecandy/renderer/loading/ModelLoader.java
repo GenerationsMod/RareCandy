@@ -599,8 +599,6 @@ public class ModelLoader {
 
         var scene = Assimp.aiImportFileEx(name, Assimp.aiProcess_Triangulate | Assimp.aiProcess_ImproveCacheLocality, fileIo);
 
-        fileIo.free();
-
         if (scene == null) throw new RuntimeException(Assimp.aiGetErrorString());
 
         return scene;

@@ -280,8 +280,6 @@ public class PixelAsset {
             }
 
             updateSettings();
-
-            is.close();
         } catch (IOException | NullPointerException e) {
             throw new RuntimeException("Failed to load " + debugName, e);
         }

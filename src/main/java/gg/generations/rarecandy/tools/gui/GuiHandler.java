@@ -113,28 +113,30 @@ public class GuiHandler implements KeyListener {
         FileUtils.deleteDirectory(TEMP.toFile());
         Files.createDirectories(TEMP);
 
-        var seven = PixelAsset.getSevenZipFile(path);
+        try(var seven = PixelAsset.getSevenZipFile(path)) {
 
-        var files = new HashMap<String, byte[]>();
 
-        for (var entry : seven.getEntries()) {
-            files.put(entry.getName(), seven.getInputStream(entry).readAllBytes());
-        }
+            var files = new HashMap<String, byte[]>();
+
+            for (var entry : seven.getEntries()) {
+                files.put(entry.getName(), seven.getInputStream(entry).readAllBytes());
+            }
 
 //        System.out.println(files.keySet());
 
-        for (var file : files.entrySet()) {
-            if(file.getKey().isEmpty()) continue;
+            for (var file : files.entrySet()) {
+                if (file.getKey().isEmpty()) continue;
 
-            var filePath = TEMP.resolve(file.getKey());
+                var filePath = TEMP.resolve(file.getKey());
 //            System.out.println(filePath);
 
-            if(Files.isDirectory(filePath)) continue;
-            Files.createFile(filePath);
-            Files.write(filePath, file.getValue());
-        }
+                if (Files.isDirectory(filePath)) continue;
+                Files.createFile(filePath);
+                Files.write(filePath, file.getValue());
+            }
 
-        return files;
+            return files;
+        }
     }
 
     @Override

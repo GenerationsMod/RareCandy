@@ -25,7 +25,7 @@ public class MaterialValues {
     private float emiIntensity4 = 0.0f;
     private float emiIntensity5 = 1.0f;
 
-    private boolean useLight;
+    private boolean useLight = true;
 
     public Vector3f getBaseColor1() {
         return baseColor1;
@@ -194,7 +194,7 @@ public class MaterialValues {
         if(values.emiIntensity4 != 0.0f) this.emiIntensity4 = values.emiIntensity4;
         if(values.emiIntensity5 != 1.0f) this.emiIntensity5 = values.emiIntensity5;
 
-        if(values.useLight) this.useLight = false;
+        if(values.useLight != this.useLight) this.useLight = values.useLight;
 
         return this;
     }

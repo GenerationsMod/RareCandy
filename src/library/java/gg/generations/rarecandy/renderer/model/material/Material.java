@@ -14,6 +14,8 @@ public class Material implements Closeable {
     private final MaterialImages images;
 
     private final MaterialValues values;
+    private final int colorMethod;
+    private final int effect;
 
     private final CullType cullType;
     private final BlendType blendType;
@@ -21,7 +23,7 @@ public class Material implements Closeable {
     private String shader;
     private final boolean disableDepth;
 
-    public Material(String materialName, MaterialImages images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, String shader) {
+    public Material(String materialName, MaterialImages images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, String shader, int colorMethod, int effect) {
         this.materialName = materialName;
         this.images = images;
         this.disableDepth = disableDepth;
@@ -29,6 +31,16 @@ public class Material implements Closeable {
         this.blendType = blendType;
         this.shader = shader;
         this.values = values;
+        this.colorMethod = colorMethod;
+        this.effect = effect;
+    }
+
+    public int getColorMethod() {
+        return colorMethod;
+    }
+
+    public int getEffect() {
+        return effect;
     }
 
     public String getPipeline() {

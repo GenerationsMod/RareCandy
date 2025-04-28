@@ -1,6 +1,5 @@
 #version 150 core
 
-#define ambientLight 0.6f
 
 in vec2 texCoord0;
 
@@ -12,6 +11,7 @@ uniform sampler2D emission;
 uniform float lightLevel;
 
 uniform bool useLight;
+
 
 vec4 getColor(vec2 texCord) {
     return texture(diffuse, texCord);

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms,
                        Consumer<Material> preDrawBatch, Consumer<Material> postDrawBatch, int program) {
@@ -143,10 +144,17 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
         }
 
         public Builder supplySampler(String name, int slot, Function<MaterialImages, String> function) {
+            return supplySamplerBase(name, slot, ctx -> function.apply(ctx.getMaterial().images()));
+        }
+
+        public Builder supplySampler(String name, int slot, String texture) {
+            return supplyUniform(name, ctx -> ctx.uniform().uploadTexture(texture, slot));
+        }
+
+
+        public Builder supplySamplerBase(String name, int slot, Function<UniformUploadContext, String> function) {
             return supplyUniform(name, ctx -> {
-                var texture = ITextureLoader.instance().getTexture(function.apply(ctx.getMaterial().images()));
-                texture.bind(slot);
-                ctx.uniform().uploadInt(slot);
+                ctx.uniform().uploadTexture(function.apply(ctx), slot);
             });
         }
     }

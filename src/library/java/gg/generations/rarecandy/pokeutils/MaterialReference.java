@@ -71,7 +71,7 @@ public class MaterialReference {
             else {
 
                 if (!Objects.equals(shader, reference.shader)) shader = reference.shader;
-                if (!Objects.equals(effect, reference.effect)) effect = reference.effect;
+                if (effect == null) effect = reference.effect;
                 if (!Objects.equals(cull, reference.cull)) cull = reference.cull;
                 if (!Objects.equals(blend, reference.blend)) blend = reference.blend;
                 if(useDepthTest != reference.useDepthTest) useDepthTest = reference.useDepthTest;
@@ -88,9 +88,26 @@ public class MaterialReference {
         values.complete();
         images = images.complete().processWithImageMap(imageMap);
 
-        if(shader == null) shader = "solid";
+//        if(shader == null) shader = "solid";
 
-        return new Material(name, images, values, useDepthTest, cull, blend, shader + (effect != null ? "_" + effect : ""));
+        var method = shader != null ? switch (shader) {
+            case "layered" -> 1;
+            case "masked" -> 2;
+            default -> 0;
+        } : 0;
+
+        var actualEffect = effect != null ? switch (effect) {
+            case "cartoon" -> 1;
+            case "galaxy" -> 2;
+            case "paradox" -> 3;
+            case "pastel" -> 4;
+            case "shadow" -> 5;
+            case "sketch" -> 6;
+            case "vintage" -> 7;
+            default -> 0;
+        } : 0;
+
+        return new Material(name, images, values, useDepthTest, cull, blend, "",/*shader + (effect != null ? "_" + effect : "")*/ method, actualEffect);
     }
 
     public static final class Serializer implements JsonDeserializer<MaterialReference> {

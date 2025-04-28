@@ -2,6 +2,7 @@ package gg.generations.rarecandy.pokeutils;
 
 import com.google.gson.*;
 import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.model.material.MaterialValues;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -35,9 +36,11 @@ public class MaterialReference {
 
     public Map<String, String> images;
 
-    public Map<String, Object> values;
+    public MaterialValues values;
 
-    public MaterialReference(String parent, String shader, String effect, CullType cull, BlendType blend, Map<String, String> images, Map<String, Object> values) {
+    public boolean useDepthTest = true;
+
+    public MaterialReference(String parent, String shader, String effect, CullType cull, BlendType blend, Map<String, String> images, MaterialValues values, boolean useDepthTest) {
         this.parent = parent;
         this.shader = shader;
         this.effect = effect;
@@ -45,6 +48,7 @@ public class MaterialReference {
         this.blend = blend;
         this.images = images;
         this.values = values;
+        this.useDepthTest = useDepthTest;
     }
 
     public static Material process(String name, @NotNull Map<String, MaterialReference> materialreferences, @NotNull Map<String, String> imageMap) {
@@ -55,7 +59,8 @@ public class MaterialReference {
         var shader = reference.shader;
         var effect = reference.effect;
         var images = new HashMap<>(reference.images);
-        var values = new HashMap<>(reference.values);
+        var values = new MaterialValues().fill(reference.values);
+        var useDepthTest = reference.useDepthTest;
         var parent = reference.parent;
 
         while (parent != null) {
@@ -64,31 +69,22 @@ public class MaterialReference {
             if(reference == null) parent = null;
             else {
 
-                if (shader == null) {
-                    shader = reference.shader;
-                }
-
-                if (effect == null) {
-                    effect = reference.effect;
-                }
-
-
-                if (cull == null) {
-                    cull = reference.cull;
-                }
-
-                if (blend == null) {
-                    blend = reference.blend;
-                }
+                if (!Objects.equals(shader, reference.shader)) shader = reference.shader;
+                if (!Objects.equals(effect, reference.effect)) effect = reference.effect;
+                if (!Objects.equals(cull, reference.cull)) cull = reference.cull;
+                if (!Objects.equals(blend, reference.blend)) blend = reference.blend;
+                if(useDepthTest != reference.useDepthTest) useDepthTest = reference.useDepthTest;
 
 
                 //TODO: Check if the parent's values are overriden vs it overriding child.
                 reference.images.forEach(images::putIfAbsent);
-                reference.values.forEach(values::putIfAbsent);
+                values.fill(reference.values);
 
                 parent = reference.parent;
             }
         }
+
+        values.complete();
 
         var map = new HashMap<String, String>();
         for (Map.Entry<String, String> a : images.entrySet()) {
@@ -103,7 +99,7 @@ public class MaterialReference {
 
         if(shader == null) shader = "solid";
 
-        return new Material(name, map, values, cull, blend, shader + (effect != null ? "_" + effect : ""));
+        return new Material(name, map, values, useDepthTest, cull, blend, shader + (effect != null ? "_" + effect : ""));
     }
     public static final class Serializer implements JsonDeserializer<MaterialReference> {
         @Override
@@ -119,7 +115,9 @@ public class MaterialReference {
 
             Map<String, String> images = new HashMap<>();
 
-            Map<String, Object> values = new HashMap<>();
+            MaterialValues values = new MaterialValues();
+
+            boolean useDepthTest = false;
 
             var jsonObject = json.getAsJsonObject();
 
@@ -137,7 +135,7 @@ public class MaterialReference {
                     if (type.equals("masked")) {
                         var color = jsonObject.has("color") ? color(jsonObject.get("color")) : new Vector3f(1.0f, 1.0f, 1.0f);
                         shader = "masked";
-                        values.put("color", color);
+                        values.setBaseColor1(color);
                         images.put("mask", jsonObject.getAsJsonPrimitive("mask").getAsString());
 //                        return new MaskReferenceMaterial(texture, jsonObject.getAsJsonPrimitive("mask").getAsString(), color);
                     } else {
@@ -151,10 +149,10 @@ public class MaterialReference {
                             }
                             case "unlit_cull" -> {
                                 cull = CullType.Forward;
-                                values.put("useLight", false);
+                                values.setUseLight(false);
                             }
                             case "unlit" -> {
-                                values.put("useLight", false);
+                                values.setUseLight(false);
                             }
                         }
                     }
@@ -165,12 +163,15 @@ public class MaterialReference {
                 cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.None;
                 blend = jsonObject.has("blend") ? BlendType.from(jsonObject.getAsJsonPrimitive("blend").getAsString()) : BlendType.None;
                 images = jsonObject.has("images") ? images(jsonObject.getAsJsonObject("images")) : new HashMap<>();
-                values = jsonObject.has("values") ? values(jsonObject.getAsJsonObject("values")) : new HashMap<>();
+
+                if(jsonObject.has("values")) {
+                    var valuesObj = jsonObject.getAsJsonObject("values");
+                    values(values, valuesObj);
+                    if(valuesObj.has("useDepthTest")) useDepthTest = valuesObj.getAsJsonPrimitive("useDepthTest").getAsBoolean();
+                }
             }
 
-            return new MaterialReference(parent, shader, effect, cull, blend, images, values);
-
-//            throw new JsonParseException("Material type %s invalid".formatted(type));
+            return new MaterialReference(parent, shader, effect, cull, blend, images, values, useDepthTest);
         }
     }
 
@@ -178,40 +179,57 @@ public class MaterialReference {
         return images.asMap().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> a.getValue().getAsString()));
     }
 
-    private static Map<String, Object> values(JsonObject object) {
-        var values = new HashMap<String, Object>();
+    private static void values(MaterialValues values, JsonObject object) {
+        if(object.has("color")) values.setBaseColor1(MaterialReference.color(object.get("color")));
+        if(object.has("baseColor1")) values.setBaseColor1(MaterialReference.color(object.get("baseColor1")));
+        if(object.has("baseColor2")) values.setBaseColor2(MaterialReference.color(object.get("baseColor2")));
+        if(object.has("baseColor3")) values.setBaseColor3(MaterialReference.color(object.get("baseColor3")));
+        if(object.has("baseColor4")) values.setBaseColor4(MaterialReference.color(object.get("baseColor4")));
+        if(object.has("baseColor5")) values.setBaseColor5(MaterialReference.color(object.get("baseColor5")));
+        if(object.has("emiColor1")) values.setEmiColor1(MaterialReference.color(object.get("emiColor1")));
+        if(object.has("emiColor2")) values.setEmiColor2(MaterialReference.color(object.get("emiColor2")));
+        if(object.has("emiColor3")) values.setEmiColor3(MaterialReference.color(object.get("emiColor3")));
+        if(object.has("emiColor4")) values.setEmiColor4(MaterialReference.color(object.get("emiColor4")));
+        if(object.has("emiColor5")) values.setEmiColor5(MaterialReference.color(object.get("emiColor5")));
+        if(object.has("emiIntensity1")) values.setEmiIntensity1(object.get("emiIntensity1").getAsFloat());
+        if(object.has("emiIntensity2")) values.setEmiIntensity2(object.get("emiIntensity2").getAsFloat());
+        if(object.has("emiIntensity3")) values.setEmiIntensity3(object.get("emiIntensity3").getAsFloat());
+        if(object.has("emiIntensity4")) values.setEmiIntensity4(object.get("emiIntensity4").getAsFloat());
+        if(object.has("emiIntensity5")) values.setEmiIntensity5(object.get("emiIntensity5").getAsFloat());
+        if(object.has("useLight")) values.setUseLight(object.get("useLight").getAsBoolean());
 
-        object.asMap().forEach((key, value) -> {
-            if(value.isJsonObject()) {
-                if(object.has("type")) {
 
-                    var obj = value.getAsJsonObject();
-                    var val = obj.get("value");
-
-                    switch (obj.getAsJsonPrimitive("type").getAsString()) {
-                        case "boolean" -> {
-                            values.put(key, val.getAsBoolean());
-                        }
-                        case "color" -> {
-                            values.put(key, MaterialReference.color(val));
-                        }
-                        case "float" -> {
-                            values.put(key, val.getAsFloat());
-                        }
-                    }
-                } else {
-                    if(object.has("x") && object.has("y") && object.has("z")) {
-                        values.put(key, new Vector3f(object.getAsJsonPrimitive("x").getAsFloat(), object.getAsJsonPrimitive("y").getAsFloat(), object.getAsJsonPrimitive("z").getAsFloat()));
-                    }
-                }
-            } else if(value.isJsonPrimitive()) {
-                if (value.getAsJsonPrimitive().isBoolean()) values.put(key, value.getAsBoolean());
-                else if (value.getAsJsonPrimitive().isNumber()) values.put(key, value.getAsFloat());
-                else if (value.getAsJsonPrimitive().isString()) values.put(key, color(value));
-            } else if(value.isJsonArray()) values.put(key, color(value));
-        });
-
-        return values;
+//        object.asMap().forEach((key, value) -> {
+//            if(value.isJsonObject()) {
+//                if(object.has("type")) {
+//
+//                    var obj = value.getAsJsonObject();
+//                    var val = obj.get("value");
+//
+//                    switch (obj.getAsJsonPrimitive("type").getAsString()) {
+//                        case "boolean" -> {
+//                            values.put(key, val.getAsBoolean());
+//                        }
+//                        case "color" -> {
+//                            values.put(key, MaterialReference.color(val));
+//                        }
+//                        case "float" -> {
+//                            values.put(key, val.getAsFloat());
+//                        }
+//                    }
+//                } else {
+//                    if(object.has("x") && object.has("y") && object.has("z")) {
+//                        values.put(key, new Vector3f(object.getAsJsonPrimitive("x").getAsFloat(), object.getAsJsonPrimitive("y").getAsFloat(), object.getAsJsonPrimitive("z").getAsFloat()));
+//                    }
+//                }
+//            } else if(value.isJsonPrimitive()) {
+//                if (value.getAsJsonPrimitive().isBoolean()) values.put(key, value.getAsBoolean());
+//                else if (value.getAsJsonPrimitive().isNumber()) values.put(key, value.getAsFloat());
+//                else if (value.getAsJsonPrimitive().isString()) values.put(key, color(value));
+//            } else if(value.isJsonArray()) values.put(key, color(value));
+//        });
+//
+//        return values;
     }
 
 
@@ -259,16 +277,15 @@ public class MaterialReference {
         if (!compareImages(images, that.images)) return false;
 
         // Compare the values map
-        if (!compareValues(values, that.values)) return false;
+        if (!Objects.equals(values, that.values)) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(parent, shader, effect, cull, blend);
+        int result = Objects.hash(parent, shader, effect, cull, blend, values);
         result = 31 * result + hashImages(images);
-        result = 31 * result + hashValues(values);
         return result;
     }
 

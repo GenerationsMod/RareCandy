@@ -28,11 +28,11 @@ public class GuiPipelines {
     }
 
     private static void baseColors(Pipeline.Builder builder) {
-        builder.supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor3") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor4") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("baseColor5") instanceof Vector3f vec ? vec : GuiPipelines.ONE));
+        builder.supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()))
+                .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor2()))
+                .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor3()))
+                .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor4()))
+                .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor5()));
     }
 
     public static final Pipeline.Builder LAYERED_BASE = new Pipeline.Builder(BASE)
@@ -124,21 +124,21 @@ public class GuiPipelines {
                 texture.bind(2);
                 ctx.uniform().uploadInt(2);
             })
-            .supplyUniform("color", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("color") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
+            .supplyUniform("color", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()))
             .build();
 
 
     private static void emissionColors(Pipeline.Builder builder) {
-        builder.supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor1") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("emiColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor2") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("emiColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor3") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("emiColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor4") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("emiColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getValue("emiColor5") instanceof Vector3f vec ? vec : GuiPipelines.ONE))
-                .supplyUniform("emiIntensity1", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity1") instanceof Float vec ? vec : 0.0f))
-                .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity2") instanceof Float vec ? vec : 0.0f))
-                .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity3") instanceof Float vec ? vec : 0.0f))
-                .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity4") instanceof Float vec ? vec : 0.0f))
-                .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getValue("emiIntensity5") instanceof Float vec ? vec : 1.0f));
+        builder.supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor1()))
+                .supplyUniform("emiColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor2()))
+                .supplyUniform("emiColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor3()))
+                .supplyUniform("emiColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor4()))
+                .supplyUniform("emiColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor5()))
+                .supplyUniform("emiIntensity1", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity1()))
+                .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity2()))
+                .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity3()))
+                .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity4()))
+                .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity5()));
     }
     private static final Vector3f ONE = new Vector3f(1,1, 1);
 

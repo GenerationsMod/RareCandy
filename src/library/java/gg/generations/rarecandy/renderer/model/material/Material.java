@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class Material implements Closeable {
     private final String materialName;
-    private final Map<String, String> images;
+    private final MaterialImages images;
 
     private final MaterialValues values;
 
@@ -21,7 +21,7 @@ public class Material implements Closeable {
     private String shader;
     private final boolean disableDepth;
 
-    public Material(String materialName, Map<String, String> images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, String shader) {
+    public Material(String materialName, MaterialImages images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, String shader) {
         this.materialName = materialName;
         this.images = images;
         this.disableDepth = disableDepth;
@@ -29,10 +29,6 @@ public class Material implements Closeable {
         this.blendType = blendType;
         this.shader = shader;
         this.values = values;
-    }
-
-    public ITexture getDiffuseTexture() {
-        return getTexture("diffuse");
     }
 
     public String getPipeline() {
@@ -47,8 +43,8 @@ public class Material implements Closeable {
         return blendType;
     }
 
-    public ITexture getTexture(String imageType) {
-        return ITextureLoader.instance().getTexture(images.get(imageType));
+    public MaterialImages images() {
+        return images;
     }
 
     public String getMaterialName() {
@@ -63,18 +59,15 @@ public class Material implements Closeable {
     @Override
     public void close() throws IOException {
         if(images != null) {
-            for (var texture : images.values()) {
-                if(texture.contains(".")) ITextureLoader.instance().remove(texture);
-            }
+            if(images.getDiffuse().contains(".")) ITextureLoader.instance().remove(images.getDiffuse());
+            if(images.getEmission().contains(".")) ITextureLoader.instance().remove(images.getDiffuse());
+            if(images.getLayer().contains(".")) ITextureLoader.instance().remove(images.getLayer());
+            if(images.getMask().contains(".")) ITextureLoader.instance().remove(images.getMask());
         }
     }
 
-    public Map<String, String> getImages() {
-        return images;
-    }
-
     public int maxTextureSize() {
-        return images.values().stream().map(ITextureLoader.instance()::getTexture).mapToInt(ITexture::width).max().getAsInt();
+        return images.stream().map(ITextureLoader.instance()::getTexture).mapToInt(ITexture::width).max().getAsInt();
     }
 
     public void setShader(String solid) {

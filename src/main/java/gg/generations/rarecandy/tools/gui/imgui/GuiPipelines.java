@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.tools.gui.imgui;
 
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
+import gg.generations.rarecandy.renderer.model.material.MaterialImages;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import org.jetbrains.annotations.NotNull;
@@ -15,16 +16,7 @@ public class GuiPipelines {
             .configure(GuiPipelines::addDiffuse);
 
     private static void addDiffuse(Pipeline.Builder builder) {
-        builder.supplyUniform("diffuse", ctx -> {
-            var texture = ctx.getMaterial().getDiffuseTexture();
-
-            if(texture == null) {
-                texture = ITextureLoader.instance().getNuetralFallback();
-            }
-
-            texture.bind(0);
-            ctx.uniform().uploadInt(0);
-        });
+        builder.supplySampler("diffuse", 0, MaterialImages::getDiffuse);
     }
 
     private static void baseColors(Pipeline.Builder builder) {
@@ -39,22 +31,8 @@ public class GuiPipelines {
             .shader(builtin("animated.vs.glsl"), builtin("layered.fs.glsl"))
             .configure(GuiPipelines::baseColors)
             .configure(GuiPipelines::emissionColors)
-            .supplyUniform("layer", ctx -> {
-                var texture = ctx.getTexture("layer");
-
-                if(texture == null) texture = ITextureLoader.instance().getDarkFallback();
-
-
-                texture.bind(2);
-                ctx.uniform().uploadInt(2);
-            }).supplyUniform("mask", ctx -> {
-                var texture = ctx.getTexture("mask");
-
-                if(texture == null) texture = ITextureLoader.instance().getDarkFallback();
-
-                texture.bind(3);
-                ctx.uniform().uploadInt(3);
-            });
+            .supplySampler("layer", 2, MaterialImages::getLayer)
+            .supplySampler("mask", 3, MaterialImages::getMask);
 
     public static final Pipeline LAYERED = new Pipeline.Builder(LAYERED_BASE)
             .supplyUniform("frame", ctx -> ctx.uniform().uploadInt(-1))
@@ -78,22 +56,8 @@ public class GuiPipelines {
             .shader(builtin("animated.vs.glsl"), builtin("galaxy.fs.glsl"))
             .configure(GuiPipelines::baseColors)
             .configure(GuiPipelines::emissionColors)
-            .supplyUniform("layer", ctx -> {
-                var texture = ctx.getTexture("layer");
-
-                if(texture == null) texture = ITextureLoader.instance().getDarkFallback();
-
-
-                texture.bind(2);
-                ctx.uniform().uploadInt(2);
-            }).supplyUniform("mask", ctx -> {
-                var texture = ctx.getTexture("mask");
-
-                if(texture == null) texture = ITextureLoader.instance().getDarkFallback();
-
-                texture.bind(3);
-                ctx.uniform().uploadInt(3);
-            });
+            .supplySampler("layer", 2, MaterialImages::getLayer)
+            .supplySampler("mask", 3, MaterialImages::getMask);
     public static final Pipeline GALAXY = new Pipeline.Builder(GALAXY_BASE)
             .supplyUniform("frame", ctx -> ctx.uniform().uploadInt(-1))
             .build();
@@ -105,25 +69,8 @@ public class GuiPipelines {
 
     public static final Pipeline MASKED = new Pipeline.Builder(BASE)
             .shader(builtin("animated.vs.glsl"), builtin("masked.fs.glsl"))
-            .supplyUniform("diffuse", ctx -> {
-                var texture = ctx.getMaterial().getDiffuseTexture();
-
-                if(texture == null) {
-                    texture = ITextureLoader.instance().getBrightFallback();
-                }
-
-                texture.bind(0);
-                ctx.uniform().uploadInt(0);
-            })
-            .supplyUniform("mask", ctx -> {
-
-                var texture = ctx.getTexture("mask");
-
-                if(texture == null) texture = ITextureLoader.instance().getDarkFallback();
-
-                texture.bind(2);
-                ctx.uniform().uploadInt(2);
-            })
+            .supplySampler("diffuse", 0, MaterialImages::getDiffuse)
+            .supplySampler("mask",2 , MaterialImages::getMask)
             .supplyUniform("color", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()))
             .build();
 

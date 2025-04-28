@@ -1,5 +1,7 @@
 package gg.generations.rarecandy.renderer.model.material;
 
+import com.google.gson.JsonObject;
+import gg.generations.rarecandy.pokeutils.MaterialReference;
 import org.joml.Vector3f;
 
 import java.util.Objects;
@@ -151,6 +153,26 @@ public class MaterialValues {
 
     public void setUseLight(boolean useLight) {
         this.useLight = useLight;
+    }
+
+    public void fill(JsonObject object) {
+        if (object.has("color")) baseColor1 = MaterialReference.color(object.get("color"));
+        if (object.has("baseColor1")) baseColor1 = MaterialReference.color(object.get("baseColor1"));
+        if (object.has("baseColor2")) baseColor2 = MaterialReference.color(object.get("baseColor2"));
+        if (object.has("baseColor3")) baseColor3 = MaterialReference.color(object.get("baseColor3"));
+        if (object.has("baseColor4")) baseColor4 = MaterialReference.color(object.get("baseColor4"));
+        if (object.has("baseColor5")) baseColor5 = MaterialReference.color(object.get("baseColor5"));
+        if (object.has("emiColor1")) emiColor1 = MaterialReference.color(object.get("emiColor1"));
+        if (object.has("emiColor2")) emiColor2 = MaterialReference.color(object.get("emiColor2"));
+        if (object.has("emiColor3")) emiColor3 = MaterialReference.color(object.get("emiColor3"));
+        if (object.has("emiColor4")) emiColor4 = MaterialReference.color(object.get("emiColor4"));
+        if (object.has("emiColor5")) emiColor5 = MaterialReference.color(object.get("emiColor5"));
+        if (object.has("emiIntensity1")) emiIntensity1 = object.get("emiIntensity1").getAsFloat();
+        if (object.has("emiIntensity2")) emiIntensity2 = object.get("emiIntensity2").getAsFloat();
+        if (object.has("emiIntensity3")) emiIntensity3 = object.get("emiIntensity3").getAsFloat();
+        if (object.has("emiIntensity4")) emiIntensity4 = object.get("emiIntensity4").getAsFloat();
+        if (object.has("emiIntensity5")) emiIntensity5 = object.get("emiIntensity5").getAsFloat();
+        if (object.has("useLight")) useLight = object.get("useLight").getAsBoolean();
     }
 
     public MaterialValues fill(MaterialValues values) {

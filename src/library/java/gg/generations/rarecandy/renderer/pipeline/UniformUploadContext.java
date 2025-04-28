@@ -12,8 +12,4 @@ public record UniformUploadContext(RenderObject object, ObjectInstance instance,
     public Material getMaterial() {
         return object().getMaterial(instance.variant());
     }
-
-    public ITexture getTexture(String name) {
-        return getMaterial().getTexture(name);
-    }
 }

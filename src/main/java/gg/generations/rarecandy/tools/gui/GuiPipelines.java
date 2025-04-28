@@ -4,6 +4,8 @@ import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.Transform;
+import gg.generations.rarecandy.renderer.model.material.MaterialImages;
+import gg.generations.rarecandy.renderer.model.material.MaterialValues;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
@@ -103,16 +105,7 @@ public class GuiPipelines {
     private static Map<String, Pipeline> shaderMap;
 
     private static void addDiffuse(Pipeline.Builder builder) {
-        builder.supplyUniform("diffuse", ctx -> {
-            var texture = ctx.object().getMaterial(ctx.instance().variant()).getDiffuseTexture();
-
-            if(texture == null) {
-                texture = ITextureLoader.instance().getNuetralFallback();
-            }
-
-            texture.bind(0);
-            ctx.uniform().uploadInt(0);
-        });
+        builder.supplySampler("diffuse", 0, MaterialImages::getDiffuse);
     }
 
     private static void baseColors(Pipeline.Builder builder) {
@@ -125,16 +118,7 @@ public class GuiPipelines {
 
     private static void addLight(Pipeline.Builder builder) {
         builder.supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
-                .supplyUniform("emission", ctx -> {
-                    var texture = ctx.object().getMaterial(ctx.instance().variant()).getTexture("emission");
-
-                    if(texture == null) {
-                        texture = ITextureLoader.instance().getDarkFallback();
-                    }
-
-                    texture.bind(1);
-                    ctx.uniform().uploadInt(1);
-                })
+                .supplySampler("emission", 1, MaterialImages::getEmission)
                 .supplyUniform("useLight", ctx -> ctx.uniform().uploadBoolean(ctx.getMaterial().values().getUseLight()));
     }
 
@@ -143,22 +127,8 @@ public class GuiPipelines {
                 .shader(builtin("original/animated/animated.vs.glsl"), builtin("original/animated/layered.fs.glsl", "original/process/%s.lib.glsl".formatted(effect)))
                 .configure(GuiPipelines::baseColors)
                 .configure(GuiPipelines::emissionColors)
-                .supplyUniform("layer", ctx -> {
-                    var texture = ctx.getTexture("layer");
-
-                    if(texture == null) texture = ITextureLoader.instance().getDarkFallback();
-
-
-                    texture.bind(2);
-                    ctx.uniform().uploadInt(2);
-                }).supplyUniform("mask", ctx -> {
-                    var texture = ctx.getTexture("mask");
-
-                    if(texture == null) texture = ITextureLoader.instance().getDarkFallback();
-
-                    texture.bind(3);
-                    ctx.uniform().uploadInt(3);
-                });
+                .supplySampler("layer", 2, MaterialImages::getLayer)
+                .supplySampler("mask", 3, MaterialImages::getMask);
     }
 
     public static Pipeline.Builder createSolid(String effect) {
@@ -168,25 +138,8 @@ public class GuiPipelines {
     public static Pipeline.Builder createMasked(String effect) {
         return new Pipeline.Builder(BASE)
                 .shader(builtin("original/animated/animated.vs.glsl"), builtin("original/animated/masked.fs.glsl", "original/process/%s.lib.glsl".formatted(effect)))
-                .supplyUniform("diffuse", ctx -> {
-                    var texture = ctx.object().getMaterial(ctx.instance().variant()).getDiffuseTexture();
-
-                    if (texture == null) {
-                        texture = ITextureLoader.instance().getBrightFallback();
-                    }
-
-                    texture.bind(0);
-                    ctx.uniform().uploadInt(0);
-                })
-                .supplyUniform("mask", ctx -> {
-
-                    var texture = ctx.getTexture("mask");
-
-                    if (texture == null) texture = ITextureLoader.instance().getDarkFallback();
-
-                    texture.bind(2);
-                    ctx.uniform().uploadInt(2);
-                })
+                .supplySampler("diffuse", 0, MaterialImages::getDiffuse)
+                .supplySampler("mask", 2, MaterialImages::getMask)
                 .supplyUniform("color", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()));
     }
 
@@ -202,12 +155,10 @@ public class GuiPipelines {
 
             ctx.uniform().uploadInt(i);
         }).supplyUniform("paradoxMask", ctx -> {
-
-                    var texture =  ITextureLoader.instance().getTexture("paradox_mask");
-
-                    texture.bind(slot);
-                    ctx.uniform().uploadInt(slot);
-                });
+            var texture =  ITextureLoader.instance().getTexture("paradox_mask");
+            texture.bind(slot);
+            ctx.uniform().uploadInt(slot);
+        });
     }
 
 //    public static final Pipeline.Builder GALAXY_BASE = new Pipeline.Builder(BASE)

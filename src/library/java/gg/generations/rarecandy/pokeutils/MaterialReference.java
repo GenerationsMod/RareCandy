@@ -2,6 +2,7 @@ package gg.generations.rarecandy.pokeutils;
 
 import com.google.gson.*;
 import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.model.material.MaterialImages;
 import gg.generations.rarecandy.renderer.model.material.MaterialValues;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -34,13 +35,13 @@ public class MaterialReference {
 
     public BlendType blend;
 
-    public Map<String, String> images;
+    public MaterialImages images;
 
     public MaterialValues values;
 
     public boolean useDepthTest = true;
 
-    public MaterialReference(String parent, String shader, String effect, CullType cull, BlendType blend, Map<String, String> images, MaterialValues values, boolean useDepthTest) {
+    public MaterialReference(String parent, String shader, String effect, CullType cull, BlendType blend, MaterialImages images, MaterialValues values, boolean useDepthTest) {
         this.parent = parent;
         this.shader = shader;
         this.effect = effect;
@@ -58,7 +59,7 @@ public class MaterialReference {
         var blend = reference.blend;
         var shader = reference.shader;
         var effect = reference.effect;
-        var images = new HashMap<>(reference.images);
+        var images = new MaterialImages().fill(reference.images);
         var values = new MaterialValues().fill(reference.values);
         var useDepthTest = reference.useDepthTest;
         var parent = reference.parent;
@@ -77,7 +78,7 @@ public class MaterialReference {
 
 
                 //TODO: Check if the parent's values are overriden vs it overriding child.
-                reference.images.forEach(images::putIfAbsent);
+                images.fill(reference.images);
                 values.fill(reference.values);
 
                 parent = reference.parent;
@@ -85,22 +86,13 @@ public class MaterialReference {
         }
 
         values.complete();
-
-        var map = new HashMap<String, String>();
-        for (Map.Entry<String, String> a : images.entrySet()) {
-            if (imageMap.containsKey(a.getValue())) {
-                if (map.put(a.getKey(), imageMap.get(a.getValue())) != null) {
-                    throw new IllegalStateException("Duplicate key");
-                }
-            } else {
-                map.put(a.getKey(), a.getValue());
-            }
-        }
+        images = images.complete().processWithImageMap(imageMap);
 
         if(shader == null) shader = "solid";
 
-        return new Material(name, map, values, useDepthTest, cull, blend, shader + (effect != null ? "_" + effect : ""));
+        return new Material(name, images, values, useDepthTest, cull, blend, shader + (effect != null ? "_" + effect : ""));
     }
+
     public static final class Serializer implements JsonDeserializer<MaterialReference> {
         @Override
         public MaterialReference deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
@@ -113,7 +105,7 @@ public class MaterialReference {
 
             BlendType blend = BlendType.None;
 
-            Map<String, String> images = new HashMap<>();
+            MaterialImages images = new MaterialImages();
 
             MaterialValues values = new MaterialValues();
 
@@ -130,13 +122,13 @@ public class MaterialReference {
                 if (jsonObject.has("texture")) {
                     var texture = jsonObject.getAsJsonPrimitive("texture").getAsString();
 
-                    images.put("diffuse", texture);
+                    images.setDiffuse(texture);
 
                     if (type.equals("masked")) {
                         var color = jsonObject.has("color") ? color(jsonObject.get("color")) : new Vector3f(1.0f, 1.0f, 1.0f);
                         shader = "masked";
                         values.setBaseColor1(color);
-                        images.put("mask", jsonObject.getAsJsonPrimitive("mask").getAsString());
+                        images.setMask(jsonObject.getAsJsonPrimitive("mask").getAsString());
 //                        return new MaskReferenceMaterial(texture, jsonObject.getAsJsonPrimitive("mask").getAsString(), color);
                     } else {
 
@@ -158,15 +150,15 @@ public class MaterialReference {
                     }
                 }
             } else {
-                shader = jsonObject.has("shader") ? jsonObject.getAsJsonPrimitive("shader").getAsString() : null;
-                effect = jsonObject.has("effect") ? jsonObject.getAsJsonPrimitive("effect").getAsString() : null;
-                cull = jsonObject.has("cull") ? CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString()) : CullType.None;
-                blend = jsonObject.has("blend") ? BlendType.from(jsonObject.getAsJsonPrimitive("blend").getAsString()) : BlendType.None;
-                images = jsonObject.has("images") ? images(jsonObject.getAsJsonObject("images")) : new HashMap<>();
+                if(jsonObject.has("shader")) shader = jsonObject.getAsJsonPrimitive("shader").getAsString();
+                if(jsonObject.has("effect")) effect = jsonObject.getAsJsonPrimitive("effect").getAsString();
+                if(jsonObject.has("cull")) cull = CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString());
+                if(jsonObject.has("blend")) blend = BlendType.from(jsonObject.getAsJsonPrimitive("blend").getAsString());
+                if(jsonObject.has("images")) images.fill(jsonObject.getAsJsonObject("images"));
 
                 if(jsonObject.has("values")) {
                     var valuesObj = jsonObject.getAsJsonObject("values");
-                    values(values, valuesObj);
+                    values.fill(valuesObj);
                     if(valuesObj.has("useDepthTest")) useDepthTest = valuesObj.getAsJsonPrimitive("useDepthTest").getAsBoolean();
                 }
             }
@@ -174,30 +166,6 @@ public class MaterialReference {
             return new MaterialReference(parent, shader, effect, cull, blend, images, values, useDepthTest);
         }
     }
-
-    private static Map<String, String> images(JsonObject images) {
-        return images.asMap().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, a -> a.getValue().getAsString()));
-    }
-
-    private static void values(MaterialValues values, JsonObject object) {
-        if(object.has("color")) values.setBaseColor1(MaterialReference.color(object.get("color")));
-        if(object.has("baseColor1")) values.setBaseColor1(MaterialReference.color(object.get("baseColor1")));
-        if(object.has("baseColor2")) values.setBaseColor2(MaterialReference.color(object.get("baseColor2")));
-        if(object.has("baseColor3")) values.setBaseColor3(MaterialReference.color(object.get("baseColor3")));
-        if(object.has("baseColor4")) values.setBaseColor4(MaterialReference.color(object.get("baseColor4")));
-        if(object.has("baseColor5")) values.setBaseColor5(MaterialReference.color(object.get("baseColor5")));
-        if(object.has("emiColor1")) values.setEmiColor1(MaterialReference.color(object.get("emiColor1")));
-        if(object.has("emiColor2")) values.setEmiColor2(MaterialReference.color(object.get("emiColor2")));
-        if(object.has("emiColor3")) values.setEmiColor3(MaterialReference.color(object.get("emiColor3")));
-        if(object.has("emiColor4")) values.setEmiColor4(MaterialReference.color(object.get("emiColor4")));
-        if(object.has("emiColor5")) values.setEmiColor5(MaterialReference.color(object.get("emiColor5")));
-        if(object.has("emiIntensity1")) values.setEmiIntensity1(object.get("emiIntensity1").getAsFloat());
-        if(object.has("emiIntensity2")) values.setEmiIntensity2(object.get("emiIntensity2").getAsFloat());
-        if(object.has("emiIntensity3")) values.setEmiIntensity3(object.get("emiIntensity3").getAsFloat());
-        if(object.has("emiIntensity4")) values.setEmiIntensity4(object.get("emiIntensity4").getAsFloat());
-        if(object.has("emiIntensity5")) values.setEmiIntensity5(object.get("emiIntensity5").getAsFloat());
-        if(object.has("useLight")) values.setUseLight(object.get("useLight").getAsBoolean());
-
 
 //        object.asMap().forEach((key, value) -> {
 //            if(value.isJsonObject()) {
@@ -230,7 +198,7 @@ public class MaterialReference {
 //        });
 //
 //        return values;
-    }
+//    }
 
 
     public static Vector3f color(JsonElement element) {
@@ -274,18 +242,17 @@ public class MaterialReference {
         if (!Objects.equals(blend, that.blend)) return false;
 
         // Compare the images map based on byte content
-        if (!compareImages(images, that.images)) return false;
+        if (!Objects.equals(images, that.images)) return false;
 
         // Compare the values map
         if (!Objects.equals(values, that.values)) return false;
 
-        return true;
+        return useDepthTest != that.useDepthTest;
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(parent, shader, effect, cull, blend, values);
-        result = 31 * result + hashImages(images);
+        int result = Objects.hash(parent, shader, effect, cull, blend, values, images, useDepthTest);
         return result;
     }
 

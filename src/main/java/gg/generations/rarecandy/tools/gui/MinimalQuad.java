@@ -8,6 +8,7 @@ import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.loading.PlaneGenerator;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.model.material.MaterialImages;
 import gg.generations.rarecandy.renderer.model.material.MaterialValues;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.rendering.FrameBuffer;
@@ -173,10 +174,10 @@ public class MinimalQuad {
         for(var name : materialNames) {
             var reference = config.materials.get(name);
 
-            var images1 = new HashMap<String, String>();
+            var images1 = new MaterialImages();
 
-            images1.put("diffuse", name + ".png");
-            if(reference.images.containsKey("emission")) images1.put("emission", reference.images.get("emission"));
+            images1.setDiffuse(name + ".png");
+            images1.setEmission(reference.images.getEmission());
 
             var values = new MaterialValues();
 

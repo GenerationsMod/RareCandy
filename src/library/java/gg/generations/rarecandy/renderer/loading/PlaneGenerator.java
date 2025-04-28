@@ -8,6 +8,7 @@ import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.model.material.MaterialImages;
 import gg.generations.rarecandy.renderer.model.material.MaterialValues;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
@@ -47,7 +48,7 @@ public class PlaneGenerator {
         var obj = new MultiRenderObject<MeshObject>();
 
         var mesh = new MeshObject();
-        mesh.setup(Map.of("plane", new Variant(new Material("plane", new HashMap<>(), new MaterialValues().complete(), false, CullType.None, BlendType.None, "plane"))), model, "plane");
+        mesh.setup(Map.of("plane", new Variant(new Material("plane", new MaterialImages().complete(), new MaterialValues().complete(), false, CullType.None, BlendType.None, "plane"))), model, "plane");
         obj.add(mesh);
 
         return new Pair<>(glCalls, obj);
@@ -145,7 +146,7 @@ public class PlaneGenerator {
         var obj = new MultiRenderObject<MeshObject>();
 
         var mesh = new MeshObject();
-        mesh.setup(Map.of("cube", new Variant(new Material("cube", Map.of("diffuse", image), new MaterialValues().complete(), false, CullType.None, BlendType.None, "solid"))), model, "cube");
+        mesh.setup(Map.of("cube", new Variant(new Material("cube", new MaterialImages().setDiffuse(image), new MaterialValues().complete(), false, CullType.None, BlendType.None, "solid"))), model, "cube");
         obj.add(mesh);
 
         return new Pair<>(glCalls, obj);

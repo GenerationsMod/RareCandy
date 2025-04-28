@@ -1,7 +1,10 @@
 package gg.generations.rarecandy.renderer.pipeline;
 
+import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.components.RenderObject;
+import gg.generations.rarecandy.renderer.model.material.MaterialImages;
+import gg.generations.rarecandy.renderer.model.material.MaterialValues;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +15,7 @@ import org.lwjgl.system.MemoryStack;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms,
                        Consumer<Material> preDrawBatch, Consumer<Material> postDrawBatch, int program) {
@@ -136,6 +140,14 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
         public Builder configure(Consumer<Builder> consumer) {
             consumer.accept(this);
             return this;
+        }
+
+        public Builder supplySampler(String name, int slot, Function<MaterialImages, String> function) {
+            return supplyUniform(name, ctx -> {
+                var texture = ITextureLoader.instance().getTexture(function.apply(ctx.getMaterial().images()));
+                texture.bind(slot);
+                ctx.uniform().uploadInt(slot);
+            });
         }
     }
 }

@@ -107,7 +107,7 @@ public class MaterialReference {
             default -> 0;
         } : 0;
 
-        return new Material(name, images, values, useDepthTest, cull, blend, "",/*shader + (effect != null ? "_" + effect : "")*/ method, actualEffect);
+        return new Material(4, name, images, values, useDepthTest, cull, blend, "",/*shader + (effect != null ? "_" + effect : "")*/ method, actualEffect);
     }
 
     public static final class Serializer implements JsonDeserializer<MaterialReference> {

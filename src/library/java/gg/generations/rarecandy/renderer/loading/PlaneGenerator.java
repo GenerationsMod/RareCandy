@@ -48,7 +48,7 @@ public class PlaneGenerator {
         var obj = new MultiRenderObject<MeshObject>();
 
         var mesh = new MeshObject();
-        mesh.setup(Map.of("plane", new Variant(new Material("plane", new MaterialImages().complete(), new MaterialValues().complete(), false, CullType.None, BlendType.None, "plane", 0, 0))), model, "plane");
+        mesh.setup(Map.of("plane", new Variant(new Material(4, "plane", new MaterialImages().complete(), new MaterialValues().complete(), false, CullType.None, BlendType.None, "plane", 0, 0))), model, "plane");
         obj.add(mesh);
 
         return new Pair<>(glCalls, obj);
@@ -146,7 +146,7 @@ public class PlaneGenerator {
         var obj = new MultiRenderObject<MeshObject>();
 
         var mesh = new MeshObject();
-        mesh.setup(Map.of("cube", new Variant(new Material("cube", new MaterialImages().setDiffuse(image), new MaterialValues().complete(), false, CullType.None, BlendType.None, "solid", 0, 0))), model, "cube");
+        mesh.setup(Map.of("cube", new Variant(new Material(4, "cube", new MaterialImages().setDiffuse(image), new MaterialValues().complete(), false, CullType.None, BlendType.None, "solid", 0, 0))), model, "cube");
         obj.add(mesh);
 
         return new Pair<>(glCalls, obj);

@@ -13,20 +13,34 @@ out float vertexDistance;
 out vec4 vertexColor;
 out vec2 texCoord0;
 
-uniform bool dynamicVertexColor;
+layout(std140) uniform SharedInfo {
+    mat4 viewMatrix;
+    mat4 projectionMatrix;
+    bool dynamicVertexColor;
+};
 
-uniform int FogShape;
+struct UVTransform {
+    vec2 offset;
+    vec2 scale;
+};
 
-uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
-uniform mat4 projectionMatrix;
-uniform vec2 uvOffset;
-uniform vec2 uvScale;
+layout(std140) uniform InstanceInfo {
+    UVTransform transform;
+    mat4 modelMatrix;
+    mat4 boneTransforms[MAX_BONES];
+};
 
-uniform vec3 Light0_Direction;
-uniform vec3 Light1_Direction;
+layout(std140) uniform LightingVertex {
+    vec3 Light0_Direction;
+    vec3 Light1_Direction;
+};
 
-uniform mat4 boneTransforms[MAX_BONES];
+layout(std140) uniform FogParams {
+    int FogShape;
+    float FogStart;
+    float FogEnd;
+    vec4 FogColor;
+};
 
 mat4 getBoneTransform() {
     mat4 boneTransform =
@@ -63,7 +77,7 @@ void main() {
     mat4 modelTransform = modelMatrix * getBoneTransform();
     vec4 worldPosition = modelTransform * vec4(positions, 1.0);
 
-    texCoord0 = (texcoords * uvScale) + uvOffset;
+    texCoord0 = (texcoords * transform.scale) + transform.offset;
     gl_Position = worldSpace * worldPosition;
     vertexDistance = fog_distance(worldSpace * modelTransform, positions, FogShape);
     vertexColor = getVertexColor();

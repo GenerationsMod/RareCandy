@@ -6,47 +6,47 @@ in float vertexDistance;
 
 out vec4 outColor;
 
-uniform vec4 ColorModulator;
+layout(std140) uniform FogParams {
+    int FogShape;
+    float FogStart;
+    float FogEnd;
+    vec4 FogColor;
+};
 
-//fog
-uniform float FogStart;
-uniform float FogEnd;
-uniform vec4 FogColor;
+layout(std140) uniform MaterialBlock {
+    vec3 baseColor1;
+    vec3 baseColor2;
+    vec3 baseColor3;
+    vec3 baseColor4;
+    vec3 baseColor5;
+    vec3 emiColor1;
+    vec3 emiColor2;
+    vec3 emiColor3;
+    vec3 emiColor4;
+    vec3 emiColor5;
+    float emiIntensity1;
+    float emiIntensity2;
+    float emiIntensity3;
+    float emiIntensity4;
+    float emiIntensity5;
+    bool useLight;
+    int effect;
+    int colorMethod;
+};
+
+layout(std140) uniform RenderOptions {
+    vec4 ColorModulator;
+    vec3 tint;
+    ivec2 light;
+    int frame;
+};
 
 uniform sampler2D diffuse;
-uniform sampler2D mask;
-uniform sampler2D layer;
-uniform sampler2D lightmap;
 uniform sampler2D emission;
+uniform sampler2D layer;
+uniform sampler2D mask;
+uniform sampler2D lightmap;
 uniform sampler2D paradoxMask;
-
-uniform int colorMethod;
-uniform int effect;
-
-uniform ivec2 light;
-
-uniform vec3 tint;
-
-uniform int frame;
-
-//material
-uniform vec3 baseColor1;
-uniform vec3 baseColor2;
-uniform vec3 baseColor3;
-uniform vec3 baseColor4;
-uniform vec3 baseColor5;
-uniform vec3 emiColor1;
-uniform vec3 emiColor2;
-uniform vec3 emiColor3;
-uniform vec3 emiColor4;
-uniform vec3 emiColor5;
-uniform float emiIntensity1;
-uniform float emiIntensity2;
-uniform float emiIntensity3;
-uniform float emiIntensity4;
-uniform float emiIntensity5;
-uniform bool useLight;
-
 
 #define MINECRAFT_LIGHT_POWER   (0.6)
 #define MINECRAFT_AMBIENT_LIGHT (0.4)

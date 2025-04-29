@@ -8,8 +8,7 @@ import gg.generations.rarecandy.renderer.model.material.MaterialValues;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL20C;
+import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryStack;
 
 import java.util.HashMap;
@@ -43,8 +42,8 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
     public void updateTexUniforms(ObjectInstance instance, RenderObject renderObject) {
         for (var name : uniforms.keySet()) {
             var uniform = uniforms.get(name);
-            if (!uniformSuppliers.containsKey(name))
-                RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
+//            if (!uniformSuppliers.containsKey(name))
+//                RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
             if (uniform.type == GL20C.GL_SAMPLER_2D)
                 uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
         }
@@ -151,6 +150,14 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
             return supplyUniform(name, ctx -> ctx.uniform().uploadTexture(texture, slot));
         }
 
+        public Builder bindUniformBlock(String blockName, int bindingPoint) {
+            int blockIndex = GL31C.glGetUniformBlockIndex(program, blockName);
+            if (blockIndex == GL31C.GL_INVALID_INDEX) {
+                RareCandy.fatal("Uniform block \"" + blockName + "\" not found in shader.");
+            }
+            GL31C.glUniformBlockBinding(program, blockIndex, bindingPoint);
+            return this;
+        }
 
         public Builder supplySamplerBase(String name, int slot, Function<UniformUploadContext, String> function) {
             return supplyUniform(name, ctx -> {

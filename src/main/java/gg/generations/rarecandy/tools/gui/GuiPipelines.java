@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
+import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.viewMatrix;
 import static java.lang.Math.floor;
 
 public class GuiPipelines {
@@ -35,93 +36,22 @@ public class GuiPipelines {
     private static final Vector3f ONE = new Vector3f(1,1, 1);
 
     public static final Pipeline ANIMATED = new Pipeline.Builder()
-            .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
-            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
-            .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
-            .supplyUniform("boneTransforms", ctx -> {
-                var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
-                ctx.uniform().uploadMat4fs(mats);
-            })
-            .supplyUniform("uvOffset", ctx -> {
-                Transform transform = ctx.object().getTransform(ctx.instance().variant());
-
-                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
-                    var t = instance.getTransform(ctx.getMaterial().getMaterialName());
-
-                    if (t != null && !t.isUnit()) {
-                        transform = t;
-                    }
-                }
-
-                var offset = transform.offset();
-
-                if(offset == null) offset = Transform.DEFAULT_OFFSET;
-
-                ctx.uniform().uploadVec2f(offset);
-            })
-            .supplyUniform("uvScale", ctx -> {
-                Transform transform = ctx.object().getTransform(ctx.instance().variant());
-
-                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
-                    var t = instance.getTransform(ctx.getMaterial().getMaterialName());
-
-                    if (t != null && !t.isUnit()) {
-                        transform = t;
-                    }
-                }
-
-                var scale = transform.scale();
-
-                if(scale == null) scale = Transform.DEFAULT_SCALE;
-
-                ctx.uniform().uploadVec2f(scale);
-            })
-            .supplyUniform("Light0_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light0))
-            .supplyUniform("Light1_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light1))
-            .supplyUniform("dynamicVertexColor", ctx -> ctx.uniform().uploadBoolean(true))
-            .supplyUniform("FogShape", ctx -> ctx.uniform().uploadInt(0)) //TODO: Make enum for fog shape. I think 0 is spherical and 1 cylinderical
-            .supplyUniform("FogColor", ctx -> ctx.uniform().uploadVec4f(fogColor))
-            .supplyUniform("FogStart", ctx -> ctx.uniform().uploadFloat(1.0f))
-            .supplyUniform("FogEnd", ctx -> ctx.uniform().uploadFloat(5.0f))
-            .supplyUniform("colorMethod", ctx -> ctx.uniform().uploadInt(ctx.getMaterial().getColorMethod()))
-            .supplyUniform("effect", ctx -> ctx.uniform().uploadInt(ctx.getMaterial().getEffect()))
-            .supplyUniform("light", ctx -> {
-                var light = (int) (RareCandyCanvas.getLightLevel() * 15);
-//
-                System.out.println(RareCandyCanvas.getLightLevel() + " " + light);
-
-                ctx.uniform().upload2i(0, light);
-            })
-            .supplyUniform("tint", ctx -> ctx.uniform().uploadVec3f(ONE))
-            .supplyUniform("ColorModulator", ctx -> ctx.uniform().uploadVec4f(colorMOdulator))
-            .supplyUniform("frame", ctx -> {
-                var i = (int) pingpong(RareCandyCanvas.getTime() % 1d);
-
-                ctx.uniform().uploadInt(i);
-            })
-            .supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()))
-            .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor2()))
-            .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor3()))
-            .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor4()))
-            .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor5()))
-            .supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor1()))
-            .supplyUniform("emiColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor2()))
-            .supplyUniform("emiColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor3()))
-            .supplyUniform("emiColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor4()))
-            .supplyUniform("emiColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor5()))
-            .supplyUniform("emiIntensity1", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity1()))
-            .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity2()))
-            .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity3()))
-            .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity4()))
-            .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity5()))
-            .supplyUniform("useLight", ctx -> ctx.uniform().uploadBoolean(ctx.getMaterial().values().getUseLight()))
+            .shader(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
             .supplySampler("diffuse", 0, MaterialImages::getDiffuse)
             .supplySampler("emission", 2, MaterialImages::getEmission)
             .supplySampler("layer", 3, MaterialImages::getLayer)
             .supplySampler("mask", 4, MaterialImages::getMask)
             .supplySampler("lightmap", 5, "light_map")
             .supplySampler("paradoxMask", 6, "paradox_mask")
+            .bindUniformBlock("SharedInfo", 0)
+            .bindUniformBlock("InstanceInfo", 1)
+            .bindUniformBlock("LightingVertex", 2)
+            .bindUniformBlock("FogParams", 3)
+            .bindUniformBlock("MaterialBlock", 4)
+            .bindUniformBlock("RenderOptions", 5)
             .prePostDraw(material -> {
+                material.bind();
+
                 if(material.disableDepth()) {
                     GL11.glDisable(GL11.GL_DEPTH_TEST);
                 }
@@ -136,8 +66,114 @@ public class GuiPipelines {
                 material.cullType().disable();
                 material.blendType().disable();
             })
-            .shader(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
             .build();
+
+//    public static final Pipeline ANIMATED = new Pipeline.Builder()
+//            .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(viewMatrix))
+//            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
+//            .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
+//            .supplyUniform("boneTransforms", ctx -> {
+//                var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
+//                ctx.uniform().uploadMat4fs(mats);
+//            })
+//            .supplyUniform("uvOffset", ctx -> {
+//                Transform transform = ctx.object().getTransform(ctx.instance().variant());
+//
+//                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
+//                    var t = instance.getTransform(ctx.getMaterial().getMaterialName());
+//
+//                    if (t != null && !t.isUnit()) {
+//                        transform = t;
+//                    }
+//                }
+//
+//                var offset = transform.offset();
+//
+//                if(offset == null) offset = Transform.DEFAULT_OFFSET;
+//
+//                ctx.uniform().uploadVec2f(offset);
+//            })
+//            .supplyUniform("uvScale", ctx -> {
+//                Transform transform = ctx.object().getTransform(ctx.instance().variant());
+//
+//                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
+//                    var t = instance.getTransform(ctx.getMaterial().getMaterialName());
+//
+//                    if (t != null && !t.isUnit()) {
+//                        transform = t;
+//                    }
+//                }
+//
+//                var scale = transform.scale();
+//
+//                if(scale == null) scale = Transform.DEFAULT_SCALE;
+//
+//                ctx.uniform().uploadVec2f(scale);
+//            })
+//            .supplyUniform("Light0_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light0))
+//            .supplyUniform("Light1_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light1))
+//            .supplyUniform("dynamicVertexColor", ctx -> ctx.uniform().uploadBoolean(true))
+//            .supplyUniform("FogShape", ctx -> ctx.uniform().uploadInt(0)) //TODO: Make enum for fog shape. I think 0 is spherical and 1 cylinderical
+//            .supplyUniform("FogColor", ctx -> ctx.uniform().uploadVec4f(fogColor))
+//            .supplyUniform("FogStart", ctx -> ctx.uniform().uploadFloat(1.0f))
+//            .supplyUniform("FogEnd", ctx -> ctx.uniform().uploadFloat(5.0f))
+//            .supplyUniform("colorMethod", ctx -> ctx.uniform().uploadInt(ctx.getMaterial().getColorMethod()))
+//            .supplyUniform("effect", ctx -> ctx.uniform().uploadInt(ctx.getMaterial().getEffect()))
+//            .supplyUniform("light", ctx -> {
+//                var light = (int) (RareCandyCanvas.getLightLevel() * 15);
+////
+//                System.out.println(RareCandyCanvas.getLightLevel() + " " + light);
+//
+//                ctx.uniform().upload2i(0, light);
+//            })
+//            .supplyUniform("tint", ctx -> ctx.uniform().uploadVec3f(ONE))
+//            .supplyUniform("ColorModulator", ctx -> ctx.uniform().uploadVec4f(colorMOdulator))
+//            .supplyUniform("frame", ctx -> {
+//                var i = (int) pingpong(RareCandyCanvas.getTime() % 1d);
+//
+//                ctx.uniform().uploadInt(i);
+//            })
+//            .supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()))
+//            .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor2()))
+//            .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor3()))
+//            .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor4()))
+//            .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor5()))
+//            .supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor1()))
+//            .supplyUniform("emiColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor2()))
+//            .supplyUniform("emiColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor3()))
+//            .supplyUniform("emiColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor4()))
+//            .supplyUniform("emiColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor5()))
+//            .supplyUniform("emiIntensity1", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity1()))
+//            .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity2()))
+//            .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity3()))
+//            .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity4()))
+//            .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity5()))
+//            .supplyUniform("useLight", ctx -> ctx.uniform().uploadBoolean(ctx.getMaterial().values().getUseLight()))
+//            .supplySampler("diffuse", 0, MaterialImages::getDiffuse)
+//            .supplySampler("emission", 2, MaterialImages::getEmission)
+//            .supplySampler("layer", 3, MaterialImages::getLayer)
+//            .supplySampler("mask", 4, MaterialImages::getMask)
+//            .supplySampler("lightmap", 5, "light_map")
+//            .supplySampler("paradoxMask", 6, "paradox_mask")
+//            .prePostDraw(material -> {
+//                material.bind();
+//
+//                if(material.disableDepth()) {
+//                    GL11.glDisable(GL11.GL_DEPTH_TEST);
+//                }
+//
+//                material.cullType().enable();
+//                material.blendType().enable();
+//            }, material -> {
+//                if(material.disableDepth()) {
+//                    GL11.glEnable(GL11.GL_DEPTH_TEST);
+//                }
+//
+//                material.cullType().disable();
+//                material.blendType().disable();
+//            })
+//            .shader(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
+//            .build();
 //
 //
 //    private static final Pipeline.Builder ROOT = new Pipeline.Builder()

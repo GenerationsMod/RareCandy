@@ -47,8 +47,8 @@ public class GLModel implements RenderModel {
             model.ebo = GL15.glGenBuffers();
             glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
             glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
             model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES, gltType, model.ebo, indexSize));
             MemoryUtil.memFree(vertexBuffer);
             MemoryUtil.memFree(indexBuffer);
@@ -100,6 +100,8 @@ public class GLModel implements RenderModel {
                 continue;
             }
 
+            instance.update(instance.materialId());
+
             var material = object.getMaterial(instance.variant());
 
             var transparent = material.blendType() != BlendType.None;
@@ -139,7 +141,7 @@ public class GLModel implements RenderModel {
         if(pl == null) return;
 
         pl.bind(k);
-        pl.updateOtherUniforms(instance, object);
+//        pl.updateOtherUniforms(instance, object);
         pl.updateTexUniforms(instance, object);
         runDrawCalls();
         pl.unbind(k);

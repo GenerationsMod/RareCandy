@@ -78,7 +78,7 @@ public class AnimationInstance {
     }
 
     public Transform getOffset(String name) {
-        var offset = offsets.get(name.replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/);
+        var offset = offsets.getOrDefault(name.replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/, AnimationController.NO_OFFSET);
 
         return offset;
     }

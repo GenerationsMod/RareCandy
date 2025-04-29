@@ -4,12 +4,15 @@ import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.CullType;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.loading.ITexture;
+import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
 
-public class Material implements Closeable {
+public class Material extends UniformBlockUploader implements Closeable {
     private final String materialName;
     private final MaterialImages images;
 
@@ -23,7 +26,9 @@ public class Material implements Closeable {
     private String shader;
     private final boolean disableDepth;
 
-    public Material(String materialName, MaterialImages images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, String shader, int colorMethod, int effect) {
+    public Material(int index, String materialName, MaterialImages images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, String shader, int colorMethod, int effect) {
+        super(192, index);
+
         this.materialName = materialName;
         this.images = images;
         this.disableDepth = disableDepth;
@@ -69,12 +74,24 @@ public class Material implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
+        super.close();
         if(images != null) {
             if(images.getDiffuse().contains(".")) ITextureLoader.instance().remove(images.getDiffuse());
             if(images.getEmission().contains(".")) ITextureLoader.instance().remove(images.getDiffuse());
             if(images.getLayer().contains(".")) ITextureLoader.instance().remove(images.getLayer());
             if(images.getMask().contains(".")) ITextureLoader.instance().remove(images.getMask());
+        }
+    }
+
+    public void update() {
+        initalize();
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            long address = stack.nmalloc(192);
+            values().toAddress(address);
+            MemoryUtil.memPutInt(address + 184, effect);
+            MemoryUtil.memPutInt(address + 188, colorMethod);
+            upload(0, 192, address);
         }
     }
 

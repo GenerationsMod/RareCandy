@@ -15,6 +15,10 @@ import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
+import gg.generations.rarecandy.tools.ubo.FogParams;
+import gg.generations.rarecandy.tools.ubo.LightDirectionBlock;
+import gg.generations.rarecandy.tools.ubo.RenderOptions;
+import gg.generations.rarecandy.tools.ubo.SharedInfoBlock;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -45,11 +49,16 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     private final ModelLoader loader = new ModelLoader();
 
+    //UBOS
+    public static LightDirectionBlock lightDirectionBlock;
+    public static RenderOptions renderOptions;
+    public static SharedInfoBlock sharedInfoBlock;
+
     public static float lightLevel = 1;
     private static double time;
     public static FrameBuffer framebuffer;
 
-    public final Matrix4f viewMatrix = new Matrix4f();
+    public static final Matrix4f viewMatrix = new Matrix4f();
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
     public float scaleModifier = 0;
     private final PokeUtilsGui handler;
@@ -70,13 +79,14 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public static boolean renderingFrame;
     private MultiRenderObject<MeshObject> cube;
     private ObjectInstance[] cubeInstances;
+    private FogParams fog;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
         RareCandyCanvas.lightLevel = lightLevel;
     }
 
-     static float getLightLevel() {
+     public static float getLightLevel() {
         return lightLevel;
     }
 
@@ -131,7 +141,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public void openFile(PixelAsset pkFile, String name, Runnable runnable, boolean resetAnimation) throws IOException {
         currentAnimation = null;
         renderer.objectManager.clearObjects();
-        renderer.objectManager.add(plane, planeInstance);
+//        renderer.objectManager.add(plane, planeInstance);
 
 //        for (ObjectInstance instance : cubeInstances) {
 //            renderer.objectManager.add(cube, instance);
@@ -156,7 +166,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
             var variants = model.availableVariants();
 
             var variant = !variants.isEmpty() ? variants.iterator().next() : null;
-            var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
+            var instance = new AnimatedObjectInstance(1, new Matrix4f(), viewMatrix, variant);
 
             loadedModelInstance = renderer.objectManager.add(model, instance);
             model.updateDimensions();
@@ -181,11 +191,16 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
 //        screenRenderer = new ScreenRenderer(framebuffer);
 
+        renderOptions = new RenderOptions();
+        sharedInfoBlock = new SharedInfoBlock(viewMatrix, projectionMatrix, true);
+        lightDirectionBlock = new LightDirectionBlock();
+        fog = new FogParams();
 
-        loadPlane(100, 100, model -> {
-            plane = model;
-            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), viewMatrix, null));
-        });
+
+//        loadPlane(100, 100, model -> {
+//            plane = model;
+//            planeInstance = renderer.objectManager.add(model, new ObjectInstance(0, new Matrix4f().translation(0f, -0.001f, 0f), viewMatrix, null));
+//        });
 
 //        loadCube(1, 1, 1, model -> {
 //            cube = model;
@@ -220,6 +235,10 @@ public class RareCandyCanvas extends AWTGLCanvas {
         if(animate) time = (System.currentTimeMillis() - startTime) / 1000f;
 
         if (runnable != null) runnable.pre();
+
+        renderOptions.update();
+        sharedInfoBlock.update();
+        fog.update();
 
         renderToFramebuffer();
         renderToScreen();

@@ -7,6 +7,8 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL20C;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL40;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
@@ -23,6 +25,7 @@ public class Uniform {
     public Uniform(int program, String name, int type, int count) {
         this.type = type;
         this.count = count;
+
         this.locations = new int[count];
 
         if (count > 1) {

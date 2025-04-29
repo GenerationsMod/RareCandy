@@ -9,6 +9,7 @@ import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.lwjgl.system.MemoryStack;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,8 +20,8 @@ public class AnimatedObjectInstance extends ObjectInstance {
     @Nullable
     public AnimationInstance currentAnimation;
 
-    public AnimatedObjectInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId) {
-        super(transformationMatrix, viewMatrix, materialId);
+    public AnimatedObjectInstance(int index, Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId) {
+        super(index, 14160, transformationMatrix, viewMatrix, materialId);
     }
 
     public Map<String, Animation> getAnimationsIfAvailable() {
@@ -52,6 +53,25 @@ public class AnimatedObjectInstance extends ObjectInstance {
     }
 
     public Transform getTransform(String material) {
-        return currentAnimation != null ? currentAnimation.getOffset(material) : null;
+        return currentAnimation != null ? currentAnimation.getOffset(material) : super.getTransform(material);
+    }
+
+    public void update(String materialId) {
+        initalize();
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            long address = stack.nmalloc(80);
+            var transform = getTransform(materialId);
+            transform.offset().getToAddress(address);
+            transform.offset().getToAddress(address+8);
+            transformationMatrix().getToAddress(address+16);
+
+            var skeleton = getTransforms();
+
+            for (int i = 0; i < skeleton.length; i++) {
+                skeleton[i].getToAddress(address + 80 + 64L * i);
+            }
+
+            upload(0, 14160, address);
+        }
     }
 }

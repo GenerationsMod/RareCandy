@@ -30,7 +30,7 @@ public class GuiPipelines {
 
     public static final Vector4f colorMOdulator = new Vector4f(1f, 1f, 1f, 1f);
 
-    public static final Vector4f fogColor = new Vector4f(0.5f, 0.5f, 0.5f, 1.0f);
+    public static final Vector4f fogColor = new Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
 
     private static final Vector3f ONE = new Vector3f(1,1, 1);
 

@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.renderer.loading;
 
-import gg.generations.rarecandy.assimp.*;
 import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.ThreadSafety;
@@ -19,6 +18,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.assimp.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 

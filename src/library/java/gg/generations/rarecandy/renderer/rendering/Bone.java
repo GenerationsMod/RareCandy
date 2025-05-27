@@ -1,8 +1,5 @@
 package gg.generations.rarecandy.renderer.rendering;
 
-import gg.generations.rarecandy.assimp.AIBone;
-import gg.generations.rarecandy.pokeutils.ModelNode;
-import gg.generations.rarecandy.renderer.animation.Skeleton;
 import org.joml.Matrix4f;
 
 import java.util.Objects;

@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "gg.generations"
-version = "2.11.27"
+version = "2.12.0"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -20,16 +20,16 @@ sourceSets {
         compileClasspath += main.get().compileClasspath
     }
 
-    val patches = create("patches") {
-        compileClasspath += main.get().compileClasspath
-    }
+//    val patches = create("patches") {
+//        compileClasspath += main.get().compileClasspath
+//    }
 
 
     main {
         this.compileClasspath += assetLoading.output
-        this.compileClasspath += patches.output
+//        this.compileClasspath += patches.output
         this.runtimeClasspath += assetLoading.output
-        this.runtimeClasspath += patches.output
+//        this.runtimeClasspath += patches.output
 
     }
 }
@@ -52,7 +52,7 @@ dependencies {
     "shadow"(implementation("org.apache.commons", "commons-compress", "1.26.1"))
     "shadowTools"(implementation("org.joml", "joml", "1.10.5"))
 
-    "shadowTools"(implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))!!)
+    "shadowTools"(implementation(platform("org.lwjgl:lwjgl-bom:3.3.3"))!!)
     "shadowTools"(implementation("org.lwjgl", "lwjgl"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-glfw"))
     "shadowTools"(implementation("org.lwjgl", "lwjgl-opengl"))
@@ -86,7 +86,6 @@ dependencies {
 
     "shadow"(implementation("com.google.flatbuffers:flatbuffers-java:23.5.26")!!)
 
-    //TODO: JT need some funky gradle logic that lets us build a version does and doesn't include gson for the viewer and generations respectively
     "shadowTools"(implementation("com.google.code.gson:gson:2.10.1")!!)
 
 
@@ -111,7 +110,7 @@ tasks {
     var rareCandy = register<ShadowJar>("rare_candy") {
         archiveBaseName.set("RareCandy")
         from(sourceSets.getByName("library").output.classesDirs)
-        from(sourceSets.getByName("patches").output.classesDirs)
+//        from(sourceSets.getByName("patches").output.classesDirs)
 
         exclude("src/main/**", "org/lwjgl/**", "module-info.class")
 
@@ -123,13 +122,13 @@ tasks {
         relocate("org.checkerframework", "gg.generations.rarecandy.shaded.checkerframework")
         relocate("com.google.errorprone", "gg.generations.rarecandy.shaded.errorprone")
         relocate("org.apache.commons", "gg.generations.rarecandy.shaded.commons")
-        relocate("windows.arm64.org.lwjgl.assimp", "windows.arm64.gg.generations.rarecandy.assimp")
-        relocate("windows.x64.org.lwjgl.assimp", "windows.x64.gg.generations.rarecandy.assimp")
-        relocate("linux.arm64.org.lwjgl.assimp", "linux.arm64.gg.generations.rarecandy.assimp")
-        relocate("linux.x64.org.lwjgl.assimp", "linux.x64.gg.generations.rarecandy.assimp")
-        relocate("macos.arm64.org.lwjgl.assimp", "macos.arm64.gg.generations.rarecandy.assimp")
-        relocate("macos.x64.org.lwjgl.assimp", "macos.x64.gg.generations.rarecandy.assimp")
-        relocate("org.lwjgl.assimp", "gg.generations.rarecandy.assimp")
+//        relocate("windows.arm64.org.lwjgl.assimp", "windows.arm64.gg.generations.rarecandy.assimp")
+//        relocate("windows.x64.org.lwjgl.assimp", "windows.x64.gg.generations.rarecandy.assimp")
+//        relocate("linux.arm64.org.lwjgl.assimp", "linux.arm64.gg.generations.rarecandy.assimp")
+//        relocate("linux.x64.org.lwjgl.assimp", "linux.x64.gg.generations.rarecandy.assimp")
+//        relocate("macos.arm64.org.lwjgl.assimp", "macos.arm64.gg.generations.rarecandy.assimp")
+//        relocate("macos.x64.org.lwjgl.assimp", "macos.x64.gg.generations.rarecandy.assimp")
+//        relocate("org.lwjgl.assimp", "gg.generations.rarecandy.assimp")
 
         configurations = listOf(
             project.configurations.getByName("shadow")

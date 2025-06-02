@@ -47,6 +47,13 @@ uniform float emiIntensity4;
 uniform float emiIntensity5;
 uniform bool useLight;
 
+// Tersalziation details
+in vec3 fragNormal;
+in vec3 fragViewDir;
+uniform bool tera;
+uniform vec3 Light0_Direction;
+uniform vec3 Light1_Direction;
+
 
 #define MINECRAFT_LIGHT_POWER   (0.6)
 #define MINECRAFT_AMBIENT_LIGHT (0.4)
@@ -329,15 +336,55 @@ vec4 process(vec4 color) {
 
 //////////////////////////////////////
 
+#define TERA_LIGHT_DIRECT (vec3(0.3f, 0.9f, 0.0f))
+#define TERATYPE_TINT (vec3(0.161, 0.502, 0.937))
+//Terastalization effect
+vec3 calculateTersaalizationEffect(
+vec3 baseColor,
+vec3 normal,
+vec3 viewDirection
+) {
+    vec3 N  = normalize(normal);
+    vec3 V  = normalize(viewDirection);
+
+    // Lighting and view terms
+    float lightResponse = max(dot(N, TERA_LIGHT_DIRECT), 0.0);
+    float fresnel       = pow(1.0 - max(dot(N, V), 0.0), 5.0);
+
+    // Fake faceted look via quantized normal
+    vec3 faceted        = normalize(floor(N * 6.0) / 6.0);
+    float facetResponse = pow(max(dot(faceted, V), 0.0), 6.0);
+
+    // Combine components
+    float shimmer = fresnel * 0.5 + lightResponse * 0.3 + facetResponse * 0.8;
+    shimmer = clamp(shimmer, 0.0, 1.0);
+
+    // Optional gamma push for highlight falloff
+    shimmer = pow(shimmer, 1.4);
+
+    // Quantize the result to enforce banding
+    shimmer = floor(shimmer * 5.0) / 5.0;
+
+    // Optional: micro-noise (disabled by default)
+     shimmer += fract(sin(dot(N.xy, vec2(13.3, 7.7))) * 43758.5) * 0.03;
+
+    // Final output
+    return baseColor + TERATYPE_TINT * shimmer * 0.8;
+}
+//////////////////////////////////////
+
 void main() {
     outColor = process(getColor(texCoord0)) * ColorModulator;
+
     if (outColor.a < 0.004) {
         discard;
     }
 
     outColor.rgb *= tint;
 
-    if (useLight) {
+    if(tera) {
+        outColor.rgb = calculateTersaalizationEffect(outColor.rgb, fragNormal, fragViewDir);
+    } else if (useLight) {
         outColor *= vertexColor;
         // Sample Minecraft's light level from the lightmap texture
         vec4 minecraftLight = minecraft_sample_lightmap(lightmap, light);

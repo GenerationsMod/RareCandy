@@ -25,8 +25,11 @@ import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatri
 import static java.lang.Math.floor;
 
 public class GuiPipelines {
-    public static final Vector3f light0 = new Vector3f(0.178f, 0.893f, -0.625f);
-    public static final Vector3f light1 = new Vector3f(-0.178f, 0.893f, 0.625f);
+//    public static final Vector3f light0 = new Vector3f(0.178f, 0.893f, -0.625f);
+//    public static final Vector3f light1 = new Vector3f(-0.178f, 0.893f, 0.625f);
+
+    public static final Vector3f light0 = new Vector3f(0.5f, 0.5f, -0.5f).normalize();
+    public static final Vector3f light1 = new Vector3f(-0.3f, 0.4f, 0.7f).normalize();
 
     public static final Vector4f colorMOdulator = new Vector4f(1f, 1f, 1f, 1f);
 
@@ -81,10 +84,11 @@ public class GuiPipelines {
             .supplyUniform("dynamicVertexColor", ctx -> ctx.uniform().uploadBoolean(true))
             .supplyUniform("FogShape", ctx -> ctx.uniform().uploadInt(0)) //TODO: Make enum for fog shape. I think 0 is spherical and 1 cylinderical
             .supplyUniform("FogColor", ctx -> ctx.uniform().uploadVec4f(fogColor))
-            .supplyUniform("FogStart", ctx -> ctx.uniform().uploadFloat(1.0f))
-            .supplyUniform("FogEnd", ctx -> ctx.uniform().uploadFloat(5.0f))
+            .supplyUniform("FogStart", ctx -> ctx.uniform().uploadFloat(20.0f))
+            .supplyUniform("FogEnd", ctx -> ctx.uniform().uploadFloat(20.0f))
             .supplyUniform("colorMethod", ctx -> ctx.uniform().uploadInt(ctx.getMaterial().getColorMethod()))
             .supplyUniform("effect", ctx -> ctx.uniform().uploadInt(ctx.getMaterial().getEffect()))
+            .supplyUniform("tera", ctx -> ctx.uniform().uploadBoolean(true))
             .supplyUniform("light", ctx -> {
                 var light = (int) (RareCandyCanvas.getLightLevel() * 15);
 //

@@ -47,10 +47,6 @@ uniform float emiIntensity4;
 uniform float emiIntensity5;
 uniform bool useLight;
 
-// Tersalziation details
-in vec3 fragNormal;
-in vec3 fragViewDir;
-uniform bool tera;
 uniform vec3 Light0_Direction;
 uniform vec3 Light1_Direction;
 
@@ -77,14 +73,13 @@ float linear_fog_fade(float vertexDistance, float fogStart, float fogEnd) {
     return smoothstep(fogEnd, fogStart, vertexDistance);
 }
 
+// ===== Lighting Method =====
+
 vec4 minecraft_sample_lightmap(sampler2D lightMap, ivec2 uv) {
     return texture(lightMap, (vec2(uv) + 0.5) / 16.0);
 }
 
-//Methods to get the color
-
-//layered color method
-
+// ===== Layered Color Method =====
 vec4 adjust(vec4 color) {
     return clamp(color * 2, 0, 1);
 }
@@ -121,8 +116,7 @@ vec4 layered(vec2 texCoord) {
     return vec4(base, color.a);
 }
 
-// masked
-
+// ===== Masked Color Method =====
 vec4 masked(vec2 texCoord) {
     vec4 outColor = texture(diffuse, texCoord);
 
@@ -141,9 +135,7 @@ vec4 getColor(vec2 texCoord) {
     return texture(diffuse, texCoord);
 }
 
-//Effects
-
-//Cartoon
+// ===== Cartoon Effect =====
 
 const float edgeThreshold = 0.08;
 const float blockSize = 0.0015;
@@ -194,8 +186,7 @@ vec4 cartoon(vec4 inColor) {
     return vec4(mix(color, inColor.rgb, edge), 1.0);
 }
 
-//paradox
-
+// ===== Paradox Effect =====
 float getParadoxIntensity() {
     vec2 effectTexCoord = vec2(texCoord0);
 
@@ -215,8 +206,7 @@ vec4 paradox(vec4 color) {
     return mix(color, vec4(1.0), getParadoxIntensity());
 }
 
-//galaxy
-
+// ===== Galaxy Effect =====
 const float darkenFactor = 0.3;
 
 vec4 galaxy(vec4 inColor) {
@@ -230,8 +220,7 @@ vec4 galaxy(vec4 inColor) {
     return mix(inColor, vec4(1.0), getParadoxIntensity());
 }
 
-//pastel
-
+// ===== Pastel Effect =====
 vec4 pastel(vec4 inColor) {
     vec2 wrappedUV = fract(texCoord0 * 5.0);
 
@@ -247,7 +236,7 @@ vec4 pastel(vec4 inColor) {
     return vec4(mix(inColor.rgb, pastelColor, 0.5), inColor.a);
 }
 
-//shadow
+// ===== Shadow Effect =====
 vec4 shadow(vec4 inColor) {
     float grayscale = 0.2126 * inColor.r + 0.7152 * inColor.g + 0.0722 * inColor.b;
 
@@ -272,22 +261,9 @@ vec4 shadow(vec4 inColor) {
     return vec4(finalColor, inColor.a);
 }
 
-//sketch
-//TODO: See if edgeDetect produces better results
+// ===== Sketch Effect =====
 
 vec4 sketch(vec4 inColor) {
-//    float grayscale = 0.2126 * inColor.r + 0.7152 * inColor.g + 0.0722 * inColor.b;
-//
-//    float luminanceDx = dFdx(grayscale);
-//    float luminanceDy = dFdy(grayscale);
-//    float edgeFactor = length(vec2(luminanceDx, luminanceDy));
-//
-//    float outline = 1.0 - smoothstep(0.02, 0.05, edgeFactor);
-//    vec3 edgeColor = vec3(0.0);
-//
-//    vec3 finalColor = mix(vec3(grayscale), edgeColor, outline);
-//
-//    return vec4(finalColor, inColor.a);
 
     const vec3 luminanceWeights = vec3(0.2126, 0.7152, 0.0722);
     const float subtleThreshold = 0.02; // Lower threshold for fine differences
@@ -308,7 +284,7 @@ vec4 sketch(vec4 inColor) {
     return vec4(value, value, value, inColor.a);
 }
 
-//vintage
+// ===== Vintage Effect =====
 vec4 vintage(vec4 inColor) {
     float grayscale = 0.2126 * inColor.r + 0.7152 * inColor.g + 0.0722 * inColor.b;
 
@@ -334,42 +310,59 @@ vec4 process(vec4 color) {
     return color;
 }
 
-//////////////////////////////////////
+// ===== Tersaalization Effect =====
 
-#define TERA_LIGHT_DIRECT (vec3(0.3f, 0.9f, 0.0f))
-#define TERATYPE_TINT (vec3(0.161, 0.502, 0.937))
-//Terastalization effect
+#define TERA_LIGHT_DIRECT   vec3(0.3f, 0.9f, 0.0f)
+#define TERATYPE_TINT       vec3(0.161, 0.502, 0.937)
+
+#define FACET_RES           8.0
+#define SHIMMER_BANDS       5.0
+#define GAMMA_CORRECTION    1.4
+#define SHIMMER_STRENGTH    0.8
+#define IRIDESCENCE_STRENGTH 0.2
+
+uniform bool tera;
+
+in vec3 fragViewDir;
+in vec3 worldPos;
+
 vec3 calculateTersaalizationEffect(
-vec3 baseColor,
-vec3 normal,
-vec3 viewDirection
+    vec3 baseColor
 ) {
-    vec3 N  = normalize(normal);
-    vec3 V  = normalize(viewDirection);
+    vec3 N = normalize(cross(dFdx(worldPos), dFdy(worldPos)));
+    vec3 V = normalize(fragViewDir);
 
-    // Lighting and view terms
+    // Fresnel rim lighting
+    float fresnel = pow(1.0 - max(dot(N, V), 0.0), 5.0);
+
+    // Directional lighting response
     float lightResponse = max(dot(N, TERA_LIGHT_DIRECT), 0.0);
-    float fresnel       = pow(1.0 - max(dot(N, V), 0.0), 5.0);
 
-    // Fake faceted look via quantized normal
-    vec3 faceted        = normalize(floor(N * 6.0) / 6.0);
+    // Facet simulation via quantized normals
+    vec3 faceted = normalize(floor(N * FACET_RES + 0.5) / FACET_RES);
     float facetResponse = pow(max(dot(faceted, V), 0.0), 6.0);
 
-    // Combine components
+    // Composite shimmer signal
     float shimmer = fresnel * 0.5 + lightResponse * 0.3 + facetResponse * 0.8;
-    shimmer = clamp(shimmer, 0.0, 1.0);
+    shimmer = pow(clamp(shimmer, 0.0, 1.0), GAMMA_CORRECTION);
 
-    // Optional gamma push for highlight falloff
-    shimmer = pow(shimmer, 1.4);
+    // Posterization
+    shimmer = floor(shimmer * SHIMMER_BANDS) / SHIMMER_BANDS;
 
-    // Quantize the result to enforce banding
-    shimmer = floor(shimmer * 5.0) / 5.0;
+    // Micro-noise based on 3D direction
+    float angleNoise = abs(sin(dot(N.xyz, vec3(12.9898, 78.233, 45.164)) * 43758.5453));
+    shimmer += angleNoise * 0.02;
 
-    // Optional: micro-noise (disabled by default)
-     shimmer += fract(sin(dot(N.xy, vec2(13.3, 7.7))) * 43758.5) * 0.03;
+    // Optional iridescent variation
+    vec3 iridescent = vec3(1.0, 0.9, 0.8) + vec3(0.05, -0.02, 0.03) * sin(shimmer * 20.0);
+
+    // Tint variation based on light response
+    vec3 directionalTint = mix(TERATYPE_TINT, vec3(1.0), lightResponse);
 
     // Final output
-    return baseColor + TERATYPE_TINT * shimmer * 0.8;
+    return baseColor
+    + directionalTint * shimmer * SHIMMER_STRENGTH
+    + iridescent * shimmer * IRIDESCENCE_STRENGTH;
 }
 //////////////////////////////////////
 
@@ -383,7 +376,7 @@ void main() {
     outColor.rgb *= tint;
 
     if(tera) {
-        outColor.rgb = calculateTersaalizationEffect(outColor.rgb, fragNormal, fragViewDir);
+        outColor.rgb = calculateTersaalizationEffect(outColor.rgb);
     } else if (useLight) {
         outColor *= vertexColor;
         // Sample Minecraft's light level from the lightmap texture

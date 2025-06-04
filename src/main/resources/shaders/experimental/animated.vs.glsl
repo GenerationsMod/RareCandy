@@ -14,6 +14,7 @@ out vec4 vertexColor;
 out vec2 texCoord0;
 out vec3 fragNormal;
 out vec3 fragViewDir;
+out vec3 worldPos;
 
 uniform bool dynamicVertexColor;
 
@@ -70,9 +71,6 @@ void main() {
     vertexDistance = fog_distance(worldSpace * modelTransform, positions, FogShape);
     vertexColor = getVertexColor();
 
-    // Transform normal into world space
-    fragNormal = normalize(mat3(modelTransform) * inNormal);
-
-    // View direction (camera is at origin in view space)
     fragViewDir = normalize(-(viewMatrix * worldPosition).xyz);
+    worldPos = worldPosition.xyz;
 }

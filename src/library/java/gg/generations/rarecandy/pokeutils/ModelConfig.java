@@ -14,6 +14,7 @@ public class ModelConfig {
     public Map<String, HideDuringAnimation> hideDuringAnimation = Collections.emptyMap();
 
     public Map<String, Integer> animationFpsOverride;
+    public Map<String, Boolean> animationLoopsOverride; //TODO: Collaspse into a animationOverride map when have time
 
     public Map<String, SkeletalTransform> offsets = new HashMap<>();
 

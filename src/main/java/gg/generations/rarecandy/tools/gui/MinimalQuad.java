@@ -45,7 +45,7 @@ public class MinimalQuad {
 
     private int index = 0;
 
-    private ObjectInstance instance = new ObjectInstance(new Matrix4f(), new Matrix4f(), "");
+    private ObjectInstance instance = new ObjectInstance(new Matrix4f(), null);
 
     public MeshObject object = new MeshObject() {
         @Override

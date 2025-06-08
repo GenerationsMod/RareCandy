@@ -25,7 +25,7 @@ public record TrAnimationResource(TRANMT tranm, TRACM tracm) implements AnimReso
             var list = asset.files.keySet().stream().filter(a -> a.endsWith("tranm") || a.endsWith("tracm")).collect(Collectors.toCollection(ArrayList::new));
 
             while (!list.isEmpty()) {
-                var a = list.remove(0);
+                var a = list.removeFirst();
 
                 var name = a.replace(".tranm", "").replace("tracm", "");
                 TRANMT tranm = null;
@@ -164,12 +164,13 @@ public record TrAnimationResource(TRANMT tranm, TRACM tracm) implements AnimReso
     }
 
     public long fps() {
-        if(tranm != null) {
-            return tranm.getInfo().getAnimationRate();
-        } else if(tracm != null) {
-            return tracm.config().framerate();
-        } else {
-            return 0L;
-        }
+        if(tranm != null) return tranm.getInfo().getAnimationRate();
+        else if(tracm != null) return tracm.config().framerate();
+        else return 0L;
+    }
+
+    @Override
+    public boolean loops() {
+        return tranm != null && tranm.getInfo().getDoesLoop() == 1;
     }
 }

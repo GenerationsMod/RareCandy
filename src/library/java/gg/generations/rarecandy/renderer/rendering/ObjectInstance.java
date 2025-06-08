@@ -5,13 +5,11 @@ import org.joml.Matrix4f;
 
 public class ObjectInstance {
     private final Matrix4f transformationMatrix;
-    private final Matrix4f viewMatrix;
     private String variant;
     private RenderObject object;
 
-    public ObjectInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String variant) {
+    public ObjectInstance(Matrix4f transformationMatrix, String variant) {
         this.transformationMatrix = transformationMatrix;
-        this.viewMatrix = viewMatrix;
         this.variant = variant;
     }
 
@@ -21,10 +19,6 @@ public class ObjectInstance {
 
     public Matrix4f transformationMatrix() {
         return transformationMatrix;
-    }
-
-    public Matrix4f viewMatrix() {
-        return viewMatrix;
     }
 
     public String materialId() {

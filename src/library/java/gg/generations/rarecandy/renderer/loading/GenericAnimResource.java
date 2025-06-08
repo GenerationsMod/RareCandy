@@ -6,7 +6,7 @@ import gg.generations.rarecandy.renderer.animation.Skeleton;
 import java.util.HashMap;
 import java.util.Map;
 
-public record GenericAnimResource(long fps, Animation.AnimationNode[] nodes) implements AnimResource {
+public record GenericAnimResource(long fps, boolean loops, Animation.AnimationNode[] nodes) implements AnimResource {
     @Override
     public Animation.AnimationNode[] getNodes(Skeleton skeleton) {
         return nodes;

@@ -12,6 +12,8 @@ public interface AnimResource {
 
     public long fps();
 
+    public boolean loops();
+
     public static String cleanAnimName(Map.Entry<String, byte[]> entry) {
         var str = entry.getKey();
         return cleanAnimName(str);

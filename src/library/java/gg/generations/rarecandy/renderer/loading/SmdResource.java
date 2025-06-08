@@ -144,4 +144,9 @@ public record SmdResource(SMDFile item) implements AnimResource {
     public long fps() {
         return 30;
     }
+
+    @Override
+    public boolean loops() {
+        return false;
+    }
 }

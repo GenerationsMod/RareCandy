@@ -101,4 +101,9 @@ public record GfbanmResource(AnimationT rawAnimation) implements AnimResource {
     public long fps() {
         return rawAnimation.getInfo().getFrameRate();
     }
+
+    @Override
+    public boolean loops() {
+        return rawAnimation.getInfo().getDoesLoop() == 1;
+    }
 }

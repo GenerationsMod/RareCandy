@@ -38,7 +38,7 @@ public class GuiPipelines {
     private static final Vector3f ONE = new Vector3f(1,1, 1);
 
     public static final Pipeline ANIMATED = new Pipeline.Builder()
-            .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
+            .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
             .supplyUniform("boneTransforms", ctx -> {
@@ -203,7 +203,7 @@ public class GuiPipelines {
 //            });
 
     public static final Pipeline PLANE = new Pipeline.Builder()
-            .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().viewMatrix()))
+            .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
             .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
             .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))

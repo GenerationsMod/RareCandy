@@ -30,13 +30,15 @@ public class Animation {
     public Map<String, Offset> offsets;
 
     public float ticksPerSecond;
+    public boolean loops;
     public boolean ignoreInstancedTime = false;
 
     private boolean ignoreScaling;
 
-    public Animation(String name, int ticksPerSecond, Skeleton skeleton, AnimationNode[] animationNodes, Map<String, Offset> offsets, boolean ignoreScaling, SkeletalTransform offset) {
+    public Animation(String name, int ticksPerSecond, boolean loops, Skeleton skeleton, AnimationNode[] animationNodes, Map<String, Offset> offsets, boolean ignoreScaling, SkeletalTransform offset) {
         this.name = name;
         this.ticksPerSecond = ticksPerSecond;
+        this.loops = loops;
         this.skeleton = skeleton;
         this.animationNodes = animationNodes;
         this.rootOffset = offset;

@@ -20,7 +20,7 @@ public class AnimatedObjectInstance extends ObjectInstance {
     public AnimationInstance currentAnimation;
 
     public AnimatedObjectInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId) {
-        super(transformationMatrix, viewMatrix, materialId);
+        super(transformationMatrix, materialId);
     }
 
     public Map<String, Animation> getAnimationsIfAvailable() {

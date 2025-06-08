@@ -97,6 +97,9 @@ public class ModelLoader {
             var fps = animResource.fps();
             fps = config.animationFpsOverride != null && config.animationFpsOverride.containsKey(name) ? config.animationFpsOverride.get(name) : fps;
 
+            var loops = animResource.loops();
+            loops = config.animationLoopsOverride != null && config.animationLoopsOverride.containsKey(name) ? config.animationLoopsOverride.get(name) : loops;
+
             var offsets = animResource.getOffsets();
             offsets.forEach((trackName, offset) -> config.getMaterialsForAnimation(trackName).forEach(a -> offSetsToInsert.put(a, offset)));
             offsets.putAll(offSetsToInsert);
@@ -105,7 +108,7 @@ public class ModelLoader {
             var nodes = animResource.getNodes(skeleton);
             var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
 
-            animations.put(name, new Animation(name, (int) fps, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale)));
+            animations.put(name, new Animation(name, (int) fps, loops, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale)));
         });
 
         return animations;
@@ -170,7 +173,7 @@ public class ModelLoader {
                 }
             }
 
-            animResources.putIfAbsent(animName, new GenericAnimResource((long) fps, animationNodes));
+            animResources.putIfAbsent(animName, new GenericAnimResource((long) fps, false, animationNodes)); //TODO: Figure out if assimp derived anims can actually loop or I'm dumb. -Waterpicker
         }
     }
 

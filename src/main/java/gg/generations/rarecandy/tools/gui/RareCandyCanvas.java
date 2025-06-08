@@ -11,7 +11,6 @@ import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.GLModel;
-import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.tools.TextureLoader;
@@ -49,7 +48,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     private static double time;
     public static FrameBuffer framebuffer;
 
-    public final Matrix4f viewMatrix = new Matrix4f();
+    public static final Matrix4f viewMatrix = new Matrix4f();
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
     public float scaleModifier = 0;
     private final PokeUtilsGui handler;
@@ -184,7 +183,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         loadPlane(100, 100, model -> {
             plane = model;
-            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), viewMatrix, null));
+            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), null));
         });
 
 //        loadCube(1, 1, 1, model -> {

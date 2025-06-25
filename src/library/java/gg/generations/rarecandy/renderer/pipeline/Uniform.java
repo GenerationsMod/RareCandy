@@ -13,6 +13,7 @@ import java.nio.FloatBuffer;
 
 public class Uniform {
     private static final FloatBuffer MAT4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(16);
+    private static final FloatBuffer MAT3_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(9);
     private static final FloatBuffer VEC2_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(2);
     private static final FloatBuffer VEC3_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(3);
     private static final FloatBuffer VEC4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(4);
@@ -32,6 +33,11 @@ public class Uniform {
         } else {
             locations[0] = GL20C.glGetUniformLocation(program, name);
         }
+    }
+
+    public void uploadMat3f(Matrix3f value) {
+        value.get(MAT3_TRANSFER_BUFFER);
+        GL20C.glUniformMatrix3fv(getLocation(), false, MAT4_TRANSFER_BUFFER);
     }
 
     public void uploadMat4f(Matrix4f value) {

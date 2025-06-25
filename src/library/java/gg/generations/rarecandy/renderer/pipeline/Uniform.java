@@ -2,10 +2,7 @@ package gg.generations.rarecandy.renderer.pipeline;
 
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.loading.ITexture;
-import org.joml.Matrix4f;
-import org.joml.Vector2f;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
+import org.joml.*;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryUtil;
 

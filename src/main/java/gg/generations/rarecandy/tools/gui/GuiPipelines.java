@@ -84,11 +84,6 @@ public class GuiPipelines {
             })
             .supplyUniform("Light0_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light0))
             .supplyUniform("Light1_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light1))
-            .supplyUniform("dynamicVertexColor", ctx -> ctx.uniform().uploadBoolean(true))
-            .supplyUniform("FogShape", ctx -> ctx.uniform().uploadInt(0)) //TODO: Make enum for fog shape. I think 0 is spherical and 1 cylinderical
-            .supplyUniform("FogColor", ctx -> ctx.uniform().uploadVec4f(fogColor))
-            .supplyUniform("FogStart", ctx -> ctx.uniform().uploadFloat(20.0f))
-            .supplyUniform("FogEnd", ctx -> ctx.uniform().uploadFloat(20.0f))
             .supplyUniform("tera", ctx -> ctx.uniform().uploadBoolean(true))
             .supplyUniform("light", ctx -> {
                 var light = (int) (RareCandyCanvas.getLightLevel() * 15);

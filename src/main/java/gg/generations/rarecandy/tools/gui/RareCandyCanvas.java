@@ -13,6 +13,7 @@ import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
 import gg.generations.rarecandy.tools.TextureLoader;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -21,6 +22,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 import org.lwjgl.opengl.awt.GLData;
+import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
 import javax.swing.*;
@@ -69,6 +71,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     public static boolean renderingFrame;
     private MultiRenderObject<MeshObject> cube;
     private ObjectInstance[] cubeInstances;
+    private Fog fog;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
@@ -172,6 +175,9 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL.createCapabilities(true);
         GuiPipelines.onInitialize();
         this.renderer = new RareCandy();
+
+        fog = new Fog();
+        fog.bind();
 
         GL11C.glClearColor(0, 0, 0, 0);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
@@ -396,6 +402,21 @@ public class RareCandyCanvas extends AWTGLCanvas {
                 }
             }
         }
+    }
+}
+
+class Fog extends UniformBlockUploader {
+    private final long pointer;
+    public Fog() {
+        super(Integer.BYTES + 5 * Float.BYTES, 2);
+        this.pointer = MemoryUtil.nmemAlloc(Integer.BYTES + 5 * Float.BYTES);
+
+        GuiPipelines.fogColor.getToAddress(pointer);
+        MemoryUtil.memPutFloat(pointer + 16, 0.0f);
+        MemoryUtil.memPutFloat(pointer + 20, 5.0f);
+        MemoryUtil.memPutInt(pointer + 24, 0);
+
+        upload(0, 24, pointer);
     }
 }
 

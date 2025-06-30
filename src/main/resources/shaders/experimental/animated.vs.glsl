@@ -18,8 +18,6 @@ out vec3 worldPos;
 
 uniform bool dynamicVertexColor;
 
-uniform int FogShape;
-
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
@@ -28,6 +26,13 @@ uniform vec3 Light1_Direction;
 
 uniform vec2 uvOffset;
 uniform vec2 uvScale;
+
+layout(std140, binding = 2) uniform Fog {
+    vec4 FogColor;
+    float FogStart;
+    float FogEnd;
+    int FogShape;
+};
 
 layout(std140, binding = 1) uniform Instance {
     mat4 modelMatrix;
@@ -54,8 +59,6 @@ float fog_distance(mat4 modelViewMat, vec3 pos, int shape) {
 }
 
 vec4 getVertexColor() {
-    if(dynamicVertexColor) return vec4(1);
-
     vec3 lightDir0 = normalize(Light0_Direction);
     vec3 lightDir1 = normalize(Light1_Direction);
     float light0 = max(0.0, dot(Light0_Direction, inNormal));

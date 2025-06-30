@@ -9,9 +9,13 @@ out vec4 outColor;
 uniform vec4 ColorModulator;
 
 //fog
-uniform float FogStart;
-uniform float FogEnd;
-uniform vec4 FogColor;
+layout(std140, binding = 2) uniform Fog {
+    vec4 FogColor;
+    float FogStart;
+    float FogEnd;
+    int FogShape;
+};
+
 
 uniform sampler2D diffuse;
 uniform sampler2D mask;

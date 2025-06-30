@@ -16,9 +16,7 @@ public interface TextureDetails extends AutoCloseable {
 
 record TextureDetailsSTB(ByteBuffer buffer, Texture.Type type, int width, int height) implements TextureDetails {
     @Override
-    public void close() {
-        MemoryUtil.memFree(buffer());
-    }
+    public void close() {}
 
     public int init() {
         var id = GL11.glGenTextures();

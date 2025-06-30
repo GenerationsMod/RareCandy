@@ -3,6 +3,7 @@ package gg.generations.rarecandy.renderer.model.material;
 import com.google.gson.JsonObject;
 import gg.generations.rarecandy.pokeutils.MaterialReference;
 import org.joml.Vector3f;
+import org.lwjgl.system.MemoryUtil;
 
 import java.util.Objects;
 
@@ -225,5 +226,23 @@ public class MaterialValues {
     @Override
     public int hashCode() {
         return Objects.hash(baseColor1, baseColor2, baseColor3, baseColor4, baseColor5, emiColor1, emiColor2, emiColor3, emiColor4, emiColor5, emiIntensity1, emiIntensity2, emiIntensity3, emiIntensity4, emiIntensity5, useLight);
+    }
+
+    public void put(long pointer) {
+        baseColor1.getToAddress(pointer);
+        baseColor2.getToAddress(pointer + 16);
+        baseColor3.getToAddress(pointer + 32);
+        baseColor4.getToAddress(pointer + 48);
+        baseColor5.getToAddress(pointer + 64);
+        emiColor1.getToAddress(pointer + 80);
+        emiColor2.getToAddress(pointer + 96);
+        emiColor3.getToAddress(pointer + 112);
+        emiColor4.getToAddress(pointer + 128);
+        emiColor5.getToAddress(pointer + 144);
+        MemoryUtil.memPutFloat(pointer + 160, emiIntensity1);
+        MemoryUtil.memPutFloat(pointer + 164, emiIntensity1);
+        MemoryUtil.memPutFloat(pointer + 168, emiIntensity1);
+        MemoryUtil.memPutFloat(pointer + 172, emiIntensity1);
+        MemoryUtil.memPutFloat(pointer + 176, emiIntensity1);
     }
 }

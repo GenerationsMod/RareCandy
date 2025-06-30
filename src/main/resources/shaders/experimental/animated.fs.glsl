@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 in vec2 texCoord0;
 in vec4 vertexColor;
@@ -20,32 +20,35 @@ uniform sampler2D lightmap;
 uniform sampler2D emission;
 uniform sampler2D paradoxMask;
 
-uniform int colorMethod;
-uniform int effect;
-
 uniform ivec2 light;
 
 uniform vec3 tint;
 
 uniform int frame;
 
-//material
-uniform vec3 baseColor1;
-uniform vec3 baseColor2;
-uniform vec3 baseColor3;
-uniform vec3 baseColor4;
-uniform vec3 baseColor5;
-uniform vec3 emiColor1;
-uniform vec3 emiColor2;
-uniform vec3 emiColor3;
-uniform vec3 emiColor4;
-uniform vec3 emiColor5;
-uniform float emiIntensity1;
-uniform float emiIntensity2;
-uniform float emiIntensity3;
-uniform float emiIntensity4;
-uniform float emiIntensity5;
-uniform bool useLight;
+layout(std140, binding = 0) uniform Material {
+    vec3 baseColor1;
+    vec3 baseColor2;
+    vec3 baseColor3;
+    vec3 baseColor4;
+    vec3 baseColor5;
+
+    vec3 emiColor1;
+    vec3 emiColor2;
+    vec3 emiColor3;
+    vec3 emiColor4;
+    vec3 emiColor5;
+
+    float emiIntensity1;
+    float emiIntensity2;
+    float emiIntensity3;
+    float emiIntensity4;
+    float emiIntensity5;
+
+    int colorMethod;
+    int effect;
+    bool useLight;
+};
 
 uniform vec3 Light0_Direction;
 uniform vec3 Light1_Direction;

@@ -9,7 +9,7 @@ public abstract class UniformBlockUploader implements Closeable {
     public static final int SAMPLER2D_SIZE = Integer.BYTES;
     public static final int VEC2_SIZE = Float.BYTES * 2;
     public static final int VEC3_SIZE = Float.BYTES * 3;
-    protected final int id;
+    public final int id;
 
     public UniformBlockUploader(int size, int index) {
         this.id = GL33C.glGenBuffers();

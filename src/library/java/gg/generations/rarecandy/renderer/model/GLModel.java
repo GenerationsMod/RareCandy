@@ -139,6 +139,7 @@ public class GLModel implements RenderModel {
         if(pl == null) return;
 
         pl.bind(k);
+        k.bind();
         pl.updateOtherUniforms(instance, object);
         pl.updateTexUniforms(instance, object);
         runDrawCalls();

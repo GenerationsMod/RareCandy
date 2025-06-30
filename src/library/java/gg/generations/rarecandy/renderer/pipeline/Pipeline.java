@@ -7,9 +7,9 @@ import gg.generations.rarecandy.renderer.model.material.MaterialImages;
 import gg.generations.rarecandy.renderer.model.material.MaterialValues;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
 import org.jetbrains.annotations.NotNull;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL20C;
+import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryStack;
 
 import java.util.HashMap;
@@ -18,8 +18,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppliers, Map<String, Uniform> uniforms,
-                       Consumer<Material> preDrawBatch, Consumer<Material> postDrawBatch, int program) {
+public record Pipeline(
+        Map<String, Consumer<UniformUploadContext>> uniformSuppliers,
+        Map<String, Uniform> uniforms,
+        Consumer<Material> preDrawBatch,
+        Consumer<Material> postDrawBatch,
+        int program) {
 
     public void bind(Material material) {
         GL20C.glUseProgram(program);
@@ -58,6 +62,7 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
         public Consumer<Material> postDrawRunBatch = material -> {
         };
         private Map<String, Consumer<UniformUploadContext>> uniformSuppliers = new HashMap<>();
+
         private int program;
 
         public Builder() {
@@ -125,6 +130,11 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
                     if (name.contains("[")) {
                         name = name.substring(0, name.indexOf('['));
                     }
+
+                    int[] uniformIndices = new int[] { i };
+                    int[] params = new int[1];
+                    GL31C.glGetActiveUniformsiv(program, uniformIndices, GL31C.GL_UNIFORM_BLOCK_INDEX, params);
+                    if (params[0] != -1) continue; // skip UBO uniforms
 
                     this.uniforms.put(name, new Uniform(program, name, pType.get(0), pSize.get(0)));
                 }

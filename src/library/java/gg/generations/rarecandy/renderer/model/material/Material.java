@@ -4,6 +4,10 @@ import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.CullType;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.loading.ITexture;
+import gg.generations.rarecandy.renderer.pipeline.UniformBlockProvider;
+import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -23,6 +27,8 @@ public class Material implements Closeable {
     private String shader;
     private final boolean disableDepth;
 
+    private final long pointer;
+
     public Material(String materialName, MaterialImages images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, String shader, int colorMethod, int effect) {
         this.materialName = materialName;
         this.images = images;
@@ -33,6 +39,16 @@ public class Material implements Closeable {
         this.values = values;
         this.colorMethod = colorMethod;
         this.effect = effect;
+
+        this.pointer = MemoryUtil.nmemAlloc(240);
+        updateUbo();
+    }
+
+    public void updateUbo() {
+        values.put(pointer);
+        MemoryUtil.memPutInt(pointer + 192, colorMethod);
+        MemoryUtil.memPutInt(pointer + 196, effect);
+        MemoryUtil.memPutInt(pointer + 200, values.getUseLight() ? 1 : 0);
     }
 
     public int getColorMethod() {
@@ -92,5 +108,13 @@ public class Material implements Closeable {
 
     public MaterialValues values() {
         return values;
+    }
+
+    public long getPointer() {
+        return pointer;
+    }
+
+    public void bind() {
+        MaterialUploader.INSTANCE.upload(this);
     }
 }

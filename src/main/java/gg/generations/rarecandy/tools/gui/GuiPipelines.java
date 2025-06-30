@@ -10,7 +10,9 @@ import gg.generations.rarecandy.renderer.model.material.MaterialValues;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.pipeline.UniformUploadContext;
+import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.renderer.storage.InstanceBlockUploader;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
@@ -40,12 +42,12 @@ public class GuiPipelines {
 
     public static final Pipeline ANIMATED = new Pipeline.Builder()
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
-            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
+//            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
-            .supplyUniform("boneTransforms", ctx -> {
-                var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
-                ctx.uniform().uploadMat4fs(mats);
-            })
+//            .supplyUniform("boneTransforms", ctx -> {
+//                var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
+//                ctx.uniform().uploadMat4fs(mats);
+//            })
             .supplyUniform("uvOffset", ctx -> {
                 Transform transform = ctx.object().getTransform(ctx.instance().variant());
 
@@ -147,7 +149,7 @@ public class GuiPipelines {
 
     public static final Pipeline PLANE = new Pipeline.Builder()
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
-            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
+//            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
             .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
             .supplyUniform("radius", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.radius))
@@ -169,6 +171,8 @@ public class GuiPipelines {
 
     public static void onInitialize() {
         MaterialUploader.setup(0);
+        InstanceBlockUploader.register(ObjectInstance.class, 0, ObjectInstance.MAT4_SIZE);
+        InstanceBlockUploader.register(AnimatedObjectInstance.class, 1, ObjectInstance.MAT4_SIZE * 221);
 
         PipelineRegistry.setFunction(s -> {
             return switch (s) {

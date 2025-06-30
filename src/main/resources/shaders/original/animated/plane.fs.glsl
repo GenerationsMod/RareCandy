@@ -1,4 +1,4 @@
-#version 150 core
+#version 420 core
 
 #define ambientLight 0.6f
 

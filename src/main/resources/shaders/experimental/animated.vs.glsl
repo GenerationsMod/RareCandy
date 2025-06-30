@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 #define MAX_BONES 220
 #define MINECRAFT_LIGHT_POWER   (0.6)
 #define MINECRAFT_AMBIENT_LIGHT (0.4)
@@ -21,15 +21,18 @@ uniform bool dynamicVertexColor;
 uniform int FogShape;
 
 uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
 uniform mat4 projectionMatrix;
-uniform vec2 uvOffset;
-uniform vec2 uvScale;
 
 uniform vec3 Light0_Direction;
 uniform vec3 Light1_Direction;
 
-uniform mat4 boneTransforms[MAX_BONES];
+uniform vec2 uvOffset;
+uniform vec2 uvScale;
+
+layout(std140, binding = 1) uniform Instance {
+    mat4 modelMatrix;
+    mat4 boneTransforms[MAX_BONES];
+};
 
 mat4 getBoneTransform() {
     mat4 boneTransform =

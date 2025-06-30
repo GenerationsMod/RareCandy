@@ -1,4 +1,4 @@
-#version 150 core
+#version 420 core
 #extension GL_ARB_explicit_uniform_location : enable
 #extension GL_ARB_explicit_attrib_location : enable
 
@@ -7,8 +7,12 @@ layout(location = 1) in vec2 texcoords;
 
 out vec2 texCoord0;
 
+layout(std140, binding = 0) uniform Instance {
+    mat4 modelMatrix;
+
+};
+
 uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
 uniform mat4 projectionMatrix;
 
 void main() {

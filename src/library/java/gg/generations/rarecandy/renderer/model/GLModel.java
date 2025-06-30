@@ -4,10 +4,12 @@ import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.Attribute;
 import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.model.material.MaterialUploader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
+import gg.generations.rarecandy.renderer.storage.InstanceBlockUploader;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
@@ -99,6 +101,8 @@ public class GLModel implements RenderModel {
             if (object.shouldRender(instance)) {
                 continue;
             }
+
+            InstanceBlockUploader.bind(instance);
 
             var material = object.getMaterial(instance.variant());
 

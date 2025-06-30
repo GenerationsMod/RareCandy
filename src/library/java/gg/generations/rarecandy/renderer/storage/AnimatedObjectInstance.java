@@ -15,12 +15,27 @@ import java.util.List;
 import java.util.Map;
 
 public class AnimatedObjectInstance extends ObjectInstance {
-
     @Nullable
     public AnimationInstance currentAnimation;
 
-    public AnimatedObjectInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId) {
-        super(transformationMatrix, materialId);
+    public AnimatedObjectInstance(int size, Matrix4f transformationMatrix, String materialId) {
+        super(size, transformationMatrix, materialId);
+    }
+
+    public AnimatedObjectInstance(Matrix4f transformationMatrix, String materialId) {
+        this(MAT4_SIZE * 221, transformationMatrix, materialId);
+    }
+
+    @Override
+    public void update() {
+        super.update();
+
+        var bones = getTransforms();
+
+        for (int i = 0; i < bones.length; i++) {
+            var bone = bones[i];
+            bone.getToAddress(pointer + (long) (1 + i) * MAT4_SIZE);
+        }
     }
 
     public Map<String, Animation> getAnimationsIfAvailable() {

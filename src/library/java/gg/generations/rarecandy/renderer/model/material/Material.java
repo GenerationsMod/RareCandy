@@ -92,6 +92,8 @@ public class Material implements Closeable {
             if(images.getLayer().contains(".")) ITextureLoader.instance().remove(images.getLayer());
             if(images.getMask().contains(".")) ITextureLoader.instance().remove(images.getMask());
         }
+
+        MemoryUtil.nmemFree(pointer);
     }
 
     public int maxTextureSize() {

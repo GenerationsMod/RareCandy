@@ -26,7 +26,7 @@ public class LoggerUtil {
 
     public static void print(String string) {
         checkLogger();
-        LOGGER.info(string);
+//        LOGGER.info(string);
     }
 
     public static void print(long bytesWritten) {

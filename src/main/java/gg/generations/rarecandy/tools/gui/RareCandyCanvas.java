@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.PixelAsset;
-import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
@@ -14,20 +13,18 @@ import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
-import gg.generations.rarecandy.tools.TextureLoader;
+import imgui.ImGui;
+import imgui.type.ImFloat;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.awt.AWTGLCanvas;
 import org.lwjgl.opengl.awt.GLData;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
-import javax.swing.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,7 +36,7 @@ import java.util.function.Consumer;
 import static org.lwjgl.opengl.GL11.*;
 
 
-public class RareCandyCanvas extends AWTGLCanvas {
+public class RareCandyCanvas {
     private static CycleVariants runnable;
     public static Matrix4f projectionMatrix;
     public static float radius = 2.0f;
@@ -72,6 +69,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
     private MultiRenderObject<MeshObject> cube;
     private ObjectInstance[] cubeInstances;
     private Fog fog;
+    private boolean initCalled;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
@@ -83,47 +81,22 @@ public class RareCandyCanvas extends AWTGLCanvas {
     }
 
     public RareCandyCanvas(PokeUtilsGui handler) {
-        super(defaultData());
+
         this.handler = handler;
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
-            }
-        });
+        resize(handler.getWidth(), handler.getHeight());
 
         NativeFileDialog.NFD_Init();
-//        root = DialogueUtils.chooseFolder();
-//        if(root == null) root = Path.of("pack");
+        root = DialogueUtils.chooseFolder();
+        if(root == null) root = Path.of("pack");
     }
 
-    private static GLData defaultData() {
-        var data = new GLData();
-        data.profile = GLData.Profile.CORE;
-        data.forwardCompatible = true;
-        data.api = GLData.API.GL;
-        data.majorVersion = 3;
-        data.minorVersion = 2;
-        return data;
+    public void resize(int width, int height) {
+        projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) width / height, 0.1f, 1000.0f);
     }
+
 
     public static double getTime() {
         return time;
-    }
-
-    public static void setup(RareCandyCanvas canvas) {
-
-        ITextureLoader.setInstance(new TextureLoader());
-
-        var renderLoop = new Runnable() {
-            @Override
-            public void run() {
-                if (canvas.isValid()) canvas.render();
-                SwingUtilities.invokeLater(this);
-            }
-        };
-
-        SwingUtilities.invokeLater(renderLoop);
     }
 
     public void openFile(PixelAsset pkFile, String name) throws IOException {
@@ -153,7 +126,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
             scaleModifier = loadedModel.scale;
             originalScaleModifer = loadedModel.scale;
 
-            handler.scale.reset();
+            handler.fileViewer.scale.reset();
 
             var variants = model.availableVariants();
 
@@ -169,15 +142,14 @@ public class RareCandyCanvas extends AWTGLCanvas {
         });
     }
 
-    @Override
     public void initGL() {
-        projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) getWidth() / getHeight(), 0.1f, 1000.0f);
+        projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) handler.getWidth() / handler.getHeight(), 0.1f, 1000.0f);
         GL.createCapabilities(true);
         GuiPipelines.onInitialize();
         this.renderer = new RareCandy();
 
         fog = new Fog();
-        fog.bind();
+//        fog.bind();
 
         GL11C.glClearColor(0, 0, 0, 0);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
@@ -214,8 +186,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
     private final Vector3f size = new Vector3f();
 
     private final double fraciton = 1/16f;
-    @Override
-    public void paintGL() {
+//    @Override
+    public void render() {
         if (loadedModelInstance != null) {
             loadedModelInstance.transformationMatrix().identity().scale(scaleModifier);
 
@@ -230,7 +202,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         renderToScreen();
 
         if (runnable != null) runnable.post();
-        swapBuffers();
+//        swapBuffers();
 
         if (instances.size() > 1) {
             ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
@@ -317,15 +289,13 @@ public class RareCandyCanvas extends AWTGLCanvas {
         loadedModelInstance.setVariant(variant);
     }
 
-    public void attachArcBall(GuiHandler.ArcballOrbit arcballOrbit) {
-        this.addMouseMotionListener(arcballOrbit);
-        this.addMouseWheelListener(arcballOrbit);
-        this.addMouseListener(arcballOrbit);
-    }
-
     public void toggleObject(boolean add, String object) {
         if(add) loadedModel.overrides.add(object);
         else loadedModel.overrides.remove(object);
+    }
+
+    public void renderGui() {
+        fog.render();
     }
 
 
@@ -406,17 +376,55 @@ public class RareCandyCanvas extends AWTGLCanvas {
 }
 
 class Fog extends UniformBlockUploader {
-    private final long pointer;
-    public Fog() {
-        super(Integer.BYTES + 5 * Float.BYTES, 2);
-        this.pointer = MemoryUtil.nmemAlloc(Integer.BYTES + 5 * Float.BYTES);
+    private Vector4f color = new Vector4f(1, 1, 1, 1);
+    private ImFloat start = new ImFloat(0f);
+    private ImFloat end = new ImFloat(5f);
 
-        GuiPipelines.fogColor.getToAddress(pointer);
-        MemoryUtil.memPutFloat(pointer + 16, 0.0f);
-        MemoryUtil.memPutFloat(pointer + 20, 5.0f);
+    private final float[] colorArray = new float[]{1f, 1f, 1f, 1f};
+
+    private final long pointer;
+
+    public Fog() {
+        super(VEC4_SIZE + 2 * Float.BYTES + Integer.BYTES + 4, 2);
+        this.pointer = MemoryUtil.nmemAlloc(VEC4_SIZE + 2 * Float.BYTES + Integer.BYTES);
+
+        update();
+    }
+
+    public void render() {
+        ImGui.begin("Fog");
+
+        var dirty = false;
+
+        if(ImGui.colorEdit4("Color", colorArray)) {
+            color.x = colorArray[0];
+            color.y = colorArray[1];
+            color.z = colorArray[2];
+            color.w = colorArray[3];
+
+            dirty = true;
+        }
+
+        if(ImGui.sliderFloat("Start", start.getData(), 0, end.floatValue())) {
+            dirty = true;
+        }
+
+        if(ImGui.sliderFloat("End", end.getData(), start.floatValue(), 10f)) {
+            dirty = true;
+        }
+
+        if(dirty) update();
+
+        ImGui.end();
+    }
+
+    private void update() {
+        color.getToAddress(pointer);
+        MemoryUtil.memPutFloat(pointer + 16, start.floatValue());
+        MemoryUtil.memPutFloat(pointer + 20, end.floatValue());
         MemoryUtil.memPutInt(pointer + 24, 0);
 
-        upload(0, 24, pointer);
+        upload(0, 28, pointer);
     }
 }
 

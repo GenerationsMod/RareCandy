@@ -5,15 +5,15 @@ import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
 public class MaterialUploader extends UniformBlockUploader {
     public static MaterialUploader INSTANCE;
 
-    public MaterialUploader(int index) {
-        super(208, index);
+    public MaterialUploader() {
+        super(192, 3);
     }
 
     public void upload(Material material) {
-        this.upload(0, 208, material.getPointer());
+        this.upload(0, 192, material.getPointer());
     }
 
-    public static void setup(int binding) {
-        INSTANCE = new MaterialUploader(binding);
+    public static void setup() {
+        INSTANCE = new MaterialUploader();
     }
 }

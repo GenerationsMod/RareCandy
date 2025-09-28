@@ -4,41 +4,39 @@ import com.bedrockk.molang.MoLang;
 import com.bedrockk.molang.runtime.value.DoubleValue;
 import com.github.weisj.darklaf.LafManager;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
+import gg.generations.rarecandy.renderer.launch.OpenGL;
+import gg.generations.rarecandy.tools.AppBase;
 import gg.generations.rarecandy.tools.TextureLoader;
+import imgui.ImGui;
+import imgui.flag.ImGuiInputTextFlags;
+import imgui.type.ImString;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWWindowCloseCallback;
 
-import javax.swing.*;
-import java.awt.*;
 import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 
-public class PokeUtilsGui extends JPanel {
+public class PokeUtilsGui extends AppBase {
 
 
+    private final AdvancedMenuBar menu;
     public GuiHandler handler;
-    public JTree fileViewer;
-    public JPanel canvasPanel;
-    private RareCandyCanvas renderingWindow;
-    public FloatInputComponent scale;
+    public PixelAssetTree fileViewer;
+    public RareCandyCanvas canvas;
 
-    public PokeUtilsGui() {
+    public PokeUtilsGui(String title, int width, int height) {
+        super(title, width, height, new OpenGL());
+        handler = new GuiHandler(this);
+
         ITextureLoader.setInstance(new TextureLoader());
-        LafManager.install(LafManager.themeForPreferredStyle(LafManager.getPreferredThemeStyle()));
-        initComponents();
-        canvasPanel.add(renderingWindow);
-        fileViewer.setFocusable(true);
-        canvasPanel.setFocusable(true);
 
-        var renderLoop = new Runnable() {
-            @Override
-            public void run() {
-                if (renderingWindow.isValid()) renderingWindow.render();
-                SwingUtilities.invokeLater(this);
-            }
-        };
+        this.canvas = new RareCandyCanvas(this);
+        this.fileViewer = new PixelAssetTree(this);
 
-        SwingUtilities.invokeLater(renderLoop);
+
+        menu = configureMenu();
     }
 
     public static void main(String[] args) {
@@ -47,179 +45,126 @@ public class PokeUtilsGui extends JPanel {
         } catch (Exception e) {
             System.out.println("Renderdoc not loaded. Continuing without.");
         }
-        var frame = new JFrame();
-        var gui = new PokeUtilsGui();
-        frame.setSize(new Dimension(250+512 + (512 - 482), 512));
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setContentPane(gui);
-        new GuiHandler(frame, gui);
+
+        new PokeUtilsGui(GuiHandler.BASE_TITLE, 250+512 + (512 - 482), 512).run();
     }
 
-    public void setHandler(GuiHandler handler) {
-        this.handler = handler;
-        addKeyListener(handler);
-        fileViewer.addKeyListener(handler);
-        canvasPanel.addKeyListener(handler);
+    @Override
+    protected void initGL() {
+        handler.attach(window);
+        canvas.initGL();
     }
 
-    private void createUIComponents() {
-//        System.load("C:/Program Files/RenderDoc/renderdoc.dll");
-        this.fileViewer = new PixelAssetTree(this);
-        this.renderingWindow = new RareCandyCanvas(this);
+    @Override
+    protected void renderGui() {
+        menu.render();
+        fileViewer.render();
+        TerasalizationEffect.render();
+        canvas.renderGui();
     }
-    // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 
-    private void initComponents() {
-        createUIComponents();
+    @Override
+    protected void render() {
+        canvas.render();
+    }
 
-        var toolbar = new AdvancedMenuBar(29, 20, ComponentOrientation.LEFT_TO_RIGHT).addMenu("File").addMenuItem("Open Archive (.pk)", e -> {
+    private AdvancedMenuBar configureMenu() {
+        var toolbar = new AdvancedMenuBar();
+        var file = toolbar.addMenu("File");
+        file.addItem("Open Archive (.pk)", () -> {
             var chosenFile = DialogueUtils.chooseFile("PK;pk");
             if (chosenFile != null) handler.openAsset(chosenFile);
-        }).addMenuItem("Create Archive (.glb)", e -> {
+        });
+        file.addItem("Create Archive (.glb)", () -> {
             var chosenFile = DialogueUtils.chooseFile("GLB;glb");
             if (chosenFile != null) handler.convertGlb(chosenFile);
-        }).addMenuItem("Open Multiple Archives in sequence (.pk)", e -> {
+        });
+        file.addItem("Open Multiple Archives in sequence (.pk)", () -> {
             var chosenFiles = DialogueUtils.chooseMultipleFiles("PK;pk");
             if (chosenFiles != null) handler.openAsset(chosenFiles);
-        }).addMenuItem("Save", e -> handler.save()).addMenuItem("Save As", e -> {
+        });
+        file.addItem("Save", () -> handler.save());
+        file.addItem("Save As", () -> {
             var chosenFile = DialogueUtils.saveFile("PK;pk");
             if (chosenFile != null) {
                 handler.markDirty();
                 handler.save(chosenFile);
             }
-        }).finish();
-        var splitPane1 = new JSplitPane();
-        // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
-        JScrollPane scrollPane1 = new JScrollPane();
-        canvasPanel = new JPanel();
+        });
 
-        //======== this ========
-        setMinimumSize(null);
-        setMaximumSize(null);
-        setLayout(new BorderLayout());
-
-        add(toolbar, BorderLayout.NORTH);
-
-        //======== splitPane1 ========
-        {
-            splitPane1.setMaximumSize(null);
-            splitPane1.setMinimumSize(null);
-            splitPane1.setDividerSize(4);
-            splitPane1.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-
-
-            JSlider scaleSlider = new JSlider(JSlider.HORIZONTAL, 1, 100, 50);
-            scaleSlider.setMajorTickSpacing(10);
-            scaleSlider.setMinorTickSpacing(1);
-            scaleSlider.setPaintTicks(true);
-            scaleSlider.setPaintLabels(true);
-
-            //======== scrollPane1 ========
-            {
-                JPanel panel = new JPanel();
-                panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-                panel.add(scrollPane1);
-                panel.add(scale = new FloatInputComponent(() -> renderingWindow.originalScaleModifer, value-> renderingWindow.scaleModifier = (float) value));
-
-
-                scrollPane1.setMinimumSize(new Dimension(250, 512));
-                scrollPane1.setPreferredSize(new Dimension(262, 512));
-
-                //---- fileViewer ----
-                fileViewer.setPreferredSize(new Dimension(250, 2000));
-                fileViewer.setMaximumSize(null);
-                fileViewer.setMinimumSize(new Dimension(200, 512));
-                scrollPane1.setViewportView(fileViewer);
-                splitPane1.setLeftComponent(panel);
-            }
-
-            //======== canvasPanel ========
-            {
-                canvasPanel.setMaximumSize(new Dimension(1920, 1080));
-                canvasPanel.setPreferredSize(null);
-                canvasPanel.setLayout(new BorderLayout());
-            }
-            splitPane1.setRightComponent(canvasPanel);
-        }
-        add(splitPane1, BorderLayout.CENTER);
-        // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
+        return toolbar;
     }
 
-    public class FloatInputComponent extends JPanel {
+    public void setTitle(String title) {
+        GLFW.glfwSetWindowTitle(window, title);
+    }
 
+    public static class FloatInputComponent {
+
+        private final String title;
         private final DoubleSupplier originalValue;
-        private final JLabel label;
-
-        private JTextField scaleTextField;
         private final DoubleConsumer consumer;
-        private JButton enterButton;
-        private JButton resetButton;
+        private final DecimalFormat decimalFormat = new DecimalFormat("#.####");
 
-        private DecimalFormat decimalFormat = new DecimalFormat("#.####");
+        // State
+        private float[] value;
+        private ImString textBuffer = new ImString("base"); // user input string
+        private boolean inputError = false;
 
-        public FloatInputComponent(DoubleSupplier originalValue, DoubleConsumer consumer) {
+        public FloatInputComponent(String title, DoubleSupplier originalValue, DoubleConsumer consumer) {
+            this.title = title;
             this.originalValue = originalValue;
-            // Initialize components
-            scaleTextField = new JTextField("context.base", 10);
             this.consumer = consumer;
-            scaleTextField.setCaretColor(Color.BLACK);
-
-            enterButton = new JButton("Enter");
-            resetButton = new JButton("Reset");
-
-            // Set layout
-            setLayout(new FlowLayout());
-
-            // Add components to the panel
-            add(label = new JLabel("Scale:" + originalValue.getAsDouble()));
-            add(scaleTextField);
-            add(enterButton);
-            add(resetButton);
-
-            // Add action listener for Enter button
-            enterButton.addActionListener(e -> {
-                String inputText = scaleTextField.getText();
-                try {
-                    // Attempt to parse the input as a float
-
-
-                    var runtime = MoLang.createRuntime();
-
-                    float newValue = (float) runtime.execute(MoLang.parse(inputText.replace("base", "context.base")), Map.of("base", new DoubleValue(originalValue.getAsDouble()))).asDouble();
-
-//                    float newValue = Float.parseFloat(inputText);
-                    if (newValue > 0) {  // Ensure the scale is positive
-                        consumer.accept(newValue);
-                        label.setText("Scale: " + formatScaleValue(newValue));
-                        scaleTextField.setBackground(Color.WHITE);  // Set background to green for valid input
-                    } else {
-
-                        System.out.println("WHARK??!?!" + " " + newValue);
-                        scaleTextField.setBackground(Color.RED);  // Set background to red for invalid input
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    scaleTextField.setBackground(Color.RED);  // Set background to red for invalid input
-                }
-            });
-
-            // Add action listener for Reset button
-            resetButton.addActionListener(e -> {
-                reset();
-                scaleTextField.setBackground(Color.WHITE);  // Reset background color
-            });
+            this.value = new float[]{(float) originalValue.getAsDouble()};
         }
 
-        public void reset() {
-            var number = formatScaleValue((float) originalValue.getAsDouble());
+        public void render() {
+            ImGui.text(title + ": " + formatScaleValue(value[0]));
 
-            label.setText("Scale: " + number);
-            label.setText(String.valueOf(number));
+            // Input field as text, not just float, so MoLang expressions are possible
+            ImGui.inputText("##scaleExpr", textBuffer, ImGuiInputTextFlags.EnterReturnsTrue);
 
-            consumer.accept(originalValue.getAsDouble());
+            if (ImGui.button("Enter")) {
+                apply();
+            }
+            ImGui.sameLine();
+            if (ImGui.button("Reset")) {
+                reset();
+            }
 
-            scaleTextField.setText("base");
-            scaleTextField.setBackground(Color.WHITE);  // Reset background color
+            // Visual error indicator
+            if (inputError) {
+                ImGui.textColored(1f, 0f, 0f, 1f, "Invalid expression!");
+            }
+        }
+
+        private void apply() {
+            try {
+                String inputText = textBuffer.get();
+
+                var runtime = MoLang.createRuntime();
+                double result = runtime.execute(
+                        MoLang.parse(inputText.replace("base", "context.base")),
+                        Map.of("base", new DoubleValue(originalValue.getAsDouble()))
+                ).asDouble();
+
+                if (result > 0) {
+                    value[0] = (float) result;
+                    consumer.accept(value[0]);
+                    inputError = false;
+                } else {
+                    inputError = true;
+                }
+            } catch (Exception ex) {
+                inputError = true;
+            }
+        }
+
+        protected void reset() {
+            value[0] = (float) originalValue.getAsDouble();
+            consumer.accept(value[0]);
+            textBuffer.set("base");
+            inputError = false;
         }
 
         private String formatScaleValue(float value) {

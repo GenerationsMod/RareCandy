@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RareCandy {
     private static final Queue<Runnable> TASKS = new ConcurrentLinkedQueue<>();
-    public static boolean DEBUG_THREADS = false;
+    public static boolean DEBUG_THREADS = true;
     public final ObjectManager objectManager = new ObjectManager();
     public RareCandy() {
         ThreadSafety.initContextThread();

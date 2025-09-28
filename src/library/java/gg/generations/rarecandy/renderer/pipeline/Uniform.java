@@ -8,6 +8,8 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 
+import static org.lwjgl.opengl.GL42.glBindImageTexture;
+
 public class Uniform {
     private static final FloatBuffer MAT4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(16);
     private static final FloatBuffer MAT3_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(9);
@@ -121,5 +123,22 @@ public class Uniform {
 
     public void uploadTexture(String texture, int slot) {
         uploadTexture(ITextureLoader.instance().getTexture(texture), slot);
+    }
+
+    public void uploadImage2D(ITexture texture, int unit) {
+
+        glBindImageTexture(
+                unit,                  // image unit = layout(binding=unit)
+                texture.getId(),       // GL texture ID from ITexture
+                0,                     // mip level
+                false,                 // layered (false for 2D)
+                0,                     // layer (ignored for 2D)
+                texture.access().getValue(),                // GL_READ_ONLY, GL_WRITE_ONLY, GL_READ_WRITE
+                texture.getType().internalFormat                 // e.g. GL_RGBA8
+        );
+    }
+
+    public void uploadImage2D(String texture, int unit) {
+        uploadImage2D(ITextureLoader.instance().getTexture(texture), unit);
     }
 }

@@ -66,6 +66,10 @@ dependencies {
     shadow(implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")!!)
     shadow(implementation("io.github.mudbill:dds-lwjgl:3.0.0")!!)
 
+    // imgui-java core + LWJGL3 binding
+    implementation("io.github.spair:imgui-java-binding:1.90.0")
+    implementation("io.github.spair:imgui-java-lwjgl3:1.90.0")
+    implementation("io.github.spair:imgui-java-natives-windows:1.90.0")
 
     listOf("windows", "macos", "linux", ).forEach { os ->
         listOf("-arm64", "").forEach { cpu ->

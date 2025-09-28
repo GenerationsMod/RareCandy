@@ -84,11 +84,10 @@ public class GuiPipelines {
             })
             .supplyUniform("Light0_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light0))
             .supplyUniform("Light1_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light1))
-            .supplyUniform("tera", ctx -> ctx.uniform().uploadBoolean(true))
+            .supplyUniform("tera", ctx -> ctx.uniform().uploadBoolean(TerasalizationEffect.enabled.get()))
+            .supplyUniform("teraTint", ctx -> ctx.uniform().uploadVec3f(TerasalizationEffect.teraColor))
             .supplyUniform("light", ctx -> {
                 var light = (int) (RareCandyCanvas.getLightLevel() * 15);
-//
-                System.out.println(RareCandyCanvas.getLightLevel() + " " + light);
 
                 ctx.uniform().upload2i(0, light);
             })
@@ -99,24 +98,6 @@ public class GuiPipelines {
 
                 ctx.uniform().uploadInt(i);
             })
-//            .supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()))
-//            .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor2()))
-//            .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor3()))
-//            .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor4()))
-//            .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor5()))
-//            .supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor1()))
-//            .supplyUniform("emiColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor2()))
-//            .supplyUniform("emiColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor3()))
-//            .supplyUniform("emiColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor4()))
-//            .supplyUniform("emiColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor5()))
-//            .supplyUniform("emiIntensity1", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity1()))
-//            .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity2()))
-//            .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity3()))
-//            .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity4()))
-//            .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity5()))
-//            .supplyUniform("colorMethod", ctx -> ctx.uniform().uploadInt(ctx.getMaterial().getColorMethod()))
-//            .supplyUniform("effect", ctx -> ctx.uniform().uploadInt(ctx.getMaterial().getEffect()))
-//            .supplyUniform("useLight", ctx -> ctx.uniform().uploadBoolean(ctx.getMaterial().values().getUseLight()))
             .supplySampler("diffuse", 0, MaterialImages::getDiffuse)
             .supplySampler("emission", 2, MaterialImages::getEmission)
             .supplySampler("layer", 3, MaterialImages::getLayer)
@@ -144,7 +125,6 @@ public class GuiPipelines {
 
     public static final Pipeline PLANE = new Pipeline.Builder()
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
-//            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
             .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
             .supplyUniform("radius", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.radius))
@@ -165,10 +145,10 @@ public class GuiPipelines {
     }
 
     public static void onInitialize() {
-        MaterialUploader.setup(0);
+//        MaterialUploader.setup(0);
         InstanceBlockUploader.register(ObjectInstance.class, 0, ObjectInstance.MAT4_SIZE);
         InstanceBlockUploader.register(AnimatedObjectInstance.class, 1, ObjectInstance.MAT4_SIZE * 221);
-
+        MaterialUploader.setup();
         PipelineRegistry.setFunction(s -> {
             return switch (s) {
                 case "plane" -> GuiPipelines.PLANE;

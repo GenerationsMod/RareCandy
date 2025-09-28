@@ -57,16 +57,13 @@ public class PixelAsset {
                     obj.add("transform", ctx.serialize(variantDetails.offset()));
 
                 return obj;
-            }, new BiFunction<JsonElement, JsonDeserializationContext, VariantDetails>() {
-                @Override
-                public VariantDetails apply(JsonElement jsonElement, JsonDeserializationContext ctx) {
-                    var obj = jsonElement.getAsJsonObject();
-                    var material = obj.has("material") ? obj.getAsJsonPrimitive("material").getAsString() : null;
-                    var hide = obj.has("hide") ? obj.getAsJsonPrimitive("hide").getAsBoolean() : null;
-                    Transform offset = obj.has("offset") ? ctx.deserialize(obj.get("offset"), Transform.class) : null;
-                    if(offset == null && obj.has("transform")) offset = ctx.deserialize(obj.get("transform"), Transform.class);
-                    return new VariantDetails(material, hide, offset);
-                }
+            }, (jsonElement, ctx) -> {
+                var obj = jsonElement.getAsJsonObject();
+                var material = obj.has("material") ? obj.getAsJsonPrimitive("material").getAsString() : null;
+                var hide = obj.has("hide") ? obj.getAsJsonPrimitive("hide").getAsBoolean() : null;
+                Transform offset = obj.has("offset") ? ctx.deserialize(obj.get("offset"), Transform.class) : null;
+                if(offset == null && obj.has("transform")) offset = ctx.deserialize(obj.get("transform"), Transform.class);
+                return new VariantDetails(material, hide, offset);
             }))
             .registerTypeAdapter(Transform.class, new GenericJsonThing<>((transform, ctx) -> {
                 if (transform.scale().x == 1 && transform.scale().y == 1) {
@@ -87,11 +84,18 @@ public class PixelAsset {
                 }
             }))
             .registerTypeAdapter(Vector3f.class, new GenericJsonThing<Vector3f>((json, ctx) -> {
-                var array =  new JsonArray();
-                array.add(json.x);
-                array.add(json.y);
-                array.add(json.z);
-                return array;
+                int r = Math.min(255, Math.max(0, (int)(json.x * 255)));
+                int g = Math.min(255, Math.max(0, (int)(json.y * 255)));
+                int b = Math.min(255, Math.max(0, (int)(json.z * 255)));
+                var string = String.format("#%02X%02X%02X", r, g, b);
+
+                return new JsonPrimitive(string);
+
+//                var array =  new JsonArray();
+//                array.add(json.x);
+//                array.add(json.y);
+//                array.add(json.z);
+//                return array;
             }, (json, ctx) -> {
                 var vec = new Vector3f();
                 if (json.isJsonArray()) {

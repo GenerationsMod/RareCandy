@@ -20,16 +20,22 @@ public class FrameBuffer implements ITexture {
     private final int rbo;
     private final int width;
     private final int height;
+    private final Type type;
 
     public FrameBuffer(int width, int height) {
+        this(width, height, Type.RGBA_BYTE);
+    }
+
+    public FrameBuffer(int width, int height, Type type) {
         this.width = width;
         this.height = height;
+        this.type = type;
         framebufferId = GL30.glGenFramebuffers();
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, framebufferId);
 
         textureId = GL11.glGenTextures();
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
-        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, width, height, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (java.nio.ByteBuffer) null);
+        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, type.internalFormat, width, height, 0, type.format, type.type, (java.nio.ByteBuffer) null);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
@@ -69,6 +75,16 @@ public class FrameBuffer implements ITexture {
 
     public int height() {
         return height;
+    }
+
+    @Override
+    public int getId() {
+        return textureId;
+    }
+
+    @Override
+    public Type getType() {
+        return type;
     }
 
     @Override

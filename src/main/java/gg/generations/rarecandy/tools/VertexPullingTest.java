@@ -101,7 +101,7 @@ public class VertexPullingTest { // Entry class
         colorsSSBO.bind();
 
         var instanceSSBO = new GenericSSBO<>(2, 1, GL_DYNAMIC_DRAW, SSBOUtils.MATRIX4F);
-        instanceSSBO.updateSubData(0, new Matrix4f().translate(0f, 0.5f, 0f));
+        instanceSSBO.updateSubData(0, new Matrix4f().rotateZ((float) Math.toRadians(90)));
         instanceSSBO.bind();
 
         IntBuffer drawBuf = BufferUtils.createIntBuffer(4); // Indirect draw struct

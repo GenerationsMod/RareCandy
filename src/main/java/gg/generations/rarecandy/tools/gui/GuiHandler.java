@@ -2,28 +2,27 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
+import imgui.ImGui;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFW;
 import org.tukaani.xz.LZMA2Options;
 
-import javax.swing.*;
-import java.awt.event.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.lightLevel;
-import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.setup;
 
 public class GuiHandler implements KeyListener {
     public static final Path TEMP = Path.of("temp");
     public static final LZMA2Options OPTIONS = new LZMA2Options();
-    private static final String BASE_TITLE = "Pk Explorer";
+    public static final String BASE_TITLE = "Pk Explorer";
     private final PokeUtilsGui gui;
-    private final JFrame frame;
+
     private final Set<Integer> pressedKeys = new HashSet<>();
     private final ArcballOrbit arcBall;
 
@@ -31,27 +30,24 @@ public class GuiHandler implements KeyListener {
     public Path assetPath;
     public int index = 0;
     public int amount;
-    private String currentTitle = BASE_TITLE;
     private boolean dirty = false;
     public List<Path> filesToOpen = new ArrayList<>();
 
-    public GuiHandler(JFrame frame, PokeUtilsGui gui) {
-        this.frame = frame;
+    public GuiHandler(PokeUtilsGui gui) {
         this.gui = gui;
-
-        gui.setHandler(this);
-        frame.setTitle(currentTitle);
-        frame.setVisible(true);
-        frame.pack();
-        frame.transferFocus();
         arcBall = new ArcballOrbit(getCanvas(), 3f, 0.125f, 0f);
-        getCanvas().attachArcBall(arcBall);
-        getCanvas().addKeyListener(this);
-        setup(getCanvas());
+    }
+
+    public void attach(long window) {
+        MouseMotionListener.attach(window, arcBall);
+        MouseWheelListener.attach(window, arcBall);
+        MouseListener.attach(window, arcBall);
+
+        KeyListener.attach(window, this);
     }
 
     public RareCandyCanvas getCanvas() {
-        return (RareCandyCanvas) gui.canvasPanel.getComponents()[0];
+        return gui.canvas;
     }
 
     public void initializeAsset(PixelAsset asset, Path path) {
@@ -83,8 +79,8 @@ public class GuiHandler implements KeyListener {
     public void markDirty() {
         if (!dirty) {
             this.dirty = true;
-            currentTitle = frame.getTitle() + "*";
-            frame.setTitle(frame.getTitle() + "*");
+
+            gui.setTitle(gui.title + "*");
         }
     }
 
@@ -93,9 +89,8 @@ public class GuiHandler implements KeyListener {
 
             initializeAsset(new PixelAsset(move(filePath), filePath.getFileName().toString()), filePath);
             var title = BASE_TITLE + " - " + filePath.getFileName().toString();
-            frame.setTitle(title);
-            this.currentTitle = title;
-            getCanvas().openFile(asset, FilenameUtils.getBaseName(filePath.getFileName().toString()), () -> ((PixelAssetTree) gui.fileViewer).initializeAsset(asset, assetPath, getCanvas().loadedModel.objects.get(0).animations.keySet()), true);
+            gui.setTitle(title);
+            getCanvas().openFile(asset, FilenameUtils.getBaseName(filePath.getFileName().toString()), () -> gui.fileViewer.initializeAsset(asset, assetPath, getCanvas().loadedModel.objects.get(0).animations.keySet()), true);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -138,22 +133,28 @@ public class GuiHandler implements KeyListener {
     }
 
     @Override
-    public void keyTyped(KeyEvent e) {
+    public void keyTyped(char keyChar, int keyCode, int scancode, int mods) {
     }
 
     @Override
-    public void keyPressed(KeyEvent e) {
-        pressedKeys.add(e.getKeyCode());
+    public void keyPressed(int key, int scancode, int mods) {
+        handleKey(key, scancode, mods, false);
+    }
 
-        var isCtrlPressed = e.isControlDown();
-        var isShiftPressed = e.isShiftDown();
-        var isAltPressed = e.isAltDown();
-        var code = e.getKeyCode();
+    private void handleKey(int key, int scancode, int mods, boolean heldDown) {
 
-        if (isCtrlPressed) {
-            switch (code) {
-                case KeyEvent.VK_S -> save();
-                case KeyEvent.VK_SPACE -> arcBall.reset();
+        pressedKeys.add(key);
+
+        boolean isCtrlPressed  = (mods & GLFW.GLFW_MOD_CONTROL) != 0;
+        boolean isShiftPressed = (mods & GLFW.GLFW_MOD_SHIFT)   != 0;
+        boolean isAltPressed   = (mods & GLFW.GLFW_MOD_ALT)     != 0;
+
+        if(heldDown) {
+            arcBall.keyPressed(key);
+        } else if (isCtrlPressed) {
+            switch (key) {
+                case GLFW.GLFW_KEY_S -> save();
+                case GLFW.GLFW_KEY_SPACE -> arcBall.reset();
             }
         } else if(isAltPressed) {
 //            switch (code) {
@@ -161,15 +162,15 @@ public class GuiHandler implements KeyListener {
 //                case KeyEvent.VK_Z -> new RareCandyCanvas.CycleVariants(getCanvas(), false);
 //            }
         } else if(isShiftPressed) {
-            switch (code) {
-                case KeyEvent.VK_P -> {
+            switch (key) {
+                case GLFW.GLFW_KEY_P -> {
                     new RareCandyCanvas.CycleVariants(getCanvas(), true);
                 }
-                case KeyEvent.VK_O -> {
+                case GLFW.GLFW_KEY_O -> {
                     var chosenFiles = DialogueUtils.chooseMultipleFiles("PK;pk");
                     if (chosenFiles != null) openAsset(chosenFiles);
                 }
-                case KeyEvent.VK_SPACE -> {
+                case GLFW.GLFW_KEY_SPACE -> {
                     try {
                         reloadCurrent();
                     } catch (IOException ex) {
@@ -178,11 +179,11 @@ public class GuiHandler implements KeyListener {
                 }
             }
         } else {
-            switch (code) {
-                case KeyEvent.VK_P -> {
+            switch (key) {
+                case GLFW.GLFW_KEY_P -> {
                     new RareCandyCanvas.CycleVariants(getCanvas(), false);
                 }
-                case KeyEvent.VK_O -> {
+                case GLFW.GLFW_KEY_O -> {
                     Path chosenFile;
                     if (filesToOpen.isEmpty()) {
 
@@ -196,11 +197,11 @@ public class GuiHandler implements KeyListener {
 
                     if (chosenFile != null) openAsset(chosenFile);
                 }
-                case KeyEvent.VK_OPEN_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.max(lightLevel - 0.01, 0));
-                case KeyEvent.VK_CLOSE_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.min(lightLevel + 0.01, 1));
+                case GLFW.GLFW_KEY_LEFT_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.max(lightLevel - 0.01, 0));
+                case GLFW.GLFW_KEY_RIGHT_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.min(lightLevel + 0.01, 1));
 
-                case KeyEvent.VK_SPACE -> RareCandyCanvas.animate = !RareCandyCanvas.animate;
-                default -> arcBall.keyPressed(code);
+                case GLFW.GLFW_KEY_SPACE -> RareCandyCanvas.animate = !RareCandyCanvas.animate;
+                default -> arcBall.keyPressed(key);
             }
         }
 
@@ -208,10 +209,15 @@ public class GuiHandler implements KeyListener {
     }
 
     @Override
-    public void keyReleased(KeyEvent e) {
+    public void keyReleased(int keyCode, int scancode, int mods) {
 //        System.out.println("Before: " + pressedKeys);
 //        pressedKeys.remove((Integer) e.getKeyCode());
 //        System.out.println("After: " + pressedKeys);
+    }
+
+    @Override
+    public void keyHeld(int key, int scancode, int mods) {
+        handleKey(key, scancode, mods, true);
     }
 
     public void convertGlb(Path chosenFile) {
@@ -220,9 +226,8 @@ public class GuiHandler implements KeyListener {
             var filePath = Path.of(chosenFile.toString().replace(".glb", ".pk"));
             initializeAsset(new PixelAsset(chosenFile.getFileName().toString(), is.readAllBytes()), filePath);
             var title = BASE_TITLE + " - " + filePath.getFileName().toString();
-            frame.setTitle(title);
-            this.currentTitle = title;
-            getCanvas().openFile(asset, "");
+            gui.setTitle(title);
+            gui.canvas.openFile(asset, "");
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -249,6 +254,8 @@ public class GuiHandler implements KeyListener {
         private float lastX, lastY, offsetX, offsetY;
 
         private final Vector3f centerOffset = new Vector3f();
+        private final Vector3f forward = new Vector3f(0, 0, -1);
+        private final Vector3f right   = new Vector3f(1, 0, 0);
 
         public ArcballOrbit(RareCandyCanvas canvas, float radius, float angleX, float angleY) {
             this.viewMatrix = canvas.viewMatrix;
@@ -261,44 +268,58 @@ public class GuiHandler implements KeyListener {
 
         public void update() {
             viewMatrix.identity().arcball(radius, centerOffset.x, centerOffset.y, centerOffset.z, (angleY + offsetY) * (float) Math.PI * 2f, (angleX + offsetX) * (float) Math.PI * 2f);
+
+            float yaw = (angleX + offsetX) * (float)Math.PI * 2f;
+            float cos = (float) Math.cos(yaw);
+            float sin = (float) Math.sin(yaw);
+
+            forward.set(sin, 0f, -cos);
+            right.set(cos, 0f, sin);
         }
 
         @Override
-        public void mouseDragged(MouseEvent e) {
-            int x = e.getX();
-            int y = e.getY();
-            offsetX = (x - lastX) * 0.001f;
-            offsetY = (y - lastY) * 0.001f;
+        public void mouseDragged(long window, double x, double y) {
+            float dx = (float)((x - lastX) * 0.001f);
+            float dy = (float)((y - lastY) * 0.001f);
+
+            // Determine inversion from current orientation (no prediction)
+            float currentPitch = (angleY + offsetY) * (float)Math.PI * 2f;
+            currentPitch = currentPitch - (float)Math.floor(currentPitch); // normalize to [0,1)
+            if (Math.cos(currentPitch) < 0f) {
+                dx = -dx;
+            }
+
+            offsetX = dx;
+            offsetY = dy;
             update();
         }
 
-        @Override
-        public void mouseMoved(MouseEvent e) {
-
-        }
 
         @Override
-        public void mouseWheelMoved(MouseWheelEvent e) {
-            int scrollAmount = e.getWheelRotation();
+        public void mouseMoved(long window, double x, double y) {}
+
+        @Override
+        public void mouseWheelMoved(long window, double xoffset, double yoffset) {
+            if(ImGui.getIO().getWantCaptureMouse()) return;
+            float scrollAmount = (float) yoffset;
             radius += scrollAmount * 0.1f;
             update();
         }
 
         @Override
-        public void mouseClicked(MouseEvent e) {
-        }
+        public void mouseClicked(long window, int button, int mods, double x, double y) {}
 
         @Override
-        public void mousePressed(MouseEvent e) {
+        public void mousePressed(long window, int button, int mods, double x, double y) {
             offsetX = 0;
             offsetY = 0;
 
-            lastX = e.getX();
-            lastY = e.getY();
+            lastX = (float) x;
+            lastY = (float) y;
         }
 
         @Override
-        public void mouseReleased(MouseEvent e) {
+        public void mouseReleased(long window, int button, int mods, double x, double y) {
             angleX += offsetX;
             angleY += offsetY;
             offsetX = 0;
@@ -309,27 +330,18 @@ public class GuiHandler implements KeyListener {
             update();
         }
 
-        @Override
-        public void mouseEntered(MouseEvent e) {
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-        }
-
-
         public void keyPressed(int code) {
             float lateralStep = 0.01f; // Adjust the step size as needed
 
             if(!RareCandyCanvas.cycling) {
 
                 switch (code) {
-                    case KeyEvent.VK_LEFT, KeyEvent.VK_A -> centerOffset.x -= lateralStep;
-                    case KeyEvent.VK_RIGHT, KeyEvent.VK_D -> centerOffset.x += lateralStep;
-                    case KeyEvent.VK_UP, KeyEvent.VK_W -> centerOffset.z += lateralStep;
-                    case KeyEvent.VK_DOWN, KeyEvent.VK_S -> centerOffset.z -= lateralStep;
-                    case KeyEvent.VK_PAGE_UP, KeyEvent.VK_Q -> centerOffset.y += lateralStep;
-                    case KeyEvent.VK_PAGE_DOWN, KeyEvent.VK_E -> centerOffset.y -= lateralStep;
+                    case GLFW.GLFW_KEY_LEFT, GLFW.GLFW_KEY_A -> centerOffset.fma(-lateralStep, right);
+                    case GLFW.GLFW_KEY_RIGHT, GLFW.GLFW_KEY_D -> centerOffset.fma(lateralStep, right);
+                    case GLFW.GLFW_KEY_UP, GLFW.GLFW_KEY_W -> centerOffset.fma(lateralStep, forward);
+                    case GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_S -> centerOffset.fma(-lateralStep, forward);
+                    case GLFW.GLFW_KEY_PAGE_UP, GLFW.GLFW_KEY_Q -> centerOffset.y += lateralStep;
+                    case GLFW.GLFW_KEY_PAGE_DOWN, GLFW.GLFW_KEY_E -> centerOffset.y -= lateralStep;
                 }
 
                 update();

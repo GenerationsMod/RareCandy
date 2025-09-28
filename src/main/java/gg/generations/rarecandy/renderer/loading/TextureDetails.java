@@ -12,6 +12,8 @@ public interface TextureDetails extends AutoCloseable {
     int width();
 
     int height();
+
+    ITexture.Type type();
 }
 
 record TextureDetailsSTB(ByteBuffer buffer, Texture.Type type, int width, int height) implements TextureDetails {

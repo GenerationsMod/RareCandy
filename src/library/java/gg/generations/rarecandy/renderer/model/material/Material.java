@@ -40,15 +40,15 @@ public class Material implements Closeable {
         this.colorMethod = colorMethod;
         this.effect = effect;
 
-        this.pointer = MemoryUtil.nmemAlloc(240);
+        this.pointer = MemoryUtil.nmemAlloc(192);
         updateUbo();
     }
 
     public void updateUbo() {
         values.put(pointer);
-        MemoryUtil.memPutInt(pointer + 192, colorMethod);
-        MemoryUtil.memPutInt(pointer + 196, effect);
-        MemoryUtil.memPutInt(pointer + 200, values.getUseLight() ? 1 : 0);
+        MemoryUtil.memPutInt(pointer + 176, colorMethod);
+        MemoryUtil.memPutInt(pointer + 180, effect);
+        MemoryUtil.memPutInt(pointer + 184, values.getUseLight() ? 1 : 0);
     }
 
     public int getColorMethod() {
@@ -85,7 +85,7 @@ public class Material implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         if(images != null) {
             if(images.getDiffuse().contains(".")) ITextureLoader.instance().remove(images.getDiffuse());
             if(images.getEmission().contains(".")) ITextureLoader.instance().remove(images.getDiffuse());
@@ -116,7 +116,7 @@ public class Material implements Closeable {
         return pointer;
     }
 
-    public void bind() {
+    public void bindMaterial() {
         MaterialUploader.INSTANCE.upload(this);
     }
 }

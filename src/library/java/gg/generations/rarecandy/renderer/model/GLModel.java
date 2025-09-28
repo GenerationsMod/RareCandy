@@ -4,7 +4,6 @@ import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.Attribute;
 import gg.generations.rarecandy.renderer.model.material.Material;
-import gg.generations.rarecandy.renderer.model.material.MaterialUploader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
@@ -143,7 +142,7 @@ public class GLModel implements RenderModel {
         if(pl == null) return;
 
         pl.bind(k);
-        k.bind();
+        k.bindMaterial();
         pl.updateOtherUniforms(instance, object);
         pl.updateTexUniforms(instance, object);
         runDrawCalls();

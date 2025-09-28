@@ -1,6 +1,8 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.renderer.animation.Animation;
+import imgui.ImGui;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -14,85 +16,95 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
-public class PixelAssetTree extends JTree {
+public class PixelAssetTree {
 
     public final PokeUtilsGui gui;
+    public final PokeUtilsGui.FloatInputComponent scale;
+
+    private CompositeNode tree = new CompositeNode("N/A");
 
     public PixelAssetTree(PokeUtilsGui gui) {
         super();
         this.gui = gui;
-        setDragEnabled(false);
-        setTransferHandler(new FilesystemTransferHandler());
-        setModel(null);
+        scale = new PokeUtilsGui.FloatInputComponent("Scale", () -> gui.canvas.originalScaleModifer, scale -> gui.canvas.scaleModifier = (float) scale);
 
-//        var renderer = new DefaultTreeCellRenderer() {
-//            @Override
-//            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-//                if (((DefaultMutableTreeNode) value).getUserObject() instanceof ModelConfigTree.ComponentProvider provider)
-//                    return provider.getComponent();
 //
-//                return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+//        setDragEnabled(false);
+//        setTransferHandler(new FilesystemTransferHandler());
+//        setModel(null);
+//
+//        addMouseListener(new MouseAdapter() {
+//            public void mouseReleased(MouseEvent e) {
+//                var path = getClosestPathForLocation(e.getPoint().x, e.getPoint().y);
+//
+//                if (path == null) return;
+//
+//                if (e.isPopupTrigger())
+//                    switch (path.getLastPathComponent().toString()) {
+//                        case "animations" ->
+//                                new AnimationNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
+//                        case "images" ->
+//                                new ImageNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
+//                        default ->
+//                                new TreeNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
+//                    }
+//                else if (path.getParentPath() != null) {
+//                    var node = path.getParentPath().getLastPathComponent().toString();
+//
+//                    switch (node) {
+//                        case "animations" -> PixelAssetTree.this.gui.handler.getCanvas().setAnimation(path.getLastPathComponent().toString().replace(".tranm", "").replace(".smd", "").replace(".gfbanm", ""));
+//                        case "variants" -> PixelAssetTree.this.gui.handler.getCanvas().setVariant(path.getLastPathComponent().toString());
+//                        case "objects" -> {
+//                            var object1 = path.getLastPathComponent();
+//
+//                            var object = object1.toString();
+//                            var add = object.startsWith("-");
+//
+//                            if(add) object = object.substring(1);
+//
+//                            if(object1 instanceof DefaultMutableTreeNode) {
+//                                PixelAssetTree.this.gui.handler.getCanvas().toggleObject(add, object);
+//                                ((DefaultMutableTreeNode) object1).setUserObject(!add ? "-" + object : object);
+//                            }
+//                        }
+//                    }
+//                }
 //            }
-//        };
+//        });
+//
+//        addTreeSelectionListener(e -> {
+//            var selectedNode = (DefaultMutableTreeNode) getLastSelectedPathComponent();
+//
+//            if (selectedNode != null && selectedNode.getParent() != null && selectedNode.getParent().toString().equals("animations")) {
+//                this.gui.handler.getCanvas().currentAnimation = selectedNode.toString();
+//                this.gui.handler.getCanvas().startTime = System.currentTimeMillis();
+//            }
+//        });
+    }
 
-        // Create the JTree with custom cell renderer and editor
-//        setCellRenderer(renderer);
-//        setCellEditor(new DefaultTreeCellEditor(this, renderer, new ComponentProviderEditor()));
+    public void render() {
+        ImGui.begin("File Tree");
 
-        addMouseListener(new MouseAdapter() {
-            public void mouseReleased(MouseEvent e) {
-                var path = getClosestPathForLocation(e.getPoint().x, e.getPoint().y);
+        tree.render();
+        ImGui.separator();
 
-                if (path == null) return;
+        // --- Scale input integrated here ---
+        scale.render();
 
-                if (e.isPopupTrigger())
-                    switch (path.getLastPathComponent().toString()) {
-                        case "animations" ->
-                                new AnimationNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
-                        case "images" ->
-                                new ImageNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
-                        default ->
-                                new TreeNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
-                    }
-                else if (path.getParentPath() != null) {
-                    var node = path.getParentPath().getLastPathComponent().toString();
+        ImGui.end();
+    }
 
-                    switch (node) {
-                        case "animations" -> PixelAssetTree.this.gui.handler.getCanvas().setAnimation(path.getLastPathComponent().toString().replace(".tranm", "").replace(".smd", "").replace(".gfbanm", ""));
-                        case "variants" -> PixelAssetTree.this.gui.handler.getCanvas().setVariant(path.getLastPathComponent().toString());
-                        case "objects" -> {
-                            var object1 = path.getLastPathComponent();
-
-                            var object = object1.toString();
-                            var add = object.startsWith("-");
-
-                            if(add) object = object.substring(1);
-
-                            if(object1 instanceof DefaultMutableTreeNode) {
-                                PixelAssetTree.this.gui.handler.getCanvas().toggleObject(add, object);
-                                ((DefaultMutableTreeNode) object1).setUserObject(!add ? "-" + object : object);
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        addTreeSelectionListener(e -> {
-            var selectedNode = (DefaultMutableTreeNode) getLastSelectedPathComponent();
-
-            if (selectedNode != null && selectedNode.getParent() != null && selectedNode.getParent().toString().equals("animations")) {
-                this.gui.handler.getCanvas().currentAnimation = selectedNode.toString();
-                this.gui.handler.getCanvas().startTime = System.currentTimeMillis();
-            }
-        });
+    private List<String> safeList(List<String> list) {
+        return list != null ? list : List.of();
     }
 
     public void initializeAsset(PixelAsset asset, Path assetPath, Set<String> animations) {
-        var tree = node(assetPath.getFileName().toString());
-        var animationsNode = node("animations");
-        var imagesNode = node("images");
+        tree = new CompositeNode(assetPath.getFileName().toString());
+        var animationsNode = new RadioListNode("animations", animation -> gui.canvas.setAnimation(animation));
+        var imagesNode = new CompositeNode("images");
 
         List<String> variants = asset.getConfig() != null && asset.getConfig().variants != null ? List.copyOf(asset.getConfig().variants.keySet()) : new ArrayList<>();
 
@@ -100,74 +112,209 @@ public class PixelAssetTree extends JTree {
 
         for (var s : asset.files.keySet()) {
             if(s.endsWith("tranm") || s.endsWith("tracm") || s.endsWith("gfbanm") || s.endsWith("smd")) {
-//                if(!animationStrings.contains(s)) {
-//                    animationStrings.add(s.replace(".tracm", "").replace(".tranm", "").replace(".gfbanm", "").replace(".smd", ""));
-//                }
+                if(!animationsNode.contains(s)) {
+                    animationsNode.add(s.replace(".tracm", "").replace(".tranm", "").replace(".gfbanm", "").replace(".smd", ""));
+                }
             } else if (s.endsWith("png")) {
-                imagesNode.add(node(s));
+                imagesNode.add(new TextNode(s));
             }/* else if(s.equals("config.json")) {
                 tree.add(new ModConfigTreeNode(asset.getConfig()));
-            }*/ else tree.add(node(s));
+            }*/ else tree.add(new TextNode(s));
         }
 
-        animations.stream().sorted().map(this::node).forEach(animationsNode::add);
+        animations.stream().sorted().forEach(animationsNode::add);
 
-        if (animationsNode.getChildCount() > 0) tree.add(animationsNode);
-        if (imagesNode.getChildCount() > 0) tree.add(imagesNode);
+        if (animationsNode.size() > 0) {
+            gui.canvas.setAnimation(animationsNode.getSelectedOption());
+
+            tree.add(animationsNode);
+        }
+        if (imagesNode.size() > 0) tree.add(imagesNode);
 
         if (!variants.isEmpty()) {
-            var modelAnimationsNode = node("variants");
-            for (var name : variants) modelAnimationsNode.add(node(name));
-            tree.add(modelAnimationsNode);
+            var variantsNode = new RadioListNode("variants", variant -> gui.canvas.setVariant(variant));
+            for (var name : variants) variantsNode.add(name);
+            gui.canvas.setVariant(variantsNode.getSelectedOption());
+            tree.add(variantsNode);
         }
 
-        var modelAnimationsNode = node("objects");
-        for (var name : objs) modelAnimationsNode.add(node(name));
-        tree.add(modelAnimationsNode);
-
-
-        setEditable(true);
-        setModel(new DefaultTreeModel(tree));
+        var objectsNode = new CheckboxListNode("objects", (item) -> gui.canvas.toggleObject(item.checked, item.text));
+        for (var name : objs) objectsNode.add(name, true);
+        tree.add(objectsNode);
     }
 
-    private DefaultMutableTreeNode node(String name, DefaultMutableTreeNode... children) {
-        var node = new DefaultMutableTreeNode(name);
-        for (var child : children) node.add(child);
-        return node;
+    @FunctionalInterface
+    public interface Node {
+        void render();
     }
 
-    private static class FilesystemTransferHandler extends TransferHandler {
+    public static class CompositeNode implements Node {
+        private final String label;
+        private final List<Node> children = new ArrayList<>();
 
-        @SuppressWarnings("unchecked")
-        public boolean importData(JComponent comp, Transferable t) {
-            if (!(comp instanceof PixelAssetTree tree) || !t.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                return false;
-            }
+        public CompositeNode(String label) {
+            this.label = label;
+        }
 
-            try {
-                var model = (DefaultTreeModel) tree.getModel();
-                var root = (DefaultMutableTreeNode) model.getRoot();
-                var data = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+        public void add(Node child) {
+            children.add(child);
+        }
 
-                for (var f : data) root.add(new DefaultMutableTreeNode(f.getName()));
-                return true;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        @Override
+        public void render() {
+            if (ImGui.treeNode(label)) {
+                for (Node child : children) {
+                    child.render();
+                }
+                ImGui.treePop();
             }
         }
 
-        public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
-            if (comp instanceof PixelAssetTree) {
-                for (var transferFlavor : transferFlavors) {
-                    if (!transferFlavor.equals(DataFlavor.javaFileListFlavor)) {
-                        return false;
+        public int size() {
+            return children.size();
+        }
+    }
+
+    public record TextNode(String name) implements Node {
+
+        @Override
+        public void render() {
+            ImGui.text(name);
+        }
+    }
+
+    public static class RadioListNode implements Node {
+        private final String label;
+        private final Consumer<String> consumer;
+        private final List<String> items = new ArrayList<>();
+        private int selected = -1;
+
+        public RadioListNode(String label, Consumer<String> consumer) {
+            this.label = label;
+            this.consumer = consumer;
+        }
+
+        public void add(String text) {
+            items.add(text);
+
+            if(selected == -1) {
+                selected = 0;
+            }
+        }
+
+        public int getSelectedIndex() {
+            return selected;
+        }
+
+        public String getSelectedOption() {
+            return selected >= 0 && selected < items.size() ? items.get(selected) : null;
+        }
+
+        public void select(int item) {
+            selected = item;
+            consumer.accept(getSelectedOption());
+        }
+
+        @Override
+        public void render() {
+            if (ImGui.treeNode(label)) {
+                for (int i = 0; i < items.size(); i++) {
+                    if (ImGui.radioButton(items.get(i), selected == i)) {
+                        select(i);
                     }
                 }
-
-                return true;
+                ImGui.treePop();
             }
+        }
 
-            return false;
+        public boolean contains(String name) {
+            return items.contains(name);
+        }
+
+        public int size() {
+            return items.size();
         }
     }
+
+    public static class CheckboxListNode implements Node {
+        private final String label;
+        private final Consumer<Item> consumer;
+        private final List<Item> items = new ArrayList<>();
+
+        public class Item implements Node {
+            public final String text;
+            public boolean checked;
+            public Item(String text, boolean checked) {
+                this.text = text;
+                this.checked = checked;
+            }
+
+            @Override
+            public void render() {
+                if(ImGui.checkbox(text, checked)) {
+                    checked = !checked;
+                    CheckboxListNode.this.consumer.accept(this);
+                }
+            }
+        }
+
+        public CheckboxListNode(String label, Consumer<Item> consumer) {
+            this.label = label;
+            this.consumer = consumer;
+        }
+
+        public void add(String text, boolean initial) {
+            items.add(new Item(text, initial));
+        }
+
+        public List<Item> getItems() {
+            return items;
+        }
+
+        @Override
+        public void render() {
+            if (ImGui.treeNode(label)) {
+                for (Item item : items) {
+                    item.render();
+
+                }
+                ImGui.treePop();
+            }
+        }
+    }
+
+//    private static class FilesystemTransferHandler extends TransferHandler {
+//
+//        @SuppressWarnings("unchecked")
+//        public boolean importData(JComponent comp, Transferable t) {
+//            if (!(comp instanceof PixelAssetTree tree) || !t.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+//                return false;
+//            }
+//
+//            try {
+//                var model = (DefaultTreeModel) tree.getModel();
+//                var root = (DefaultMutableTreeNode) model.getRoot();
+//                var data = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+//
+//                for (var f : data) root.add(new DefaultMutableTreeNode(f.getName()));
+//                return true;
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//
+//        public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
+//            if (comp instanceof PixelAssetTree) {
+//                for (var transferFlavor : transferFlavors) {
+//                    if (!transferFlavor.equals(DataFlavor.javaFileListFlavor)) {
+//                        return false;
+//                    }
+//                }
+//
+//                return true;
+//            }
+//
+//            return false;
+//        }
+//    }
 }

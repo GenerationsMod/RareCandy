@@ -2,6 +2,7 @@ package gg.generations.rarecandy.renderer.model.material;
 
 import com.google.gson.JsonObject;
 import gg.generations.rarecandy.pokeutils.MaterialReference;
+import imgui.ImGui;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
@@ -211,7 +212,7 @@ public class MaterialValues {
         if(emiColor2 == null) this.emiColor2 = new Vector3f(0f, 0f, 0f);
         if(emiColor3 == null) this.emiColor3 = new Vector3f(0f, 0f, 0f);
         if(emiColor4 == null) this.emiColor4 = new Vector3f(0f, 0f, 0f);
-        if(emiColor5 == null) this.emiColor5 = new Vector3f(0f, 0f, 0f);
+        if(emiColor5 == null) this.emiColor5 = new Vector3f(1f, 1f, 1f);
 
         return this;
     }
@@ -239,10 +240,10 @@ public class MaterialValues {
         emiColor3.getToAddress(pointer + 112);
         emiColor4.getToAddress(pointer + 128);
         emiColor5.getToAddress(pointer + 144);
-        MemoryUtil.memPutFloat(pointer + 160, emiIntensity1);
-        MemoryUtil.memPutFloat(pointer + 164, emiIntensity1);
-        MemoryUtil.memPutFloat(pointer + 168, emiIntensity1);
-        MemoryUtil.memPutFloat(pointer + 172, emiIntensity1);
-        MemoryUtil.memPutFloat(pointer + 176, emiIntensity1);
+        MemoryUtil.memPutFloat(pointer + 156, emiIntensity1);
+        MemoryUtil.memPutFloat(pointer + 160, emiIntensity2);
+        MemoryUtil.memPutFloat(pointer + 164, emiIntensity3);
+        MemoryUtil.memPutFloat(pointer + 168, emiIntensity4);
+        MemoryUtil.memPutFloat(pointer + 172, emiIntensity5);
     }
 }

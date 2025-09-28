@@ -4,7 +4,6 @@ import io.github.mudbill.dds.DDSFile;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL13C;
-import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.ByteArrayInputStream;
@@ -20,6 +19,7 @@ public class Texture implements ITexture {
     public int id;
     private int width;
     private int height;
+    private Type type;
 
     public Texture(TextureDetails textureDetails) {
         this.details = textureDetails;
@@ -29,6 +29,7 @@ public class Texture implements ITexture {
 
     public void bind(int slot) {
         if(details != null) {
+            this.type = details.type();
             this.id = details.init();
 //            try {
 //                details.close();
@@ -52,6 +53,16 @@ public class Texture implements ITexture {
     @Override
     public int height() {
         return height;
+    }
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public ITexture.Type getType() {
+        return type;
     }
 
     @Override
@@ -101,18 +112,4 @@ public class Texture implements ITexture {
         return new TextureDetailsSTB(image, comp == 3 ? Type.RGB_BYTE : Type.RGBA_BYTE, w, h);
     }
 
-    public enum Type {
-        RGBA_BYTE(GL30.GL_RGBA8, GL30.GL_RGBA, GL30.GL_UNSIGNED_BYTE),
-        RGB_BYTE(GL30.GL_RGB8, GL30.GL_RGB, GL30.GL_UNSIGNED_BYTE);
-
-        public final int internalFormat;
-        public final int format;
-        public final int type;
-
-        Type(int internalFormat, int format, int type) {
-            this.internalFormat = internalFormat;
-            this.format = format;
-            this.type = type;
-        }
-    }
 }

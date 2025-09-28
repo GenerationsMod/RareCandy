@@ -30,7 +30,7 @@ uniform vec3 tint;
 
 uniform int frame;
 
-layout(std140, binding = 0) uniform Material {
+layout(std140, binding = 3) uniform Material {
     vec3 baseColor1;
     vec3 baseColor2;
     vec3 baseColor3;
@@ -51,7 +51,7 @@ layout(std140, binding = 0) uniform Material {
 
     int colorMethod;
     int effect;
-    bool useLight;
+    int useLight;
 };
 
 uniform vec3 Light0_Direction;
@@ -324,53 +324,54 @@ vec4 process(vec4 color) {
 
 #define FACET_RES           8.0
 #define SHIMMER_BANDS       5.0
-#define GAMMA_CORRECTION    1.4
+#define GAMMA_CORRECTION    1.05
 #define SHIMMER_STRENGTH    0.8
 #define IRIDESCENCE_STRENGTH 0.2
 
 uniform bool tera;
+uniform vec3 teraTint;
 
 in vec3 fragViewDir;
 in vec3 worldPos;
 
-vec3 calculateTersaalizationEffect(
-    vec3 baseColor
-) {
+vec3 calculateTersaalizationEffect(vec3 baseColor) {
     vec3 N = normalize(cross(dFdx(worldPos), dFdy(worldPos)));
     vec3 V = normalize(fragViewDir);
 
-    // Fresnel rim lighting
     float fresnel = pow(1.0 - max(dot(N, V), 0.0), 5.0);
-
-    // Directional lighting response
     float lightResponse = max(dot(N, TERA_LIGHT_DIRECT), 0.0);
 
-    // Facet simulation via quantized normals
     vec3 faceted = normalize(floor(N * FACET_RES + 0.5) / FACET_RES);
     float facetResponse = pow(max(dot(faceted, V), 0.0), 6.0);
 
-    // Composite shimmer signal
     float shimmer = fresnel * 0.5 + lightResponse * 0.3 + facetResponse * 0.8;
     shimmer = pow(clamp(shimmer, 0.0, 1.0), GAMMA_CORRECTION);
 
-    // Posterization
     shimmer = floor(shimmer * SHIMMER_BANDS) / SHIMMER_BANDS;
 
-    // Micro-noise based on 3D direction
     float angleNoise = abs(sin(dot(N.xyz, vec3(12.9898, 78.233, 45.164)) * 43758.5453));
     shimmer += angleNoise * 0.02;
 
-    // Optional iridescent variation
-    vec3 iridescent = vec3(1.0, 0.9, 0.8) + vec3(0.05, -0.02, 0.03) * sin(shimmer * 20.0);
+    // Adjusted iridescent base to be less blinding
+    vec3 iridescent = vec3(0.9, 0.85, 0.8) + vec3(0.05, -0.02, 0.03) * sin(shimmer * 20.0);
 
-    // Tint variation based on light response
-    vec3 directionalTint = mix(TERATYPE_TINT, vec3(1.0), lightResponse);
+    vec3 directionalTint = mix(teraTint, vec3(1.0), lightResponse);
 
-    // Final output
-    return baseColor
-    + directionalTint * shimmer * SHIMMER_STRENGTH
-    + iridescent * shimmer * IRIDESCENCE_STRENGTH;
+    // --- Brightness control section ---
+    float shimmerIntensity = clamp(shimmer * 0.85, 0.0, 0.9);  // Scale down max shimmer
+    vec3 shimmerContribution = directionalTint * shimmerIntensity * SHIMMER_STRENGTH;
+
+    vec3 iridescentContribution = iridescent * shimmerIntensity * IRIDESCENCE_STRENGTH;
+
+    // Final composite
+    vec3 result = baseColor + shimmerContribution + iridescentContribution;
+
+    // Soft clamp to avoid overshooting extreme whites
+    result = clamp(result, 0.0, 1.0);
+
+    return result;
 }
+
 //////////////////////////////////////
 
 void main() {
@@ -384,7 +385,7 @@ void main() {
 
     if(tera) {
         outColor.rgb = calculateTersaalizationEffect(outColor.rgb);
-    } else if (useLight) {
+    } else if (useLight == 1) {
         outColor *= vertexColor;
         // Sample Minecraft's light level from the lightmap texture
         vec4 minecraftLight = minecraft_sample_lightmap(lightmap, light);

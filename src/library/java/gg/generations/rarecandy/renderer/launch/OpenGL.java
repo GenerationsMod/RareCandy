@@ -11,27 +11,8 @@ public final class OpenGL {
     public final int minorVersion;
 
     public OpenGL() {
-        var caps = GL.createCapabilities();
-        GL.setCapabilities(null);
         this.majorVersion = 4;
         this.minorVersion = 6;
-    }
-
-    public void glfwCreate() {
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_CORE_PROFILE, GLFW.GLFW_TRUE);
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_FALSE);
-        GLFW.glfwWindowHint(GLFW.GLFW_VERSION_MAJOR, majorVersion);
-        GLFW.glfwWindowHint(GLFW.GLFW_VERSION_MINOR, minorVersion);
-    }
-
-    public GLData awtCreate() {
-        var data = new GLData();
-        data.api = GLData.API.GL;
-        data.profile = GLData.Profile.CORE;
-        data.forwardCompatible = false;
-        data.majorVersion = majorVersion;
-        data.minorVersion = minorVersion;
-        return data;
     }
 
     @Override

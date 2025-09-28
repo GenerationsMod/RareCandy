@@ -34,6 +34,7 @@ import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL30C.*;
 
 public class ModelLoader {
+    public static int byteAmount;
     private final ExecutorService modelLoadingPool;
 
     private static Vector3f temp = new Vector3f();
@@ -296,6 +297,8 @@ public class ModelLoader {
 
         var length = calculateVertexSize(ATTRIBUTES);
         var amount = mesh.mNumVertices();
+
+        byteAmount += length * amount;
 
         var vertexBuffer = MemoryUtil.memAlloc(length * amount);
 

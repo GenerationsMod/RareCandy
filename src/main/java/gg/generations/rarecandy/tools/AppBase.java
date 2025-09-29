@@ -1,18 +1,27 @@
 package gg.generations.rarecandy.tools;
 
+import com.google.gson.JsonObject;
+import gg.generations.rarecandy.pokeutils.ModelConfig;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.launch.OpenGL;
 import gg.generations.rarecandy.renderer.loading.BlankTexture;
 import imgui.ImGui;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public abstract class AppBase {
+    private static final Vector4f DEFAULT_CLEAR_COLOR = new Vector4f();
     public final String title;
     protected long window;
     private int width;
@@ -23,7 +32,7 @@ public abstract class AppBase {
     private ImGuiImplGl3 imguiGl3;
     private BlankTexture target;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         new ComputeShaderDemo().run();
     }
 
@@ -42,7 +51,7 @@ public abstract class AppBase {
         cleanup();
     }
 
-    private void initWindow() {
+    protected void initWindow() {
         if (!glfwInit()) throw new IllegalStateException("Unable to init GLFW");
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, data.majorVersion);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, data.minorVersion);
@@ -77,7 +86,9 @@ public abstract class AppBase {
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
 
-            glClearColor(0f, 0f, 0f, 1f);
+            var clear = clearColor();
+
+            glClearColor(clear.x, clear.y, clear.z, clear.w);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glEnable(GL_DEPTH_TEST);
@@ -94,6 +105,10 @@ public abstract class AppBase {
 
             glfwSwapBuffers(window);
         }
+    }
+
+    protected Vector4f clearColor() {
+        return DEFAULT_CLEAR_COLOR;
     }
 
     protected abstract void renderGui();

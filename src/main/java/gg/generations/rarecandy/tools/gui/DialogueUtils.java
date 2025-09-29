@@ -1,5 +1,8 @@
 package gg.generations.rarecandy.tools.gui;
 
+import imgui.extension.imguifiledialog.ImGuiFileDialog;
+import imgui.extension.imguifiledialog.callback.ImGuiFileDialogPaneFun;
+import imgui.extension.imguifiledialog.flag.ImGuiFileDialogFlags;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.util.nfd.NFDFilterItem;
@@ -10,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static gg.generations.rarecandy.renderer.LoggerUtil.print;
@@ -102,5 +106,56 @@ public class DialogueUtils {
 
 
         return null;
+    }
+
+    private static ImGuiFileDialogPaneFun dummy = new ImGuiFileDialogPaneFun() {
+        @Override
+        public void accept(String filter, long userDatas, boolean canContinue) {
+
+        }
+    };
+
+    public static void chooseMultipleFiles(String id, String title, String filter, String path) {
+        choose(id, title, filter, path, 500);
+    }
+
+    public static void choose(String id, String title, String filter, String path, int count) {
+        ImGuiFileDialog.openModal(id, title, filter, path, dummy, 250, count, 0, ImGuiFileDialogFlags.None);
+    }
+
+    public static void chooseFile(String id, String title, String filter, String path) {
+        choose(id, title, filter, path, 1);
+    }
+
+    public static boolean checkSingleFile(String id, Consumer<Path> consumer) {
+        var wasUsed = false;
+
+        if (ImGuiFileDialog.display(id, ImGuiFileDialogFlags.None, 600, 400, 800, 600)) {
+            if (ImGuiFileDialog.isOk()) {
+                ImGuiFileDialog.getSelection().values().stream().map(Paths::get).findFirst().ifPresent(consumer);
+            }
+            ImGuiFileDialog.close();
+            wasUsed = true;
+        }
+
+        return wasUsed;
+    }
+
+    public static boolean checkMultipleFiles(String id, Consumer<List<Path>> consumer) {
+        var wasUsed = false;
+
+        if (ImGuiFileDialog.display(id, ImGuiFileDialogFlags.None, 600, 400, 800, 600)) {
+            if (ImGuiFileDialog.isOk()) {
+                var list = ImGuiFileDialog.getSelection().values().stream().map(Paths::get).toList();
+
+                if(!list.isEmpty()) {
+                    consumer.accept(list);
+                    wasUsed = true;
+                }
+            }
+            ImGuiFileDialog.close();
+        }
+
+        return wasUsed;
     }
 }

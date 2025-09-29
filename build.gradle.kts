@@ -67,9 +67,10 @@ dependencies {
     shadow(implementation("io.github.mudbill:dds-lwjgl:3.0.0")!!)
 
     // imgui-java core + LWJGL3 binding
-    implementation("io.github.spair:imgui-java-binding:1.90.0")
-    implementation("io.github.spair:imgui-java-lwjgl3:1.90.0")
-    implementation("io.github.spair:imgui-java-natives-windows:1.90.0")
+    shadowTools(implementation("io.github.spair:imgui-java-binding:1.88.0")!!)
+    shadowTools(implementation("io.github.spair:imgui-java-lwjgl3:1.88.0")!!)
+    shadowTools(implementation("io.github.spair:imgui-java-natives-windows:1.88.0")!!)
+    shadowTools(implementation("io.github.spair:imgui-java-natives-linux:1.88.0")!!)
 
     listOf("windows", "macos", "linux", ).forEach { os ->
         listOf("-arm64", "").forEach { cpu ->
@@ -85,10 +86,10 @@ dependencies {
     shadowTools(implementation("org.slf4j:slf4j-jdk14:2.0.12")!!)
 
     // PokeUtils Libs
-    shadowTools(implementation("com.github.weisj:darklaf-core:3.0.2")!!)
-    shadowTools(implementation("com.intellij:forms_rt:7.0.3")!!)
+//    shadowTools(implementation("com.github.weisj:darklaf-core:3.0.2")!!)
+//    shadowTools(implementation("com.intellij:forms_rt:7.0.3")!!)
     shadowTools(implementation("org.lwjgl", "lwjgl-nfd"))
-    shadowTools(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
+//    shadowTools(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
 
     shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.5.26")!!)
 

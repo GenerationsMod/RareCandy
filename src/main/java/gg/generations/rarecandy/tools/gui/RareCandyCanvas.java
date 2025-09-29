@@ -20,10 +20,9 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.awt.GLData;
 import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.util.nfd.NativeFileDialog;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -68,7 +67,7 @@ public class RareCandyCanvas {
     public static boolean renderingFrame;
     private MultiRenderObject<MeshObject> cube;
     private ObjectInstance[] cubeInstances;
-    private Fog fog;
+    private FogUploader fogUploader;
     private boolean initCalled;
 
     public static void setLightLevel(float lightLevel) {
@@ -81,13 +80,9 @@ public class RareCandyCanvas {
     }
 
     public RareCandyCanvas(PokeUtilsGui handler) {
-
         this.handler = handler;
         resize(handler.getWidth(), handler.getHeight());
 
-        NativeFileDialog.NFD_Init();
-        root = DialogueUtils.chooseFolder();
-        if(root == null) root = Path.of("pack");
     }
 
     public void resize(int width, int height) {
@@ -145,13 +140,11 @@ public class RareCandyCanvas {
     public void initGL() {
         projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) handler.getWidth() / handler.getHeight(), 0.1f, 1000.0f);
         GL.createCapabilities(true);
-        GuiPipelines.onInitialize();
+        GuiPipelines.onInitialize(handler.settings);
         this.renderer = new RareCandy();
 
-        fog = new Fog();
-//        fog.bind();
+        fogUploader = new FogUploader(handler.settings.fog);
 
-        GL11C.glClearColor(0, 0, 0, 0);
         GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
         framebuffer = new FrameBuffer(1024, 1024);
@@ -161,7 +154,7 @@ public class RareCandyCanvas {
 
         loadPlane(100, 100, model -> {
             plane = model;
-            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), null));
+            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), "plane"));
         });
 
 //        loadCube(1, 1, 1, model -> {
@@ -202,7 +195,6 @@ public class RareCandyCanvas {
         renderToScreen();
 
         if (runnable != null) runnable.post();
-//        swapBuffers();
 
         if (instances.size() > 1) {
             ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
@@ -229,10 +221,6 @@ public class RareCandyCanvas {
 
         GL11C.glViewport(0, 0, 1024, 1024);
 
-
-        GL11C.glClearColor(0.3f, 0.3f, 0.5f, 0.0f); // Ensure alpha is set to 0 for transparency
-        GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-
         renderer.render(RenderStage.SOLID, false, time);
         renderer.render(RenderStage.TRANSPARENT, false, time);
 
@@ -243,17 +231,8 @@ public class RareCandyCanvas {
     }
 
     private void renderToScreen() {
-
-//        BlendType.Regular.enable();
-
-        GL11C.glClearColor(0,0,0, 1f); // Ensure alpha is set to 0 for transparency
-        GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-
-//        ObjectManager.render(plane, planeInstance);
         renderer.render(RenderStage.SOLID, false, time);
         renderer.render(RenderStage.TRANSPARENT, false, time);
-
-//        BlendType.Regular.disable();
     }
 
     public AnimationInstance createInstance(Animation animation) {
@@ -274,8 +253,6 @@ public class RareCandyCanvas {
     public void setAnimation(@NotNull String animation) {
         AnimatedMeshObject object = loadedModel.objects.get(0);
 
-//        if (object.animations != null)
-//            LoggerUtil.print(animation);
         if (Objects.requireNonNull(object.animations).containsKey(animation)) {
             loadedModelInstance.changeAnimation(createInstance(object.animations.get(animation)));
         }
@@ -290,14 +267,14 @@ public class RareCandyCanvas {
     }
 
     public void toggleObject(boolean add, String object) {
-        if(add) loadedModel.overrides.add(object);
-        else loadedModel.overrides.remove(object);
+        if(loadedModel.overrides.contains(object)) {
+            if(add) {
+                loadedModel.overrides.remove(object);
+            }
+        } else if(!add) {
+            loadedModel.overrides.add(object);
+        }
     }
-
-    public void renderGui() {
-        fog.render();
-    }
-
 
     public static final Path images = Path.of("assets", "generations_core", "textures", "pokemon");
 
@@ -375,56 +352,26 @@ public class RareCandyCanvas {
     }
 }
 
-class Fog extends UniformBlockUploader {
-    private Vector4f color = new Vector4f(1, 1, 1, 1);
-    private ImFloat start = new ImFloat(0f);
-    private ImFloat end = new ImFloat(5f);
-
-    private final float[] colorArray = new float[]{1f, 1f, 1f, 1f};
-
+class FogUploader extends UniformBlockUploader {
     private final long pointer;
 
-    public Fog() {
-        super(VEC4_SIZE + 2 * Float.BYTES + Integer.BYTES + 4, 2);
+    public FogUploader(PokeUtilsGui.Settings.Fog fog) {
+        super(VEC4_SIZE + 2 * Float.BYTES + Integer.BYTES + 4, 0);
         this.pointer = MemoryUtil.nmemAlloc(VEC4_SIZE + 2 * Float.BYTES + Integer.BYTES);
-
-        update();
+        update(fog);
+        fog.setListener(this::update);
     }
 
-    public void render() {
-        ImGui.begin("Fog");
+    private void update(PokeUtilsGui.Settings.Fog fog) {
+        var clear = fog.color.getValue();
 
-        var dirty = false;
-
-        if(ImGui.colorEdit4("Color", colorArray)) {
-            color.x = colorArray[0];
-            color.y = colorArray[1];
-            color.z = colorArray[2];
-            color.w = colorArray[3];
-
-            dirty = true;
-        }
-
-        if(ImGui.sliderFloat("Start", start.getData(), 0, end.floatValue())) {
-            dirty = true;
-        }
-
-        if(ImGui.sliderFloat("End", end.getData(), start.floatValue(), 10f)) {
-            dirty = true;
-        }
-
-        if(dirty) update();
-
-        ImGui.end();
-    }
-
-    private void update() {
-        color.getToAddress(pointer);
-        MemoryUtil.memPutFloat(pointer + 16, start.floatValue());
-        MemoryUtil.memPutFloat(pointer + 20, end.floatValue());
+        fog.color.getValue().getToAddress(pointer);
+        MemoryUtil.memPutFloat(pointer + 16, fog.start.floatValue());
+        MemoryUtil.memPutFloat(pointer + 20, fog.end.floatValue());
         MemoryUtil.memPutInt(pointer + 24, 0);
 
         upload(0, 28, pointer);
+
     }
 }
 

@@ -112,9 +112,9 @@ public class PixelAssetTree {
 
         for (var s : asset.files.keySet()) {
             if(s.endsWith("tranm") || s.endsWith("tracm") || s.endsWith("gfbanm") || s.endsWith("smd")) {
-                if(!animationsNode.contains(s)) {
-                    animationsNode.add(s.replace(".tracm", "").replace(".tranm", "").replace(".gfbanm", "").replace(".smd", ""));
-                }
+//                if(!animations.contains(s)) {
+//                    animationsNode.add(s.replace(".tracm", "").replace(".tranm", "").replace(".gfbanm", "").replace(".smd", ""));
+//                }
             } else if (s.endsWith("png")) {
                 imagesNode.add(new TextNode(s));
             }/* else if(s.equals("config.json")) {

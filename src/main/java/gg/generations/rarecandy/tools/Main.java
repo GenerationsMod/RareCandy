@@ -210,7 +210,11 @@ public class Main {
 //     }
 
     private static void archiveExplorer(String[] args) {
-        PokeUtilsGui.main(args);
+        try {
+            PokeUtilsGui.main(args);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void main(String[] args) throws IOException {

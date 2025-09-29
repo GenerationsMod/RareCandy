@@ -9,7 +9,7 @@ out vec4 outColor;
 uniform vec4 ColorModulator;
 
 //fog
-layout(std140, binding = 2) uniform Fog {
+layout(std140, binding = 0) uniform Fog {
     vec4 FogColor;
     float FogStart;
     float FogEnd;
@@ -30,7 +30,7 @@ uniform vec3 tint;
 
 uniform int frame;
 
-layout(std140, binding = 3) uniform Material {
+layout(std140, binding = 2) uniform Material {
     vec3 baseColor1;
     vec3 baseColor2;
     vec3 baseColor3;

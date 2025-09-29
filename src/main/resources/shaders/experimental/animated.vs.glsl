@@ -27,7 +27,7 @@ uniform vec3 Light1_Direction;
 uniform vec2 uvOffset;
 uniform vec2 uvScale;
 
-layout(std140, binding = 2) uniform Fog {
+layout(std140, binding = 0) uniform Fog {
     vec4 FogColor;
     float FogStart;
     float FogEnd;

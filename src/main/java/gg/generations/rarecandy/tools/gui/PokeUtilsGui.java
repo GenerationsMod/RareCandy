@@ -2,32 +2,64 @@ package gg.generations.rarecandy.tools.gui;
 
 import com.bedrockk.molang.MoLang;
 import com.bedrockk.molang.runtime.value.DoubleValue;
-import com.github.weisj.darklaf.LafManager;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.launch.OpenGL;
 import gg.generations.rarecandy.tools.AppBase;
 import gg.generations.rarecandy.tools.TextureLoader;
+import gg.generations.rarecandy.tools.gui.imgui.ImBoolean;
+import gg.generations.rarecandy.tools.gui.imgui.ImVector3f;
+import gg.generations.rarecandy.tools.gui.imgui.ImVector4f;
+import gg.generations.rarecandy.tools.gui.imgui.Serializers;
 import imgui.ImGui;
+import imgui.extension.imguifiledialog.ImGuiFileDialog;
+import imgui.extension.imguifiledialog.callback.ImGuiFileDialogPaneFun;
+import imgui.extension.imguifiledialog.flag.ImGuiFileDialogFlags;
 import imgui.flag.ImGuiInputTextFlags;
+import imgui.type.ImFloat;
 import imgui.type.ImString;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWWindowCloseCallback;
+import org.lwjgl.glfw.GLFWWindowCloseCallbackI;
+import org.lwjgl.opengl.GL11;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 
 public class PokeUtilsGui extends AppBase {
+    public static Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(ImBoolean.class, new ImBoolean.Serializer())
+            .registerTypeAdapter(ImVector3f.class, new ImVector3f.Serializer())
+            .registerTypeAdapter(ImVector4f.class, new ImVector4f.Serializer())
+            .registerTypeAdapter(ImFloat.class, new Serializers.ImFloatSerializer())
+            .setPrettyPrinting()
+            .create();
 
 
     private final AdvancedMenuBar menu;
     public GuiHandler handler;
     public PixelAssetTree fileViewer;
     public RareCandyCanvas canvas;
+    protected Settings settings;
+    private static Path settingsPath = Paths.get("settings.json");
 
-    public PokeUtilsGui(String title, int width, int height) {
+    public PokeUtilsGui(String title, int width, int height) throws IOException {
         super(title, width, height, new OpenGL());
+
+        setupSettings();
+
         handler = new GuiHandler(this);
 
         ITextureLoader.setInstance(new TextureLoader());
@@ -35,11 +67,28 @@ public class PokeUtilsGui extends AppBase {
         this.canvas = new RareCandyCanvas(this);
         this.fileViewer = new PixelAssetTree(this);
 
-
         menu = configureMenu();
     }
 
-    public static void main(String[] args) {
+    @Override
+    protected void initWindow() {
+        super.initWindow();
+
+        GLFW.glfwSetWindowCloseCallback(window, window -> close());
+    }
+
+    private void setupSettings() throws IOException {
+        if(Files.exists(settingsPath)) {
+            settings = GSON.fromJson(Files.readString(settingsPath), Settings.class);
+        } else {
+            settings = new Settings();
+            Files.createFile(settingsPath);
+
+            Files.writeString(settingsPath, GSON.toJson(settings));
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
         try {
             System.loadLibrary("renderdoc");
         } catch (Exception e) {
@@ -59,8 +108,8 @@ public class PokeUtilsGui extends AppBase {
     protected void renderGui() {
         menu.render();
         fileViewer.render();
-        TerasalizationEffect.render();
-        canvas.renderGui();
+        settings.render();
+        processFileDialogs();
     }
 
     @Override
@@ -71,28 +120,42 @@ public class PokeUtilsGui extends AppBase {
     private AdvancedMenuBar configureMenu() {
         var toolbar = new AdvancedMenuBar();
         var file = toolbar.addMenu("File");
-        file.addItem("Open Archive (.pk)", () -> {
-            var chosenFile = DialogueUtils.chooseFile("PK;pk");
-            if (chosenFile != null) handler.openAsset(chosenFile);
-        });
-        file.addItem("Create Archive (.glb)", () -> {
-            var chosenFile = DialogueUtils.chooseFile("GLB;glb");
-            if (chosenFile != null) handler.convertGlb(chosenFile);
-        });
-        file.addItem("Open Multiple Archives in sequence (.pk)", () -> {
-            var chosenFiles = DialogueUtils.chooseMultipleFiles("PK;pk");
-            if (chosenFiles != null) handler.openAsset(chosenFiles);
-        });
+        file.addItem("Open Archive (.pk)", () -> DialogueUtils.chooseFile("open-archive", "Open Archive", ".pk", settings.urls.openArchiveUrl));
+        file.addItem("Create Archive (.glb)", () -> DialogueUtils.chooseFile("create-archive", "Create Archive", ".glb", settings.urls.createArchiveUrl));
+        file.addItem("Open Multiple Archives in sequence (.pk)", () -> DialogueUtils.chooseMultipleFiles("sequence", "Open Multiple Archives", ".pk", settings.urls.sequenceUrl));
         file.addItem("Save", () -> handler.save());
-        file.addItem("Save As", () -> {
-            var chosenFile = DialogueUtils.saveFile("PK;pk");
-            if (chosenFile != null) {
-                handler.markDirty();
-                handler.save(chosenFile);
-            }
-        });
+        file.addItem("Save As", () -> DialogueUtils.chooseFile("save-as", "Save As", ".pk", settings.urls.saveAsUrl));
 
         return toolbar;
+    }
+
+    private void close() {
+        try {
+            Files.writeString(settingsPath, GSON.toJson(settings));
+        } catch (IOException e) {
+
+        }
+    }
+
+    private void processFileDialogs() {
+
+        if(DialogueUtils.checkSingleFile("open-archive", path -> {
+            handler.openAsset(path);
+            settings.urls.openArchiveUrl = path.toString();
+        })) {}
+        else if(DialogueUtils.checkSingleFile("create-archive", file -> {
+            handler.convertGlb(file);
+            settings.urls.createArchiveUrl = file.toString();
+        })) {}
+        else if(DialogueUtils.checkMultipleFiles("sequence", files -> {
+            handler.openAsset(files);
+            settings.urls.sequenceUrl = files.get(0).toString();
+        })) {}
+        else if(DialogueUtils.checkSingleFile("save-as", file -> {
+            handler.markDirty();
+            handler.save(file);
+            settings.urls.saveAsUrl = file.toString();
+        })) {}
     }
 
     public void setTitle(String title) {
@@ -169,6 +232,89 @@ public class PokeUtilsGui extends AppBase {
 
         private String formatScaleValue(float value) {
             return decimalFormat.format(value);
+        }
+    }
+
+    @Override
+    protected Vector4f clearColor() {
+        return settings.fog.color.getValue();
+    }
+
+    public static class Settings {
+        public Urls urls = new Urls();
+        public Terastalization terastalization = new Terastalization();
+        public Features features = new Features();
+        public Fog fog = new Fog();
+
+        public void render() {
+            if(features.terastalization.getValue()) terastalization.render();
+            if(features.fog.getValue()) fog.render();
+            features.render();
+        }
+
+        public static class Urls {
+            public String openArchiveUrl = ".";
+            public String saveAsUrl = ".";
+            public String createArchiveUrl = ".";
+            public String sequenceUrl = ".";
+        }
+
+        public static class Terastalization {
+            public ImBoolean enabled = new ImBoolean(false);
+            public ImVector3f tint = new ImVector3f(1, 1, 1);
+
+            public void render() {
+                ImGui.begin("Terastalization");
+                enabled.render("Enabled");
+                tint.render("Tint");
+                ImGui.end();
+            }
+        }
+
+        public static class Features {
+            ImBoolean terastalization = new ImBoolean(true);
+            ImBoolean fog = new ImBoolean(true);
+
+            public void render() {
+                ImGui.begin("Features");
+                terastalization.render("Terastalization");
+                fog.render("Fog");
+                ImGui.end();
+            }
+        }
+
+        public class Fog {
+            public ImVector4f color = new ImVector4f(1, 1, 1, 1);
+            public ImFloat start = new ImFloat(0f);
+            public ImFloat end = new ImFloat(5f);
+            transient private Consumer<Fog> consumer;
+
+
+            public void setListener(Consumer<Fog> consumer) {
+                this.consumer = consumer;
+            }
+
+            public void render() {
+                ImGui.begin("Fog");
+
+                var dirty = false;
+
+                if(color.render("Color")) {
+                    dirty = true;
+                }
+
+                if(ImGui.sliderFloat("Start", start.getData(), 0, end.floatValue())) {
+                    dirty = true;
+                }
+
+                if(ImGui.sliderFloat("End", end.getData(), start.floatValue(), 10f)) {
+                    dirty = true;
+                }
+
+                if(dirty && consumer != null) consumer.accept(this);
+
+                ImGui.end();
+            }
         }
     }
 }

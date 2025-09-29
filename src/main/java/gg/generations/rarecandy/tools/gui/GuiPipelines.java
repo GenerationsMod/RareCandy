@@ -40,120 +40,120 @@ public class GuiPipelines {
 
     private static final Vector3f ONE = new Vector3f(1,1, 1);
 
-    public static final Pipeline ANIMATED = new Pipeline.Builder()
-            .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
-//            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
-            .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
-//            .supplyUniform("boneTransforms", ctx -> {
-//                var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
-//                ctx.uniform().uploadMat4fs(mats);
-//            })
-            .supplyUniform("uvOffset", ctx -> {
-                Transform transform = ctx.object().getTransform(ctx.instance().variant());
-
-                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
-                    var t = instance.getTransform(ctx.getMaterial().getMaterialName());
-
-                    if (t != null && !t.isUnit()) {
-                        transform = t;
-                    }
-                }
-
-                var offset = transform.offset();
-
-                if(offset == null) offset = Transform.DEFAULT_OFFSET;
-
-                ctx.uniform().uploadVec2f(offset);
-            })
-            .supplyUniform("uvScale", ctx -> {
-                Transform transform = ctx.object().getTransform(ctx.instance().variant());
-
-                if (ctx.instance() instanceof AnimatedObjectInstance instance) {
-                    var t = instance.getTransform(ctx.getMaterial().getMaterialName());
-
-                    if (t != null && !t.isUnit()) {
-                        transform = t;
-                    }
-                }
-
-                var scale = transform.scale();
-
-                if(scale == null) scale = Transform.DEFAULT_SCALE;
-
-                ctx.uniform().uploadVec2f(scale);
-            })
-            .supplyUniform("Light0_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light0))
-            .supplyUniform("Light1_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light1))
-            .supplyUniform("tera", ctx -> ctx.uniform().uploadBoolean(TerasalizationEffect.enabled.get()))
-            .supplyUniform("teraTint", ctx -> ctx.uniform().uploadVec3f(TerasalizationEffect.teraColor))
-            .supplyUniform("light", ctx -> {
-                var light = (int) (RareCandyCanvas.getLightLevel() * 15);
-
-                ctx.uniform().upload2i(0, light);
-            })
-            .supplyUniform("tint", ctx -> ctx.uniform().uploadVec3f(ONE))
-            .supplyUniform("ColorModulator", ctx -> ctx.uniform().uploadVec4f(colorMOdulator))
-            .supplyUniform("frame", ctx -> {
-                var i = (int) pingpong(RareCandyCanvas.getTime() % 1d);
-
-                ctx.uniform().uploadInt(i);
-            })
-            .supplySampler("diffuse", 0, MaterialImages::getDiffuse)
-            .supplySampler("emission", 2, MaterialImages::getEmission)
-            .supplySampler("layer", 3, MaterialImages::getLayer)
-            .supplySampler("mask", 4, MaterialImages::getMask)
-            .supplySampler("lightmap", 5, "light_map")
-            .supplySampler("paradoxMask", 6, "paradox_mask")
-            .prePostDraw(material -> {
-
-                if(material.disableDepth()) {
-                    GL11.glDisable(GL11.GL_DEPTH_TEST);
-                }
-
-                material.cullType().enable();
-                material.blendType().enable();
-            }, material -> {
-                if(material.disableDepth()) {
-                    GL11.glEnable(GL11.GL_DEPTH_TEST);
-                }
-
-                material.cullType().disable();
-                material.blendType().disable();
-            })
-            .shader(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
-            .build();
-
-    public static final Pipeline PLANE = new Pipeline.Builder()
-            .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
-            .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
-            .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
-            .supplyUniform("radius", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.radius))
-            .supplyUniform("render", ctx -> ctx.uniform().uploadBoolean(RareCandyCanvas.renderingFrame))
-            .prePostDraw(material -> BlendType.Regular.enable(), material -> BlendType.Regular.disable())
-            .shader(builtin("original/animated/plane.vs.glsl"), builtin("original/animated/plane.fs.glsl")).build();
-
-    public static final Pipeline SCREEN_QUAD = new Pipeline.Builder()
-            .supplyUniform("screenTexture", ctx -> {
-                RareCandyCanvas.framebuffer.bind(0);
-                ctx.uniform().uploadInt(0);
-            })
-            .shader(builtin("original/screen/screen_quad.vs.glsl"),
-                    builtin("original/screen/screen_quad.fs.glsl")).build();
-
     public static double pingpong(double time) {
         return (int) (Math.sin(time * Math.PI * 2) * 7 + 7);
     }
 
-    public static void onInitialize() {
-//        MaterialUploader.setup(0);
+    public static void onInitialize(PokeUtilsGui.Settings settings) {
         InstanceBlockUploader.register(ObjectInstance.class, 0, ObjectInstance.MAT4_SIZE);
         InstanceBlockUploader.register(AnimatedObjectInstance.class, 1, ObjectInstance.MAT4_SIZE * 221);
         MaterialUploader.setup();
+
+        Pipeline ANIMATED = new Pipeline.Builder()
+                .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
+//            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
+                .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
+//            .supplyUniform("boneTransforms", ctx -> {
+//                var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
+//                ctx.uniform().uploadMat4fs(mats);
+//            })
+                .supplyUniform("uvOffset", ctx -> {
+                    Transform transform = ctx.object().getTransform(ctx.instance().variant());
+
+                    if (ctx.instance() instanceof AnimatedObjectInstance instance) {
+                        var t = instance.getTransform(ctx.getMaterial().getMaterialName());
+
+                        if (t != null && !t.isUnit()) {
+                            transform = t;
+                        }
+                    }
+
+                    var offset = transform.offset();
+
+                    if(offset == null) offset = Transform.DEFAULT_OFFSET;
+
+                    ctx.uniform().uploadVec2f(offset);
+                })
+                .supplyUniform("uvScale", ctx -> {
+                    Transform transform = ctx.object().getTransform(ctx.instance().variant());
+
+                    if (ctx.instance() instanceof AnimatedObjectInstance instance) {
+                        var t = instance.getTransform(ctx.getMaterial().getMaterialName());
+
+                        if (t != null && !t.isUnit()) {
+                            transform = t;
+                        }
+                    }
+
+                    var scale = transform.scale();
+
+                    if(scale == null) scale = Transform.DEFAULT_SCALE;
+
+                    ctx.uniform().uploadVec2f(scale);
+                })
+                .supplyUniform("Light0_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light0))
+                .supplyUniform("Light1_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light1))
+                .supplyUniform("tera", ctx -> ctx.uniform().uploadBoolean(settings.terastalization.enabled.getValue()))
+                .supplyUniform("teraTint", ctx -> ctx.uniform().uploadVec3f(settings.terastalization.tint.getValue()))
+                .supplyUniform("light", ctx -> {
+                    var light = (int) (RareCandyCanvas.getLightLevel() * 15);
+
+                    ctx.uniform().upload2i(0, light);
+                })
+                .supplyUniform("tint", ctx -> ctx.uniform().uploadVec3f(ONE))
+                .supplyUniform("ColorModulator", ctx -> ctx.uniform().uploadVec4f(colorMOdulator))
+                .supplyUniform("frame", ctx -> {
+                    var i = (int) pingpong(RareCandyCanvas.getTime() % 1d);
+
+                    ctx.uniform().uploadInt(i);
+                })
+                .supplySampler("diffuse", 0, MaterialImages::getDiffuse)
+                .supplySampler("emission", 2, MaterialImages::getEmission)
+                .supplySampler("layer", 3, MaterialImages::getLayer)
+                .supplySampler("mask", 4, MaterialImages::getMask)
+                .supplySampler("lightmap", 5, "light_map")
+                .supplySampler("paradoxMask", 6, "paradox_mask")
+                .prePostDraw(material -> {
+
+                    if(material.disableDepth()) {
+                        GL11.glDisable(GL11.GL_DEPTH_TEST);
+                    }
+
+                    material.cullType().enable();
+                    material.blendType().enable();
+                }, material -> {
+                    if(material.disableDepth()) {
+                        GL11.glEnable(GL11.GL_DEPTH_TEST);
+                    }
+
+                    material.cullType().disable();
+                    material.blendType().disable();
+                })
+                .shader(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
+                .build();
+
+        Pipeline PLANE = new Pipeline.Builder()
+                .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
+                .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
+                .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
+                .supplyUniform("radius", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.radius))
+                .supplyUniform("render", ctx -> ctx.uniform().uploadBoolean(RareCandyCanvas.renderingFrame))
+                .prePostDraw(material -> BlendType.Regular.enable(), material -> BlendType.Regular.disable())
+                .shader(builtin("original/animated/plane.vs.glsl"), builtin("original/animated/plane.fs.glsl")).build();
+
+        Pipeline SCREEN_QUAD = new Pipeline.Builder()
+                .supplyUniform("screenTexture", ctx -> {
+                    RareCandyCanvas.framebuffer.bind(0);
+                    ctx.uniform().uploadInt(0);
+                })
+                .shader(builtin("original/screen/screen_quad.vs.glsl"),
+                        builtin("original/screen/screen_quad.fs.glsl")).build();
+
         PipelineRegistry.setFunction(s -> {
             return switch (s) {
-                case "plane" -> GuiPipelines.PLANE;
-                case "screen" -> GuiPipelines.SCREEN_QUAD;
-                default -> GuiPipelines.ANIMATED;
+                case "plane" -> PLANE;
+                case "screen" -> SCREEN_QUAD;
+                default -> ANIMATED;
             };
         });
     }

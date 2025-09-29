@@ -1,9 +1,5 @@
 package gg.generations.rarecandy.renderer.launch;
 
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.awt.GLData;
-
 import java.util.Objects;
 
 public final class OpenGL {

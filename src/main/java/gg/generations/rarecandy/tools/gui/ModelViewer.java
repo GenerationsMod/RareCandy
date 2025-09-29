@@ -3,6 +3,9 @@ package gg.generations.rarecandy.tools.gui;
 import gg.generations.rarecandy.renderer.launch.OpenGL;
 import gg.generations.rarecandy.tools.AppBase;
 import imgui.ImGui;
+import imgui.extension.imguifiledialog.ImGuiFileDialog;
+import imgui.extension.imguifiledialog.callback.ImGuiFileDialogPaneFun;
+import imgui.extension.imguifiledialog.flag.ImGuiFileDialogFlags;
 import org.joml.Vector2d;
 
 public class ModelViewer extends AppBase implements MouseMotionListener {
@@ -30,7 +33,7 @@ public class ModelViewer extends AppBase implements MouseMotionListener {
     @Override
     protected void renderGui() {
 // Call this every frame (after ImGui.newFrame())
-        ImGui.dockSpaceOverViewport(ImGui.getMainViewport().getID());
+        ImGui.dockSpaceOverViewport(ImGui.getMainViewport());
 
 // Global main menu bar
         if (ImGui.beginMainMenuBar()) {

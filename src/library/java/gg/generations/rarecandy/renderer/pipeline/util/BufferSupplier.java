@@ -1,12 +1,13 @@
-package gg.generations.rarecandy.renderer.pipeline.neo.regular;
+package gg.generations.rarecandy.renderer.pipeline.util;
 
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 
 /**
- * Supplies a texture object ID dynamically at pipeline bind time.
+ * Supplies a buffer object ID dynamically at pipeline bind time.
  */
 @FunctionalInterface
-public interface TextureSupplier {
+public interface BufferSupplier {
     int get(ObjectInstance instance, RenderObject object);
 }
+

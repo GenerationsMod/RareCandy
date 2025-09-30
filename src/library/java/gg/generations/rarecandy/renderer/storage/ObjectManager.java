@@ -2,7 +2,7 @@ package gg.generations.rarecandy.renderer.storage;
 
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.components.RenderObject;
-import gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,7 @@ public class ObjectManager {
         animationController.render(secondsPassed);
     }
 
-    public void render(Pipeline pipeline, RenderStage stage) {
+    public void render(TraditionalPipeline pipeline, RenderStage stage) {
         for (var entry : objects.entrySet()) {
             var object = entry.getKey();
             if (object == null) continue;

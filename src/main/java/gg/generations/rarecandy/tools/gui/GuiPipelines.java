@@ -5,9 +5,8 @@ import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.model.material.MaterialUploader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
-import gg.generations.rarecandy.renderer.pipeline.Pipeline;
-import gg.generations.rarecandy.renderer.pipeline.neo.regular.PipelineBuilder;
-import gg.generations.rarecandy.renderer.pipeline.neo.regular.Scope;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
+import gg.generations.rarecandy.renderer.pipeline.util.Scope;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.storage.InstanceBlockUploader;
@@ -41,7 +40,7 @@ public class GuiPipelines {
         InstanceBlockUploader.register(AnimatedObjectInstance.class, ObjectInstance.MAT4_SIZE * 221);
         MaterialUploader.setup();
 
-        gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline ANIMATED = new PipelineBuilder(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
+        TraditionalPipeline ANIMATED = TraditionalPipeline.builder(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
                 .autoMat4(Scope.GLOBAL, "viewMatrix", (instance, object) -> RareCandyCanvas.viewMatrix)
                 .autoMat4(Scope.GLOBAL, "projectionMatrix", (instance, object) -> projectionMatrix)
                 .autoVec2(Scope.INSTANCE, "uvOffset", (instance, object) -> {
@@ -121,7 +120,7 @@ public class GuiPipelines {
                 .addUBO(Scope.INSTANCE, "Instance", 1, (instance, object) -> InstanceBlockUploader.bind(instance))
                 .build();
 
-        gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline PLANE = new PipelineBuilder(builtin("original/animated/plane.vs.glsl"), builtin("original/animated/plane.fs.glsl"))
+        TraditionalPipeline PLANE = TraditionalPipeline.builder(builtin("original/animated/plane.vs.glsl"), builtin("original/animated/plane.fs.glsl"))
                 .autoMat4(Scope.GLOBAL, "viewMatrix", (instance, object) -> RareCandyCanvas.viewMatrix)
                 .autoMat4(Scope.GLOBAL, "projectionMatrix", (instance, object) -> projectionMatrix)
                 .autoFloat(Scope.GLOBAL, "lightLevel", (instance, object) -> RareCandyCanvas.getLightLevel())
@@ -130,7 +129,7 @@ public class GuiPipelines {
                 .prePostDraw(material -> BlendType.Regular.enable(), material -> BlendType.Regular.disable())
                 .build();
 
-        gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline SCREEN_QUAD = new PipelineBuilder(builtin("original/screen/screen_quad.vs.glsl"), builtin("original/screen/screen_quad.fs.glsl"))
+        TraditionalPipeline SCREEN_QUAD = TraditionalPipeline.builder(builtin("original/screen/screen_quad.vs.glsl"), builtin("original/screen/screen_quad.fs.glsl"))
                 .autoSampler2D(Scope.GLOBAL, "screenTexture", 0, (instance, object) -> RareCandyCanvas.framebuffer.getId())
                 .build();
 
@@ -144,7 +143,7 @@ public class GuiPipelines {
     }
 
     private static String builtin(String name) {
-        try (var is = Pipeline.class.getResourceAsStream("/shaders/" + name)) {
+        try (var is = TraditionalPipeline.class.getResourceAsStream("/shaders/" + name)) {
             assert is != null;
             return new String(is.readAllBytes());
         } catch (IOException e) {

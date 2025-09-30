@@ -1,8 +1,14 @@
 package gg.generations.rarecandy.tools;
 
+import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.BlankTexture;
 import gg.generations.rarecandy.renderer.loading.ITexture;
-import gg.generations.rarecandy.renderer.pipeline.ComputePipeline;
+import gg.generations.rarecandy.renderer.pipeline.Pipelines;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
+import gg.generations.rarecandy.renderer.pipeline.util.Scope;
+import gg.generations.rarecandy.renderer.pipeline.util.TextureIdSupplier;
+import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.tools.gui.imgui.ImVector3f;
 import imgui.ImGui;
 import imgui.ImVec4;
 import imgui.flag.ImGuiCond;
@@ -22,14 +28,14 @@ public class ComputeShaderDemo {
     private long window;
     private int width = 1024, height = 1024;
 
-    private ComputePipeline computeProgram;
-    private int quadProgram;
+    private gg.generations.rarecandy.renderer.pipeline.compute.ComputePipeline computeProgram;
+    private TraditionalPipeline quadProgram;
 
     // Example control uniforms
     private float time = 0f;
     private float[] intensity = new float[]{1f};
-    private Vector3f color = new Vector3f(1f, 0f, 0f);
-    private Vector3f color2 = new Vector3f(0, 1f, 0f);
+    private ImVector3f color = new ImVector3f(1f, 0f, 0f);
+    private ImVector3f color2 = new ImVector3f(0, 1f, 0f);
 
     private ImGuiImplGlfw imguiGlfw;
     private ImGuiImplGl3 imguiGl3;
@@ -89,12 +95,12 @@ public class ComputeShaderDemo {
                 imageStore(destTex, pixel, vec4(col, 1.0));
             }
             """;
-        computeProgram = new ComputePipeline.Builder().shader(computeSrc)
-                .supplyUniform("u_time", uniform -> uniform.uploadFloat(time))
-                .supplyUniform("u_intensity", uniform -> uniform.uploadFloat(intensity[0]))
-                .supplyUniform("u_color", uniform -> uniform.uploadVec3f(color))
-                .supplyUniform("u_color_2", uniform -> uniform.uploadVec3f(color2))
-                .supplyUniform("destTex", uniform -> uniform.uploadImage2D(target, 0))
+        computeProgram = Pipelines.compute(computeSrc)
+                .autoFloat(Scope.GLOBAL, "u_time", (instance, object) -> time)
+                .autoFloat(Scope.GLOBAL, "u_intensity", (instance, object) -> intensity[0])
+                .autoVec3(Scope.GLOBAL, "u_color", (instance, object) -> color.getValue())
+                .autoVec3(Scope.GLOBAL, "u_color_2", (instance, object) -> color2.getValue())
+                .autoImage2D(Scope.GLOBAL, "destTex", 0, (instance, object) -> target)
                 .build();
 
         // --- Quad Shader ---
@@ -116,7 +122,13 @@ public class ComputeShaderDemo {
                 fragColor = texture(tex, v_uv);
             }
             """;
-        quadProgram = compileProgram(quadVert, quadFrag);
+        quadProgram = Pipelines.traditional(quadVert, quadFrag)
+                .autoSampler2D(Scope.GLOBAL, "tex", 0, new TextureIdSupplier() {
+                    @Override
+                    public int get(ObjectInstance instance, RenderObject object) {
+                        return target.getId();
+                    }
+                }).build();
     }
 
     private void loop() {
@@ -124,12 +136,17 @@ public class ComputeShaderDemo {
             glfwPollEvents();
             time += 0.016f;
 
+            computeProgram.useProgram();
+            computeProgram.bindGlobal(null, null);
+
             // --- Run compute ---
             computeProgram.dispatch(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT, (width + 15) / 16, (height + 15) / 16, 1);
 
             // --- Draw quad ---
             glClear(GL_COLOR_BUFFER_BIT);
-            glUseProgram(quadProgram);
+            quadProgram.useProgram();
+            quadProgram.bindGlobal(null, null);
+
             glBindTexture(GL_TEXTURE_2D, target.getId());
             glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -137,35 +154,22 @@ public class ComputeShaderDemo {
             imguiGlfw.newFrame();
             imguiGl3.newFrame();
             ImGui.newFrame();
-//            ImGui.radioButton()
-//            ImGui.begin("Controls");
 
-//            if(ImGui.sliderFloat("Intensity", intensity, 0f, 1f)) {
-//
-//            }
-            if (colorEdit3("Color", color)) {
-                // updates directly
+            color.render("Color 1");
+            color2.render("Color 2");
+
+            if(ImGui.sliderFloat("Intensity", intensity, 0f, 1f)) {
+
             }
-//
-//            if (colorEdit3("Color 2", color2)) {
-                // updates directly
-//            }
 
-//                ExampleKnobs.show(new ImBoolean(true));
 
-//            mockup.render();
-
-//            ImGuiImageViewer.drawDemoWindow(target.getId(), width, height);
-
-            ImGui.setNextWindowPos(200, 0, ImGuiCond.Always);
+            ImGui.setNextWindowPos(200, 300, ImGuiCond.Always);
             ImGui.setNextWindowSize(512, 512, ImGuiCond.Always);
             ImGui.begin("derp");
             ImGui.image(target.getId(), 512, 512); // show the 1024x1024 image
 
             ImGui.end();
 
-
-//            ImGui.end();
             ImGui.render();
             imguiGl3.renderDrawData(ImGui.getDrawData());
 
@@ -174,21 +178,6 @@ public class ComputeShaderDemo {
     }
 
     private static final float[] colorArray = new float[3];
-
-    private boolean colorEdit3(String name, Vector3f color) {
-        colorArray[0] = color.x();
-        colorArray[1] = color.y();
-        colorArray[2] = color.z();
-
-
-        var succeeded = ImGui.colorEdit3(name, colorArray);
-
-        if(succeeded) {
-            color.set(colorArray[0], colorArray[1], colorArray[2]);
-        }
-
-        return succeeded;
-    }
 
     private int compileProgram(String vert, String frag) {
         int vs = glCreateShader(GL_VERTEX_SHADER);

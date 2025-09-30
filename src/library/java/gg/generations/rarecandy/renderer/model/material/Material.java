@@ -4,9 +4,6 @@ import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.CullType;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.loading.ITexture;
-import gg.generations.rarecandy.renderer.pipeline.UniformBlockProvider;
-import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.Closeable;

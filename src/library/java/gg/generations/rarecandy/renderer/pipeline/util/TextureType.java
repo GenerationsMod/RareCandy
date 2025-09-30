@@ -1,4 +1,4 @@
-package gg.generations.rarecandy.renderer.pipeline.neo.regular;
+package gg.generations.rarecandy.renderer.pipeline.util;
 
 /**
  * Supported OpenGL texture targets for sampler uniforms.

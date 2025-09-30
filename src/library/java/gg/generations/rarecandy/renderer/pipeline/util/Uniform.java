@@ -1,4 +1,4 @@
-package gg.generations.rarecandy.renderer.pipeline;
+package gg.generations.rarecandy.renderer.pipeline.util;
 
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.loading.ITexture;

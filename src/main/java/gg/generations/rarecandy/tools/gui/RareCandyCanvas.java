@@ -11,7 +11,7 @@ import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
-import gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
@@ -233,7 +233,7 @@ public class RareCandyCanvas {
 //        renderingFrame = false;
     }
 
-    private void renderToScreen(Pipeline pipeline) {
+    private void renderToScreen(TraditionalPipeline pipeline) {
         renderer.render(pipeline, RenderStage.SOLID, false);
         renderer.render(pipeline, RenderStage.TRANSPARENT, false);
     }
@@ -344,7 +344,7 @@ public class RareCandyCanvas {
         public List<String> overrides = new ArrayList<>();
 
         @Override
-        public <V extends RenderObject> void render(Pipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
+        public <V extends RenderObject> void render(TraditionalPipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
             for (var object : this.objects) {
                 if (object != null && !overrides.contains(object.name) && object.isReady()) {
                     object.render(pipeline, stage, instances);

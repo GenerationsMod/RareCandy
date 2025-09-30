@@ -2,7 +2,7 @@ package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.renderer.model.RenderModel;
 import gg.generations.rarecandy.renderer.model.Variant;
-import gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 
@@ -23,7 +23,7 @@ public class MeshObject extends RenderObject {
         this.ready = true;
     }
 
-    public <T extends RenderObject> void render(Pipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
+    public <T extends RenderObject> void render(TraditionalPipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
         model.render(stage, pipeline, instances, this);
     }
 

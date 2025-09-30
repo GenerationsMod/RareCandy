@@ -2,7 +2,7 @@ package gg.generations.rarecandy.renderer.rendering;
 
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.ThreadSafety;
-import gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.storage.ObjectManager;
 
 import java.util.Queue;
@@ -36,7 +36,7 @@ public class RareCandy {
         objectManager.update(secondsPassed);
     }
 
-    public void render(Pipeline pipeline, RenderStage stage, boolean clearInstances) {
+    public void render(TraditionalPipeline pipeline, RenderStage stage, boolean clearInstances) {
 
         objectManager.render(pipeline, stage);
 

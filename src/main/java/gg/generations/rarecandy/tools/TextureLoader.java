@@ -4,7 +4,7 @@ import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.loading.ITexture;
 import gg.generations.rarecandy.renderer.loading.Texture;
-import gg.generations.rarecandy.renderer.pipeline.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -65,7 +65,7 @@ public class TextureLoader extends ITextureLoader {
     }
 
     public ITexture generateDirectReference(String path) {
-        try (var is = Pipeline.class.getResourceAsStream("/textures/" + path)) {
+        try (var is = TraditionalPipeline.class.getResourceAsStream("/textures/" + path)) {
             assert is != null;
             long startTime = System.nanoTime();
             ITexture texture = Texture.read(is.readAllBytes(), path);

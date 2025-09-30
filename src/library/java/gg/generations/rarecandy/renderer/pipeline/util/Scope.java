@@ -1,4 +1,4 @@
-package gg.generations.rarecandy.renderer.pipeline.neo.regular;
+package gg.generations.rarecandy.renderer.pipeline.util;
 
 /**
  * Defines the scope lifetime of pipeline resource bindings.

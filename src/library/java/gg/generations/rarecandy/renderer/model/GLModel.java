@@ -3,8 +3,7 @@ package gg.generations.rarecandy.renderer.model;
 import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.Attribute;
-import gg.generations.rarecandy.renderer.model.material.Material;
-import gg.generations.rarecandy.renderer.pipeline.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.joml.Vector3f;
@@ -16,7 +15,6 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.function.Consumer;
 
 import static gg.generations.rarecandy.renderer.loading.ModelLoader.generateVao;
 import static org.lwjgl.opengl.GL15C.*;
@@ -90,9 +88,9 @@ public class GLModel implements RenderModel {
         return dimensions;
     }
 
-    private Map<Material, List<Consumer<Pipeline>>> EMPTY = Collections.emptyMap();
+//    private Map<Material, List<Consumer<Pipeline>>> EMPTY = Collections.emptyMap();
 
-    public <T extends RenderObject> void render(RenderStage stage, gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline pipeline, List<ObjectInstance> instances, T object) {
+    public <T extends RenderObject> void render(RenderStage stage, TraditionalPipeline pipeline, List<ObjectInstance> instances, T object) {
 
         for (var instance : instances) {
             if (object.shouldRender(instance)) {

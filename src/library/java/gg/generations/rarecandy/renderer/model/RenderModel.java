@@ -2,7 +2,7 @@ package gg.generations.rarecandy.renderer.model;
 
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.Attribute;
-import gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.joml.Vector3f;
@@ -16,7 +16,7 @@ public interface RenderModel extends Closeable {
 
     Vector3f getDimensions();
 
-    public <T extends RenderObject> void render(RenderStage stage, Pipeline pipeline, List<ObjectInstance> instances, T object);
+    public <T extends RenderObject> void render(RenderStage stage, TraditionalPipeline pipeline, List<ObjectInstance> instances, T object);
 
     public <T extends RenderObject> void render(ObjectInstance instance, T object);
 

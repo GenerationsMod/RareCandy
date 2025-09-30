@@ -1,4 +1,4 @@
-package gg.generations.rarecandy.renderer.pipeline.neo.regular;
+package gg.generations.rarecandy.renderer.pipeline.util;
 
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;

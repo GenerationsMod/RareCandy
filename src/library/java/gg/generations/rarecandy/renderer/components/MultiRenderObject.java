@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.renderer.model.material.Material;
-import gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.Nullable;
@@ -97,7 +97,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public <V extends RenderObject> void render(Pipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
+    public <V extends RenderObject> void render(TraditionalPipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
         for (T object : this.objects) {
             if (object != null) {
                 object.render(pipeline, stage, instances);

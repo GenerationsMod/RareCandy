@@ -1,6 +1,7 @@
-package gg.generations.rarecandy.renderer.pipeline.neo.regular;
+package gg.generations.rarecandy.renderer.pipeline.util;
 
 import gg.generations.rarecandy.renderer.components.RenderObject;
+import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.lwjgl.opengl.GL20C;
 
@@ -17,4 +18,14 @@ public record UniformUploadContext(int program, ObjectInstance instance, RenderO
     public int getUniformLocation(String name) {
         return GL20C.glGetUniformLocation(program, name);
     }
+
+    public Material getMaterial() {
+        if(object == null) return null;
+
+        var variant = instance != null ? instance.variant() : null;
+
+
+        return object.getMaterial(variant);
+    }
+
 }

@@ -3,7 +3,6 @@ package gg.generations.rarecandy.tools;
 import gg.generations.experimental.ExperimentalViewer;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
-import gg.generations.rarecandy.tools.pixelmonTester.MinecraftSimulator;
 //import gg.generations.rarecandy.tools.pkcreator.Convert;
 import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
@@ -182,7 +181,7 @@ public class Main {
     }
 
     private static void modelTester(String[] args) {
-        MinecraftSimulator.main(args);
+//        MinecraftSimulator.main(args);
     }
 
     private static void converter(String[] args) {

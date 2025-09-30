@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.renderer.model.material;
 
-import gg.generations.rarecandy.renderer.pipeline.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline;
 
 import java.util.function.Function;
 

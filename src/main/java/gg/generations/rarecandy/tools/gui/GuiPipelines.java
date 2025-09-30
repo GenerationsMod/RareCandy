@@ -2,14 +2,12 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.Transform;
-import gg.generations.rarecandy.renderer.model.material.MaterialImages;
 import gg.generations.rarecandy.renderer.model.material.MaterialUploader;
-import gg.generations.rarecandy.renderer.model.material.MaterialValues;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
-import gg.generations.rarecandy.renderer.pipeline.UniformUploadContext;
+import gg.generations.rarecandy.renderer.pipeline.neo.regular.PipelineBuilder;
+import gg.generations.rarecandy.renderer.pipeline.neo.regular.Scope;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.storage.InstanceBlockUploader;
@@ -18,14 +16,8 @@ import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
-import static java.lang.Math.floor;
 
 public class GuiPipelines {
 //    public static final Vector3f light0 = new Vector3f(0.178f, 0.893f, -0.625f);
@@ -44,24 +36,19 @@ public class GuiPipelines {
         return (int) (Math.sin(time * Math.PI * 2) * 7 + 7);
     }
 
-    public static void onInitialize(PokeUtilsGui.Settings settings) {
-        InstanceBlockUploader.register(ObjectInstance.class, 0, ObjectInstance.MAT4_SIZE);
-        InstanceBlockUploader.register(AnimatedObjectInstance.class, 1, ObjectInstance.MAT4_SIZE * 221);
+    public static void onInitialize(RareCandyCanvas canvas, PokeUtilsGui.Settings settings) {
+        InstanceBlockUploader.register(ObjectInstance.class, ObjectInstance.MAT4_SIZE);
+        InstanceBlockUploader.register(AnimatedObjectInstance.class, ObjectInstance.MAT4_SIZE * 221);
         MaterialUploader.setup();
 
-        Pipeline ANIMATED = new Pipeline.Builder()
-                .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
-//            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
-                .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
-//            .supplyUniform("boneTransforms", ctx -> {
-//                var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
-//                ctx.uniform().uploadMat4fs(mats);
-//            })
-                .supplyUniform("uvOffset", ctx -> {
-                    Transform transform = ctx.object().getTransform(ctx.instance().variant());
+        gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline ANIMATED = new PipelineBuilder(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
+                .autoMat4(Scope.GLOBAL, "viewMatrix", (instance, object) -> RareCandyCanvas.viewMatrix)
+                .autoMat4(Scope.GLOBAL, "projectionMatrix", (instance, object) -> projectionMatrix)
+                .autoVec2(Scope.INSTANCE, "uvOffset", (instance, object) -> {
+                    Transform transform = object.getTransform(instance.variant());
 
-                    if (ctx.instance() instanceof AnimatedObjectInstance instance) {
-                        var t = instance.getTransform(ctx.getMaterial().getMaterialName());
+                    if (instance instanceof AnimatedObjectInstance animatedInstance) {
+                        var t = animatedInstance.getTransform(object.getMaterial(instance.variant()).getMaterialName());
 
                         if (t != null && !t.isUnit()) {
                             transform = t;
@@ -72,13 +59,13 @@ public class GuiPipelines {
 
                     if(offset == null) offset = Transform.DEFAULT_OFFSET;
 
-                    ctx.uniform().uploadVec2f(offset);
+                    return offset;
                 })
-                .supplyUniform("uvScale", ctx -> {
-                    Transform transform = ctx.object().getTransform(ctx.instance().variant());
+                .autoVec2(Scope.INSTANCE, "uvScale", (instance, object) -> {
+                    Transform transform = object.getTransform(instance.variant());
 
-                    if (ctx.instance() instanceof AnimatedObjectInstance instance) {
-                        var t = instance.getTransform(ctx.getMaterial().getMaterialName());
+                    if (instance instanceof AnimatedObjectInstance animatedObjectInstance) {
+                        var t = animatedObjectInstance.getTransform(object.getMaterial(instance.variant()).getMaterialName());
 
                         if (t != null && !t.isUnit()) {
                             transform = t;
@@ -89,30 +76,30 @@ public class GuiPipelines {
 
                     if(scale == null) scale = Transform.DEFAULT_SCALE;
 
-                    ctx.uniform().uploadVec2f(scale);
+                    return scale;
                 })
-                .supplyUniform("Light0_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light0))
-                .supplyUniform("Light1_Direction", uniformUploadContext -> uniformUploadContext.uniform().uploadVec3f(light1))
-                .supplyUniform("tera", ctx -> ctx.uniform().uploadBoolean(settings.terastalization.enabled.getValue()))
-                .supplyUniform("teraTint", ctx -> ctx.uniform().uploadVec3f(settings.terastalization.tint.getValue()))
-                .supplyUniform("light", ctx -> {
+                .autoVec3(Scope.GLOBAL, "Light0_Direction", (instance, object) -> light0)
+                .autoVec3(Scope.GLOBAL, "Light1_Direction", (instance, object) -> light1)
+                .autoBool(Scope.GLOBAL, "tera", (instance, object) -> settings.terastalization.enabled.getValue())
+                .autoVec3(Scope.GLOBAL, "teraTint", (instance, object) -> settings.terastalization.tint.getValue())
+                .addUniform(Scope.GLOBAL, "light", (uniform, context) -> {
                     var light = (int) (RareCandyCanvas.getLightLevel() * 15);
 
-                    ctx.uniform().upload2i(0, light);
+                    uniform.upload2i(0, light);
                 })
-                .supplyUniform("tint", ctx -> ctx.uniform().uploadVec3f(ONE))
-                .supplyUniform("ColorModulator", ctx -> ctx.uniform().uploadVec4f(colorMOdulator))
-                .supplyUniform("frame", ctx -> {
-                    var i = (int) pingpong(RareCandyCanvas.getTime() % 1d);
-
-                    ctx.uniform().uploadInt(i);
+                .autoVec3(Scope.GLOBAL, "tint", (instance, object) -> ONE)
+                .autoVec4(Scope.GLOBAL, "ColorModulator", (instance, object) -> colorMOdulator)
+                .autoInt(Scope.GLOBAL, "frame", (instance, object) -> {
+                    return (int) pingpong(RareCandyCanvas.getTime() % 1d);
                 })
-                .supplySampler("diffuse", 0, MaterialImages::getDiffuse)
-                .supplySampler("emission", 2, MaterialImages::getEmission)
-                .supplySampler("layer", 3, MaterialImages::getLayer)
-                .supplySampler("mask", 4, MaterialImages::getMask)
-                .supplySampler("lightmap", 5, "light_map")
-                .supplySampler("paradoxMask", 6, "paradox_mask")
+                .autoSampler2D(Scope.INSTANCE, "diffuse", 0, (instance, object) -> {
+                    return ITextureLoader.instance().getTexture(object.getMaterial(instance.variant()).images().getDiffuse()).getId();
+                })
+                .autoSampler2D(Scope.INSTANCE, "emission", 2, (instance, object) -> ITextureLoader.instance().getTexture(object.getMaterial(instance.variant()).images().getEmission()).getId())
+                .autoSampler2D(Scope.INSTANCE, "layer", 3, (instance, object) -> ITextureLoader.instance().getTexture(object.getMaterial(instance.variant()).images().getLayer()).getId())
+                .autoSampler2D(Scope.INSTANCE, "mask", 4, (instance, object) -> ITextureLoader.instance().getTexture(object.getMaterial(instance.variant()).images().getMask()).getId())
+                .autoSampler2D(Scope.INSTANCE, "lightmap", 5, (instance, object) -> ITextureLoader.instance().getTexture("light_map").getId())
+                .autoSampler2D(Scope.INSTANCE, "paradoxMask", 6, (instance, object) -> ITextureLoader.instance().getTexture("paradox_mask").getId())
                 .prePostDraw(material -> {
 
                     if(material.disableDepth()) {
@@ -129,25 +116,23 @@ public class GuiPipelines {
                     material.cullType().disable();
                     material.blendType().disable();
                 })
-                .shader(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
+                .addUBO(Scope.GLOBAL, "Fog", 0, (instance, object) -> canvas.getFogUploader().id)
+                .addUBO(Scope.INSTANCE, "Material", 2, (instance, object) -> object.getMaterial(instance.variant()).bindMaterial())
+                .addUBO(Scope.INSTANCE, "Instance", 1, (instance, object) -> InstanceBlockUploader.bind(instance))
                 .build();
 
-        Pipeline PLANE = new Pipeline.Builder()
-                .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
-                .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
-                .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
-                .supplyUniform("radius", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.radius))
-                .supplyUniform("render", ctx -> ctx.uniform().uploadBoolean(RareCandyCanvas.renderingFrame))
+        gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline PLANE = new PipelineBuilder(builtin("original/animated/plane.vs.glsl"), builtin("original/animated/plane.fs.glsl"))
+                .autoMat4(Scope.GLOBAL, "viewMatrix", (instance, object) -> RareCandyCanvas.viewMatrix)
+                .autoMat4(Scope.GLOBAL, "projectionMatrix", (instance, object) -> projectionMatrix)
+                .autoFloat(Scope.GLOBAL, "lightLevel", (instance, object) -> RareCandyCanvas.getLightLevel())
+                .autoFloat(Scope.GLOBAL, "radius", (instance, object) -> RareCandyCanvas.radius)
+                .autoBool(Scope.GLOBAL, "render", (instance, object) -> RareCandyCanvas.renderingFrame)
                 .prePostDraw(material -> BlendType.Regular.enable(), material -> BlendType.Regular.disable())
-                .shader(builtin("original/animated/plane.vs.glsl"), builtin("original/animated/plane.fs.glsl")).build();
+                .build();
 
-        Pipeline SCREEN_QUAD = new Pipeline.Builder()
-                .supplyUniform("screenTexture", ctx -> {
-                    RareCandyCanvas.framebuffer.bind(0);
-                    ctx.uniform().uploadInt(0);
-                })
-                .shader(builtin("original/screen/screen_quad.vs.glsl"),
-                        builtin("original/screen/screen_quad.fs.glsl")).build();
+        gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline SCREEN_QUAD = new PipelineBuilder(builtin("original/screen/screen_quad.vs.glsl"), builtin("original/screen/screen_quad.fs.glsl"))
+                .autoSampler2D(Scope.GLOBAL, "screenTexture", 0, (instance, object) -> RareCandyCanvas.framebuffer.getId())
+                .build();
 
         PipelineRegistry.setFunction(s -> {
             return switch (s) {

@@ -1,145 +1,145 @@
-package gg.generations.rarecandy.tools.gui.imgui;
-
-import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.renderer.model.material.MaterialImages;
-import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
-import gg.generations.rarecandy.renderer.pipeline.Pipeline;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
-
-import java.io.IOException;
-
-public class GuiPipelines {
-    private static final Pipeline.Builder ROOT = new Pipeline.Builder();
-
-    private static final Pipeline.Builder BASE = new Pipeline.Builder()
-            .configure(GuiPipelines::addDiffuse);
-
-    private static void addDiffuse(Pipeline.Builder builder) {
-        builder.supplySampler("diffuse", 0, MaterialImages::getDiffuse);
-    }
-
-    private static void baseColors(Pipeline.Builder builder) {
-        builder.supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()))
-                .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor2()))
-                .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor3()))
-                .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor4()))
-                .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor5()));
-    }
-
-    public static final Pipeline.Builder LAYERED_BASE = new Pipeline.Builder(BASE)
-            .shader(builtin("animated.vs.glsl"), builtin("layered.fs.glsl"))
-            .configure(GuiPipelines::baseColors)
-            .configure(GuiPipelines::emissionColors)
-            .supplySampler("layer", 2, MaterialImages::getLayer)
-            .supplySampler("mask", 3, MaterialImages::getMask);
-
-    public static final Pipeline LAYERED = new Pipeline.Builder(LAYERED_BASE)
-            .supplyUniform("frame", ctx -> ctx.uniform().uploadInt(-1))
-            .build();
-    public static final Pipeline VINTAGE = new Pipeline.Builder(BASE)
-            .shader(builtin("animated.vs.glsl"), builtin("vintage.fs.glsl"))
-            .build();
-    public static final Pipeline SKETCH = new Pipeline.Builder(BASE)
-            .shader(builtin("animated.vs.glsl"), builtin("sketch.fs.glsl"))
-            .build();
-    public static final Pipeline CARTOON = new Pipeline.Builder(BASE)
-            .shader(builtin("animated.vs.glsl"), builtin("cartoon.fs.glsl"))
-            .build();
-    public static final Pipeline PASTEL = new Pipeline.Builder(BASE)
-            .shader(builtin("animated.vs.glsl"), builtin("pastel.fs.glsl"))
-            .build();
-    public static final Pipeline SHADOW = new Pipeline.Builder(BASE)
-            .shader(builtin("animated.vs.glsl"), builtin("shadow.fs.glsl"))
-            .build();
-    public static final Pipeline.Builder GALAXY_BASE = new Pipeline.Builder(BASE)
-            .shader(builtin("animated.vs.glsl"), builtin("galaxy.fs.glsl"))
-            .configure(GuiPipelines::baseColors)
-            .configure(GuiPipelines::emissionColors)
-            .supplySampler("layer", 2, MaterialImages::getLayer)
-            .supplySampler("mask", 3, MaterialImages::getMask);
-    public static final Pipeline GALAXY = new Pipeline.Builder(GALAXY_BASE)
-            .supplyUniform("frame", ctx -> ctx.uniform().uploadInt(-1))
-            .build();
-
-
-    public static final Pipeline SOLID = new Pipeline.Builder(BASE)
-            .shader(builtin("animated.vs.glsl"), builtin("base.fs.glsl", "solid"))
-            .build();
-
-    public static final Pipeline MASKED = new Pipeline.Builder(BASE)
-            .shader(builtin("animated.vs.glsl"), builtin("masked.fs.glsl"))
-            .supplySampler("diffuse", 0, MaterialImages::getDiffuse)
-            .supplySampler("mask",2 , MaterialImages::getMask)
-            .supplyUniform("color", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()))
-            .build();
-
-
-    private static void emissionColors(Pipeline.Builder builder) {
-        builder.supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor1()))
-                .supplyUniform("emiColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor2()))
-                .supplyUniform("emiColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor3()))
-                .supplyUniform("emiColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor4()))
-                .supplyUniform("emiColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor5()))
-                .supplyUniform("emiIntensity1", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity1()))
-                .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity2()))
-                .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity3()))
-                .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity4()))
-                .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity5()));
-    }
-    private static final Vector3f ONE = new Vector3f(1,1, 1);
-
-    private static String builtin(String name) {
-        try (var is = Pipeline.class.getResourceAsStream("/shaders/process/" + name)) {
-            assert is != null;
-            return new String(is.readAllBytes());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read built in shader", e);
-        }
-    }
-
-    private static String builtin(String name, String lib) {
-        // Base path to the shaders folder
-        String basePath = "/shaders/process/";
-
-        try (
-                var nameStream = Pipeline.class.getResourceAsStream(basePath + name);
-                var libStream = Pipeline.class.getResourceAsStream(basePath + lib)
-        ) {
-            if (nameStream == null) {
-                throw new IllegalArgumentException("Shader resource not found: " + name);
-            }
-            if (libStream == null) {
-                throw new IllegalArgumentException("Library resource not found: " + lib);
-            }
-
-            // Read the shader file content
-            String shaderContent = new String(nameStream.readAllBytes());
-
-            // Read the library file content
-            String libContent = new String(libStream.readAllBytes());
-
-            // Replace all instances of #color in the shader content with the library content
-            return shaderContent.replace("#color", libContent);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read built-in shader or library file: " + name + ", " + lib, e);
-        }
-    }
-
-
-    public static void init() {
-
-        PipelineRegistry.setFunction(s-> switch(s) {
-            case "masked" -> GuiPipelines.MASKED;
-            case "layered" -> GuiPipelines.LAYERED;
-            case "paradox" -> GuiPipelines.LAYERED;
-            case "galaxy" -> GuiPipelines.GALAXY;
-            case "cartoon" -> GuiPipelines.CARTOON;
-            case "pastel" -> GuiPipelines.PASTEL;
-            case "shadow" -> GuiPipelines.SHADOW;
-            case "vintage" -> GuiPipelines.VINTAGE;
-            case "sketch" -> GuiPipelines.SKETCH;
-            default -> GuiPipelines.SOLID;
-        });
-    }
-}
+//package gg.generations.rarecandy.tools.gui.imgui;
+//
+//import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
+//import gg.generations.rarecandy.renderer.model.material.MaterialImages;
+//import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
+//import gg.generations.rarecandy.renderer.pipeline.Pipeline;
+//import org.jetbrains.annotations.NotNull;
+//import org.joml.Vector3f;
+//
+//import java.io.IOException;
+//
+//public class GuiPipelines {
+//    private static final Pipeline.Builder ROOT = new Pipeline.Builder();
+//
+//    private static final Pipeline.Builder BASE = new Pipeline.Builder()
+//            .configure(GuiPipelines::addDiffuse);
+//
+//    private static void addDiffuse(Pipeline.Builder builder) {
+//        builder.supplySampler("diffuse", 0, MaterialImages::getDiffuse);
+//    }
+//
+//    private static void baseColors(Pipeline.Builder builder) {
+//        builder.supplyUniform("baseColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()))
+//                .supplyUniform("baseColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor2()))
+//                .supplyUniform("baseColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor3()))
+//                .supplyUniform("baseColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor4()))
+//                .supplyUniform("baseColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor5()));
+//    }
+//
+//    public static final Pipeline.Builder LAYERED_BASE = new Pipeline.Builder(BASE)
+//            .shader(builtin("animated.vs.glsl"), builtin("layered.fs.glsl"))
+//            .configure(GuiPipelines::baseColors)
+//            .configure(GuiPipelines::emissionColors)
+//            .supplySampler("layer", 2, MaterialImages::getLayer)
+//            .supplySampler("mask", 3, MaterialImages::getMask);
+//
+//    public static final Pipeline LAYERED = new Pipeline.Builder(LAYERED_BASE)
+//            .supplyUniform("frame", ctx -> ctx.uniform().uploadInt(-1))
+//            .build();
+//    public static final Pipeline VINTAGE = new Pipeline.Builder(BASE)
+//            .shader(builtin("animated.vs.glsl"), builtin("vintage.fs.glsl"))
+//            .build();
+//    public static final Pipeline SKETCH = new Pipeline.Builder(BASE)
+//            .shader(builtin("animated.vs.glsl"), builtin("sketch.fs.glsl"))
+//            .build();
+//    public static final Pipeline CARTOON = new Pipeline.Builder(BASE)
+//            .shader(builtin("animated.vs.glsl"), builtin("cartoon.fs.glsl"))
+//            .build();
+//    public static final Pipeline PASTEL = new Pipeline.Builder(BASE)
+//            .shader(builtin("animated.vs.glsl"), builtin("pastel.fs.glsl"))
+//            .build();
+//    public static final Pipeline SHADOW = new Pipeline.Builder(BASE)
+//            .shader(builtin("animated.vs.glsl"), builtin("shadow.fs.glsl"))
+//            .build();
+//    public static final Pipeline.Builder GALAXY_BASE = new Pipeline.Builder(BASE)
+//            .shader(builtin("animated.vs.glsl"), builtin("galaxy.fs.glsl"))
+//            .configure(GuiPipelines::baseColors)
+//            .configure(GuiPipelines::emissionColors)
+//            .supplySampler("layer", 2, MaterialImages::getLayer)
+//            .supplySampler("mask", 3, MaterialImages::getMask);
+//    public static final Pipeline GALAXY = new Pipeline.Builder(GALAXY_BASE)
+//            .supplyUniform("frame", ctx -> ctx.uniform().uploadInt(-1))
+//            .build();
+//
+//
+//    public static final Pipeline SOLID = new Pipeline.Builder(BASE)
+//            .shader(builtin("animated.vs.glsl"), builtin("base.fs.glsl", "solid"))
+//            .build();
+//
+//    public static final Pipeline MASKED = new Pipeline.Builder(BASE)
+//            .shader(builtin("animated.vs.glsl"), builtin("masked.fs.glsl"))
+//            .supplySampler("diffuse", 0, MaterialImages::getDiffuse)
+//            .supplySampler("mask",2 , MaterialImages::getMask)
+//            .supplyUniform("color", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()))
+//            .build();
+//
+//
+//    private static void emissionColors(Pipeline.Builder builder) {
+//        builder.supplyUniform("emiColor1", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor1()))
+//                .supplyUniform("emiColor2", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor2()))
+//                .supplyUniform("emiColor3", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor3()))
+//                .supplyUniform("emiColor4", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor4()))
+//                .supplyUniform("emiColor5", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getEmiColor5()))
+//                .supplyUniform("emiIntensity1", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity1()))
+//                .supplyUniform("emiIntensity2", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity2()))
+//                .supplyUniform("emiIntensity3", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity3()))
+//                .supplyUniform("emiIntensity4", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity4()))
+//                .supplyUniform("emiIntensity5", ctx -> ctx.uniform().uploadFloat(ctx.getMaterial().values().getEmiIntensity5()));
+//    }
+//    private static final Vector3f ONE = new Vector3f(1,1, 1);
+//
+//    private static String builtin(String name) {
+//        try (var is = Pipeline.class.getResourceAsStream("/shaders/process/" + name)) {
+//            assert is != null;
+//            return new String(is.readAllBytes());
+//        } catch (IOException e) {
+//            throw new RuntimeException("Failed to read built in shader", e);
+//        }
+//    }
+//
+//    private static String builtin(String name, String lib) {
+//        // Base path to the shaders folder
+//        String basePath = "/shaders/process/";
+//
+//        try (
+//                var nameStream = Pipeline.class.getResourceAsStream(basePath + name);
+//                var libStream = Pipeline.class.getResourceAsStream(basePath + lib)
+//        ) {
+//            if (nameStream == null) {
+//                throw new IllegalArgumentException("Shader resource not found: " + name);
+//            }
+//            if (libStream == null) {
+//                throw new IllegalArgumentException("Library resource not found: " + lib);
+//            }
+//
+//            // Read the shader file content
+//            String shaderContent = new String(nameStream.readAllBytes());
+//
+//            // Read the library file content
+//            String libContent = new String(libStream.readAllBytes());
+//
+//            // Replace all instances of #color in the shader content with the library content
+//            return shaderContent.replace("#color", libContent);
+//        } catch (IOException e) {
+//            throw new RuntimeException("Failed to read built-in shader or library file: " + name + ", " + lib, e);
+//        }
+//    }
+//
+//
+//    public static void init() {
+//
+//        PipelineRegistry.setFunction(s-> switch(s) {
+//            case "masked" -> GuiPipelines.MASKED;
+//            case "layered" -> GuiPipelines.LAYERED;
+//            case "paradox" -> GuiPipelines.LAYERED;
+//            case "galaxy" -> GuiPipelines.GALAXY;
+//            case "cartoon" -> GuiPipelines.CARTOON;
+//            case "pastel" -> GuiPipelines.PASTEL;
+//            case "shadow" -> GuiPipelines.SHADOW;
+//            case "vintage" -> GuiPipelines.VINTAGE;
+//            case "sketch" -> GuiPipelines.SKETCH;
+//            default -> GuiPipelines.SOLID;
+//        });
+//    }
+//}

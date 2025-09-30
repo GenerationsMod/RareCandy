@@ -4,11 +4,9 @@ import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.Attribute;
 import gg.generations.rarecandy.renderer.model.material.Material;
-import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
-import gg.generations.rarecandy.renderer.storage.InstanceBlockUploader;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
@@ -94,22 +92,24 @@ public class GLModel implements RenderModel {
 
     private Map<Material, List<Consumer<Pipeline>>> EMPTY = Collections.emptyMap();
 
-    public <T extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances, T object) {
+    public <T extends RenderObject> void render(RenderStage stage, gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline pipeline, List<ObjectInstance> instances, T object) {
 
         for (var instance : instances) {
             if (object.shouldRender(instance)) {
                 continue;
             }
 
-            InstanceBlockUploader.bind(instance);
+            pipeline.bindInstance(instance, object);
 
             var material = object.getMaterial(instance.variant());
-
+            pipeline.preDraw(material);
             var transparent = material.blendType() != BlendType.None;
 
             if(transparent && stage == RenderStage.TRANSPARENT || stage == RenderStage.SOLID) {
-                render(material, instance, object);
+                runDrawCalls();
             }
+
+            pipeline.postDraw(material);
         }
     }
 
@@ -134,19 +134,6 @@ public class GLModel implements RenderModel {
 //
 //        solidMap.forEach(GLModel::render);
 //        transparentMap.forEach(GLModel::render);
-    }
-
-    private <T extends RenderObject> void render(Material k, ObjectInstance instance, T object) {
-        var pl = PipelineRegistry.get(k.getPipeline());
-
-        if(pl == null) return;
-
-        pl.bind(k);
-        k.bindMaterial();
-        pl.updateOtherUniforms(instance, object);
-        pl.updateTexUniforms(instance, object);
-        runDrawCalls();
-        pl.unbind(k);
     }
 
 }

@@ -116,7 +116,9 @@ public class Material implements Closeable {
         return pointer;
     }
 
-    public void bindMaterial() {
+    public int bindMaterial() {
         MaterialUploader.INSTANCE.upload(this);
+
+        return MaterialUploader.INSTANCE.id;
     }
 }

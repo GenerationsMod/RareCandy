@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.Nullable;
@@ -79,8 +80,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     @Override
     public boolean isReady() {
         if (objects.isEmpty()) return false;
-        for (int i = 0, objectsSize = objects.size(); i < objectsSize; i++) {
-            T object = objects.get(i);
+        for (T object : objects) {
             if (!object.isReady()) return false;
         }
         return true;
@@ -97,19 +97,10 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     @Override
-    public <V extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances) {
+    public <V extends RenderObject> void render(Pipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
         for (T object : this.objects) {
-            if (object != null && object.isReady()) {
-                object.render(stage, instances);
-            }
-        }
-    }
-
-    @Override
-    public <V extends RenderObject> void render(ObjectInstance instance) {
-        for (T object : this.objects) {
-            if (object != null && object.isReady()) {
-                object.render(instance);
+            if (object != null) {
+                object.render(pipeline, stage, instances);
             }
         }
     }

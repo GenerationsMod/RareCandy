@@ -57,6 +57,17 @@ public class Texture implements ITexture {
 
     @Override
     public int getId() {
+        if(details != null) {
+            this.id = details.init();
+            try {
+                details.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                details = null;
+            }
+    }
+
         return id;
     }
 

@@ -4,6 +4,7 @@ import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.Nullable;
@@ -43,9 +44,7 @@ public abstract class RenderObject implements Closeable {
         return variant != null && variant.offset() != null ? variant.offset() : AnimationController.NO_OFFSET;
     }
 
-    public abstract <T extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances);
-
-    public abstract <T extends RenderObject> void render(ObjectInstance instance);
+    public abstract <T extends RenderObject> void render(Pipeline pipeline, RenderStage stage, List<ObjectInstance> instances);
 
     public boolean shouldRender(ObjectInstance instance) {
         var variant = getVariant(instance);

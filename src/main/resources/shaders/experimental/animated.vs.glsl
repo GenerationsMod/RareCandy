@@ -16,8 +16,6 @@ out vec3 fragNormal;
 out vec3 fragViewDir;
 out vec3 worldPos;
 
-uniform bool dynamicVertexColor;
-
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
@@ -41,10 +39,10 @@ layout(std140, binding = 1) uniform Instance {
 
 mat4 getBoneTransform() {
     mat4 boneTransform =
-    boneTransforms[uint(joints.x)] * weights.x + // Bone 1 Transform (Bone Transform * Weight)
-    boneTransforms[uint(joints.y)] * weights.y + // Bone 2 Transform (Bone Transform * Weight)
-    boneTransforms[uint(joints.z)] * weights.z + // Bone 3 Transform (Bone Transform * Weight)
-    boneTransforms[uint(joints.w)] * weights.w ; // Bone 4 Transform (Bone Transform * Weight)
+    boneTransforms[uint(joints.x)] * weights.x +// Bone 1 Transform (Bone Transform * Weight)
+    boneTransforms[uint(joints.y)] * weights.y +// Bone 2 Transform (Bone Transform * Weight)
+    boneTransforms[uint(joints.z)] * weights.z +// Bone 3 Transform (Bone Transform * Weight)
+    boneTransforms[uint(joints.w)] * weights.w;// Bone 4 Transform (Bone Transform * Weight)
     return boneTransform;
 }
 

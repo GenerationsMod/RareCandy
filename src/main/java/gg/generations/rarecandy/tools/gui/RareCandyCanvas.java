@@ -10,17 +10,15 @@ import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.GLModel;
+import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
+import gg.generations.rarecandy.renderer.pipeline.neo.regular.Pipeline;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
-import imgui.ImGui;
-import imgui.type.ImFloat;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.system.MemoryUtil;
 
@@ -31,8 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-
-import static org.lwjgl.opengl.GL11.*;
 
 
 public class RareCandyCanvas {
@@ -54,8 +50,8 @@ public class RareCandyCanvas {
     public String currentAnimation = null;
     public double originalScaleModifer;
     private RareCandy renderer;
-    private MultiRenderObject<MeshObject> plane;
-    private ObjectInstance planeInstance;
+//    private MultiRenderObject<MeshObject> plane;
+//    private ObjectInstance planeInstance;
 
     public ToggleableMultiRenderObject loadedModel;
     public AnimatedObjectInstance loadedModelInstance;
@@ -65,8 +61,8 @@ public class RareCandyCanvas {
     private ScreenRenderer screenRenderer;
     public static boolean animate = true;
     public static boolean renderingFrame;
-    private MultiRenderObject<MeshObject> cube;
-    private ObjectInstance[] cubeInstances;
+//    private MultiRenderObject<MeshObject> cube;
+//    private ObjectInstance[] cubeInstances;
     private FogUploader fogUploader;
     private boolean initCalled;
 
@@ -100,8 +96,8 @@ public class RareCandyCanvas {
 
     public void openFile(PixelAsset pkFile, String name, Runnable runnable, boolean resetAnimation) throws IOException {
         currentAnimation = null;
-        renderer.objectManager.clearObjects();
-        renderer.objectManager.add(plane, planeInstance);
+//        renderer.objectManager.clearObjects();
+//        renderer.objectManager.add(plane, planeInstance);
 
 //        for (ObjectInstance instance : cubeInstances) {
 //            renderer.objectManager.add(cube, instance);
@@ -140,7 +136,7 @@ public class RareCandyCanvas {
     public void initGL() {
         projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) handler.getWidth() / handler.getHeight(), 0.1f, 1000.0f);
         GL.createCapabilities(true);
-        GuiPipelines.onInitialize(handler.settings);
+        GuiPipelines.onInitialize(this, handler.settings);
         this.renderer = new RareCandy();
 
         fogUploader = new FogUploader(handler.settings.fog);
@@ -152,10 +148,10 @@ public class RareCandyCanvas {
 //        screenRenderer = new ScreenRenderer(framebuffer);
 
 
-        loadPlane(100, 100, model -> {
-            plane = model;
-            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), "plane"));
-        });
+//        loadPlane(100, 100, model -> {
+//            plane = model;
+//            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), "plane"));
+//        });
 
 //        loadCube(1, 1, 1, model -> {
 //            cube = model;
@@ -191,8 +187,15 @@ public class RareCandyCanvas {
 
         if (runnable != null) runnable.pre();
 
-        renderToFramebuffer();
-        renderToScreen();
+        renderer.update(time);
+
+        var pipeline = PipelineRegistry.get("animated");
+
+        pipeline.useProgram();
+//        renderToFramebuffer();
+        pipeline.bindGlobal(null, null);
+
+        renderToScreen(pipeline);
 
         if (runnable != null) runnable.post();
 
@@ -214,25 +217,25 @@ public class RareCandyCanvas {
     private final int[] originalViewport = new int[4]; // Array to store x, y, width, height
 
     private void renderToFramebuffer() {
-        renderingFrame = true;
-        framebuffer.bindFramebuffer();
-
-        glGetIntegerv(GL_VIEWPORT, originalViewport);
-
-        GL11C.glViewport(0, 0, 1024, 1024);
-
-        renderer.render(RenderStage.SOLID, false, time);
-        renderer.render(RenderStage.TRANSPARENT, false, time);
-
-        framebuffer.unbindFramebuffer();
-
-        glViewport(originalViewport[0], originalViewport[1], originalViewport[2], originalViewport[3]);
-        renderingFrame = false;
+//        renderingFrame = true;
+//        framebuffer.bindFramebuffer();
+//
+//        glGetIntegerv(GL_VIEWPORT, originalViewport);
+//
+//        GL11C.glViewport(0, 0, 1024, 1024);
+//
+//        renderer.render(RenderStage.SOLID, false, time);
+//        renderer.render(RenderStage.TRANSPARENT, false, time);
+//
+//        framebuffer.unbindFramebuffer();
+//
+//        glViewport(originalViewport[0], originalViewport[1], originalViewport[2], originalViewport[3]);
+//        renderingFrame = false;
     }
 
-    private void renderToScreen() {
-        renderer.render(RenderStage.SOLID, false, time);
-        renderer.render(RenderStage.TRANSPARENT, false, time);
+    private void renderToScreen(Pipeline pipeline) {
+        renderer.render(pipeline, RenderStage.SOLID, false);
+        renderer.render(pipeline, RenderStage.TRANSPARENT, false);
     }
 
     public AnimationInstance createInstance(Animation animation) {
@@ -292,6 +295,14 @@ public class RareCandyCanvas {
         }
     }
 
+    public boolean isInitCalled() {
+        return initCalled;
+    }
+
+    public FogUploader getFogUploader() {
+        return fogUploader;
+    }
+
     public static class CycleVariants  {
         private final RareCandyCanvas canvas;
         private final boolean isPortrait;
@@ -333,22 +344,14 @@ public class RareCandyCanvas {
         public List<String> overrides = new ArrayList<>();
 
         @Override
-        public <V extends RenderObject> void render(RenderStage stage, List<ObjectInstance> instances) {
+        public <V extends RenderObject> void render(Pipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
             for (var object : this.objects) {
                 if (object != null && !overrides.contains(object.name) && object.isReady()) {
-                    object.render(stage, instances);
+                    object.render(pipeline, stage, instances);
                 }
             }
         }
 
-        @Override
-        public <V extends RenderObject> void render(ObjectInstance instance) {
-            for (var object : this.objects) {
-                if (object != null && !overrides.contains(object.name) && object.isReady()) {
-                    object.render(instance);
-                }
-            }
-        }
     }
 }
 
@@ -356,7 +359,7 @@ class FogUploader extends UniformBlockUploader {
     private final long pointer;
 
     public FogUploader(PokeUtilsGui.Settings.Fog fog) {
-        super(VEC4_SIZE + 2 * Float.BYTES + Integer.BYTES + 4, 0);
+        super(VEC4_SIZE + 2 * Float.BYTES + Integer.BYTES + 4);
         this.pointer = MemoryUtil.nmemAlloc(VEC4_SIZE + 2 * Float.BYTES + Integer.BYTES);
         update(fog);
         fog.setListener(this::update);

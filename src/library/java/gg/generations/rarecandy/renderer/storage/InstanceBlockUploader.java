@@ -11,12 +11,12 @@ public class InstanceBlockUploader extends UniformBlockUploader {
 
     private final int size;
 
-    public InstanceBlockUploader(int size, int index) {
-        super(size, index);
+    public InstanceBlockUploader(int size) {
+        super(size);
         this.size = size;
     }
 
-    public static <T extends ObjectInstance> void bind(T t) {
+    public static <T extends ObjectInstance> int bind(T t) {
         var uploader = UPLOADER_MAP.get(t.getClass());
 
         if(uploader == null) throw new RuntimeException("Error no block uploader for " + t.getClass().getSimpleName());
@@ -24,9 +24,11 @@ public class InstanceBlockUploader extends UniformBlockUploader {
         t.update();
 
         uploader.upload(0, uploader.size, t.pointer);
+
+        return uploader.id;
     }
 
-    public static void register(Class<? extends ObjectInstance> clazz, int binding, int size) {
-        UPLOADER_MAP.put(clazz, new InstanceBlockUploader(size, binding));
+    public static void register(Class<? extends ObjectInstance> clazz, int size) {
+        UPLOADER_MAP.put(clazz, new InstanceBlockUploader(size));
     }
 }

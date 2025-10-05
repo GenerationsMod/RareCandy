@@ -1,8 +1,7 @@
-package gg.generations.rarecandy.renderer.loading;
+package gg.generations.rarecandy.renderer.textures;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.GL13C;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -26,13 +25,6 @@ public final class BlankTexture implements ITexture {
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, id);
         glTexStorage2D(GL11C.GL_TEXTURE_2D, 1, type.internalFormat, width, height);
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, 0);
-    }
-
-    @Override
-    public void bind(int slot) {
-        assert (slot >= 0 && slot <= 31);
-        GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + slot);
-        GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, this.id);
     }
 
     @Override

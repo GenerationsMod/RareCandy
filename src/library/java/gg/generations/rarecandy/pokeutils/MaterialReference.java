@@ -10,23 +10,9 @@ import org.joml.Vector4f;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class MaterialReference {
-//    public static Codec<MaterialReference> CODEC = RecordCodecBuilder.create(instance -> {
-//        instance.group(
-//                Codec.STRING.optionalFieldOf("inherits", null).forGetter(a -> a.parent),
-//                Codec.STRING.optionalFieldOf("shader", "solid").forGetter(a -> a.shader),
-//                CullType.CODEC.optionalFieldOf("cull", CullType.None).forGetter(a -> a.cull),
-//                BlendType.CODEC.optionalFieldOf("blend", BlendType.None).forGetter(a -> a.blend)
-//
-//        )
-//    })
-
     public String parent;
     public String shader;
     public String effect;
@@ -52,20 +38,11 @@ public class MaterialReference {
         this.useDepthTest = useDepthTest;
     }
 
-    public static Material process(String name, @NotNull Map<String, MaterialReference> materialreferences, @NotNull Map<String, String> imageMap) {
-        var reference = materialreferences.get(name);
-
-        var cull = reference.cull;
-        var blend = reference.blend;
-        var shader = reference.shader;
-        var effect = reference.effect;
-        var images = new MaterialImages().fill(reference.images);
-        var values = new MaterialValues().fill(reference.values);
-        var useDepthTest = reference.useDepthTest;
-        var parent = reference.parent;
+    public void complete(Map<String, MaterialReference> materialReferenceMap) {
+        MaterialReference reference = null;
 
         while (parent != null) {
-            reference = materialreferences.get(parent);
+            reference = materialReferenceMap.get(parent);
 
             if(reference == null) parent = null;
             else {
@@ -86,17 +63,19 @@ public class MaterialReference {
         }
 
         values.complete();
-        images = images.complete().processWithImageMap(imageMap);
+        images = images.complete();
+    }
 
-//        if(shader == null) shader = "solid";
+    public static Material process(MaterialReference reference, List<String> imageNames) {
+        var images = reference.images.toArray(imageNames);
 
-        var method = shader != null ? switch (shader) {
+        var method = reference.shader != null ? switch (reference.shader) {
             case "layered" -> 1;
             case "masked" -> 2;
             default -> 0;
         } : 0;
 
-        var actualEffect = effect != null ? switch (effect) {
+        var actualEffect = reference.effect != null ? switch (reference.effect) {
             case "cartoon" -> 1;
             case "galaxy" -> 2;
             case "paradox" -> 3;
@@ -107,8 +86,76 @@ public class MaterialReference {
             default -> 0;
         } : 0;
 
-        return new Material(name, images, values.complete(), useDepthTest, cull, blend, "",/*shader + (effect != null ? "_" + effect : "")*/ method, actualEffect);
+        return new Material(
+                images,
+                reference.values,
+                reference.useDepthTest,
+                reference.cull,
+                reference.blend,
+                method,
+                actualEffect
+        );
     }
+//
+//    public static Material process(String name, @NotNull Map<String, MaterialReference> materialreferences, @NotNull Map<String, String> imageMap) {
+//
+//
+//        var reference = materialreferences.get(name);
+//
+//        var cull = reference.cull;
+//        var blend = reference.blend;
+//        var shader = reference.shader;
+//        var effect = reference.effect;
+//        var images = new MaterialImages().fill(reference.images);
+//        var values = new MaterialValues().fill(reference.values);
+//        var useDepthTest = reference.useDepthTest;
+//        var parent = reference.parent;
+//
+//        while (parent != null) {
+//            reference = materialreferences.get(parent);
+//
+//            if(reference == null) parent = null;
+//            else {
+//
+//                if (!Objects.equals(shader, reference.shader)) shader = reference.shader;
+//                if (effect == null) effect = reference.effect;
+//                if (!Objects.equals(cull, reference.cull)) cull = reference.cull;
+//                if (!Objects.equals(blend, reference.blend)) blend = reference.blend;
+//                if(useDepthTest != reference.useDepthTest) useDepthTest = reference.useDepthTest;
+//
+//
+//                //TODO: Check if the parent's values are overriden vs it overriding child.
+//                images.fill(reference.images);
+//                values.fill(reference.values);
+//
+//                parent = reference.parent;
+//            }
+//        }
+//
+//        values.complete();
+//        images = images.complete().processWithImageMap(imageMap);
+//
+////        if(shader == null) shader = "solid";
+//
+//        var method = shader != null ? switch (shader) {
+//            case "layered" -> 1;
+//            case "masked" -> 2;
+//            default -> 0;
+//        } : 0;
+//
+//        var actualEffect = effect != null ? switch (effect) {
+//            case "cartoon" -> 1;
+//            case "galaxy" -> 2;
+//            case "paradox" -> 3;
+//            case "pastel" -> 4;
+//            case "shadow" -> 5;
+//            case "sketch" -> 6;
+//            case "vintage" -> 7;
+//            default -> 0;
+//        } : 0;
+//
+//        return new Material(images, values.complete(), useDepthTest, cull, blend, "",/*shader + (effect != null ? "_" + effect : "")*/ method, actualEffect);
+//    }
 
     public static final class Serializer implements JsonDeserializer<MaterialReference> {
         @Override

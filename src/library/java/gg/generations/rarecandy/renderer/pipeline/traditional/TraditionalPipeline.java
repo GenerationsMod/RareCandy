@@ -1,18 +1,12 @@
 package gg.generations.rarecandy.renderer.pipeline.traditional;
 
-import gg.generations.rarecandy.renderer.components.RenderObject;
-import gg.generations.rarecandy.renderer.loading.ITexture;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.pipeline.util.*;
-import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.joml.*;
 import org.lwjgl.opengl.*;
-import org.lwjgl.system.MemoryStack;
 
-import java.nio.IntBuffer;
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import static gg.generations.rarecandy.renderer.pipeline.Pipeline.Builder.attachShader;

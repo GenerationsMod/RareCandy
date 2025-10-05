@@ -13,10 +13,11 @@ public abstract class UniformBlockUploader implements Closeable {
 
     public final int id;
 
-    public UniformBlockUploader(int size) {
+    public UniformBlockUploader(int size, int index) {
         this.id = GL33C.glGenBuffers();
         bind();
         GL33C.glBufferData(GL33C.GL_UNIFORM_BUFFER, size, GL33C.GL_STATIC_DRAW);
+        GL33C.glBindBufferRange(GL33C.GL_UNIFORM_BUFFER, index, id, 0, size);
     }
 
     public void bind() {

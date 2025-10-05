@@ -106,6 +106,8 @@ public class PixelAssetTree {
         var animationsNode = new RadioListNode("animations", animation -> gui.canvas.setAnimation(animation));
         var imagesNode = new CompositeNode("images");
 
+
+
         List<String> variants = asset.getConfig() != null && asset.getConfig().variants != null ? List.copyOf(asset.getConfig().variants.keySet()) : new ArrayList<>();
 
         var objs = asset.getConfig().defaultVariant.keySet();

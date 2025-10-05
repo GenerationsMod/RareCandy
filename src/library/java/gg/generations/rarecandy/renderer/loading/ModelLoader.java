@@ -2,18 +2,14 @@ package gg.generations.rarecandy.renderer.loading;
 
 import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
-import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
-import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
-import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.model.*;
 import gg.generations.rarecandy.renderer.model.material.Material;
-import gg.generations.rarecandy.renderer.rendering.RareCandy;
+import gg.generations.rarecandy.renderer.textures.Texture;
+import gg.generations.rarecandy.renderer.textures.TextureArray;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -26,8 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.IntStream;
 
 import static java.util.Objects.requireNonNull;
@@ -35,20 +30,16 @@ import static org.lwjgl.opengl.GL30C.*;
 
 public class ModelLoader {
     public static int byteAmount;
-    private final ExecutorService modelLoadingPool;
+//    private final ExecutorService modelLoadingPool;
 
-    private static Vector3f temp = new Vector3f();
+    private static final Vector3f temp = new Vector3f();
 
     public ModelLoader() {
         this(4);
     }
 
     public ModelLoader(int numThreads) {
-        this.modelLoadingPool = Executors.newFixedThreadPool(numThreads);
-    }
-
-    public interface NodeProvider {
-        Animation.AnimationNode[] getNode(Animation animation, Skeleton skeleton);
+//        this.modelLoadingPool = Executors.newFixedThreadPool(numThreads);
     }
 
 
@@ -60,7 +51,13 @@ public class ModelLoader {
             Attribute.BONE_WEIGHTS
     );
 
-    public static <T extends MeshObject, V extends MultiRenderObject<T>> void processModel(V objects, PixelAsset asset, Map<String, AnimResource> animResources, Map<String, String> images, ModelConfig config, List<Runnable> glCalls, Supplier<T> supplier, RenderModel.Provider renderModelSuppler) {
+    public static void processModel(
+            MultiRenderObject objects,
+            Names names,
+            PixelAsset asset,
+            Map<String, AnimResource> animResources,
+            ModelConfig config,
+            RenderModel.Provider renderModelSuppler) {
         if (config == null) throw new RuntimeException("config.json can't be null.");
 
         var scene = ModelLoader.read(asset);
@@ -71,12 +68,18 @@ public class ModelLoader {
         
         Skeleton skeleton = new Skeleton(rootNode, meshes, config.excludeMeshNamesFromSkeleton);
         
-        var animations = processAnimations(scene, skeleton, animResources, config);
+        processAnimations(objects, scene, skeleton, animResources, names, config);
 
-        var variants = processVariants(config, images);
+        var dimensions = new Vector3f();
 
         for (var mesh : meshes) {
-            processPrimitiveModels(renderModelSuppler, objects, supplier, mesh, variants, config.meshesToRenderFirst != null ? config.meshesToRenderFirst : Collections.emptyList(), glCalls, skeleton, animations, config.hideDuringAnimation, config.modelOptions != null ? config.modelOptions : Collections.<String, MeshOptions>emptyMap());
+            var name = mesh.mName().dataString();
+
+            var meshId = objects.meshNameToId.get(name);
+
+            var model = processPrimitiveModel(skeleton, mesh, config.modelOptions != null ? config.modelOptions : Collections.emptyMap(), dimensions, renderModelSuppler);
+
+            objects.meshes[meshId] = model;
         }
 
         var transform = new Matrix4f();
@@ -87,14 +90,20 @@ public class ModelLoader {
 
     }
 
-    private static Map<String, Animation> processAnimations(AIScene scene, Skeleton skeleton, Map<String, AnimResource> animResources, ModelConfig config) {
+    private static void processAnimations(MultiRenderObject obj, AIScene scene, Skeleton skeleton, Map<String, AnimResource> animResources, Names names, ModelConfig config) {
         extractAssimpAnimations(scene, skeleton, animResources);
 
-        Map<String, Animation> animations = new HashMap<>();
+        obj.animations = new Animation[animResources.size()];
+        obj.hideDuringAnimation = new boolean[obj.meshes.length][obj.animations.length];
+        obj.animationNameToId = new HashMap<>();
+        obj.animationNames = new String[obj.animations.length];
 
         var offSetsToInsert = new HashMap<String, Animation.Offset>();
 
-        animResources.forEach((name, animResource) -> {
+        int i = 0;
+        for (Map.Entry<String, AnimResource> entry : animResources.entrySet()) {
+            String name = entry.getKey();
+            AnimResource animResource = entry.getValue();
             var fps = animResource.fps();
             fps = config.animationFpsOverride != null && config.animationFpsOverride.containsKey(name) ? config.animationFpsOverride.get(name) : fps;
 
@@ -106,13 +115,37 @@ public class ModelLoader {
             offsets.putAll(offSetsToInsert);
             offSetsToInsert.clear();
 
+            Animation.Offset[] offsetsArray = new Animation.Offset[names.materials.size()];
+
+            offsets.forEach(new BiConsumer<String, Animation.Offset>() {
+                @Override
+                public void accept(String s, Animation.Offset offset) {
+                    var id = names.materials.indexOf(s);
+                    offsetsArray[id] = offset;
+                }
+            });
+
             var nodes = animResource.getNodes(skeleton);
             var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
 
-            animations.put(name, new Animation(name, (int) fps, loops, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale)));
-        });
+            obj.animations[i] = new Animation(i, (int) fps, loops, skeleton, nodes, offsetsArray, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale));
+            obj.animationNameToId.put(name, i);
+            obj.animationNames[i] = name;
 
-        return animations;
+            i++;
+        }
+
+        for (int mesh = 0; mesh < names.meshes.size(); mesh++) {
+            var meshName = names.meshes.get(mesh);
+
+            var defaultAnimation = config.hideDuringAnimation.getOrDefault(meshName, ModelConfig.HideDuringAnimation.NONE);
+
+            for (int animation = 0; animation < obj.animations.length; animation++) {
+                var animationsName = obj.animationNames[animation];
+
+                obj.hideDuringAnimation[mesh][animation] = defaultAnimation.check(animationsName);
+            }
+        }
     }
 
     private static void extractAssimpAnimations(AIScene scene, Skeleton skeleton, Map<String, AnimResource> animResources) {
@@ -178,30 +211,35 @@ public class ModelLoader {
         }
     }
 
-    private static Map<String, Map<String, Variant>> processVariants(ModelConfig config, Map<String, String> images) {
-        var materials = config.prepMaterials(images);
 
-        var defaultVariant = new HashMap<String, Variant>();
+    private static void processVariants(MultiRenderObject object, ModelConfig config, Names names) {
+        var defaultVariant = new int[names.meshes.size()];
         
         Map<String, List<String>> aliases = config.aliases != null ? config.aliases : Collections.emptyMap();
 
-        
+        var variantList = new ArrayList<Variant>();
+
         config.defaultVariant.forEach((k, v) -> {
-            var variant = new Variant(materials.get(v.material()), v.hide(), v.offset());
+            var mesh = names.meshes.indexOf(k);
+
+            var variant = addOrGetIndex(variantList, new Variant(names.materials.indexOf(v.material()), v.hide(), v.offset()));
 
             if(!aliases.isEmpty() && aliases.containsKey(k)) {
                 for (String s : aliases.get(k)) {
-                    defaultVariant.put(s, variant);
+                    mesh = names.meshes.indexOf(s);
+
+                    defaultVariant[mesh] = variant;
                 }
             }
-            else defaultVariant.put(k, variant);
+            else defaultVariant[mesh] = variant;
 
         });
 
-        var variants = new HashMap<String, Map<String, Variant>>();
+        var variants = object.variantRelationships;
 
         if(config.variants != null) {
             config.variants.forEach((variantKey, variantParent) -> {
+                var variantIndex = names.variants.indexOf(variantKey);
 
                 VariantParent child = config.variants.get(variantParent.inherits());
 
@@ -217,18 +255,21 @@ public class ModelLoader {
 
                 applyVariantDetails(config.defaultVariant, map);
 
-                applyVariant(variantKey, variants, materials, map, aliases);
+                applyVariant(variantIndex, variants, map, aliases, names, variantList);
             });
         } else {
-            defaultVariant.forEach((s1, variant) -> {
-                defaultVariant.forEach((s, variant1) -> variants.computeIfAbsent(s, a -> new HashMap<>()).put("regular", variant1));
-            });
+            for (int mesh = 0; mesh < defaultVariant.length; mesh++) {
+                var variant = defaultVariant[mesh];
+
+                variants[mesh][0] = variant;
+
+            }
         }
-        
-         return variants;
+
+        object.variants = variantList.toArray(Variant[]::new);
     }
 
-    private static <T extends MeshObject> void traverseTree(Matrix4f transform, ModelNode node, MultiRenderObject<T> objects) {
+    private static void traverseTree(Matrix4f transform, ModelNode node, MultiRenderObject objects) {
         applyTransforms(transform, node);
 
         objects.setRootTransformation(objects.getRootTransformation().add(transform, new Matrix4f()));
@@ -250,47 +291,51 @@ public class ModelLoader {
     }
 
     private static void applyVariant(
-            String variantKey,
-            Map<String, Map<String, Variant>> variants,
-            Map<String, Material> materials,
+            int variantKey,
+            int[][] variantsMap,
             Map<String, VariantDetails> variantMap,
-            Map<String, List<String>> aliases) {
+            Map<String, List<String>> aliases,
+            Names names,
+            List<Variant> variants) {
         variantMap.forEach((k, v) -> {
-            Material mat = materials.get(v.material());
+            var mesh = names.meshes.indexOf(k);
+
+            int mat = names.materials.indexOf(v.material());
             boolean hide = v.hide() != null && v.hide();
             var offset = v.offset() != null ? v.offset() : null;
 
-            var variant = new Variant(mat, hide, offset);
+            var variant = addOrGetIndex(variants, new Variant(mat, hide, offset));
 
-            if(!aliases.isEmpty() && aliases.containsKey(k)) aliases.get(k).forEach(s -> variants.computeIfAbsent(s, s1 -> new HashMap<>()).put(variantKey, variant));
+            if(!aliases.isEmpty() && aliases.containsKey(k)) {
+                for (String s : aliases.get(k)) {
+                    mesh = names.meshes.indexOf(s);
+                    variantsMap[mesh][variantKey] = variant;
+                }
+            }
             else {
-                variants.computeIfAbsent(k, s1 -> new HashMap<>()).put(variantKey, variant);
+                variantsMap[mesh][variantKey] = variant;
             }
         });
+    }
+
+    private static int addOrGetIndex(List<Variant> variants, Variant variant) {
+        var size = variants.size();
+        for (int i = 0; i < size; i++) {
+            if(variants.get(i).equals(variant)) {
+                return i;
+            }
+        }
+
+        variants.add(variant);
+
+        return size;
     }
 
     private static void applyTransforms(Matrix4f transform, ModelNode node) {
         transform.set(node.transform);
     }
 
-    private static <T extends MeshObject> void processPrimitiveModels(RenderModel.Provider provider, MultiRenderObject<T> objects, Supplier<T> objSupplier, AIMesh mesh, Map<String, Map<String, Variant>> variants, List<String> meshesToRenderFirst, List<Runnable> glCalls, @Nullable Skeleton skeleton, @Nullable Map<String, Animation> animations, Map<String, ModelConfig.HideDuringAnimation> hideDuringAnimations, Map<String, MeshOptions> meshOptions) {
-        var name = mesh.mName().dataString();
-
-        var renderObject = objSupplier.get();
-        var glModel = processPrimitiveModel(skeleton, mesh, meshOptions, glCalls, objects.dimensions, provider);
-
-        var variant = variants.get(name);
-
-        if (animations != null && renderObject instanceof AnimatedMeshObject animatedMeshObject) {
-            animatedMeshObject.setup(variant, glModel, name, animations, hideDuringAnimations.getOrDefault(name, ModelConfig.HideDuringAnimation.NONE));
-        } else {
-            renderObject.setup(variant, glModel, name);
-        }
-
-        objects.add(renderObject, meshesToRenderFirst.contains(name));
-    }
-
-    private static RenderModel processPrimitiveModel(Skeleton skeleton, AIMesh mesh, Map<String, MeshOptions> options, List<Runnable> glCalls, Vector3f dimensions, RenderModel.Provider renderModelSupplier) {
+    private static RenderModel processPrimitiveModel(Skeleton skeleton, AIMesh mesh, Map<String, MeshOptions> options, Vector3f dimensions, RenderModel.Provider renderModelSupplier) {
         var name = mesh.mName().dataString();
 
         var invertFace = options.containsKey(name) && options.get(name).invert();
@@ -376,12 +421,12 @@ public class ModelLoader {
                 vertexBuffer.putFloat(0);
                 vertexBuffer.putFloat(0);
             } else {
-                vertexBuffer.put(ids[i * 4 + 0]);
+                vertexBuffer.put(ids[i * 4]);
                 vertexBuffer.put(ids[i * 4 + 1]);
                 vertexBuffer.put(ids[i * 4 + 2]);
                 vertexBuffer.put(ids[i * 4 + 3]);
 
-                vertexBuffer.putFloat(weights[i * 4 + 0]);
+                vertexBuffer.putFloat(weights[i * 4]);
                 vertexBuffer.putFloat(weights[i * 4 + 1]);
                 vertexBuffer.putFloat(weights[i * 4 + 2]);
                 vertexBuffer.putFloat(weights[i * 4 + 3]);
@@ -395,7 +440,7 @@ public class ModelLoader {
 
         var indexSize = mesh.mNumFaces() * 3;
 
-        return renderModelSupplier.create(vertexBuffer, indexBuffer, glCalls, indexSize, GL11.GL_UNSIGNED_INT, ATTRIBUTES);
+        return renderModelSupplier.create(vertexBuffer, indexBuffer, indexSize, GL11.GL_UNSIGNED_INT, ATTRIBUTES);
     }
 
     public static void addBoneData(byte[] ids, float[] weights, int vertexId, byte boneId, float weight) {
@@ -427,7 +472,7 @@ public class ModelLoader {
         } * attrib.amount();
     }
 
-    private static List<Attribute> DEFAULT_ATTRIBUTES = List.of(
+    private static final List<Attribute> DEFAULT_ATTRIBUTES = List.of(
             Attribute.POSITION,
             Attribute.TEXCOORD,
             Attribute.NORMAL,
@@ -477,93 +522,222 @@ public class ModelLoader {
                 0);
     }
 
-    public <T extends RenderObject> MultiRenderObject<T> createObject(@NotNull Supplier<PixelAsset> is, GlCallSupplier<T, MultiRenderObject<T>> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
-        return createObject(MultiRenderObject::new, is, objectCreator, onFinish);
+    public MultiRenderObject createObject(@NotNull Supplier<PixelAsset> is, Consumer<MultiRenderObject> onFinish) {
+        return createObject(MultiRenderObject::new, is, MaterialReference::process, onFinish);
     }
 
-    public <T extends RenderObject, V extends MultiRenderObject<T>> V createObject(Supplier<V> supplier, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T, V> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
-        V obj = supplier.get();
-        var task = threadedCreateObject(obj, is, objectCreator, onFinish);
-        if (RareCandy.DEBUG_THREADS) task.run();
-        else modelLoadingPool.submit(task);
+//    public MultiRenderObject createObject(Function<Names, ? extends MultiRenderObject> supplier, @NotNull Supplier<PixelAsset> is, GlCallSupplier<MultiRenderObject> objectCreator, Consumer<MultiRenderObject> onFinish) {
+//
+//        var task = threadedCreateObject(supplier, is, objectCreator, onFinish);
+//        return obj;
+//    }
+
+    public MultiRenderObject generatePlane(float width, float length, Consumer<MultiRenderObject> onFinish) {
+        var pair = PlaneGenerator.generatePlane(width, length);
+        pair.updateDimensions();
+        if (onFinish != null) onFinish.accept(pair);
+
+        return pair;
+    }
+
+//    public MultiRenderObject generateCube(float width, float length, float height, String image, Consumer<MultiRenderObject> onFinish) {
+//        var pair = PlaneGenerator.generateCube(width, length, height, image);
+//
+//        var task = ThreadSafety.wrapException(() -> {
+//            ThreadSafety.runOnContextThread(() -> {
+//                pair.a().forEach(Runnable::run);
+//                pair.b().updateDimensions();
+//                if (onFinish != null) onFinish.accept(pair.b());
+//            });
+//        });
+//        if (RareCandy.DEBUG_THREADS) task.run();
+//        else modelLoadingPool.submit(task);
+//
+//        return pair.b();
+//    }
+
+    public record Names(List<String> meshes, List<String> variants, List<String> images, List<String> materials) {
+        public Names() {
+            this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        }
+    }
+
+    public MultiRenderObject createObject(BiFunction<Names, TextureArray, MultiRenderObject> objBuilder, @NotNull Supplier<PixelAsset> is, BiFunction<MaterialReference, List<String>, Material> materialProcess, Consumer<MultiRenderObject> onFinish) {
+        var asset = is.get();
+        var config = asset.getConfig();
+
+        if (asset.getModelFile() == null) throw new RuntimeException("model.config not found");
+
+
+        var names = new Names();
+
+        config.defaultVariant.forEach((s, variantDetails) -> {
+            checkIfAlreadyIn(names.meshes(), s, config.meshesToRenderFirst != null ? config.meshesToRenderFirst.contains(s) : false);
+            checkIfAlreadyIn(names.materials(), variantDetails.material());
+        });
+
+        config.variants.forEach((s, variantParent) -> {
+            checkIfAlreadyIn(names.variants(), s);
+
+            if (variantParent.details() != null) {
+                variantParent.details().forEach((s1, variantDetails) -> {
+                    checkIfAlreadyIn(names.meshes(), s1);
+                    checkIfAlreadyIn(names.materials(), variantDetails.material());
+                });
+            }
+        });
+
+        config.materials.forEach((s, reference) -> {
+            if (names.materials.contains(s)) {
+                reference.complete(config.materials);
+
+                var images = reference.images;
+
+                checkIfAlreadyIn(names.images, images.getDiffuse());
+                checkIfAlreadyIn(names.images, images.getLayer());
+                checkIfAlreadyIn(names.images, images.getEmission());
+                checkIfAlreadyIn(names.images, images.getMask());
+            }
+        });
+
+        var images = readImages(asset, names.images);
+        var obj = objBuilder.apply(names, images);
+
+        config.materials.forEach((name, reference) -> {
+            var id = obj.materialNameToId.getOrDefault(name, -1);
+
+            if(id != -1) {
+                obj.materials[id] = materialProcess.apply(reference, names.images);
+            }
+        });
+
+        processVariants(obj, config, names);
+
+        obj.scale = config.scale;
+
+        var aninResouces = new HashMap<String, AnimResource>();
+
+        SmdResource.read(asset, aninResouces);
+        GfbanmResource.read(asset, aninResouces);
+        TrAnimationResource.read(asset, aninResouces);
+
+        ModelLoader.processModel(obj, names, asset, aninResouces, config, GLModel::new);
+        obj.updateDimensions();
+        if (onFinish != null) onFinish.accept(obj);
+
         return obj;
     }
 
-    public MultiRenderObject<MeshObject> generatePlane(float width, float length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
-        var pair = PlaneGenerator.generatePlane(width, length);
+//    private <V extends MultiRenderObject> Callable<V> threadedCreateObject(Function<Names, V> objBuilder, @NotNull Supplier<PixelAsset> is, GlCallSupplier<V> objectCreator, Consumer<MultiRenderObject> onFinish) {
+//        return () -> {
+//            var asset = is.get();
+//            var config = asset.getConfig();
+//
+//            var names = new Names();
+//
+//            config.defaultVariant.forEach((s, variantDetails) -> {
+//                checkIfAlreadyIn(names.meshes(), s, config.meshesToRenderFirst.contains(s));
+//                checkIfAlreadyIn(names.materials(), variantDetails.material());
+//            });
+//
+//            config.variants.forEach((s, variantParent) -> {
+//                checkIfAlreadyIn(names.variants(), s);
+//
+//                if (variantParent.details() != null) {
+//                    variantParent.details().forEach((s1, variantDetails) -> {
+//                        checkIfAlreadyIn(names.meshes(), s1);
+//                        checkIfAlreadyIn(names.materials(), variantDetails.material());
+//                    });
+//                }
+//            });
+//
+//            config.materials.forEach((s, reference) -> {
+//                if (names.materials.contains(s)) {
+//                    reference.complete(config.materials);
+//
+//                    var images = reference.images;
+//
+//                    checkIfAlreadyIn(names.images, images.getDiffuse());
+//                    checkIfAlreadyIn(names.images, images.getLayer());
+//                    checkIfAlreadyIn(names.images, images.getEmission());
+//                    checkIfAlreadyIn(names.images, images.getMask());
+//                }
+//            });
+//
+//            var obj = objBuilder.apply(names);
+//
+//            var images = readImages(asset, names.images);
+//
+//            var variants = processVariants(config, names);
+//
+//            if (asset.getModelFile() == null) return;
+//
+//            if (config != null) obj.scale = config.scale;
+//
+//            var aninResouces = new HashMap<String, AnimResource>();
+//
+//            SmdResource.read(asset, aninResouces);
+//            GfbanmResource.read(asset, aninResouces);
+//            TrAnimationResource.read(asset, aninResouces);
+//
+//            var meshes = new RenderModel[names.meshes.size()];
+//
+//
+//            var glCalls = objectCreator.getCalls(asset, aninResouces, images, variants, names, config, obj);
+//            ThreadSafety.runOnContextThread(() -> {
+//                glCalls.forEach(Runnable::run);
+//                obj.updateDimensions();
+//                if (onFinish != null) onFinish.accept(obj);
+//            });
+//
+//            return obj;
+//
+//        }
+//    }
 
-        var task = ThreadSafety.wrapException(() -> {
-            ThreadSafety.runOnContextThread(() -> {
-                pair.a().forEach(Runnable::run);
-                pair.b().updateDimensions();
-                if (onFinish != null) onFinish.accept(pair.b());
-            });
-        });
-        if (RareCandy.DEBUG_THREADS) task.run();
-        else modelLoadingPool.submit(task);
-
-        return pair.b();
+    private void checkIfAlreadyIn(List<String> list, String entry) {
+        checkIfAlreadyIn(list, entry, false);
     }
 
-    public MultiRenderObject<MeshObject> generateCube(float width, float length, float height, String image, Consumer<MultiRenderObject<MeshObject>> onFinish) {
-        var pair = PlaneGenerator.generateCube(width, length, height, image);
-
-        var task = ThreadSafety.wrapException(() -> {
-            ThreadSafety.runOnContextThread(() -> {
-                pair.a().forEach(Runnable::run);
-                pair.b().updateDimensions();
-                if (onFinish != null) onFinish.accept(pair.b());
-            });
-        });
-        if (RareCandy.DEBUG_THREADS) task.run();
-        else modelLoadingPool.submit(task);
-
-        return pair.b();
-    }
-
-    private <T extends RenderObject, V extends MultiRenderObject<T>> Runnable threadedCreateObject(V obj, @NotNull Supplier<PixelAsset> is, GlCallSupplier<T, V> objectCreator, Consumer<MultiRenderObject<T>> onFinish) {
-        return ThreadSafety.wrapException(() -> {
-            var asset = is.get();
-            var config = asset.getConfig();
-
-            var images = readImages(asset);
-
-            if(asset.getModelFile() == null) return;
-
-            if (config != null) obj.scale = config.scale;
-
-            var aninResouces = new HashMap<String, AnimResource>();
-
-            SmdResource.read(asset, aninResouces);
-            GfbanmResource.read(asset, aninResouces);
-            TrAnimationResource.read(asset, aninResouces);
-            var glCalls = objectCreator.getCalls(asset, aninResouces, images, config, obj);
-            ThreadSafety.runOnContextThread(() -> {
-                glCalls.forEach(Runnable::run);
-                obj.updateDimensions();
-                if (onFinish != null) onFinish.accept(obj);
-            });
-        });
+    private void checkIfAlreadyIn(List<String> list, String entry, boolean addFirst) {
+        if(!list.contains(entry)) if(addFirst) list.addFirst(entry); else list.add(entry);
     }
 
 
-    public static Map<String, String> readImages(PixelAsset asset) {
+    public static TextureArray readImages(PixelAsset asset, List<String> imageNames) {
         var images = asset.getImageFiles();
-        var map = new HashMap<String, String>();
+
+        TextureArray array = new TextureArray(1024, 1024, imageNames.size(), false);
+
+        var finished = new boolean[array.getLayerCount()];
+
         for (var entry : images) {
             var key = entry.getKey();
 
-            var id = asset.name + "-" + key;
-            ITextureLoader.instance().register(id, key, entry.getValue());
+            var index = imageNames.indexOf(key);
 
-            map.put(key, id);
+            var data = Texture.scaleAndProcess(entry.getValue());
+
+            array.fillLayer(index, data);
+
+            MemoryUtil.memFree(data);
+
+            finished[index] = true;
         }
 
-        return map;
+        for (int i = 0; i < finished.length; i++) {
+            if(!finished[i]) {
+                var texture = ITextureLoader.instance().getTexture(imageNames.get(i));
+
+                array.fillLayer(i, texture);
+            }
+        }
+
+        return array;
     }
 
     public void close() {
-        modelLoadingPool.shutdown();
+//        modelLoadingPool.shutdown();
     }
 
     public static AIScene read(PixelAsset asset) {

@@ -62,10 +62,10 @@ public class TreeNodePopup extends JPopupMenu {
             gui.asset.files.put(newName, fileBytes);
 
             gui.getCanvas().updateLoadedModel(obj -> {
-                if (obj.animations.containsKey(target.toString())) {
-                    obj.animations.put(newName, obj.animations.get(target.toString()));
-                    obj.animations.remove(target.toString());
-                }
+//                if (obj.animations.containsKey(target.toString())) {
+//                    obj.animations.put(newName, obj.animations.get(target.toString()));
+//                    obj.animations.remove(target.toString());
+//                }
             });
 
             var parent = (MutableTreeNode) pathNode.getParentPath().getLastPathComponent();

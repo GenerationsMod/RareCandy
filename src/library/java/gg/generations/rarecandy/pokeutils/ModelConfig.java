@@ -43,20 +43,6 @@ public class ModelConfig {
         return list;
     }
 
-    public Map<String, Material> prepMaterials(Map<String, String> images) {
-        var map = new HashMap<String, Material>();
-
-        for (Map.Entry<String, MaterialReference> entry : materials.entrySet()) {
-            String k = entry.getKey();
-            MaterialReference v = entry.getValue();
-            var material = MaterialReference.process(k, materials, images);
-
-            map.put(k, material);
-        }
-
-        return map;
-    }
-
     public record HideDuringAnimation(boolean blackList, List<String> animations) {
         public static final HideDuringAnimation NONE = new HideDuringAnimation();
 
@@ -64,9 +50,9 @@ public class ModelConfig {
             this(false, null);
         }
 
-        public boolean check(Animation animation) {
-            return check(animation != null ? animation.name : null);
-        }
+//        public boolean check(Animation animation) {
+//            return check(animation != null ? animation.name : null);
+//        }
 
         public boolean check(String animation) {
             if (animations != null)

@@ -88,6 +88,11 @@ public class PokeUtilsGui extends AppBase {
         }
     }
 
+    @Override
+    protected void onResize(int width, int height) {
+        canvas.resize(width, height);
+    }
+
     public static void main(String[] args) throws IOException {
         try {
             System.loadLibrary("renderdoc");

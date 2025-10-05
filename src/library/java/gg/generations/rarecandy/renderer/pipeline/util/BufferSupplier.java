@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.renderer.pipeline.util;
 
-import gg.generations.rarecandy.renderer.components.RenderObject;
+import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 
 /**
@@ -8,6 +8,6 @@ import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
  */
 @FunctionalInterface
 public interface BufferSupplier {
-    int get(ObjectInstance instance, RenderObject object);
+    int get(UniformUploadContext ctx);
 }
 

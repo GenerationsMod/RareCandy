@@ -1,21 +1,17 @@
 package gg.generations.rarecandy.tools;
 
-import gg.generations.rarecandy.renderer.components.RenderObject;
-import gg.generations.rarecandy.renderer.loading.BlankTexture;
-import gg.generations.rarecandy.renderer.loading.ITexture;
+import gg.generations.rarecandy.renderer.pipeline.util.UniformUploadContext;
+import gg.generations.rarecandy.renderer.textures.BlankTexture;
+import gg.generations.rarecandy.renderer.textures.ITexture;
 import gg.generations.rarecandy.renderer.pipeline.Pipelines;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.pipeline.util.Scope;
 import gg.generations.rarecandy.renderer.pipeline.util.TextureIdSupplier;
-import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.tools.gui.imgui.ImVector3f;
 import imgui.ImGui;
-import imgui.ImVec4;
 import imgui.flag.ImGuiCond;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
-import imgui.type.ImBoolean;
-import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -96,11 +92,11 @@ public class ComputeShaderDemo {
             }
             """;
         computeProgram = Pipelines.compute(computeSrc)
-                .autoFloat(Scope.GLOBAL, "u_time", (instance, object) -> time)
-                .autoFloat(Scope.GLOBAL, "u_intensity", (instance, object) -> intensity[0])
-                .autoVec3(Scope.GLOBAL, "u_color", (instance, object) -> color.getValue())
-                .autoVec3(Scope.GLOBAL, "u_color_2", (instance, object) -> color2.getValue())
-                .autoImage2D(Scope.GLOBAL, "destTex", 0, (instance, object) -> target)
+                .autoFloat(Scope.GLOBAL, "u_time", ctx -> time)
+                .autoFloat(Scope.GLOBAL, "u_intensity", ctx -> intensity[0])
+                .autoVec3(Scope.GLOBAL, "u_color", ctx -> color.getValue())
+                .autoVec3(Scope.GLOBAL, "u_color_2", ctx -> color2.getValue())
+                .autoImage2D(Scope.GLOBAL, "destTex", 0, ctx -> target)
                 .build();
 
         // --- Quad Shader ---
@@ -125,7 +121,7 @@ public class ComputeShaderDemo {
         quadProgram = Pipelines.traditional(quadVert, quadFrag)
                 .autoSampler2D(Scope.GLOBAL, "tex", 0, new TextureIdSupplier() {
                     @Override
-                    public int get(ObjectInstance instance, RenderObject object) {
+                    public int get(UniformUploadContext ctx) {
                         return target.getId();
                     }
                 }).build();
@@ -137,7 +133,7 @@ public class ComputeShaderDemo {
             time += 0.016f;
 
             computeProgram.useProgram();
-            computeProgram.bindGlobal(null, null);
+            computeProgram.bindGlobal(null, null, -1);
 
             // --- Run compute ---
             computeProgram.dispatch(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT, (width + 15) / 16, (height + 15) / 16, 1);
@@ -145,7 +141,7 @@ public class ComputeShaderDemo {
             // --- Draw quad ---
             glClear(GL_COLOR_BUFFER_BIT);
             quadProgram.useProgram();
-            quadProgram.bindGlobal(null, null);
+            quadProgram.bindGlobal(null, null, -1);
 
             glBindTexture(GL_TEXTURE_2D, target.getId());
             glDrawArrays(GL_TRIANGLES, 0, 3);

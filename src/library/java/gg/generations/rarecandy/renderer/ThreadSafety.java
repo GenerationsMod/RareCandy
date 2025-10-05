@@ -3,6 +3,8 @@ package gg.generations.rarecandy.renderer;
 import gg.generations.rarecandy.renderer.rendering.RareCandy;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.Callable;
+
 public class ThreadSafety {
 
     @Nullable
@@ -17,6 +19,21 @@ public class ThreadSafety {
             throw new RuntimeException("Code run on wrong thread.");
         }
     }
+
+    public static Callable<?> wrapException(Callable<?> r) {
+        return () -> {
+            try {
+                return r.call();
+            } catch (Exception e) {
+                LoggerUtil.printError(e);
+//                RareCandy.runLater(() -> {
+//                    throw e;
+//                });
+                throw new RuntimeException("Stopping Thread due to Error");
+            }
+        };
+    }
+
 
     public static Runnable wrapException(Runnable r) {
         return () -> {

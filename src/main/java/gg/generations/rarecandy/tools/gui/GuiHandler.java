@@ -90,7 +90,7 @@ public class GuiHandler implements KeyListener {
             initializeAsset(new PixelAsset(move(filePath), filePath.getFileName().toString()), filePath);
             var title = BASE_TITLE + " - " + filePath.getFileName().toString();
             gui.setTitle(title);
-            getCanvas().openFile(asset, FilenameUtils.getBaseName(filePath.getFileName().toString()), () -> gui.fileViewer.initializeAsset(asset, assetPath, getCanvas().loadedModel.objects.get(0).animations.keySet()), true);
+            getCanvas().openFile(asset, FilenameUtils.getBaseName(filePath.getFileName().toString()), () -> gui.fileViewer.initializeAsset(asset, assetPath, getCanvas().loadedModel.animationNameToId.keySet()), true);
 
         } catch (IOException e) {
             throw new RuntimeException(e);

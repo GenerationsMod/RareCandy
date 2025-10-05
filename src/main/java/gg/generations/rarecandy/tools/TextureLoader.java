@@ -2,8 +2,8 @@ package gg.generations.rarecandy.tools;
 
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.LoggerUtil;
-import gg.generations.rarecandy.renderer.loading.ITexture;
-import gg.generations.rarecandy.renderer.loading.Texture;
+import gg.generations.rarecandy.renderer.textures.ITexture;
+import gg.generations.rarecandy.renderer.textures.Texture;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 
 import java.io.IOException;

@@ -1,28 +1,21 @@
 package gg.generations.rarecandy.renderer.storage;
 
-import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
 import gg.generations.rarecandy.renderer.animation.Transform;
-import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
-import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class AnimatedObjectInstance extends ObjectInstance {
     @Nullable
     public AnimationInstance currentAnimation;
 
-    public AnimatedObjectInstance(int size, Matrix4f transformationMatrix, String materialId) {
+    public AnimatedObjectInstance(int size, Matrix4f transformationMatrix, int materialId) {
         super(size, transformationMatrix, materialId);
     }
 
-    public AnimatedObjectInstance(Matrix4f transformationMatrix, String materialId) {
+    public AnimatedObjectInstance(Matrix4f transformationMatrix, int materialId) {
         this(MAT4_SIZE * 221, transformationMatrix, materialId);
     }
 
@@ -38,22 +31,6 @@ public class AnimatedObjectInstance extends ObjectInstance {
         }
     }
 
-    public Map<String, Animation> getAnimationsIfAvailable() {
-
-        try {
-            return getAnimatedMesh().animations;
-        } catch (Exception ignored) {
-        }
-
-        return new HashMap<>();
-    }
-
-    public AnimatedMeshObject getAnimatedMesh() {
-        if (object() instanceof MultiRenderObject<?> mro) {
-            return ((List<AnimatedMeshObject>) mro.objects).get(0);
-        }
-        return (AnimatedMeshObject) object();
-    }
 
     public Matrix4f[] getTransforms() {
         if (currentAnimation == null || currentAnimation.matrixTransforms == null)
@@ -66,7 +43,7 @@ public class AnimatedObjectInstance extends ObjectInstance {
         this.currentAnimation = newAnimation;
     }
 
-    public Transform getTransform(String material) {
+    public Transform getTransform(int material) {
         return currentAnimation != null ? currentAnimation.getOffset(material) : null;
     }
 }

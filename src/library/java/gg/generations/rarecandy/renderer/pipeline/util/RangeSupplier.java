@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.renderer.pipeline.util;
 
-import gg.generations.rarecandy.renderer.components.RenderObject;
+import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 
 /**
@@ -8,5 +8,5 @@ import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
  */
 @FunctionalInterface
 public interface RangeSupplier {
-    long get(ObjectInstance instance, RenderObject object);
+    long get(UniformUploadContext ctx);
 }

@@ -21,13 +21,13 @@ public class Animation {
     public static Vector3f TRANSLATE = new Vector3f();
     protected static Vector3f SCALE = new Vector3f(1, 1, 1);
     protected static Vector3f TRANSLATION = new Vector3f();
-    public final String name;
+    public final int id;
     public final double animationDuration;
     protected final Skeleton skeleton;
     private final SkeletalTransform rootOffset;
 
     private final AnimationNode[] animationNodes;
-    public Map<String, Offset> offsets;
+    public Offset[] offsets;
 
     public float ticksPerSecond;
     public boolean loops;
@@ -35,8 +35,8 @@ public class Animation {
 
     private boolean ignoreScaling;
 
-    public Animation(String name, int ticksPerSecond, boolean loops, Skeleton skeleton, AnimationNode[] animationNodes, Map<String, Offset> offsets, boolean ignoreScaling, SkeletalTransform offset) {
-        this.name = name;
+    public Animation(int id, int ticksPerSecond, boolean loops, Skeleton skeleton, AnimationNode[] animationNodes, Offset[] offsets, boolean ignoreScaling, SkeletalTransform offset) {
+        this.id = id;
         this.ticksPerSecond = ticksPerSecond;
         this.loops = loops;
         this.skeleton = skeleton;
@@ -61,10 +61,6 @@ public class Animation {
         }
     }
 
-    public static <T> Map<String, Offset> fillOffsets(T item) {
-        return new HashMap<>();
-    }
-
     private double findLastKeyTime() {
         var duration = 0d;
 
@@ -80,7 +76,7 @@ public class Animation {
         }
 
         if(duration == 0) {
-            for (var value : this.offsets.values()) {
+            for (var value : this.offsets) {
                 if (value != null) {
                     duration = Math.max(value.duration(), duration);
                 }
@@ -106,13 +102,15 @@ public class Animation {
     }
 
     public void getFrameOffset(AnimationInstance instance) {
-        this.offsets.forEach((k, v) -> {
-            var offsetInstance = instance.offsets.computeIfAbsent(k, a -> new Transform());
+        assert instance.offsets.length == offsets.length;
+
+        for (int i = 0; i < offsets.length; i++) {
+            var offsetInstance = instance.offsets[i];
             offsetInstance.offset().zero();
             offsetInstance.scale().set(1, 1);
 
-            offsets.get(k).calcOffset(instance.getCurrentTime(), offsetInstance);
-        });
+            if(offsets[i] != null) offsets[i].calcOffset(instance.getCurrentTime(), offsetInstance);
+        }
     }
 
     public Matrix4f[] getFrameTransform(double secondsPassed) {
@@ -167,10 +165,10 @@ public class Animation {
         return Float.isNaN(nodeTransform.m00());
     }
 
-    @Override
-    public String toString() {
-        return this.name;
-    }
+//    @Override
+//    public String toString() {
+//        return this.name;
+//    }
 
     public AnimationNode[] getAnimationNodes() {
         return animationNodes;

@@ -2,6 +2,7 @@ package gg.generations.rarecandy.renderer.model.material;
 
 import com.google.gson.JsonObject;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -71,18 +72,27 @@ public class MaterialImages {
         return this;
     }
 
-    public MaterialImages processWithImageMap(Map<String, String> imageMap) {
-        var out = new MaterialImages();
-
-        out.diffuse = imageMap.getOrDefault(diffuse, diffuse);
-        out.layer = imageMap.getOrDefault(layer, layer);
-        out.mask = imageMap.getOrDefault(mask, mask);
-        out.emission = imageMap.getOrDefault(emission, emission);
-
-        return out;
-    }
+//    public MaterialImages processWithImageMap(Map<String, String> imageMap) {
+//        var out = new MaterialImages();
+//
+//        out.diffuse = imageMap.getOrDefault(diffuse, diffuse);
+//        out.layer = imageMap.getOrDefault(layer, layer);
+//        out.mask = imageMap.getOrDefault(mask, mask);
+//        out.emission = imageMap.getOrDefault(emission, emission);
+//
+//        return out;
+//    }
 
     public Stream<String> stream() {
         return Stream.of(diffuse, emission, layer, mask);
+    }
+
+    public int[] toArray(List<String> imageNames) {
+        return new int[] {
+                imageNames.indexOf(diffuse),
+                imageNames.indexOf(layer),
+                imageNames.indexOf(mask),
+                imageNames.indexOf(emission)
+        };
     }
 }

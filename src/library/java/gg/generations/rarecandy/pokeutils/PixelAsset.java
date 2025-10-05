@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * Pixelmon Asset (.pk) file.

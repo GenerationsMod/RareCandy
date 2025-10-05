@@ -1,7 +1,8 @@
 package gg.generations.rarecandy.renderer.pipeline.util;
 
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.renderer.loading.ITexture;
+import gg.generations.rarecandy.renderer.textures.ITexture;
+import gg.generations.rarecandy.renderer.textures.TextureArray;
 import org.joml.*;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryUtil;
@@ -126,15 +127,28 @@ public class Uniform {
     }
 
     public void uploadImage2D(ITexture texture, int unit) {
+        uploadImage2D(texture, unit, -1);
+    }
+
+    public void uploadImage2D(ITexture texture, int unit, int layer) {
+        uploadImage2D(texture.getId(), texture.getType(), texture.access(), unit, layer);
+    }
+
+    public void uploadImage2D(TextureArray texture, ITexture.ComputeAccess access, int unit, int layer) {
+        uploadImage2D(texture.getId(), texture.getType(), access, unit, layer);
+    }
+
+    public void uploadImage2D(int texture, ITexture.Type type, ITexture.ComputeAccess access, int unit, int layer) {
+        var layered = layer > -1;
 
         glBindImageTexture(
                 unit,                  // image unit = layout(binding=unit)
-                texture.getId(),       // GL texture ID from ITexture
+                texture,       // GL texture ID from ITexture
                 0,                     // mip level
-                false,                 // layered (false for 2D)
-                0,                     // layer (ignored for 2D)
-                texture.access().getValue(),                // GL_READ_ONLY, GL_WRITE_ONLY, GL_READ_WRITE
-                texture.getType().internalFormat                 // e.g. GL_RGBA8
+                layered,                 // layered (false for 2D)
+                layer,                     // layer (ignored for 2D)
+                access.getValue(),                // GL_READ_ONLY, GL_WRITE_ONLY, GL_READ_WRITE
+                type.internalFormat                 // e.g. GL_RGBA8
         );
     }
 

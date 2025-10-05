@@ -1,8 +1,9 @@
 package gg.generations.rarecandy.renderer.pipeline;
 
-import gg.generations.rarecandy.renderer.components.RenderObject;
+import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.pipeline.util.*;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.textures.ITexture;
 import org.joml.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryStack;
@@ -10,6 +11,8 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.IntBuffer;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.IntSupplier;
 
 public class Pipeline {
     private final int program;
@@ -31,29 +34,29 @@ public class Pipeline {
         GL20C.glUseProgram(program);
     }
 
-    public void bindGlobal(ObjectInstance instance, RenderObject object) {
-        bindScope(Scope.GLOBAL, instance, object);
+    public void bindGlobal(ObjectInstance instance, MultiRenderObject object, int mesh) {
+        bindScope(Scope.GLOBAL, new UniformUploadContext(instance, object, mesh));
     }
 
-    public void bindInstance(ObjectInstance instance, RenderObject object) {
-        bindScope(Scope.INSTANCE, instance, object);
+    public void bindInstance(ObjectInstance instance, MultiRenderObject object, int mesh) {
+        bindScope(Scope.INSTANCE, new UniformUploadContext(instance, object, mesh));
     }
 
-    public void bindModel(ObjectInstance instance, RenderObject object) {
-        bindScope(Scope.MODEL, instance, object);
+    public void bindModel(ObjectInstance instance, MultiRenderObject object, int mesh) {
+        bindScope(Scope.MODEL, new UniformUploadContext(instance, object, mesh));
     }
 
-    private void bindScope(Scope scope, ObjectInstance instance, RenderObject object) {
-        bindUBOs(scope, instance, object);
-        bindSSBOs(scope, instance, object);
-        bindUniforms(scope, instance, object);
+    private void bindScope(Scope scope, UniformUploadContext ctx) {
+        bindUBOs(scope, ctx);
+        bindSSBOs(scope, ctx);
+        bindUniforms(scope, ctx);
     }
 
-    private void bindUBOs(Scope scope, ObjectInstance instance, RenderObject object) {
+    private void bindUBOs(Scope scope, UniformUploadContext ctx) {
         List<UBOBinding> list = ubos.get(scope);
         if (list == null) return;
         for (UBOBinding b : list) {
-            int id = b.bufferSupplier().get(instance, object);
+            int id = b.bufferSupplier().get(ctx);
             if (id != 0) {
                 GL30C.glBindBufferBase(GL31C.GL_UNIFORM_BUFFER, b.bindingPoint(), id);
             }
@@ -64,15 +67,15 @@ public class Pipeline {
     // SSBO binding
     // ============================================================
 
-    private void bindSSBOs(Scope scope, ObjectInstance instance, RenderObject object) {
+    private void bindSSBOs(Scope scope, UniformUploadContext ctx) {
         List<SSBOBinding> list = ssbos.get(scope);
         if (list == null) return;
         for (SSBOBinding b : list) {
-            int id = b.bufferSupplier().get(instance, object);
+            int id = b.bufferSupplier().get(ctx);
             if (id != 0) {
                 if (b.offsetSupplier() != null && b.sizeSupplier() != null) {
-                    long offset = b.offsetSupplier().get(instance, object);
-                    long size = b.sizeSupplier().get(instance, object);
+                    long offset = b.offsetSupplier().get(ctx);
+                    long size = b.sizeSupplier().get(ctx);
                     GL30C.glBindBufferRange(GL43C.GL_SHADER_STORAGE_BUFFER, b.bindingPoint(), id, offset, size);
                 } else {
                     GL30C.glBindBufferBase(GL43C.GL_SHADER_STORAGE_BUFFER, b.bindingPoint(), id);
@@ -85,10 +88,9 @@ public class Pipeline {
     // Uniform binding
     // ============================================================
 
-    private void bindUniforms(Scope scope, ObjectInstance instance, RenderObject object) {
+    private void bindUniforms(Scope scope, UniformUploadContext ctx) {
         List<UniformBinding> list = uniformBindings.get(scope);
         if (list == null) return;
-        UniformUploadContext ctx = new UniformUploadContext(program, instance, object);
         for (UniformBinding b : list) {
             b.callback().apply(b.uniform(), ctx);
         }
@@ -205,80 +207,88 @@ public class Pipeline {
         public V autoImage2D(Scope scope, String uniformName, int textureUnit, TextureSupplier tex) {
             Uniform u = getAndCheckUniform(uniformName, GL43C.GL_IMAGE_2D);
             return addUniform(scope, uniformName, (uniform, ctx) -> {
-                var texture = tex.getTexture(ctx.instance(), ctx.object());
+                var texture = tex.getTexture(ctx);
                 uniform.uploadImage2D(texture, textureUnit);
+            });
+        }
+
+        public V autoImage2DArray(Scope scope, String uniformName, int textureUnit, IntSupplier layer, ITexture.ComputeAccess access, TextureArraySupplier tex) {
+            Uniform u = getAndCheckUniform(uniformName, GL43C.GL_IMAGE_2D);
+            return addUniform(scope, uniformName, (uniform, ctx) -> {
+                var texture = tex.getTextureArray(ctx);
+                uniform.uploadImage2D(texture, access, textureUnit, layer.getAsInt());
             });
         }
 
         public V autoSampler2D(Scope scope, String uniformName, int textureUnit, TextureIdSupplier tex) {
             Uniform u = getAndCheckUniform(uniformName, GL20C.GL_SAMPLER_2D);
             return addUniform(scope, uniformName, (uniform, ctx) -> {
-                int textureId = tex.get(ctx.instance(), ctx.object());
+                int textureId = tex.get(ctx);
                 GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + textureUnit);
                 GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, textureId);
                 uniform.uploadInt(textureUnit);
             });
         }
 
-        public V autoSampler2DArray(Scope scope, String uniformName, int textureUnit, TextureIdSupplier tex) {
+        public V autoSampler2DArray(Scope scope, String uniformName, int textureUnit, TextureArraySupplier tex) {
             Uniform u = getAndCheckUniform(uniformName, GL30C.GL_SAMPLER_2D_ARRAY);
             return addUniform(scope, uniformName, (uniform, ctx) -> {
-                int textureId = tex.get(ctx.instance(), ctx.object());
+                int textureId = tex.getTextureArray(ctx).getId();
                 GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + textureUnit);
                 GL11C.glBindTexture(GL30C.GL_TEXTURE_2D_ARRAY, textureId);
                 uniform.uploadInt(textureUnit);
             });
         }
 
-        public V autoMat4(Scope scope, String uniformName, BiFunction<ObjectInstance, RenderObject, Matrix4f> supplier) {
+        public V autoMat4(Scope scope, String uniformName, Function<UniformUploadContext, Matrix4f> supplier) {
             getAndCheckUniform(uniformName, GL20C.GL_FLOAT_MAT4);
-            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadMat4f(supplier.apply(ctx.instance(), ctx.object())));
+            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadMat4f(supplier.apply(ctx)));
         }
 
-        public V autoMat4Array(Scope scope, String uniformName, BiFunction<ObjectInstance, RenderObject, Matrix4f[]> supplier
+        public V autoMat4Array(Scope scope, String uniformName, Function<UniformUploadContext, Matrix4f[]> supplier
         ) {
             getAndCheckUniform(uniformName, GL20C.GL_FLOAT_MAT4);
             return addUniform(scope, uniformName, (uniform, ctx) -> {
-                Matrix4f[] arr = supplier.apply(ctx.instance(), ctx.object());
+                Matrix4f[] arr = supplier.apply(ctx);
                 if (arr != null) {
                     uniform.uploadMat4fs(arr);
                 }
             });
         }
 
-        V autoMat3(Scope scope, String uniformName, BiFunction<ObjectInstance, RenderObject, Matrix3f> supplier) {
+        V autoMat3(Scope scope, String uniformName, BiFunction<ObjectInstance, MultiRenderObject, Matrix3f> supplier) {
             getAndCheckUniform(uniformName, GL20C.GL_FLOAT_MAT3);
             return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadMat3f(supplier.apply(ctx.instance(), ctx.object())));
         }
 
-        public V autoVec4(Scope scope, String uniformName, BiFunction<ObjectInstance, RenderObject, Vector4f> supplier) {
+        public V autoVec4(Scope scope, String uniformName, Function<UniformUploadContext, Vector4f> supplier) {
             getAndCheckUniform(uniformName, GL20C.GL_FLOAT_VEC4);
-            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadVec4f(supplier.apply(ctx.instance(), ctx.object())));
+            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadVec4f(supplier.apply(ctx)));
         }
 
-        public V autoVec3(Scope scope, String uniformName, BiFunction<ObjectInstance, RenderObject, Vector3f> supplier) {
+        public V autoVec3(Scope scope, String uniformName, Function<UniformUploadContext, Vector3f> supplier) {
             getAndCheckUniform(uniformName, GL20C.GL_FLOAT_VEC3);
-            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadVec3f(supplier.apply(ctx.instance(), ctx.object())));
+            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadVec3f(supplier.apply(ctx)));
         }
 
-        public V autoVec2(Scope scope, String uniformName, BiFunction<ObjectInstance, RenderObject, Vector2f> supplier) {
+        public V autoVec2(Scope scope, String uniformName, Function<UniformUploadContext, Vector2f> supplier) {
             getAndCheckUniform(uniformName, GL20C.GL_FLOAT_VEC2);
-            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadVec2f(supplier.apply(ctx.instance(), ctx.object())));
+            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadVec2f(supplier.apply(ctx)));
         }
 
-        public V autoFloat(Scope scope, String uniformName, BiFunction<ObjectInstance, RenderObject, Float> supplier) {
+        public V autoFloat(Scope scope, String uniformName, Function<UniformUploadContext, Float> supplier) {
             getAndCheckUniform(uniformName, GL20C.GL_FLOAT);
-            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadFloat(supplier.apply(ctx.instance(), ctx.object())));
+            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadFloat(supplier.apply(ctx)));
         }
 
-        public V autoInt(Scope scope, String uniformName, BiFunction<ObjectInstance, RenderObject, Integer> supplier) {
+        public V autoInt(Scope scope, String uniformName, Function<UniformUploadContext, Integer> supplier) {
             getAndCheckUniform(uniformName, GL20C.GL_INT);
-            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadInt(supplier.apply(ctx.instance(), ctx.object())));
+            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadInt(supplier.apply(ctx)));
         }
 
-        public V autoBool(Scope scope, String uniformName, BiFunction<ObjectInstance, RenderObject, Boolean> supplier) {
+        public V autoBool(Scope scope, String uniformName, Function<UniformUploadContext, Boolean> supplier) {
             getAndCheckUniform(uniformName, GL20C.GL_BOOL);
-            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadBoolean(supplier.apply(ctx.instance(), ctx.object())));
+            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadBoolean(supplier.apply(ctx)));
         }
 
         private Uniform getAndCheckUniform(String name, int expectedType) {

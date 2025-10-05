@@ -52,12 +52,12 @@ dependencies {
     shadow(implementation("org.apache.commons", "commons-compress", "1.26.1"))
     shadowTools(implementation("org.joml", "joml", "1.10.5"))
 
-    shadowTools(implementation(platform("org.lwjgl:lwjgl-bom:3.3.3"))!!)
+    shadowTools(implementation(platform("org.lwjgl:lwjgl-bom:3.3.4"))!!)
     shadowTools(implementation("org.lwjgl", "lwjgl"))
     shadowTools(implementation("org.lwjgl", "lwjgl-glfw"))
     shadowTools(implementation("org.lwjgl", "lwjgl-opengl"))
     shadowTools(implementation("org.lwjgl", "lwjgl-stb"))
-    shadow(implementation("org.lwjgl", "lwjgl-assimp", "3.3.3")) {
+    shadow(implementation("org.lwjgl", "lwjgl-assimp", "3.3.4")) {
         isTransitive = true
     }
     shadow(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
@@ -107,8 +107,8 @@ tasks {
         manifest.attributes(mapOf("Main-Class" to "gg.generations.rarecandy.tools.Main"))
 
         configurations = listOf(
-            project.configurations.getByName("shadow"),
-            project.configurations.getByName("shadowTools")
+            project.configurations.getByName("shadowTools"),
+            project.configurations.getByName("shadow")
         )
 
         dependsOn("processResources")

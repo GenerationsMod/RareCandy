@@ -1,12 +1,17 @@
-package gg.generations.rarecandy.renderer.loading;
+package gg.generations.rarecandy.renderer.textures;
 
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL42;
 
 import java.io.Closeable;
 
 public interface ITexture extends Closeable {
-    void bind(int slot);
+    default void bind(int slot) {
+        GL13.glActiveTexture(GL13.GL_TEXTURE0 + slot);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, getId());
+    }
 
     int width();
     int height();

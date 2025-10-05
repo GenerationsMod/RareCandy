@@ -1,11 +1,6 @@
 package gg.generations.rarecandy.renderer.model;
 
-import gg.generations.rarecandy.pokeutils.BlendType;
-import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.Attribute;
-import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
-import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
-import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
@@ -20,6 +15,9 @@ import static gg.generations.rarecandy.renderer.loading.ModelLoader.generateVao;
 import static org.lwjgl.opengl.GL15C.*;
 import static org.lwjgl.opengl.GL30C.glBindVertexArray;
 
+/**
+ *
+ */
 public class GLModel implements RenderModel {
     public List<MeshDrawCommand> meshDrawCommands = new ArrayList<>();
 
@@ -35,21 +33,17 @@ public class GLModel implements RenderModel {
         }
     }
 
-    public GLModel(ByteBuffer vertexBuffer, ByteBuffer indexBuffer, List<Runnable> glCalls, int indexSize, int gltType, List<Attribute> attributes) {
-        var model = this;
-
-        glCalls.add(() -> {
-            generateVao(model, vertexBuffer, attributes);
-            GL30.glBindVertexArray(model.vao);
-            model.ebo = GL15.glGenBuffers();
-            glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, model.ebo);
+    public GLModel(ByteBuffer vertexBuffer, ByteBuffer indexBuffer, int indexSize, int gltType, List<Attribute> attributes) {
+        generateVao(this, vertexBuffer, attributes);
+            GL30.glBindVertexArray(vao);
+            ebo = GL15.glGenBuffers();
+            glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, ebo);
             glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
-            model.meshDrawCommands.add(new MeshDrawCommand(model.vao, GL11.GL_TRIANGLES, gltType, model.ebo, indexSize));
+            meshDrawCommands.add(new MeshDrawCommand(vao, GL11.GL_TRIANGLES, gltType, ebo, indexSize));
             MemoryUtil.memFree(vertexBuffer);
             MemoryUtil.memFree(indexBuffer);
-        });
     }
 
     @Override
@@ -68,15 +62,15 @@ public class GLModel implements RenderModel {
 
     @Override
     public void close() {
-        if(vao > -1) {
+        if (vao > -1) {
             GL30.glDeleteVertexArrays(vao);
             vao = -1;
         }
-        if(ebo > -1) {
+        if (ebo > -1) {
             GL30.glDeleteBuffers(ebo);
             ebo = -1;
         }
-        if(vbo > -1) {
+        if (vbo > -1) {
             GL30.glDeleteBuffers(vbo);
             vbo = -1;
         }
@@ -89,49 +83,5 @@ public class GLModel implements RenderModel {
     }
 
 //    private Map<Material, List<Consumer<Pipeline>>> EMPTY = Collections.emptyMap();
-
-    public <T extends RenderObject> void render(RenderStage stage, TraditionalPipeline pipeline, List<ObjectInstance> instances, T object) {
-
-        for (var instance : instances) {
-            if (object.shouldRender(instance)) {
-                continue;
-            }
-
-            pipeline.bindInstance(instance, object);
-
-            var material = object.getMaterial(instance.variant());
-            pipeline.preDraw(material);
-            var transparent = material.blendType() != BlendType.None;
-
-            if(transparent && stage == RenderStage.TRANSPARENT || stage == RenderStage.SOLID) {
-                runDrawCalls();
-            }
-
-            pipeline.postDraw(material);
-        }
-    }
-
-    public <T extends RenderObject> void render(ObjectInstance instance, T object) {
-//        Map<Material, List<Consumer<Pipeline>>> solidMap = new HashMap<>();
-//        Map<Material, List<Consumer<Pipeline>>> transparentMap = new HashMap<>();
-//
-//        if (object.shouldRender(instance)) return;
-//
-//        var material = object.getMaterial(instance.variant());
-//
-//        var stage = RenderStage.SOLID;
-//
-//        if(material.blendType() != BlendType.None) stage = RenderStage.TRANSPARENT;
-//        var stages = stage == RenderStage.SOLID ? solidMap : transparentMap;
-//
-//        stages.computeIfAbsent(material, a -> new ArrayList<>()).add(pipeline -> {
-//            pipeline.updateOtherUniforms(instance, object);
-//            pipeline.updateTexUniforms(instance, object);
-//            runDrawCalls();
-//        });
-//
-//        solidMap.forEach(GLModel::render);
-//        transparentMap.forEach(GLModel::render);
-    }
 
 }

@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.pokeutils.reader;
 
-import gg.generations.rarecandy.renderer.loading.ITexture;
+import gg.generations.rarecandy.renderer.textures.ITexture;
 
 import java.awt.image.BufferedImage;
 import java.util.Set;

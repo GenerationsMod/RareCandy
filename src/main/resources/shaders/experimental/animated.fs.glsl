@@ -16,12 +16,9 @@ layout(std140, binding = 0) uniform Fog {
     int FogShape;
 };
 
+uniform sampler2DArray images;
 
-uniform sampler2D diffuse;
-uniform sampler2D mask;
-uniform sampler2D layer;
 uniform sampler2D lightmap;
-uniform sampler2D emission;
 uniform sampler2D paradoxMask;
 
 uniform ivec2 light;
@@ -52,6 +49,12 @@ layout(std140, binding = 2) uniform Material {
     int colorMethod;
     int effect;
     int useLight;
+
+    int diffuse;
+    int layer;
+    int mask;
+    int emission;
+
 };
 
 uniform vec3 Light0_Direction;
@@ -96,7 +99,7 @@ float adjustScalar(float color) {
 }
 
 float getMaskIntensity() {
-    return texture(mask, texCoord0).r;
+    return texture(images, vec3(texCoord0, mask)).r;
 }
 
 vec3 applyEmission(vec3 base, vec3 emissionColor, float intensity) {
@@ -104,8 +107,8 @@ vec3 applyEmission(vec3 base, vec3 emissionColor, float intensity) {
 }
 
 vec4 layered(vec2 texCoord) {
-    vec4 color = texture(diffuse, texCoord);
-    vec4 layerMasks = adjust(texture(layer, texCoord));
+    vec4 color = texture(images, vec3(texCoord, diffuse));
+    vec4 layerMasks = adjust(texture(images, vec3(texCoord, layer)));
     float maskColor = adjustScalar(getMaskIntensity());
 
     vec3 base = mix(color.rgb, color.rgb * baseColor1, layerMasks.r);
@@ -125,9 +128,9 @@ vec4 layered(vec2 texCoord) {
 
 // ===== Masked Color Method =====
 vec4 masked(vec2 texCoord) {
-    vec4 outColor = texture(diffuse, texCoord);
+    vec4 outColor = texture(images, vec3(texCoord, diffuse));
 
-    float mask = texture(mask, texCoord).x;
+    float mask = texture(images, vec3(texCoord, mask)).x;
     outColor.rgb = mix(outColor.rgb, outColor.rgb * baseColor1, mask);
     return outColor;
 }
@@ -139,7 +142,7 @@ vec4 getColor(vec2 texCoord) {
         return masked(texCoord);
     }
 
-    return texture(diffuse, texCoord);
+    return texture(images, vec3(texCoord, diffuse));
 }
 
 // ===== Cartoon Effect =====
@@ -173,9 +176,11 @@ vec3 bilateralFilter(vec2 uv) {
     for (int i = -1; i <= 1; i++) {
         for (int j = -1; j <= 1; j++) {
             vec2 offsetUV = uv + vec2(float(i), float(j)) * 0.003;
-            vec3 sampleColor = texture(diffuse, offsetUV).rgb;
+            vec3 sampleColor = texture(images, vec3(offsetUV, diffuse)).rgb;
             float spatialWeight = exp(-float(i * i + j * j) / (2.0 * 1.0));
-            float colorWeight = exp(-dot(sampleColor - texture(diffuse, uv).rgb, sampleColor - texture(diffuse, uv).rgb) / (2.0 * 0.05));
+            vec3 rgb = texture(images, vec3(uv, diffuse)).rgb;
+
+            float colorWeight = exp(-dot(sampleColor - rgb, sampleColor - rgb) / (2.0 * 0.05));
             float weight = spatialWeight * colorWeight;
             colorSum += sampleColor * weight;
             weightSum += weight;
@@ -390,7 +395,7 @@ void main() {
         // Sample Minecraft's light level from the lightmap texture
         vec4 minecraftLight = minecraft_sample_lightmap(lightmap, light);
 
-        outColor *= mix(minecraftLight, vec4(1, 1, 1, 1), texture(emission, texCoord0).r);
+        outColor *= mix(minecraftLight, vec4(1, 1, 1, 1), texture(images, vec3(texCoord0, emission)).r);
     }
 
     outColor = linear_fog(outColor, vertexDistance, FogStart, FogEnd, FogColor);

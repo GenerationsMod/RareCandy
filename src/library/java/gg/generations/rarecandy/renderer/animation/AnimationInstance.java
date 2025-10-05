@@ -12,7 +12,7 @@ public class AnimationInstance {
 
     public double startTime = -1;
     public Matrix4f[] matrixTransforms;
-    public final Map<String, Transform> offsets = new HashMap<>();
+    public Transform[] offsets;
 
 
     protected Animation animation;
@@ -25,7 +25,13 @@ public class AnimationInstance {
     public AnimationInstance(Animation animation) {
         this.animation = animation;
 
-        if(animation != null) animation.offsets.keySet().forEach(k -> offsets.put(k, new Transform()));
+        if(animation != null) {
+            offsets = new Transform[animation.offsets.length];
+
+            for (int i = 0; i < animation.offsets.length; i++) {
+                offsets[i] = new Transform();
+            }
+        }
     }
 
     public void update(double secondsPassed) {
@@ -77,9 +83,9 @@ public class AnimationInstance {
         return animation;
     }
 
-    public Transform getOffset(String name) {
-        var offset = offsets.get(name.replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/);
+    public Transform getOffset(int material) {
+        //TODO: Might still need thsi correction? .replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/);
 
-        return offset;
+        return offsets[material];
     }
 }

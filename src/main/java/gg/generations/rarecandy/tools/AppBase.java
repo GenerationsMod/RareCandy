@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.launch.OpenGL;
-import gg.generations.rarecandy.renderer.loading.BlankTexture;
+import gg.generations.rarecandy.renderer.textures.BlankTexture;
 import imgui.ImGui;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;

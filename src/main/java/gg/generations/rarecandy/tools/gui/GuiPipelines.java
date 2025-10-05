@@ -7,6 +7,8 @@ import gg.generations.rarecandy.renderer.model.material.MaterialUploader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.pipeline.util.Scope;
+import gg.generations.rarecandy.renderer.pipeline.util.TextureIdSupplier;
+import gg.generations.rarecandy.renderer.pipeline.util.UniformUploadContext;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.storage.InstanceBlockUploader;
@@ -16,6 +18,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
 
+import static gg.generations.rarecandy.renderer.pipeline.Pipelines.builtin;
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
 
 public class GuiPipelines {
@@ -41,64 +44,69 @@ public class GuiPipelines {
         MaterialUploader.setup();
 
         TraditionalPipeline ANIMATED = TraditionalPipeline.builder(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
-                .autoMat4(Scope.GLOBAL, "viewMatrix", (instance, object) -> RareCandyCanvas.viewMatrix)
-                .autoMat4(Scope.GLOBAL, "projectionMatrix", (instance, object) -> projectionMatrix)
-                .autoVec2(Scope.INSTANCE, "uvOffset", (instance, object) -> {
-                    Transform transform = object.getTransform(instance.variant());
+                .autoMat4(Scope.GLOBAL, "viewMatrix", (ctx) -> RareCandyCanvas.viewMatrix)
+                .autoMat4(Scope.GLOBAL, "projectionMatrix", (ctx) -> projectionMatrix)
+                .autoVec2(Scope.INSTANCE, "uvOffset", (ctx) -> {
+                    var variant = ctx.object().getVariant(ctx.mesh(), ctx.instance().variant());
 
-                    if (instance instanceof AnimatedObjectInstance animatedInstance) {
-                        var t = animatedInstance.getTransform(object.getMaterial(instance.variant()).getMaterialName());
+                    Transform transform = variant.offset();
 
-                        if (t != null && !t.isUnit()) {
-                            transform = t;
-                        }
-                    }
+                    if (ctx.instance() instanceof AnimatedObjectInstance animatedInstance) {
 
-                    var offset = transform.offset();
+                        var material = variant.material();
 
-                    if(offset == null) offset = Transform.DEFAULT_OFFSET;
-
-                    return offset;
-                })
-                .autoVec2(Scope.INSTANCE, "uvScale", (instance, object) -> {
-                    Transform transform = object.getTransform(instance.variant());
-
-                    if (instance instanceof AnimatedObjectInstance animatedObjectInstance) {
-                        var t = animatedObjectInstance.getTransform(object.getMaterial(instance.variant()).getMaterialName());
+                        var t = animatedInstance.getTransform(material);
 
                         if (t != null && !t.isUnit()) {
                             transform = t;
                         }
                     }
 
-                    var scale = transform.scale();
+                    if(transform == null) {
+                        transform = Transform.DEFAULT;
+                    }
 
-                    if(scale == null) scale = Transform.DEFAULT_SCALE;
-
-                    return scale;
+                    return transform.offset();
                 })
-                .autoVec3(Scope.GLOBAL, "Light0_Direction", (instance, object) -> light0)
-                .autoVec3(Scope.GLOBAL, "Light1_Direction", (instance, object) -> light1)
-                .autoBool(Scope.GLOBAL, "tera", (instance, object) -> settings.terastalization.enabled.getValue())
-                .autoVec3(Scope.GLOBAL, "teraTint", (instance, object) -> settings.terastalization.tint.getValue())
-                .addUniform(Scope.GLOBAL, "light", (uniform, context) -> {
+                .autoVec2(Scope.INSTANCE, "uvScale", (ctx) -> {
+                    var variant = ctx.object().getVariant(ctx.mesh(), ctx.instance().variant());
+
+                    Transform transform = variant.offset();
+
+                    if (ctx.instance() instanceof AnimatedObjectInstance animatedInstance) {
+
+                        var material = variant.material();
+
+                        var t = animatedInstance.getTransform(material);
+
+                        if (t != null && !t.isUnit()) {
+                            transform = t;
+                        }
+                    }
+
+                    if(transform == null) {
+                        transform = Transform.DEFAULT;
+                    }
+
+                    return transform.scale();
+                })
+                .autoVec3(Scope.GLOBAL, "Light0_Direction", (ctx) -> light0)
+                .autoVec3(Scope.GLOBAL, "Light1_Direction", (ctx) -> light1)
+                .autoBool(Scope.GLOBAL, "tera", (ctx) -> settings.terastalization.enabled.getValue())
+                .autoVec3(Scope.GLOBAL, "teraTint", (ctx) -> settings.terastalization.tint.getValue())
+                .addUniform(Scope.GLOBAL, "light", (uniform, ctx) -> {
                     var light = (int) (RareCandyCanvas.getLightLevel() * 15);
 
                     uniform.upload2i(0, light);
                 })
-                .autoVec3(Scope.GLOBAL, "tint", (instance, object) -> ONE)
-                .autoVec4(Scope.GLOBAL, "ColorModulator", (instance, object) -> colorMOdulator)
-                .autoInt(Scope.GLOBAL, "frame", (instance, object) -> {
+                .autoVec3(Scope.GLOBAL, "tint", (ctx) -> ONE)
+                .autoVec4(Scope.GLOBAL, "ColorModulator", (ctx) -> colorMOdulator)
+                .autoInt(Scope.GLOBAL, "frame", (ctx) -> {
                     return (int) pingpong(RareCandyCanvas.getTime() % 1d);
                 })
-                .autoSampler2D(Scope.INSTANCE, "diffuse", 0, (instance, object) -> {
-                    return ITextureLoader.instance().getTexture(object.getMaterial(instance.variant()).images().getDiffuse()).getId();
-                })
-                .autoSampler2D(Scope.INSTANCE, "emission", 2, (instance, object) -> ITextureLoader.instance().getTexture(object.getMaterial(instance.variant()).images().getEmission()).getId())
-                .autoSampler2D(Scope.INSTANCE, "layer", 3, (instance, object) -> ITextureLoader.instance().getTexture(object.getMaterial(instance.variant()).images().getLayer()).getId())
-                .autoSampler2D(Scope.INSTANCE, "mask", 4, (instance, object) -> ITextureLoader.instance().getTexture(object.getMaterial(instance.variant()).images().getMask()).getId())
-                .autoSampler2D(Scope.INSTANCE, "lightmap", 5, (instance, object) -> ITextureLoader.instance().getTexture("light_map").getId())
-                .autoSampler2D(Scope.INSTANCE, "paradoxMask", 6, (instance, object) -> ITextureLoader.instance().getTexture("paradox_mask").getId())
+                .autoSampler2DArray(Scope.INSTANCE, "images", 0, ctx -> ctx.object().images)
+                .autoSampler2D(Scope.INSTANCE, "lightmap", 1, (ctx) -> ITextureLoader.instance().getTexture("light_map").getId())
+                .autoSampler2D(Scope.INSTANCE, "paradoxMask", 2, (ctx) -> ITextureLoader.instance().getTexture("paradox_mask").getId())
                 .prePostDraw(material -> {
 
                     if(material.disableDepth()) {
@@ -115,22 +123,22 @@ public class GuiPipelines {
                     material.cullType().disable();
                     material.blendType().disable();
                 })
-                .addUBO(Scope.GLOBAL, "Fog", 0, (instance, object) -> canvas.getFogUploader().id)
-                .addUBO(Scope.INSTANCE, "Material", 2, (instance, object) -> object.getMaterial(instance.variant()).bindMaterial())
-                .addUBO(Scope.INSTANCE, "Instance", 1, (instance, object) -> InstanceBlockUploader.bind(instance))
+                .addUBO(Scope.GLOBAL, "Fog", 0, (ctx) -> canvas.getFogUploader().id)
+                .addUBO(Scope.INSTANCE, "Material", 2, (ctx) -> ctx.object().getMaterial(ctx.mesh(), ctx.instance().variant()).bindMaterial())
+                .addUBO(Scope.INSTANCE, "Instance", 1, (ctx) -> InstanceBlockUploader.bind(ctx.instance()))
                 .build();
 
         TraditionalPipeline PLANE = TraditionalPipeline.builder(builtin("original/animated/plane.vs.glsl"), builtin("original/animated/plane.fs.glsl"))
-                .autoMat4(Scope.GLOBAL, "viewMatrix", (instance, object) -> RareCandyCanvas.viewMatrix)
-                .autoMat4(Scope.GLOBAL, "projectionMatrix", (instance, object) -> projectionMatrix)
-                .autoFloat(Scope.GLOBAL, "lightLevel", (instance, object) -> RareCandyCanvas.getLightLevel())
-                .autoFloat(Scope.GLOBAL, "radius", (instance, object) -> RareCandyCanvas.radius)
-                .autoBool(Scope.GLOBAL, "render", (instance, object) -> RareCandyCanvas.renderingFrame)
+                .autoMat4(Scope.GLOBAL, "viewMatrix", (ctx) -> RareCandyCanvas.viewMatrix)
+                .autoMat4(Scope.GLOBAL, "projectionMatrix", (ctx) -> projectionMatrix)
+                .autoFloat(Scope.GLOBAL, "lightLevel", (ctx) -> RareCandyCanvas.getLightLevel())
+                .autoFloat(Scope.GLOBAL, "radius", (ctx) -> RareCandyCanvas.radius)
+                .autoBool(Scope.GLOBAL, "render", (ctx) -> RareCandyCanvas.renderingFrame)
                 .prePostDraw(material -> BlendType.Regular.enable(), material -> BlendType.Regular.disable())
                 .build();
 
         TraditionalPipeline SCREEN_QUAD = TraditionalPipeline.builder(builtin("original/screen/screen_quad.vs.glsl"), builtin("original/screen/screen_quad.fs.glsl"))
-                .autoSampler2D(Scope.GLOBAL, "screenTexture", 0, (instance, object) -> RareCandyCanvas.framebuffer.getId())
+                .autoSampler2D(Scope.GLOBAL, "screenTexture", 0, (ctx) -> RareCandyCanvas.framebuffer.getId())
                 .build();
 
         PipelineRegistry.setFunction(s -> {
@@ -140,14 +148,5 @@ public class GuiPipelines {
                 default -> ANIMATED;
             };
         });
-    }
-
-    private static String builtin(String name) {
-        try (var is = TraditionalPipeline.class.getResourceAsStream("/shaders/" + name)) {
-            assert is != null;
-            return new String(is.readAllBytes());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read built in shader", e);
-        }
     }
 }

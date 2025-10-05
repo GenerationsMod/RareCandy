@@ -1,4 +1,4 @@
-package gg.generations.rarecandy.renderer.loading;
+package gg.generations.rarecandy.renderer.textures;
 
 import io.github.mudbill.dds.DDSFile;
 import org.lwjgl.opengl.GL11;

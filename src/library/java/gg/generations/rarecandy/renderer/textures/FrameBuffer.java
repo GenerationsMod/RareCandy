@@ -1,6 +1,5 @@
-package gg.generations.rarecandy.renderer.rendering;
+package gg.generations.rarecandy.renderer.textures;
 
-import gg.generations.rarecandy.renderer.loading.ITexture;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;

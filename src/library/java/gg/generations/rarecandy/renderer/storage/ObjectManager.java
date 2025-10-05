@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.renderer.storage;
 
 import gg.generations.rarecandy.renderer.animation.AnimationController;
-import gg.generations.rarecandy.renderer.components.RenderObject;
+import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
@@ -14,13 +14,13 @@ import java.util.Map;
 
 public class ObjectManager {
     private final AnimationController animationController = new AnimationController();
-    private final Map<RenderObject, List<ObjectInstance>> objects = new HashMap<>();
+    private final Map<MultiRenderObject, List<ObjectInstance>> objects = new HashMap<>();
 
     public void update(double secondsPassed) {
         for (var entries : objects.entrySet()) {
             var value = entries.getValue();
             var object = entries.getKey();
-            if(object.isReady()) object.update();
+            object.update();
 
             for (var objectInstance : value)
                     if (objectInstance instanceof AnimatedObjectInstance animatedObjectInstance)
@@ -38,16 +38,13 @@ public class ObjectManager {
             var object = entry.getKey();
             if (object == null) continue;
 
-            if (object.isReady()) {
-                pipeline.bindModel(null, object);
 
-                object.render(pipeline, stage, entry.getValue());
-            }
+            pipeline.bindModel(null, object, -1);
+            object.render(pipeline, stage, entry.getValue());
         }
     }
 
-    public <T extends ObjectInstance> T add(@NotNull RenderObject object, @NotNull T instance) {
-        instance.link(object);
+    public <T extends ObjectInstance> T add(@NotNull MultiRenderObject object, @NotNull T instance) {
         objects.putIfAbsent(object, new ArrayList<>());
         objects.get(object).add(instance);
         return instance;

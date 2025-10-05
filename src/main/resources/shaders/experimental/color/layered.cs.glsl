@@ -26,28 +26,6 @@ layout(std140, binding = 0) uniform material {
 
 layout(rgba8, binding = 0) uniform image2D solidTex;
 
-layout(std140, binding = 0) uniform material {
-    vec3 baseColor1;
-    vec3 baseColor2;
-    vec3 baseColor3;
-    vec3 baseColor4;
-    vec3 baseColor5;
-    vec3 emiColor1;
-    vec3 emiColor2;
-    vec3 emiColor3;
-    vec3 emiColor4;
-    vec3 emiColor5;
-    float emiIntensity1;
-    float emiIntensity2;
-    float emiIntensity3;
-    float emiIntensity4;
-    float emiIntensity5;
-    int diffuse;
-    int emission;
-    int layer;
-    int mask;
-};
-
 vec4 adjust(vec4 color) {
     return clamp(color * 2, 0, 1);
 }

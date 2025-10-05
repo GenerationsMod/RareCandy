@@ -1,19 +1,18 @@
 package gg.generations.rarecandy.tools.gui;
 
+import gg.generations.rarecandy.pokeutils.MaterialReference;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
-import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
-import gg.generations.rarecandy.renderer.components.MeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
-import gg.generations.rarecandy.renderer.components.RenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
-import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.renderer.textures.FrameBuffer;
+import gg.generations.rarecandy.renderer.textures.TextureArray;
 import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -29,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 
 
 public class RareCandyCanvas {
@@ -65,6 +65,7 @@ public class RareCandyCanvas {
 //    private ObjectInstance[] cubeInstances;
     private FogUploader fogUploader;
     private boolean initCalled;
+    private boolean rendering = false;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
@@ -96,6 +97,8 @@ public class RareCandyCanvas {
 
     public void openFile(PixelAsset pkFile, String name, Runnable runnable, boolean resetAnimation) throws IOException {
         currentAnimation = null;
+        rendering = false;
+
 //        renderer.objectManager.clearObjects();
 //        renderer.objectManager.add(plane, planeInstance);
 
@@ -103,7 +106,23 @@ public class RareCandyCanvas {
 //            renderer.objectManager.add(cube, instance);
 //        }
 
-        if(loadedModel != null) loadedModel.close();
+        if(loadedModel != null) {
+            loadedModel.close();
+
+            loadedModel = null;
+            instances.forEach(new Consumer<AnimatedObjectInstance>() {
+                @Override
+                public void accept(AnimatedObjectInstance animatedObjectInstance) {
+                    try {
+                        animatedObjectInstance.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+
+            instances.clear();
+        }
 
         this.fileName = name;
 
@@ -122,7 +141,8 @@ public class RareCandyCanvas {
             var variants = model.availableVariants();
 
             var variant = !variants.isEmpty() ? variants.iterator().next() : null;
-            var instance = new AnimatedObjectInstance(new Matrix4f(), variant);
+
+            var instance = new AnimatedObjectInstance(new Matrix4f(), loadedModel.variantNameToId.get(variant));
 
             loadedModelInstance = renderer.objectManager.add(model, instance);
             model.updateDimensions();
@@ -130,6 +150,7 @@ public class RareCandyCanvas {
 
             if(resetAnimation) setAnimation("idle");
 
+            rendering = true;
         });
     }
 
@@ -163,13 +184,13 @@ public class RareCandyCanvas {
 //        });
     }
 
-    private MultiRenderObject<MeshObject> loadPlane(int width, int length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
+    private MultiRenderObject loadPlane(int width, int length, Consumer<MultiRenderObject> onFinish) {
         return loader.generatePlane(width, length, onFinish);
     }
 
-    private MultiRenderObject<MeshObject> loadCube(int width, int length, int height, Consumer<MultiRenderObject<MeshObject>> onFinish) {
-        return loader.generateCube(width, length, height, "smooth_stone", onFinish);
-    }
+//    private MultiRenderObject loadCube(int width, int length, int height, Consumer<MultiRenderObject> onFinish) {
+//        return loader.generateCube(width, length, height, "smooth_stone", onFinish);
+//    }
 
 
     private final Vector3f size = new Vector3f();
@@ -177,36 +198,39 @@ public class RareCandyCanvas {
     private final double fraciton = 1/16f;
 //    @Override
     public void render() {
+        if(animate) time = (System.currentTimeMillis() - startTime) / 1000f;
+        renderer.update(time);
+
+        if(!rendering) return;
+
         if (loadedModelInstance != null) {
             loadedModelInstance.transformationMatrix().identity().scale(scaleModifier);
 
             size.set(loadedModel.dimensions).mul(scaleModifier);
         }
 
-        if(animate) time = (System.currentTimeMillis() - startTime) / 1000f;
-
         if (runnable != null) runnable.pre();
 
-        renderer.update(time);
 
         var pipeline = PipelineRegistry.get("animated");
 
         pipeline.useProgram();
 //        renderToFramebuffer();
-        pipeline.bindGlobal(null, null);
+        pipeline.bindGlobal(null, null, -1);
 
         renderToScreen(pipeline);
 
         if (runnable != null) runnable.post();
 
         if (instances.size() > 1) {
-            ((MultiRenderObject<AnimatedMeshObject>) instances.get(0).object()).onUpdate(a -> {
+
+            (instances.get(0).object()).onUpdate(a -> {
                 for (var instance : instances) {
                     if(a.animations != null) {
-                        var newAnimation = a.animations.get(currentAnimation);
+                        var newAnimation = a.animationNameToId.getOrDefault(currentAnimation, -1);
 
-                        if(newAnimation != null) {
-                            instance.changeAnimation(createInstance(newAnimation));
+                        if(newAnimation > -1) {
+                            instance.changeAnimation(createInstance(a.animations[newAnimation]));
                         }
                     }
                 }
@@ -242,40 +266,37 @@ public class RareCandyCanvas {
         return new AnimationInstance(animation);
     }
 
-    protected void loadPokemonModel(PixelAsset is, Consumer<MultiRenderObject<AnimatedMeshObject>> onFinish) {
+    protected void loadPokemonModel(PixelAsset is, Consumer<MultiRenderObject> onFinish) {
         loader.createObject(
                 ToggleableMultiRenderObject::new,
-                () -> is,
-                (gltfModel, animResources, images, config, object) -> {
-                    var glCalls = new ArrayList<Runnable>();
-                    ModelLoader.processModel(object, gltfModel, animResources, images, config, glCalls, AnimatedMeshObject::new, GLModel::new);
-                    return glCalls;
-                }, onFinish);
+                () -> is, MaterialReference::process, onFinish);
     }
 
     public void setAnimation(@NotNull String animation) {
-        AnimatedMeshObject object = loadedModel.objects.get(0);
+        var animId = loadedModel.animationNameToId.getOrDefault(animation, -1);
 
-        if (Objects.requireNonNull(object.animations).containsKey(animation)) {
-            loadedModelInstance.changeAnimation(createInstance(object.animations.get(animation)));
+        if (animId > -1) {
+            loadedModelInstance.changeAnimation(createInstance(loadedModel.animations[animId]));
         }
     }
 
-    public void updateLoadedModel(Consumer<AnimatedMeshObject> consumer) {
+    public void updateLoadedModel(Consumer<MultiRenderObject> consumer) {
         loadedModel.onUpdate(consumer);
     }
 
     public void setVariant(String variant) {
-        loadedModelInstance.setVariant(variant);
+        loadedModelInstance.setVariant(loadedModel.variantNameToId.get(variant));
     }
 
     public void toggleObject(boolean add, String object) {
-        if(loadedModel.overrides.contains(object)) {
+        var mesh = loadedModel.meshNameToId.get(object);
+
+        if(loadedModel.overrides[mesh]) {
             if(add) {
-                loadedModel.overrides.remove(object);
+                loadedModel.overrides[mesh] = false;
             }
         } else if(!add) {
-            loadedModel.overrides.add(object);
+            loadedModel.overrides[mesh] = true;
         }
     }
 
@@ -284,15 +305,15 @@ public class RareCandyCanvas {
     private Path root = Path.of("images");
 
     public void takeScreenshot(boolean isPortrait) throws IOException {
-        var path = root.resolve(fileName);
-        if(Files.notExists(path)) Files.createDirectories(path);
-
-        var temp = Path.of((path + "\\" + (isPortrait ? "portrait" : "profile") + "-" + (loadedModelInstance.variant() != null ? loadedModelInstance.variant() : "default") + ".png").replace("\\", "/"));
-        if(framebuffer.captureScreenshot(temp, isPortrait)) {
-            LoggerUtil.print("Screenshot saved to " + temp);
-        } else {
-            LoggerUtil.print("Failed to save screenshot to " + temp);
-        }
+//        var path = root.resolve(fileName);
+//        if(Files.notExists(path)) Files.createDirectories(path);
+//
+//        var temp = Path.of((path + "\\" + (isPortrait ? "portrait" : "profile") + "-" + (loadedModel.variantNameToId.get(loadedModelInstance.variant()) != null ? loadedModelInstance.variant() : "default") + ".png").replace("\\", "/"));
+//        if(framebuffer.captureScreenshot(temp, isPortrait)) {
+//            LoggerUtil.print("Screenshot saved to " + temp);
+//        } else {
+//            LoggerUtil.print("Failed to save screenshot to " + temp);
+//        }
     }
 
     public boolean isInitCalled() {
@@ -326,7 +347,7 @@ public class RareCandyCanvas {
                 RareCandyCanvas.runnable = null;
                 cycling = false;
             } else {
-                canvas.loadedModelInstance.setVariant(list.get(index));
+                canvas.loadedModelInstance.setVariant(index);
             }
         }
 
@@ -340,18 +361,20 @@ public class RareCandyCanvas {
         }
     }
 
-    public static class ToggleableMultiRenderObject extends MultiRenderObject<AnimatedMeshObject> {
-        public List<String> overrides = new ArrayList<>();
+    public static class ToggleableMultiRenderObject extends MultiRenderObject {
+        public boolean[] overrides;
+        public String[] meshNames;
 
-        @Override
-        public <V extends RenderObject> void render(TraditionalPipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
-            for (var object : this.objects) {
-                if (object != null && !overrides.contains(object.name) && object.isReady()) {
-                    object.render(pipeline, stage, instances);
-                }
-            }
+        public ToggleableMultiRenderObject(ModelLoader.Names names, TextureArray images) {
+            super(names, images);
+            overrides = new boolean[names.meshes().size()];
+            meshNames = names.meshes().toArray(String[]::new);
         }
 
+        @Override
+        public boolean shouldRender(int mesh, ObjectInstance instance) {
+            return super.shouldRender(mesh, instance) || overrides[mesh];
+        }
     }
 }
 
@@ -359,7 +382,7 @@ class FogUploader extends UniformBlockUploader {
     private final long pointer;
 
     public FogUploader(PokeUtilsGui.Settings.Fog fog) {
-        super(VEC4_SIZE + 2 * Float.BYTES + Integer.BYTES + 4);
+        super(VEC4_SIZE + 2 * Float.BYTES + Integer.BYTES + 4, 0);
         this.pointer = MemoryUtil.nmemAlloc(VEC4_SIZE + 2 * Float.BYTES + Integer.BYTES);
         update(fog);
         fog.setListener(this::update);

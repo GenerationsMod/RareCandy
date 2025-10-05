@@ -12,7 +12,7 @@ public class InstanceBlockUploader extends UniformBlockUploader {
     private final int size;
 
     public InstanceBlockUploader(int size) {
-        super(size);
+        super(size, 0);
         this.size = size;
     }
 

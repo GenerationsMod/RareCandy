@@ -1,20 +1,10 @@
-package gg.generations.rarecandy.renderer.loading;
+package gg.generations.rarecandy.renderer.textures;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
-
-public interface TextureDetails extends AutoCloseable {
-    int init();
-
-    int width();
-
-    int height();
-
-    ITexture.Type type();
-}
 
 record TextureDetailsSTB(ByteBuffer buffer, Texture.Type type, int width, int height) implements TextureDetails {
     @Override

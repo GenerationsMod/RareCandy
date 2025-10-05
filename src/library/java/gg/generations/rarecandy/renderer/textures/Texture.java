@@ -1,9 +1,9 @@
-package gg.generations.rarecandy.renderer.loading;
+package gg.generations.rarecandy.renderer.textures;
 
 import io.github.mudbill.dds.DDSFile;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.GL13C;
+import org.lwjgl.stb.STBImage;
+import org.lwjgl.stb.STBImageResize;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.ByteArrayInputStream;
@@ -40,9 +40,7 @@ public class Texture implements ITexture {
 //            }
         }
 
-        assert (slot >= 0 && slot <= 31);
-        GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + slot);
-        GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, this.id);
+        ITexture.super.bind(slot);
     }
 
     @Override
@@ -85,7 +83,7 @@ public class Texture implements ITexture {
         if(name.endsWith(".dds")) {
             var dds = new DDSFile(new ByteArrayInputStream(imageBytes));
 
-            return new Texture(new DDSTextureDetails(dds));
+            return new Texture(new  DDSTextureDetails(dds));
         } else return new Texture(read(imageBytes));
     }
 
@@ -122,5 +120,66 @@ public class Texture implements ITexture {
 
         return new TextureDetailsSTB(image, comp == 3 ? Type.RGB_BYTE : Type.RGBA_BYTE, w, h);
     }
+
+    public static ByteBuffer scaleAndProcess(byte[] bytes) {
+        ByteBuffer imageBuffer = MemoryUtil.memAlloc(bytes.length).put(bytes).flip();
+
+        IntBuffer w = MemoryUtil.memAllocInt(1);
+        IntBuffer h = MemoryUtil.memAllocInt(1);
+        IntBuffer c = MemoryUtil.memAllocInt(1);
+
+        if (!STBImage.stbi_info_from_memory(imageBuffer, w, h, c)) {
+            MemoryUtil.memFree(w);
+            MemoryUtil.memFree(h);
+            MemoryUtil.memFree(c);
+            MemoryUtil.memFree(imageBuffer);
+            return null;
+        }
+
+        // force decode to 4 channels (RGBA8)
+        ByteBuffer decoded = STBImage.stbi_load_from_memory(imageBuffer, w, h, c, 4);
+        if (decoded == null) {
+            MemoryUtil.memFree(w);
+            MemoryUtil.memFree(h);
+            MemoryUtil.memFree(c);
+            MemoryUtil.memFree(imageBuffer);
+            return null;
+        }
+
+        int srcW = w.get(0);
+        int srcH = h.get(0);
+        int channels = 4;
+
+//        ByteBuffer scaled = MemoryUtil.memAlloc(1024 * 1024 * 4);
+
+        if(srcH == 1024 && srcW == 1024) {
+            MemoryUtil.memFree(w);
+            MemoryUtil.memFree(h);
+            MemoryUtil.memFree(c);
+            MemoryUtil.memFree(imageBuffer);
+
+            return decoded;
+        }
+
+        ByteBuffer scaled = STBImageResize.stbir_resize_uint8_srgb(
+                decoded, srcW, srcH, 0,
+                null, 1024, 1024, 0,
+                channels
+        );
+
+        STBImage.stbi_image_free(decoded);
+        MemoryUtil.memFree(w);
+        MemoryUtil.memFree(h);
+        MemoryUtil.memFree(c);
+        MemoryUtil.memFree(imageBuffer);
+
+        if (scaled == null) {
+//            MemoryUtil.memFree(scaled);
+            throw new RuntimeException("stbir_resize_uint8 failed");
+        }
+
+        return scaled;
+    }
+
 
 }

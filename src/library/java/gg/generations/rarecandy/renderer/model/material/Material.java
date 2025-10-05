@@ -2,17 +2,12 @@ package gg.generations.rarecandy.renderer.model.material;
 
 import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.CullType;
-import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.renderer.loading.ITexture;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.Closeable;
-import java.io.IOException;
-import java.util.Map;
 
 public class Material implements Closeable {
-    private final String materialName;
-    private final MaterialImages images;
+    private final int[] images;
 
     private final MaterialValues values;
     private final int colorMethod;
@@ -21,23 +16,20 @@ public class Material implements Closeable {
     private final CullType cullType;
     private final BlendType blendType;
 
-    private String shader;
     private final boolean disableDepth;
 
     private final long pointer;
 
-    public Material(String materialName, MaterialImages images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, String shader, int colorMethod, int effect) {
-        this.materialName = materialName;
+    public Material(int[] images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, int colorMethod, int effect) {
         this.images = images;
         this.disableDepth = disableDepth;
         this.cullType = cullType;
         this.blendType = blendType;
-        this.shader = shader;
         this.values = values;
         this.colorMethod = colorMethod;
         this.effect = effect;
 
-        this.pointer = MemoryUtil.nmemAlloc(192);
+        this.pointer = MemoryUtil.nmemAlloc(208);
         updateUbo();
     }
 
@@ -46,6 +38,10 @@ public class Material implements Closeable {
         MemoryUtil.memPutInt(pointer + 176, colorMethod);
         MemoryUtil.memPutInt(pointer + 180, effect);
         MemoryUtil.memPutInt(pointer + 184, values.getUseLight() ? 1 : 0);
+        MemoryUtil.memPutInt(pointer + 188, images[0]);
+        MemoryUtil.memPutInt(pointer + 192, images[0]);
+        MemoryUtil.memPutInt(pointer + 196, images[0]);
+        MemoryUtil.memPutInt(pointer + 200, images[0]);
     }
 
     public int getColorMethod() {
@@ -56,10 +52,6 @@ public class Material implements Closeable {
         return effect;
     }
 
-    public String getPipeline() {
-        return shader;
-    }
-
     public CullType cullType() {
         return cullType;
     }
@@ -68,37 +60,13 @@ public class Material implements Closeable {
         return blendType;
     }
 
-    public MaterialImages images() {
+    public int[] images() {
         return images;
-    }
-
-    public String getMaterialName() {
-        return materialName;
-    }
-
-    @Override
-    public String toString() {
-        return materialName;
     }
 
     @Override
     public void close() {
-        if(images != null) {
-            if(images.getDiffuse().contains(".")) ITextureLoader.instance().remove(images.getDiffuse());
-            if(images.getEmission().contains(".")) ITextureLoader.instance().remove(images.getDiffuse());
-            if(images.getLayer().contains(".")) ITextureLoader.instance().remove(images.getLayer());
-            if(images.getMask().contains(".")) ITextureLoader.instance().remove(images.getMask());
-        }
-
         MemoryUtil.nmemFree(pointer);
-    }
-
-    public int maxTextureSize() {
-        return images.stream().map(ITextureLoader.instance()::getTexture).mapToInt(ITexture::width).max().getAsInt();
-    }
-
-    public void setShader(String solid) {
-        shader = solid;
     }
 
     public boolean disableDepth() {

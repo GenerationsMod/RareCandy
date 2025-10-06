@@ -133,7 +133,7 @@ public class ComputeShaderDemo {
             time += 0.016f;
 
             computeProgram.useProgram();
-            computeProgram.bindGlobal(null, null, -1);
+            computeProgram.bindGlobal();
 
             // --- Run compute ---
             computeProgram.dispatch(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT, (width + 15) / 16, (height + 15) / 16, 1);
@@ -141,7 +141,7 @@ public class ComputeShaderDemo {
             // --- Draw quad ---
             glClear(GL_COLOR_BUFFER_BIT);
             quadProgram.useProgram();
-            quadProgram.bindGlobal(null, null, -1);
+            quadProgram.bindGlobal();
 
             glBindTexture(GL_TEXTURE_2D, target.getId());
             glDrawArrays(GL_TRIANGLES, 0, 3);

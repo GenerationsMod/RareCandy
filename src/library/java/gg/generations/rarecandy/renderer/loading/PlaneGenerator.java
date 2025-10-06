@@ -19,35 +19,35 @@ import java.util.List;
 import static gg.generations.rarecandy.renderer.loading.ModelLoader.calculateVertexSize;
 
 public class PlaneGenerator {
-    public static MultiRenderObject generatePlane(float width, float length) {
-        var images = new TextureArray(512, 512, 0, false);
-        var obj = new MultiRenderObject(new ModelLoader.Names(List.of("plane"), List.of("regular"), List.of("blank"), List.of("plane")), images);
-        obj.variantRelationships[0][0] = 0;
-        obj.variants[0] = new Variant(0, true, Transform.DEFAULT);
-        obj.materials[0] = new Material(new int[] {0,0,0,0}, new MaterialValues().complete(), true, CullType.None, BlendType.Regular, 0, 0);
-
-        var attributes = List.of(Attribute.POSITION, Attribute.TEXCOORD);
-
-        var vertexlength = calculateVertexSize(attributes);
-        var amount = 4;
-
-        var vertexBuffer = MemoryUtil.memAlloc(vertexlength * amount)
-                .putFloat(-width / 2).putFloat(0.0f).putFloat(-length / 2).putFloat(0.0f).putFloat(0.0f)
-                .putFloat(width / 2).putFloat(0.0f).putFloat(-length / 2).putFloat(1.0f).putFloat(0.0f)
-                .putFloat(-width / 2).putFloat(0.0f).putFloat(length / 2).putFloat(0.0f).putFloat(1.0f)
-                .putFloat(width / 2).putFloat( 0.0f).putFloat(length / 2).putFloat(1.0f).putFloat(1.0f)
-                .flip();
-
-
-        var indexBuffer = MemoryUtil.memAlloc(6 * 2)
-                .putShort((short) 0).putShort((short) 1).putShort((short) 2)
-                .putShort((short) 1).putShort((short) 3).putShort((short) 2)
-                .flip();
-
-        obj.meshes[0] = new GLModel(vertexBuffer, indexBuffer, 6, GL11.GL_UNSIGNED_SHORT, attributes);
-
-        return obj;
-    }
+//    public static MultiRenderObject generatePlane(float width, float length) {
+//        var images = new TextureArray(512, 512, 0, false);
+//        var obj = new MultiRenderObject(new ModelLoader.Names(List.of("plane"), List.of("regular"), List.of("blank"), List.of("plane")), images);
+//        obj.variantRelationships[0][0] = 0;
+//        obj.variants[0] = new Variant(0, true, Transform.DEFAULT);
+//        obj.materials[0] = new Material(new int[] {0,0,0,0}, new MaterialValues().complete(), true, CullType.None, BlendType.Regular, 0, 0);
+//
+//        var attributes = List.of(Attribute.POSITION, Attribute.TEXCOORD);
+//
+//        var vertexlength = calculateVertexSize(attributes);
+//        var amount = 4;
+//
+//        var vertexBuffer = MemoryUtil.memAlloc(vertexlength * amount)
+//                .putFloat(-width / 2).putFloat(0.0f).putFloat(-length / 2).putFloat(0.0f).putFloat(0.0f)
+//                .putFloat(width / 2).putFloat(0.0f).putFloat(-length / 2).putFloat(1.0f).putFloat(0.0f)
+//                .putFloat(-width / 2).putFloat(0.0f).putFloat(length / 2).putFloat(0.0f).putFloat(1.0f)
+//                .putFloat(width / 2).putFloat( 0.0f).putFloat(length / 2).putFloat(1.0f).putFloat(1.0f)
+//                .flip();
+//
+//
+//        var indexBuffer = MemoryUtil.memAlloc(6 * 2)
+//                .putShort((short) 0).putShort((short) 1).putShort((short) 2)
+//                .putShort((short) 1).putShort((short) 3).putShort((short) 2)
+//                .flip();
+//
+//        obj.meshes[0] = new GLModel(vertexBuffer, indexBuffer, 6, GL11.GL_UNSIGNED_SHORT, attributes);
+//
+//        return obj;
+//    }
 
 
     public static Pair<GLModel, List<Runnable>> generatePlaneRunnable(float width, float length) {

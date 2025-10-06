@@ -5,6 +5,7 @@ import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
+import gg.generations.rarecandy.renderer.components.DummyVAO;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
@@ -52,6 +53,8 @@ public class RareCandyCanvas {
     private RareCandy renderer;
 //    private MultiRenderObject<MeshObject> plane;
 //    private ObjectInstance planeInstance;
+
+    private DummyVAO vao;
 
     public ToggleableMultiRenderObject loadedModel;
     public AnimatedObjectInstance loadedModelInstance;
@@ -110,14 +113,11 @@ public class RareCandyCanvas {
             loadedModel.close();
 
             loadedModel = null;
-            instances.forEach(new Consumer<AnimatedObjectInstance>() {
-                @Override
-                public void accept(AnimatedObjectInstance animatedObjectInstance) {
-                    try {
-                        animatedObjectInstance.close();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+            instances.forEach(animatedObjectInstance -> {
+                try {
+                    animatedObjectInstance.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             });
 
@@ -182,11 +182,13 @@ public class RareCandyCanvas {
 //            cubeInstances[2] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 1.5f, -1), viewMatrix, null));
 //            cubeInstances[3] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 02.5f, -1), viewMatrix, null));
 //        });
+
+        vao = new DummyVAO();
     }
 
-    private MultiRenderObject loadPlane(int width, int length, Consumer<MultiRenderObject> onFinish) {
-        return loader.generatePlane(width, length, onFinish);
-    }
+//    private MultiRenderObject loadPlane(int width, int length, Consumer<MultiRenderObject> onFinish) {
+//        return loader.generatePlane(width, length, onFinish);
+//    }
 
 //    private MultiRenderObject loadCube(int width, int length, int height, Consumer<MultiRenderObject> onFinish) {
 //        return loader.generateCube(width, length, height, "smooth_stone", onFinish);
@@ -211,12 +213,13 @@ public class RareCandyCanvas {
 
         if (runnable != null) runnable.pre();
 
+        vao.bind();
 
         var pipeline = PipelineRegistry.get("animated");
 
         pipeline.useProgram();
 //        renderToFramebuffer();
-        pipeline.bindGlobal(null, null, -1);
+        pipeline.bindGlobal();
 
         renderToScreen(pipeline);
 

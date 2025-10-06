@@ -4,6 +4,7 @@ import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.loading.SbboOffset;
 import gg.generations.rarecandy.renderer.model.RenderModel;
 import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
@@ -15,6 +16,7 @@ import gg.generations.rarecandy.renderer.textures.TextureArray;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.lwjgl.opengl.GL43C;
 
 import java.io.IOException;
 import java.util.*;
@@ -31,11 +33,19 @@ public class MultiRenderObject {
     public Map<String, Integer> meshNameToId;
     public Map<String, Integer> materialNameToId;
     public Map<String, Integer> variantNameToId;
-    public RenderModel[] meshes;
+    public DrawRecord[] meshes;
     public Material[] materials;
     public Variant[] variants;
     public int[][] variantRelationships;
     public TextureArray images;
+
+    public SbboOffset vertex;
+//    public SbboOffset position;
+//    public SbboOffset uv;
+//    public SbboOffset normal;
+//    public SbboOffset weight;
+//    public SbboOffset joint;
+    public SbboOffset index;
 
     public Animation[] animations = new Animation[0];
     public String[] animationNames = new String[0];
@@ -46,11 +56,12 @@ public class MultiRenderObject {
 
     public final Vector3f dimensions = new Vector3f();
     public float scale = 1.0f;
+    public int buffer;
 
     private Matrix4f rootTransformation = new Matrix4f();
 
     public MultiRenderObject(ModelLoader.Names names, TextureArray images) {
-        meshes = new RenderModel[names.meshes().size()];
+        meshes = new DrawRecord[names.meshes().size()];
         meshNameToId = listToMap(names.meshes());
         materials = new Material[names.materials().size()];
         materialNameToId = listToMap(names.materials());
@@ -107,26 +118,24 @@ public class MultiRenderObject {
     public void render(TraditionalPipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
         for (var instance : instances) {
 
-            for (int mesh = 0; mesh < this.meshes.length; mesh++) {
+            pipeline.bindInstance(instance, this);
+
+            for (int mesh = 0; mesh < meshes.length; mesh++) {
                 if (!shouldRender(mesh, instance)) {
-                    System.out.println("Blep: " + mesh + " " + instance.variant());
-
-
                     continue;
                 }
 
                 var model = this.meshes[mesh];
                 if (model != null) {
-                    System.out.println("Yes!");
 
-                    pipeline.bindInstance(instance, this, mesh);
+                    pipeline.bindDraw(instance, this, mesh);
 
                     var material = getMaterial(mesh, instance.variant());
                     pipeline.preDraw(material);
                     var transparent = material.blendType() != BlendType.None;
 
                     if(transparent && stage == RenderStage.TRANSPARENT || stage == RenderStage.SOLID) {
-                        model.runDrawCalls();
+                        model.render();
                     }
 
                     pipeline.postDraw(material);
@@ -142,18 +151,12 @@ public class MultiRenderObject {
             if(animation != null) {
                 var animId = animationInstance.currentAnimation.getAnimation().id;
                 if(hideDuringAnimation[mesh][animId]) {
-
-                    System.out.println(":D");
                     return true;
                 }
             }
         }
 
-        var maybe = !getVariant(mesh, instance.variant()).hide();
-
-        System.out.println(">:3: " + maybe);
-
-        return maybe;
+        return !getVariant(mesh, instance.variant()).hide();
     }
 
     public Variant getVariant(int mesh, int variant) {
@@ -161,9 +164,9 @@ public class MultiRenderObject {
     }
 
     public void updateDimensions() {
-        for (var mesh : meshes) {
-            dimensions.max(mesh.getDimensions());
-        }
+//        for (var mesh : meshes) {
+//            dimensions.max(mesh.getDimensions());
+//        }
     }
 
     public void close() throws IOException {
@@ -172,8 +175,6 @@ public class MultiRenderObject {
             material.close();
         }
 
-        for (RenderModel mesh : this.meshes) {
-            mesh.close();
-        }
+        GL43C.glDeleteBuffers(buffer);
     }
 }

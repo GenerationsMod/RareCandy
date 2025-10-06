@@ -4,6 +4,7 @@ import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
+import gg.generations.rarecandy.renderer.components.DrawRecord;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.model.*;
 import gg.generations.rarecandy.renderer.model.material.Material;
@@ -27,6 +28,8 @@ import java.util.stream.IntStream;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL30C.*;
+import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER;
+import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT;
 
 public class ModelLoader {
     public static int byteAmount;
@@ -51,6 +54,10 @@ public class ModelLoader {
             Attribute.BONE_WEIGHTS
     );
 
+    static int alignUp(int value, int alignment) {
+        return (value + alignment - 1) / alignment * alignment;
+    }
+
     public static void processModel(
             MultiRenderObject objects,
             Names names,
@@ -72,15 +79,79 @@ public class ModelLoader {
 
         var dimensions = new Vector3f();
 
+        var vertexCount = 0;
+        var indexBytes = 0;
+
+
+        int alignment = glGetInteger(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
+
         for (var mesh : meshes) {
-            var name = mesh.mName().dataString();
-
-            var meshId = objects.meshNameToId.get(name);
-
-            var model = processPrimitiveModel(skeleton, mesh, config.modelOptions != null ? config.modelOptions : Collections.emptyMap(), dimensions, renderModelSuppler);
-
-            objects.meshes[meshId] = model;
+            vertexCount += mesh.mNumVertices();
+            indexBytes += mesh.mNumFaces() * 3;
         }
+
+        indexBytes *= Integer.BYTES;
+
+        int vertexBytes = vertexCount * 80;
+
+//        int positionBytes = vertexCount * 4 * Float.BYTES;
+//        int uvBytes = vertexCount * 4 * Float.BYTES;
+//        int normalBytes = vertexCount * 4 * Float.BYTES;
+//        int jointBytes = vertexCount * 4 * Float.BYTES;
+//        int weightBytes = vertexCount * 4 * Float.BYTES;
+
+//        int uvOffset = alignUp(positionBytes, alignment);
+//        int normalOffset = alignUp(uvOffset + uvBytes, alignment);
+//        int jointOffset = alignUp(normalOffset + normalBytes, alignment);
+//        int weightOffset = alignUp(jointOffset + jointBytes, alignment);
+        int indexOffset = alignUp(vertexBytes, alignment);
+        int totalBytes  = indexOffset + indexBytes;
+
+//        var positionBuffer = MemoryUtil.memAlloc(positionBytes);
+//        var uvBuffer = MemoryUtil.memAlloc(uvBytes);
+//        var normalBuffer = MemoryUtil.memAlloc(normalBytes);
+//        var weightBuffer = MemoryUtil.memAlloc(weightBytes);
+//        var jointBuffer = MemoryUtil.memAlloc(jointBytes);
+
+        var vertexBuffer = MemoryUtil.memAlloc(vertexBytes);
+
+        var indexBuffer = MemoryUtil.memAlloc(indexBytes);
+
+        objects.vertex = new SbboOffset(0, vertexBytes);
+        objects.index = new SbboOffset(indexOffset, indexBytes);
+
+        int[] counters = new int[2]; // index Count
+
+        var list = Arrays.stream(meshes).sorted(Comparator.comparing(aiMesh -> objects.meshNameToId.get(aiMesh.mName().dataString()))).toList();
+
+        for (int i = 0; i < names.meshes.size(); i++) {
+            var mesh = list.get(i);
+
+            var drawRecord = processPrimitiveModel(
+                    vertexBuffer,
+                    indexBuffer,
+                    counters, skeleton, mesh, config.modelOptions != null ? config.modelOptions : Collections.emptyMap(), dimensions, renderModelSuppler);
+
+            objects.meshes[i] = drawRecord;
+        }
+
+        var buffer = MemoryUtil.memAlloc(totalBytes);
+        objects.vertex.put(buffer, vertexBuffer.flip());
+        objects.index.put(buffer, indexBuffer.flip());
+        System.out.println("totalBytes = " + totalBytes);
+        System.out.println("buffer.limit() = " + buffer.limit());
+
+        var bufferId = GL43C.glGenBuffers();
+        GL43C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
+        glBufferData(GL43C.GL_SHADER_STORAGE_BUFFER, buffer, GL43C.GL_STATIC_READ);
+        GL43C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+        objects.buffer = bufferId;
+
+        MemoryUtil.memFree(buffer);
+        MemoryUtil.memFree(vertexBuffer);
+        MemoryUtil.memFree(indexBuffer);
+
 
         var transform = new Matrix4f();
 
@@ -335,26 +406,38 @@ public class ModelLoader {
         transform.set(node.transform);
     }
 
-    private static RenderModel processPrimitiveModel(Skeleton skeleton, AIMesh mesh, Map<String, MeshOptions> options, Vector3f dimensions, RenderModel.Provider renderModelSupplier) {
+    private static final int[] NORMAL_FACE = new int[] { 0,1,2 };
+    private static final int[] INVERT_FACE = new int[] { 2,1,0 };
+
+    private static DrawRecord processPrimitiveModel(
+            ByteBuffer vertexBuffer,
+            ByteBuffer indexBuffer, int[] counters, Skeleton skeleton, AIMesh mesh, Map<String, MeshOptions> options, Vector3f dimensions, RenderModel.Provider renderModelSupplier) {
         var name = mesh.mName().dataString();
 
-        var invertFace = options.containsKey(name) && options.get(name).invert();
+        var faceArray = options.containsKey(name) && options.get(name).invert() ? INVERT_FACE : NORMAL_FACE;
 
-        var length = calculateVertexSize(ATTRIBUTES);
         var amount = mesh.mNumVertices();
 
-        byteAmount += length * amount;
-
-        var vertexBuffer = MemoryUtil.memAlloc(length * amount);
-
         var aiFaces = mesh.mFaces();
-        var indexBuffer = MemoryUtil.memAlloc(mesh.mNumFaces() * Integer.BYTES * 3);
+
+        var indexOffset = counters[0];
+        var vertexOffset = counters[1];
+
+        var numFaces = mesh.mNumFaces();
+        var indexAmount = numFaces * 3;
+
+        var drawRecord = new DrawRecord(indexOffset, indexAmount);
+        counters[0] += indexAmount;
 
         for (int j = 0; j < mesh.mNumFaces(); j++) {
             var aiFace = aiFaces.get(j).mIndices();
-            indexBuffer.putInt(aiFace.get(invertFace ? 2 : 0)).putInt(aiFace.get(1)).putInt(aiFace.get(invertFace ? 0 : 2));
+            indexBuffer
+                    .putInt(vertexOffset + aiFace.get(faceArray[0]))
+                    .putInt(vertexOffset + aiFace.get(faceArray[1]))
+                    .putInt(vertexOffset + aiFace.get(faceArray[2]));
         }
-        indexBuffer.flip();
+
+        counters[1] += amount;
 
         var aiVert = mesh.mVertices();
         var aiUV = mesh.mTextureCoords(0);
@@ -369,7 +452,7 @@ public class ModelLoader {
             throw new RuntimeException("Error Normals not found!");
         }
 
-        byte[] ids = new byte[amount * 4];
+        int[] ids = new int[amount * 4];
         float[] weights = new float[amount * 4];
 
         if (mesh.mBones() != null) {
@@ -387,7 +470,7 @@ public class ModelLoader {
                     var vertexId = aiWeight.mVertexId();
 
                     if(aiWeight.mWeight() > 0f) {
-                        addBoneData(ids, weights, vertexId, (byte) index, aiWeight.mWeight());
+                        addBoneData(ids, weights, vertexId, index, aiWeight.mWeight());
                     }
                 }
             }
@@ -404,27 +487,31 @@ public class ModelLoader {
             vertexBuffer.putFloat(position.x());
             vertexBuffer.putFloat(position.y());
             vertexBuffer.putFloat(position.z());
+            vertexBuffer.putFloat(0);
             vertexBuffer.putFloat(uv.x());
             vertexBuffer.putFloat(1 - uv.y());
+            vertexBuffer.putFloat(0);
+            vertexBuffer.putFloat(0);
             vertexBuffer.putFloat(normal.x());
             vertexBuffer.putFloat(normal.y());
             vertexBuffer.putFloat(normal.z());
+            vertexBuffer.putFloat(0);
 
             if(isEmpty) {
-                vertexBuffer.put((byte) 1);
-                vertexBuffer.put((byte) 0);
-                vertexBuffer.put((byte) 0);
-                vertexBuffer.put((byte) 0);
+                vertexBuffer.putInt(1);
+                vertexBuffer.putInt(0);
+                vertexBuffer.putInt(0);
+                vertexBuffer.putInt(0);
 
                 vertexBuffer.putFloat(1);
                 vertexBuffer.putFloat(0);
                 vertexBuffer.putFloat(0);
                 vertexBuffer.putFloat(0);
             } else {
-                vertexBuffer.put(ids[i * 4]);
-                vertexBuffer.put(ids[i * 4 + 1]);
-                vertexBuffer.put(ids[i * 4 + 2]);
-                vertexBuffer.put(ids[i * 4 + 3]);
+                vertexBuffer.putInt(ids[i * 4]);
+                vertexBuffer.putInt(ids[i * 4 + 1]);
+                vertexBuffer.putInt(ids[i * 4 + 2]);
+                vertexBuffer.putInt(ids[i * 4 + 3]);
 
                 vertexBuffer.putFloat(weights[i * 4]);
                 vertexBuffer.putFloat(weights[i * 4 + 1]);
@@ -435,15 +522,10 @@ public class ModelLoader {
             dimensions.max(temp.set(position.x(), position.y(), position.z()));
         }
 
-        vertexBuffer.flip();
-
-
-        var indexSize = mesh.mNumFaces() * 3;
-
-        return renderModelSupplier.create(vertexBuffer, indexBuffer, indexSize, GL11.GL_UNSIGNED_INT, ATTRIBUTES);
+        return drawRecord;
     }
 
-    public static void addBoneData(byte[] ids, float[] weights, int vertexId, byte boneId, float weight) {
+    public static void addBoneData(int[] ids, float[] weights, int vertexId, int boneId, float weight) {
         var length = vertexId * 4;
         for (var i = 0 ; i < 4; i++) {
             var blep = length + i;
@@ -525,36 +607,6 @@ public class ModelLoader {
     public MultiRenderObject createObject(@NotNull Supplier<PixelAsset> is, Consumer<MultiRenderObject> onFinish) {
         return createObject(MultiRenderObject::new, is, MaterialReference::process, onFinish);
     }
-
-//    public MultiRenderObject createObject(Function<Names, ? extends MultiRenderObject> supplier, @NotNull Supplier<PixelAsset> is, GlCallSupplier<MultiRenderObject> objectCreator, Consumer<MultiRenderObject> onFinish) {
-//
-//        var task = threadedCreateObject(supplier, is, objectCreator, onFinish);
-//        return obj;
-//    }
-
-    public MultiRenderObject generatePlane(float width, float length, Consumer<MultiRenderObject> onFinish) {
-        var pair = PlaneGenerator.generatePlane(width, length);
-        pair.updateDimensions();
-        if (onFinish != null) onFinish.accept(pair);
-
-        return pair;
-    }
-
-//    public MultiRenderObject generateCube(float width, float length, float height, String image, Consumer<MultiRenderObject> onFinish) {
-//        var pair = PlaneGenerator.generateCube(width, length, height, image);
-//
-//        var task = ThreadSafety.wrapException(() -> {
-//            ThreadSafety.runOnContextThread(() -> {
-//                pair.a().forEach(Runnable::run);
-//                pair.b().updateDimensions();
-//                if (onFinish != null) onFinish.accept(pair.b());
-//            });
-//        });
-//        if (RareCandy.DEBUG_THREADS) task.run();
-//        else modelLoadingPool.submit(task);
-//
-//        return pair.b();
-//    }
 
     public record Names(List<String> meshes, List<String> variants, List<String> images, List<String> materials) {
         public Names() {

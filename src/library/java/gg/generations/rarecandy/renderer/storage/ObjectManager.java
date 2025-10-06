@@ -39,7 +39,7 @@ public class ObjectManager {
             if (object == null) continue;
 
 
-            pipeline.bindModel(null, object, -1);
+            pipeline.bindModel(object);
             object.render(pipeline, stage, entry.getValue());
         }
     }

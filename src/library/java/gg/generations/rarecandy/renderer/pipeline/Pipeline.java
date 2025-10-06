@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.renderer.pipeline;
 
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
+import gg.generations.rarecandy.renderer.loading.SbboOffset;
 import gg.generations.rarecandy.renderer.pipeline.util.*;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.textures.ITexture;
@@ -34,16 +35,20 @@ public class Pipeline {
         GL20C.glUseProgram(program);
     }
 
-    public void bindGlobal(ObjectInstance instance, MultiRenderObject object, int mesh) {
-        bindScope(Scope.GLOBAL, new UniformUploadContext(instance, object, mesh));
+    public void bindGlobal() {
+        bindScope(Scope.GLOBAL, new UniformUploadContext(null, null, -1));
     }
 
-    public void bindInstance(ObjectInstance instance, MultiRenderObject object, int mesh) {
-        bindScope(Scope.INSTANCE, new UniformUploadContext(instance, object, mesh));
+    public void bindInstance(ObjectInstance instance, MultiRenderObject object) {
+        bindScope(Scope.INSTANCE, new UniformUploadContext(instance, object, -1));
     }
 
-    public void bindModel(ObjectInstance instance, MultiRenderObject object, int mesh) {
-        bindScope(Scope.MODEL, new UniformUploadContext(instance, object, mesh));
+    public void bindModel(MultiRenderObject object) {
+        bindScope(Scope.MODEL, new UniformUploadContext(null, object, -1));
+    }
+
+    public void bindDraw(ObjectInstance instance, MultiRenderObject object, int mesh) {
+        bindScope(Scope.DRAW, new UniformUploadContext(instance, object, mesh));
     }
 
     private void bindScope(Scope scope, UniformUploadContext ctx) {
@@ -188,6 +193,16 @@ public class Pipeline {
                 RangeSupplier offsetSupplier,
                 RangeSupplier sizeSupplier) {
             ssbos.get(scope).add(new SSBOBinding(name, bindingPoint, bufferSupplier, offsetSupplier, sizeSupplier));
+            return (V) this;
+        }
+
+        public V addSSBORange(
+                Scope scope,
+                String name,
+                int bindingPoint,
+                BufferSupplier bufferSupplier,
+                Function<UniformUploadContext, SbboOffset> offset) {
+            ssbos.get(scope).add(new SSBOBinding(name, bindingPoint, bufferSupplier, ctx -> offset.apply(ctx).base(), ctx -> offset.apply(ctx).size()));
             return (V) this;
         }
 

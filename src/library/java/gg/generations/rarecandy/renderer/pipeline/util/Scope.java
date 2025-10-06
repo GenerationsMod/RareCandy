@@ -11,5 +11,6 @@ package gg.generations.rarecandy.renderer.pipeline.util;
 public enum Scope {
     GLOBAL,
     INSTANCE,
-    MODEL
+    MODEL,
+    DRAW
 }

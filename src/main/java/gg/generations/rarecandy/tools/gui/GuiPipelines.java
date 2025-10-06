@@ -6,6 +6,7 @@ import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.model.material.MaterialUploader;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
+import gg.generations.rarecandy.renderer.pipeline.util.BufferSupplier;
 import gg.generations.rarecandy.renderer.pipeline.util.Scope;
 import gg.generations.rarecandy.renderer.pipeline.util.TextureIdSupplier;
 import gg.generations.rarecandy.renderer.pipeline.util.UniformUploadContext;
@@ -46,7 +47,7 @@ public class GuiPipelines {
         TraditionalPipeline ANIMATED = TraditionalPipeline.builder(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
                 .autoMat4(Scope.GLOBAL, "viewMatrix", (ctx) -> RareCandyCanvas.viewMatrix)
                 .autoMat4(Scope.GLOBAL, "projectionMatrix", (ctx) -> projectionMatrix)
-                .autoVec2(Scope.INSTANCE, "uvOffset", (ctx) -> {
+                .autoVec2(Scope.DRAW, "uvOffset", (ctx) -> {
                     var variant = ctx.object().getVariant(ctx.mesh(), ctx.instance().variant());
 
                     Transform transform = variant.offset();
@@ -68,7 +69,7 @@ public class GuiPipelines {
 
                     return transform.offset();
                 })
-                .autoVec2(Scope.INSTANCE, "uvScale", (ctx) -> {
+                .autoVec2(Scope.DRAW, "uvScale", (ctx) -> {
                     var variant = ctx.object().getVariant(ctx.mesh(), ctx.instance().variant());
 
                     Transform transform = variant.offset();
@@ -101,12 +102,10 @@ public class GuiPipelines {
                 })
                 .autoVec3(Scope.GLOBAL, "tint", (ctx) -> ONE)
                 .autoVec4(Scope.GLOBAL, "ColorModulator", (ctx) -> colorMOdulator)
-                .autoInt(Scope.GLOBAL, "frame", (ctx) -> {
-                    return (int) pingpong(RareCandyCanvas.getTime() % 1d);
-                })
+                .autoInt(Scope.GLOBAL, "frame", (ctx) -> (int) pingpong(RareCandyCanvas.getTime() % 1d))
                 .autoSampler2DArray(Scope.INSTANCE, "images", 0, ctx -> ctx.object().images)
-                .autoSampler2D(Scope.INSTANCE, "lightmap", 1, (ctx) -> ITextureLoader.instance().getTexture("light_map").getId())
-                .autoSampler2D(Scope.INSTANCE, "paradoxMask", 2, (ctx) -> ITextureLoader.instance().getTexture("paradox_mask").getId())
+                .autoSampler2D(Scope.GLOBAL, "lightmap", 1, (ctx) -> ITextureLoader.instance().getTexture("light_map").getId())
+                .autoSampler2D(Scope.GLOBAL, "paradoxMask", 2, (ctx) -> ITextureLoader.instance().getTexture("paradox_mask").getId())
                 .prePostDraw(material -> {
 
                     if(material.disableDepth()) {
@@ -124,8 +123,15 @@ public class GuiPipelines {
                     material.blendType().disable();
                 })
                 .addUBO(Scope.GLOBAL, "Fog", 0, (ctx) -> canvas.getFogUploader().id)
-                .addUBO(Scope.INSTANCE, "Material", 2, (ctx) -> ctx.object().getMaterial(ctx.mesh(), ctx.instance().variant()).bindMaterial())
                 .addUBO(Scope.INSTANCE, "Instance", 1, (ctx) -> InstanceBlockUploader.bind(ctx.instance()))
+                .addUBO(Scope.DRAW, "Material", 2, (ctx) -> ctx.object().getMaterial(ctx.mesh(), ctx.instance().variant()).bindMaterial())
+                .addSSBORange(Scope.MODEL, "VertexBuffer", 0, ctx -> ctx.object().buffer, ctx -> ctx.object().vertex)
+//                .addSSBORange(Scope.MODEL, "PositionBuffer", 0, ctx -> ctx.object().buffer, ctx -> ctx.object().position)
+//                .addSSBORange(Scope.MODEL, "UVBuffer", 1, ctx -> ctx.object().buffer, ctx -> ctx.object().uv)
+//                .addSSBORange(Scope.MODEL, "NormalBuffer", 2, ctx -> ctx.object().buffer, ctx -> ctx.object().normal)
+//                .addSSBORange(Scope.MODEL, "JointBuffer", 3, ctx -> ctx.object().buffer, ctx -> ctx.object().joint)
+//                .addSSBORange(Scope.MODEL, "WeightBuffer", 4, ctx -> ctx.object().buffer, ctx -> ctx.object().weight)
+                .addSSBORange(Scope.MODEL, "IndexBuffer", 1, ctx -> ctx.object().buffer, ctx -> ctx.object().index)
                 .build();
 
         TraditionalPipeline PLANE = TraditionalPipeline.builder(builtin("original/animated/plane.vs.glsl"), builtin("original/animated/plane.fs.glsl"))

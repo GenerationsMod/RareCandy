@@ -112,6 +112,8 @@ public class RareCandyCanvas {
         if(loadedModel != null) {
             loadedModel.close();
 
+            renderer.objectManager.clearObjects();
+
             loadedModel = null;
             instances.forEach(animatedObjectInstance -> {
                 try {

@@ -6,11 +6,11 @@ public class MaterialUploader extends UniformBlockUploader {
     public static MaterialUploader INSTANCE;
 
     public MaterialUploader() {
-        super(192, 2);
+        super(208, 2);
     }
 
     public void upload(Material material) {
-        this.upload(0, 192, material.getPointer());
+        this.upload(0, 208, material.getPointer());
     }
 
     public static void setup() {

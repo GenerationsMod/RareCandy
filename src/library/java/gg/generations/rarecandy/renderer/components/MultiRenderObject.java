@@ -40,12 +40,9 @@ public class MultiRenderObject {
     public TextureArray images;
 
     public SbboOffset vertex;
-//    public SbboOffset position;
-//    public SbboOffset uv;
-//    public SbboOffset normal;
-//    public SbboOffset weight;
-//    public SbboOffset joint;
     public SbboOffset index;
+
+    public int bufferSize;
 
     public Animation[] animations = new Animation[0];
     public String[] animationNames = new String[0];
@@ -124,22 +121,24 @@ public class MultiRenderObject {
                 if (!shouldRender(mesh, instance)) {
                     continue;
                 }
-
+                
                 var model = this.meshes[mesh];
-                if (model != null) {
 
-                    pipeline.bindDraw(instance, this, mesh);
-
-                    var material = getMaterial(mesh, instance.variant());
-                    pipeline.preDraw(material);
-                    var transparent = material.blendType() != BlendType.None;
-
-                    if(transparent && stage == RenderStage.TRANSPARENT || stage == RenderStage.SOLID) {
-                        model.render();
-                    }
-
-                    pipeline.postDraw(material);
+                if (model == null) {
+                    continue;
                 }
+
+                pipeline.bindDraw(instance, this, mesh);
+
+                var material = getMaterial(mesh, instance.variant());
+                pipeline.preDraw(material);
+                var transparent = material.blendType() != BlendType.None;
+
+                if (transparent && stage == RenderStage.TRANSPARENT || stage == RenderStage.SOLID) {
+                    model.render();
+                }
+
+                pipeline.postDraw(material);
             }
         }
     }

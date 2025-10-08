@@ -21,8 +21,6 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.*;
 import java.util.stream.IntStream;
 
@@ -63,8 +61,7 @@ public class ModelLoader {
             Names names,
             PixelAsset asset,
             Map<String, AnimResource> animResources,
-            ModelConfig config,
-            RenderModel.Provider renderModelSuppler) {
+            ModelConfig config) {
         if (config == null) throw new RuntimeException("config.json can't be null.");
 
         var scene = ModelLoader.read(asset);
@@ -92,26 +89,10 @@ public class ModelLoader {
 
         indexBytes *= Integer.BYTES;
 
-        int vertexBytes = vertexCount * 80;
+        int vertexBytes = vertexCount * 24;
 
-//        int positionBytes = vertexCount * 4 * Float.BYTES;
-//        int uvBytes = vertexCount * 4 * Float.BYTES;
-//        int normalBytes = vertexCount * 4 * Float.BYTES;
-//        int jointBytes = vertexCount * 4 * Float.BYTES;
-//        int weightBytes = vertexCount * 4 * Float.BYTES;
-
-//        int uvOffset = alignUp(positionBytes, alignment);
-//        int normalOffset = alignUp(uvOffset + uvBytes, alignment);
-//        int jointOffset = alignUp(normalOffset + normalBytes, alignment);
-//        int weightOffset = alignUp(jointOffset + jointBytes, alignment);
         int indexOffset = alignUp(vertexBytes, alignment);
         int totalBytes  = indexOffset + indexBytes;
-
-//        var positionBuffer = MemoryUtil.memAlloc(positionBytes);
-//        var uvBuffer = MemoryUtil.memAlloc(uvBytes);
-//        var normalBuffer = MemoryUtil.memAlloc(normalBytes);
-//        var weightBuffer = MemoryUtil.memAlloc(weightBytes);
-//        var jointBuffer = MemoryUtil.memAlloc(jointBytes);
 
         var vertexBuffer = MemoryUtil.memAlloc(vertexBytes);
 
@@ -120,9 +101,10 @@ public class ModelLoader {
         objects.vertex = new SbboOffset(0, vertexBytes);
         objects.index = new SbboOffset(indexOffset, indexBytes);
 
+
         int[] counters = new int[2]; // index Count
 
-        var list = Arrays.stream(meshes).sorted(Comparator.comparing(aiMesh -> objects.meshNameToId.get(aiMesh.mName().dataString()))).toList();
+        var list = Arrays.stream(meshes).filter(a -> objects.meshNameToId.containsKey(a.mName().dataString())).sorted(Comparator.comparing(aiMesh -> objects.meshNameToId.get(aiMesh.mName().dataString()))).toList();
 
         for (int i = 0; i < names.meshes.size(); i++) {
             var mesh = list.get(i);
@@ -130,7 +112,7 @@ public class ModelLoader {
             var drawRecord = processPrimitiveModel(
                     vertexBuffer,
                     indexBuffer,
-                    counters, skeleton, mesh, config.modelOptions != null ? config.modelOptions : Collections.emptyMap(), dimensions, renderModelSuppler);
+                    counters, skeleton, mesh, config.modelOptions != null ? config.modelOptions : Collections.emptyMap(), dimensions);
 
             objects.meshes[i] = drawRecord;
         }
@@ -138,8 +120,8 @@ public class ModelLoader {
         var buffer = MemoryUtil.memAlloc(totalBytes);
         objects.vertex.put(buffer, vertexBuffer.flip());
         objects.index.put(buffer, indexBuffer.flip());
-        System.out.println("totalBytes = " + totalBytes);
-        System.out.println("buffer.limit() = " + buffer.limit());
+//        System.out.println("totalBytes = " + totalBytes/1024f + "kb");
+        System.out.println("buffer.limit() = " + (vertexBuffer.limit() + indexBuffer.limit()) + " " + buffer.limit());
 
         var bufferId = GL43C.glGenBuffers();
         GL43C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
@@ -283,10 +265,8 @@ public class ModelLoader {
     }
 
 
-    private static void processVariants(MultiRenderObject object, ModelConfig config, Names names) {
+    private static void processVariants(MultiRenderObject object, ModelConfig config, Names names, Map<String, List<String>> aliases) {
         var defaultVariant = new int[names.meshes.size()];
-        
-        Map<String, List<String>> aliases = config.aliases != null ? config.aliases : Collections.emptyMap();
 
         var variantList = new ArrayList<Variant>();
 
@@ -390,16 +370,13 @@ public class ModelLoader {
     }
 
     private static int addOrGetIndex(List<Variant> variants, Variant variant) {
-        var size = variants.size();
-        for (int i = 0; i < size; i++) {
-            if(variants.get(i).equals(variant)) {
-                return i;
-            }
+        var index = variants.indexOf(variant);
+
+        if(index == -1) {
+            index = variants.size();
+            variants.add(variant);
         }
-
-        variants.add(variant);
-
-        return size;
+        return index;
     }
 
     private static void applyTransforms(Matrix4f transform, ModelNode node) {
@@ -411,7 +388,7 @@ public class ModelLoader {
 
     private static DrawRecord processPrimitiveModel(
             ByteBuffer vertexBuffer,
-            ByteBuffer indexBuffer, int[] counters, Skeleton skeleton, AIMesh mesh, Map<String, MeshOptions> options, Vector3f dimensions, RenderModel.Provider renderModelSupplier) {
+            ByteBuffer indexBuffer, int[] counters, Skeleton skeleton, AIMesh mesh, Map<String, MeshOptions> options, Vector3f dimensions) {
         var name = mesh.mName().dataString();
 
         var faceArray = options.containsKey(name) && options.get(name).invert() ? INVERT_FACE : NORMAL_FACE;
@@ -427,9 +404,10 @@ public class ModelLoader {
         var indexAmount = numFaces * 3;
 
         var drawRecord = new DrawRecord(indexOffset, indexAmount);
+
         counters[0] += indexAmount;
 
-        for (int j = 0; j < mesh.mNumFaces(); j++) {
+        for (int j = 0; j < numFaces; j++) {
             var aiFace = aiFaces.get(j).mIndices();
             indexBuffer
                     .putInt(vertexOffset + aiFace.get(faceArray[0]))
@@ -478,46 +456,89 @@ public class ModelLoader {
 
         var isEmpty = IntStream.range(0, ids.length).allMatch(a -> ids[a] == 0);
 
+        var indexArray = new int[amount];
+
         for (int i = 0; i < amount; i++) {
 
             var position = aiVert.get(i);
             var uv = aiUV.get(i);
             var normal = aiNormals.get(i);
 
-            vertexBuffer.putFloat(position.x());
-            vertexBuffer.putFloat(position.y());
-            vertexBuffer.putFloat(position.z());
-            vertexBuffer.putFloat(0);
-            vertexBuffer.putFloat(uv.x());
-            vertexBuffer.putFloat(1 - uv.y());
-            vertexBuffer.putFloat(0);
-            vertexBuffer.putFloat(0);
-            vertexBuffer.putFloat(normal.x());
-            vertexBuffer.putFloat(normal.y());
-            vertexBuffer.putFloat(normal.z());
-            vertexBuffer.putFloat(0);
+//            vertexBuffer.putFloat(position.x());
+//            vertexBuffer.putFloat(position.y());
+//            vertexBuffer.putFloat(position.z());
+//            vertexBuffer.putFloat(0);
+//            vertexBuffer.putFloat(uv.x());
+//            vertexBuffer.putFloat(1 - uv.y());
+//            vertexBuffer.putFloat(0);
+//            vertexBuffer.putFloat(0);
+//            vertexBuffer.putFloat(normal.x());
+//            vertexBuffer.putFloat(normal.y());
+//            vertexBuffer.putFloat(normal.z());
+//            vertexBuffer.putFloat(0);
+//
+//            if(isEmpty) {
+//                vertexBuffer.putInt(1);
+//                vertexBuffer.putInt(0);
+//                vertexBuffer.putInt(0);
+//                vertexBuffer.putInt(0);
+//
+//                vertexBuffer.putFloat(1);
+//                vertexBuffer.putFloat(0);
+//                vertexBuffer.putFloat(0);
+//                vertexBuffer.putFloat(0);
+//            } else {
+//                vertexBuffer.putInt(ids[i * 4]);
+//                vertexBuffer.putInt(ids[i * 4 + 1]);
+//                vertexBuffer.putInt(ids[i * 4 + 2]);
+//                vertexBuffer.putInt(ids[i * 4 + 3]);
+//
+//                vertexBuffer.putFloat(weights[i * 4]);
+//                vertexBuffer.putFloat(weights[i * 4 + 1]);
+//                vertexBuffer.putFloat(weights[i * 4 + 2]);
+//                vertexBuffer.putFloat(weights[i * 4 + 3]);
+//            }
+
+            short qx = (short) Math.round(position.x() * 1000f);
+            short qy = (short) Math.round(position.y() * 1000f);
+            short qz = (short) Math.round(position.z() * 1000f);
+
+            int uvPacked = (floatToHalf(1.0f - uv.y()) << 16) | (floatToHalf(uv.x()) & 0xFFFF);
+
+            int nx = Math.round(normal.x() * 511.0f);
+            int ny = Math.round(normal.y() * 511.0f);
+            int nz = Math.round(normal.z() * 511.0f);
+            int packedNormal = (nx & 0x3FF) | ((ny & 0x3FF) << 10) | ((nz & 0x3FF) << 20);
+
+            int boneIdPacked;
+
+            int boneWeightPacked;
 
             if(isEmpty) {
-                vertexBuffer.putInt(1);
-                vertexBuffer.putInt(0);
-                vertexBuffer.putInt(0);
-                vertexBuffer.putInt(0);
-
-                vertexBuffer.putFloat(1);
-                vertexBuffer.putFloat(0);
-                vertexBuffer.putFloat(0);
-                vertexBuffer.putFloat(0);
+                boneIdPacked = 1;
+                boneWeightPacked = 255;
             } else {
-                vertexBuffer.putInt(ids[i * 4]);
-                vertexBuffer.putInt(ids[i * 4 + 1]);
-                vertexBuffer.putInt(ids[i * 4 + 2]);
-                vertexBuffer.putInt(ids[i * 4 + 3]);
+                boneIdPacked =
+                        (ids[i * 4] & 0xFF) |
+                                ((ids[i * 4 + 1] & 0xFF) << 8) |
+                                ((ids[i * 4 + 2] & 0xFF) << 16) |
+                                ((ids[i * 4 + 3] & 0xFF) << 24);
 
-                vertexBuffer.putFloat(weights[i * 4]);
-                vertexBuffer.putFloat(weights[i * 4 + 1]);
-                vertexBuffer.putFloat(weights[i * 4 + 2]);
-                vertexBuffer.putFloat(weights[i * 4 + 3]);
+                boneWeightPacked =
+                        ((int)(weights[i * 4] * 255.0f) & 0xFF) |
+                                (((int)(weights[i * 4 + 1] * 255.0f) & 0xFF) << 8) |
+                                (((int)(weights[i * 4 + 2] * 255.0f) & 0xFF) << 16) |
+                                (((int)(weights[i * 4 + 3] * 255.0f) & 0xFF) << 24);
             }
+
+            vertexBuffer.putShort(qx);
+            vertexBuffer.putShort(qy);
+            vertexBuffer.putShort(qz);
+            vertexBuffer.putShort((short) 0);
+            vertexBuffer.putInt(uvPacked);
+            vertexBuffer.putInt(packedNormal);
+            vertexBuffer.putInt(boneIdPacked);
+            vertexBuffer.putInt(boneWeightPacked);
 
             dimensions.max(temp.set(position.x(), position.y(), position.z()));
         }
@@ -537,6 +558,23 @@ public class ModelLoader {
                 return;
             }
         }
+    }
+
+    public static short floatToHalf(float fval) {
+        int fbits = Float.floatToIntBits(fval);
+        int sign = (fbits >>> 16) & 0x8000;
+        int val = (fbits & 0x7fffffff) + 0x1000;
+        if (val >= 0x47800000) {
+            if ((fbits & 0x7fffffff) >= 0x47800000) {
+                if (val < 0x7f800000) return (short) (sign | 0x7c00);
+                return (short) (sign | 0x7c00 | ((fbits & 0x007fffff) >>> 13));
+            }
+            return (short) (sign | 0x7bff);
+        }
+        if (val >= 0x38800000) return (short) (sign | ((val - 0x38000000) >>> 13));
+        if (val < 0x33000000) return (short) sign;
+        val = (fbits & 0x7fffffff) >>> 23;
+        return (short) (sign | ((((fbits & 0x7fffff) | 0x800000) + (0x800000 >>> (val - 102))) >>> (126 - val)));
     }
 
     public static int calculateVertexSize(List<Attribute> layout) {
@@ -620,11 +658,22 @@ public class ModelLoader {
 
         if (asset.getModelFile() == null) throw new RuntimeException("model.config not found");
 
+        Map<String, List<String>> aliases = config.aliases != null ? config.aliases : Collections.emptyMap();
 
         var names = new Names();
 
         config.defaultVariant.forEach((s, variantDetails) -> {
-            checkIfAlreadyIn(names.meshes(), s, config.meshesToRenderFirst != null ? config.meshesToRenderFirst.contains(s) : false);
+            if(!aliases.isEmpty() && aliases.containsKey(s)) {
+                var meshesToRenderFirst = config.meshesToRenderFirst != null ? config.meshesToRenderFirst.contains(s) : false;
+
+                for (String s2 : aliases.get(s)) {
+                    checkIfAlreadyIn(names.meshes(), s2, meshesToRenderFirst);
+                }
+            }
+            else {
+                checkIfAlreadyIn(names.meshes(), s, config.meshesToRenderFirst != null ? config.meshesToRenderFirst.contains(s) : false);
+            }
+
             checkIfAlreadyIn(names.materials(), variantDetails.material());
         });
 
@@ -633,8 +682,14 @@ public class ModelLoader {
 
             if (variantParent.details() != null) {
                 variantParent.details().forEach((s1, variantDetails) -> {
-                    checkIfAlreadyIn(names.meshes(), s1);
-                    checkIfAlreadyIn(names.materials(), variantDetails.material());
+
+                    if(!aliases.isEmpty() && aliases.containsKey(s1)) {
+                        for (String s2 : aliases.get(s1)) {
+                            checkIfAlreadyIn(names.meshes(), s2);
+                        }
+                    }
+                    else checkIfAlreadyIn(names.meshes(), s1);
+                    if(variantDetails.material() != null) checkIfAlreadyIn(names.materials(), variantDetails.material());
                 });
             }
         });
@@ -659,11 +714,13 @@ public class ModelLoader {
             var id = obj.materialNameToId.getOrDefault(name, -1);
 
             if(id != -1) {
-                obj.materials[id] = materialProcess.apply(reference, names.images);
+                var material = materialProcess.apply(reference, names.images);
+
+                obj.materials[id] = material;
             }
         });
 
-        processVariants(obj, config, names);
+        processVariants(obj, config, names, aliases);
 
         obj.scale = config.scale;
 
@@ -673,7 +730,7 @@ public class ModelLoader {
         GfbanmResource.read(asset, aninResouces);
         TrAnimationResource.read(asset, aninResouces);
 
-        ModelLoader.processModel(obj, names, asset, aninResouces, config, GLModel::new);
+        ModelLoader.processModel(obj, names, asset, aninResouces, config);
         obj.updateDimensions();
         if (onFinish != null) onFinish.accept(obj);
 
@@ -768,6 +825,8 @@ public class ModelLoader {
 
             var index = imageNames.indexOf(key);
 
+            if(index == -1) continue;
+
             var data = Texture.scaleAndProcess(entry.getValue());
 
             array.fillLayer(index, data);
@@ -829,7 +888,10 @@ public class ModelLoader {
                     aiFile.FileSizeProc().free();
                 });
 
-        var scene = Assimp.aiImportFileEx(name, Assimp.aiProcess_Triangulate | Assimp.aiProcess_ImproveCacheLocality, fileIo);
+        var scene = Assimp.aiImportFileEx(name,
+                Assimp.aiProcess_Triangulate |
+                        Assimp.aiProcess_OptimizeMeshes |
+                        Assimp.aiProcess_ImproveCacheLocality, fileIo);
 
         if (scene == null) throw new RuntimeException(Assimp.aiGetErrorString());
 

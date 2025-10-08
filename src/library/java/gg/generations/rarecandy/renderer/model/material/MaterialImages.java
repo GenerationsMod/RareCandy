@@ -56,7 +56,9 @@ public class MaterialImages {
 
     public MaterialImages fill(JsonObject images) {
         if(images.has("diffuse"))  this.diffuse = images.getAsJsonPrimitive("diffuse").getAsString();
-        if(images.has("layer"))  this.layer = images.getAsJsonPrimitive("layer").getAsString();
+        if(images.has("layer")) {
+            this.layer = images.getAsJsonPrimitive("layer").getAsString();
+        }
         if(images.has("mask")) this.mask = images.getAsJsonPrimitive("mask").getAsString();
         if(images.has("emission"))  this.emission = images.getAsJsonPrimitive("emission").getAsString();
 

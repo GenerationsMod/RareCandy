@@ -69,22 +69,30 @@ public class MaterialReference {
     public static Material process(MaterialReference reference, List<String> imageNames) {
         var images = reference.images.toArray(imageNames);
 
-        var method = reference.shader != null ? switch (reference.shader) {
-            case "layered" -> 1;
-            case "masked" -> 2;
-            default -> 0;
-        } : 0;
+        int method;
+        int actualEffect;
 
-        var actualEffect = reference.effect != null ? switch (reference.effect) {
-            case "cartoon" -> 1;
-            case "galaxy" -> 2;
-            case "paradox" -> 3;
-            case "pastel" -> 4;
-            case "shadow" -> 5;
-            case "sketch" -> 6;
-            case "vintage" -> 7;
-            default -> 0;
-        } : 0;
+        if (reference.shader.equals("masked_paradox")) {
+            method = 2;
+            actualEffect = 3;
+        } else {
+            method = reference.shader != null ? switch (reference.shader) {
+                case "layered" -> 1;
+                case "masked" -> 2;
+                default -> 0;
+            } : 0;
+
+            actualEffect = reference.effect != null ? switch (reference.effect) {
+                case "cartoon" -> 1;
+                case "galaxy" -> 2;
+                case "paradox" -> 3;
+                case "pastel" -> 4;
+                case "shadow" -> 5;
+                case "sketch" -> 6;
+                case "vintage" -> 7;
+                default -> 0;
+            } : 0;
+        }
 
         return new Material(
                 images,

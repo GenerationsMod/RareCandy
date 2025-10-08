@@ -31,23 +31,58 @@ layout(std140, binding = 1) uniform Instance {
     mat4 boneTransforms[MAX_BONES];
 };
 
-struct Vertex {
-    vec3 position;
-    vec2 texcoord;
-    vec3 normal;
-    ivec4 joints;
-    vec4 weights;
-};
-
 layout(std430, binding = 0) readonly buffer VertexBuffer {
-    Vertex vertices[];
+    uint data[];
 };
 
 layout(std430, binding = 1) readonly buffer IndexBuffer {
     int indices[];
 };
 
-mat4 getBoneTransform(ivec4 joints, vec4 weights) {
+struct Vertex {
+    vec3 position;
+    vec2 texcoord;
+    vec3 normal;
+    uvec4 joints;
+    vec4 weights;
+};
+
+Vertex decodeVertex(int index) {
+    Vertex v;
+    uint base = index * 6u;
+
+    uint p0 = data[base + 0];
+    int qx = int(p0 & 0xFFFFu);
+    int qy = int((p0 >> 16) & 0xFFFFu);
+    qx = (qx << 16) >> 16;
+    qy = (qy << 16) >> 16;
+
+    uint p1 = data[base + 1];
+    int qz = int(p1 & 0xFFFFu);
+    qz = (qz << 16) >> 16;
+    v.position = vec3(qx, qy, qz) * 0.001;
+
+    uint uvPacked = data[base + 2];
+    v.texcoord = unpackHalf2x16(uvPacked);
+
+    int packedNormal = int(data[base + 3]);
+    int nx =  (packedNormal       & 0x3FF);
+    int ny = ((packedNormal >>10) & 0x3FF);
+    int nz = ((packedNormal >>20) & 0x3FF);
+    nx = (nx << 22) >> 22;
+    ny = (ny << 22) >> 22;
+    nz = (nz << 22) >> 22;
+    v.normal = vec3(float(nx), float(ny), float(nz)) / 511.0;
+
+    uint bIds = data[base + 4];v.joints = uvec4((bIds      ) & 0xFFu, (bIds >>  8) & 0xFFu, (bIds >> 16) & 0xFFu, (bIds >> 24) & 0xFFu);
+
+    uint bW = data[base + 5];
+    v.weights = vec4(float((bW      ) & 0xFFu), float((bW >>  8) & 0xFFu), float((bW >> 16) & 0xFFu), float((bW >> 24) & 0xFFu)) / 255.0;
+
+    return v;
+}
+
+mat4 getBoneTransform(uvec4 joints, vec4 weights) {
     return
     boneTransforms[joints.x] * weights.x +
     boneTransforms[joints.y] * weights.y +
@@ -77,7 +112,7 @@ vec4 getVertexColor(vec3 normal) {
 void main() {
     // Lookup vertex through index buffer
     int vertexIndex = indices[gl_VertexID];
-    Vertex v = vertices[vertexIndex];
+    Vertex v = decodeVertex(vertexIndex);
 
     mat4 worldSpace = projectionMatrix * viewMatrix;
     mat4 modelTransform = modelMatrix * getBoneTransform(v.joints, v.weights);

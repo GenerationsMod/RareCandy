@@ -44,7 +44,7 @@ public class GuiPipelines {
         InstanceBlockUploader.register(AnimatedObjectInstance.class, ObjectInstance.MAT4_SIZE * 221);
         MaterialUploader.setup();
 
-        TraditionalPipeline ANIMATED = TraditionalPipeline.builder(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl"))
+        TraditionalPipeline ANIMATED = TraditionalPipeline.builder(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl1"))
                 .autoMat4(Scope.GLOBAL, "viewMatrix", (ctx) -> RareCandyCanvas.viewMatrix)
                 .autoMat4(Scope.GLOBAL, "projectionMatrix", (ctx) -> projectionMatrix)
                 .autoVec2(Scope.DRAW, "uvOffset", (ctx) -> {

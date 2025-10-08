@@ -39,9 +39,9 @@ public class Material implements Closeable {
         MemoryUtil.memPutInt(pointer + 180, effect);
         MemoryUtil.memPutInt(pointer + 184, values.getUseLight() ? 1 : 0);
         MemoryUtil.memPutInt(pointer + 188, images[0]);
-        MemoryUtil.memPutInt(pointer + 192, images[0]);
-        MemoryUtil.memPutInt(pointer + 196, images[0]);
-        MemoryUtil.memPutInt(pointer + 200, images[0]);
+        MemoryUtil.memPutInt(pointer + 192, images[1]);
+        MemoryUtil.memPutInt(pointer + 196, images[2]);
+        MemoryUtil.memPutInt(pointer + 200, images[3]);
     }
 
     public int getColorMethod() {

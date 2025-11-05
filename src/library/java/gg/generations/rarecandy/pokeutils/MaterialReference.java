@@ -104,66 +104,6 @@ public class MaterialReference {
                 actualEffect
         );
     }
-//
-//    public static Material process(String name, @NotNull Map<String, MaterialReference> materialreferences, @NotNull Map<String, String> imageMap) {
-//
-//
-//        var reference = materialreferences.get(name);
-//
-//        var cull = reference.cull;
-//        var blend = reference.blend;
-//        var shader = reference.shader;
-//        var effect = reference.effect;
-//        var images = new MaterialImages().fill(reference.images);
-//        var values = new MaterialValues().fill(reference.values);
-//        var useDepthTest = reference.useDepthTest;
-//        var parent = reference.parent;
-//
-//        while (parent != null) {
-//            reference = materialreferences.get(parent);
-//
-//            if(reference == null) parent = null;
-//            else {
-//
-//                if (!Objects.equals(shader, reference.shader)) shader = reference.shader;
-//                if (effect == null) effect = reference.effect;
-//                if (!Objects.equals(cull, reference.cull)) cull = reference.cull;
-//                if (!Objects.equals(blend, reference.blend)) blend = reference.blend;
-//                if(useDepthTest != reference.useDepthTest) useDepthTest = reference.useDepthTest;
-//
-//
-//                //TODO: Check if the parent's values are overriden vs it overriding child.
-//                images.fill(reference.images);
-//                values.fill(reference.values);
-//
-//                parent = reference.parent;
-//            }
-//        }
-//
-//        values.complete();
-//        images = images.complete().processWithImageMap(imageMap);
-//
-////        if(shader == null) shader = "solid";
-//
-//        var method = shader != null ? switch (shader) {
-//            case "layered" -> 1;
-//            case "masked" -> 2;
-//            default -> 0;
-//        } : 0;
-//
-//        var actualEffect = effect != null ? switch (effect) {
-//            case "cartoon" -> 1;
-//            case "galaxy" -> 2;
-//            case "paradox" -> 3;
-//            case "pastel" -> 4;
-//            case "shadow" -> 5;
-//            case "sketch" -> 6;
-//            case "vintage" -> 7;
-//            default -> 0;
-//        } : 0;
-//
-//        return new Material(images, values.complete(), useDepthTest, cull, blend, "",/*shader + (effect != null ? "_" + effect : "")*/ method, actualEffect);
-//    }
 
     public static final class Serializer implements JsonDeserializer<MaterialReference> {
         @Override
@@ -324,7 +264,7 @@ public class MaterialReference {
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(parent, shader, effect, cull, blend, values, images, useDepthTest);
+        int result = Objects.hash(parent, shader, effect, cull, blend, values, images, (Boolean) useDepthTest);
         return result;
     }
 
@@ -400,14 +340,6 @@ public class MaterialReference {
 
         // Default to regular equals for other types
         return Objects.equals(o1, o2);
-    }
-
-    // Helper method to hash the values map
-    private int hashValues(Map<String, Object> values) {
-        if (values == null) return 0;
-        return values.entrySet().stream()
-                .mapToInt(e -> Objects.hash(e.getKey(), deepHashCode(e.getValue())))
-                .sum();
     }
 
     // Helper method to deeply hash objects in values map

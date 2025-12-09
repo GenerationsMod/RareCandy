@@ -1,9 +1,5 @@
-#version 430
+ #version 430
 layout(local_size_x = 16, local_size_y = 16) in;
-
-uniform sampler2DArray images;
-layout(rgba8, binding = 1) uniform image2D solidTex;
-layout(rgba8, binding = 2) uniform image2D litTex;
 
 layout(std140, binding = 0) uniform material {
     vec3 baseColor1;
@@ -21,12 +17,13 @@ layout(std140, binding = 0) uniform material {
     float emiIntensity3;
     float emiIntensity4;
     float emiIntensity5;
-    int emission;
-    int layer;
-    int mask;
+    sampler2D diffuse;
+    sampler2D emission;
+    sampler2D layer;
+    sampler2D mask;
 };
 
-
+layout(rgba8, binding = 0) uniform image2D solidTex;
 
 vec4 adjust(vec4 color) {
     return clamp(color * 2, 0, 1);
@@ -36,23 +33,20 @@ float adjustScalar(float color) {
     return clamp(color * 2, 0.0, 1.0);
 }
 
-float getMaskIntensity() {
-    return texture(mask, texCoord0).r;
-}
-
 vec3 applyEmission(vec3 base, vec3 emissionColor, float intensity) {
     return base + (emissionColor - base) * intensity;
 }
 
-void main() {
-    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
-    vec2 samplerixel = ivec2(gl_GlobalInvocationID.xy);
-}
+ vec4 getColor(sampler2D sampler, ivec2 storePixel) {
+     return texture(sampler, (storePixel + 0.5) / textureSize(sampler, 0));
+ }
 
-vec4 getColor(vec2 texCoord) {
-    vec4 color = texture(diffuse, texCoord);
-    vec4 layerMasks = adjust(texture(layer, texCoord));
-    float maskColor = adjustScalar(getMaskIntensity());
+ void main() {
+    ivec2 storePixel = ivec2(gl_GlobalInvocationID.xy);
+
+    vec4 color = getColor(diffuse, storePixel);
+    vec4 layerMasks = adjust(getColor(layer, storePixel));
+    float maskColor = adjustScalar(texture(mask, storePixel).r);
 
     vec3 base = mix(color.rgb, color.rgb * baseColor1, layerMasks.r);
     base = mix(base, color.rgb * baseColor2, layerMasks.g);
@@ -66,5 +60,5 @@ vec4 getColor(vec2 texCoord) {
     base = mix(base, applyEmission(base, emiColor4, emiIntensity4), layerMasks.a);
     base = mix(base, applyEmission(vec3(0), emiColor5, emiIntensity5), maskColor);
 
-    return vec4(base, color.a);
+    imageStore(solidTex, storePixel, vec4(base, color.a));
 }

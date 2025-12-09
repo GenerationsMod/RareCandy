@@ -6,7 +6,7 @@ public class MaterialUploader extends UniformBlockUploader {
     public static MaterialUploader INSTANCE;
 
     public MaterialUploader() {
-        super(208, 2);
+        super(220, 2);
     }
 
     public void upload(Material material) {

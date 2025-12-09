@@ -147,13 +147,10 @@ public final class TextureArray implements AutoCloseable {
                 layerIndex, 1
         );
 
-        glTextureParameteri(viewTex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTextureParameteri(viewTex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTextureParameteri(viewTex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(viewTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
         final int idx = layerIndex;
         return new ITexture() {
+            private boolean resident;
+
             @Override
             public void bind(int slot) {
                 ITexture.super.bind(slot);
@@ -172,7 +169,30 @@ public final class TextureArray implements AutoCloseable {
             public Type getType() { return Type.RGBA_BYTE; }
 
             @Override
+            public long getSamplerHandle(SamplerDesc sampler) {
+                BindlessSupport.require();
+                long h = SamplerCache.getOrCreateHandle(viewTex, sampler);
+                resident = true;
+                return h;
+            }
+
+            @Override
+            public long getImageHandle(int level, boolean layered, ComputeAccess access) {
+                BindlessSupport.require();
+                // Non-layered image handle for the 2D view
+                long h = ImageHandleCache.getOrCreate(viewTex, level, false, getType().internalFormat, access);
+                resident = true;
+                return h;
+            }
+
+            @Override
             public void close() throws IOException {
+                if (resident) {
+                    SamplerCache.unresidentForTexture(viewTex);
+                    ImageHandleCache.unresidentForTexture(viewTex);
+                    resident = false;
+                }
+
                 glDeleteTextures(viewTex);
             }
 

@@ -23,9 +23,6 @@ import static gg.generations.rarecandy.renderer.pipeline.Pipelines.builtin;
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
 
 public class GuiPipelines {
-//    public static final Vector3f light0 = new Vector3f(0.178f, 0.893f, -0.625f);
-//    public static final Vector3f light1 = new Vector3f(-0.178f, 0.893f, 0.625f);
-
     public static final Vector3f light0 = new Vector3f(0.5f, 0.5f, -0.5f).normalize();
     public static final Vector3f light1 = new Vector3f(-0.3f, 0.4f, 0.7f).normalize();
 
@@ -44,9 +41,11 @@ public class GuiPipelines {
         InstanceBlockUploader.register(AnimatedObjectInstance.class, ObjectInstance.MAT4_SIZE * 221);
         MaterialUploader.setup();
 
-        TraditionalPipeline ANIMATED = TraditionalPipeline.builder(builtin("experimental/animated.vs.glsl"), builtin("experimental/animated.fs.glsl1"))
+        TraditionalPipeline ANIMATED = TraditionalPipeline.builder(builtin("rewrite/animated.vs.glsl"), builtin("experimental/animated.fs.glsl1"))
                 .autoMat4(Scope.GLOBAL, "viewMatrix", (ctx) -> RareCandyCanvas.viewMatrix)
                 .autoMat4(Scope.GLOBAL, "projectionMatrix", (ctx) -> projectionMatrix)
+                .autoVec3(Scope.GLOBAL, "Light0_Direction", (ctx) -> light0)
+                .autoVec3(Scope.GLOBAL, "Light1_Direction", (ctx) -> light1)
                 .autoVec2(Scope.DRAW, "uvOffset", (ctx) -> {
                     var variant = ctx.object().getVariant(ctx.mesh(), ctx.instance().variant());
 
@@ -91,8 +90,6 @@ public class GuiPipelines {
 
                     return transform.scale();
                 })
-                .autoVec3(Scope.GLOBAL, "Light0_Direction", (ctx) -> light0)
-                .autoVec3(Scope.GLOBAL, "Light1_Direction", (ctx) -> light1)
                 .autoBool(Scope.GLOBAL, "tera", (ctx) -> settings.terastalization.enabled.getValue())
                 .autoVec3(Scope.GLOBAL, "teraTint", (ctx) -> settings.terastalization.tint.getValue())
                 .addUniform(Scope.GLOBAL, "light", (uniform, ctx) -> {

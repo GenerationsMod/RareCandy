@@ -1,8 +1,8 @@
 #version 430
 layout(local_size_x = 16, local_size_y = 16) in;
 
-uniform sampler2DArray images;
 layout(rgba8, binding = 0) uniform image2D solidTex;
+layout(rgba8, binding = 1) uniform image2D litTex;
 
 layout(std140, binding = 0) uniform material {
     vec3 baseColor1;
@@ -26,16 +26,18 @@ layout(std140, binding = 0) uniform material {
     int mask;
 };
 
-void main() {
-    ivec2 storePixel = ivec2(gl_GlobalInvocationID.xy);
-    vec2 samplerPixel = storePixel / textureSize(images, 0).xy;
+vec4 process(vec4 inColor) {
+    float grayscale = 0.2126 * inColor.r + 0.7152 * inColor.g + 0.0722 * inColor.b;
 
-    vec4 color = texture(images, vec3(samplerPixel, diffuse));
-    float maskColor = texture(images, vec3(samplerPixel, mask)).r;
-    float emiAlpha = texture(images, vec3(samplerPixel, emission)).r * color.a;
-
-    color.rgb = mix(color.rgb, color.rgb * baseColor1, maskColor);
-
-    imageStore(solidTex, storePixel, color);
+    return vec4(vec3(grayscale), inColor.a);
 }
 
+void main() {
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    vec2 uv = (pixel + 0.5) / imageSize(solidTex).xy;
+
+    vec4 color = imageLoad(solidTex, storePixel);
+    color = process(color);
+
+    imageStore(solidTex, pixel, color);
+}

@@ -1,7 +1,6 @@
 #version 430
 layout(local_size_x = 16, local_size_y = 16) in;
 
-uniform sampler2DArray images;
 layout(rgba8, binding = 0) uniform image2D solidTex;
 
 layout(std140, binding = 0) uniform material {
@@ -20,17 +19,17 @@ layout(std140, binding = 0) uniform material {
     float emiIntensity3;
     float emiIntensity4;
     float emiIntensity5;
-    int diffuse;
-    int emission;
-    int layer;
-    int mask;
+    sampler2D diffuse;
+    sampler2D emission;
+    sampler2D layer;
+    sampler2D mask;
 };
 
 void main() {
     ivec2 storePixel = ivec2(gl_GlobalInvocationID.xy);
-    vec2 samplerPixel = storePixel / textureSize(images, 0).xy;
+    vec2 samplerPixel = storePixel / textureSize(diffuse, 0).xy;
 
-    vec4 color = texture(images, vec3(samplerPixel, diffuse));
+    vec4 color = texture(diffuse, samplerPixel);
 
     imageStore(solidTex, storePixel, color);
 }

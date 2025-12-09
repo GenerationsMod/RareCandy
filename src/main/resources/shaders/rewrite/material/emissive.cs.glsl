@@ -26,21 +26,14 @@ layout(std140, binding = 0) uniform material {
     int mask;
 };
 
-vec4 process(vec4 inColor) {
-    float grayscale = 0.2126 * inColor.r + 0.7152 * inColor.g + 0.0722 * inColor.b;
-
-    return vec4(vec3(grayscale), inColor.a);
-}
-
 void main() {
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
-    vec2 uv = (pixel + 0.5) / imageSize(solidTex).xy;
 
-    vec4 color = imageLoad(solidTex, storePixel);
-    color = process(color);
+    vec4 color = imageLoad(solidTex, pixel);
 
     float emiAlpha = texture(images, vec3(samplerPixel, emission)).r * color.a;
 
-    imageStore(solidTex, pixel, vec4(color.rgb, emiAlpha));
-    imageStore(litTex,   pixel, vec4(color.rgb, emiAlpha));
+    imageStore(solidTex, storePixel, color);
+    imageStore(litTex,   storePixel, vec4(color.rgb, emiAlpha));
 }
+

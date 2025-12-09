@@ -59,8 +59,5 @@ void main() {
 
     vec4 color = imageLoad(solidTex, storePixel);
     color = process(color);
-
-    float emiAlpha = texture(images, vec3(uv, emission)).r * color.a;
     imageStore(solidTex, pixel, color);
-    imageStore(litTex, pixel, vec4(color.rgb, emiAlpha));
 }

@@ -14,6 +14,7 @@ public final class BlankTexture implements ITexture {
     private final int height;
     private final ComputeAccess access;
     private final int id;
+    private boolean resident;
 
     public BlankTexture(Texture.Type type, int width, int height, ComputeAccess access) {
         this.type = type;
@@ -76,10 +77,31 @@ public final class BlankTexture implements ITexture {
 
     @Override
     public void close() throws IOException {
+        if (resident) {
+            SamplerCache.unresidentForTexture(id);
+            ImageHandleCache.unresidentForTexture(id);
+            resident = false;
+        }
         GL11.glDeleteTextures(id);
     }
 
     public ComputeAccess getAccess() {
         return access;
+    }
+
+    @Override
+    public long getSamplerHandle(SamplerDesc sampler) {
+        BindlessSupport.require();
+        long h = SamplerCache.getOrCreateHandle(id, sampler);
+        resident = true;
+        return h;
+    }
+
+    @Override
+    public long getImageHandle(int level, boolean layered, ComputeAccess acc) {
+        BindlessSupport.require();
+        long h = ImageHandleCache.getOrCreate(id, level, layered, type.internalFormat, acc);
+        resident = true;
+        return h;
     }
 }

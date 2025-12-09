@@ -5,7 +5,6 @@ uniform sampler2D paradoxMask;
 uniform int frame;
 
 layout(rgba8, binding = 0) uniform image2D solidTex;
-layout(rgba8, binding = 1) uniform image2D litTex;
 
 float getParadoxIntensity(vec2 effectTexCoord) {
     if (frame >= 0) {
@@ -24,12 +23,9 @@ void main() {
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
 
     vec4 color = imageLoad(solidTex, pixel);
-    vec4 lit = imageLoad(litTex, pixel);
 
     float intensity = getParadoxIntensity(uv);
     color.rgb = mix(color.rgb, vec3(1.0), intensity);
-    lit.rgb = mix(lit.rgb, vec3(1.0), intensity);
 
     imageStore(solidTex, pixel, color);
-    imageStore(litTex, pixel, lit);
 }

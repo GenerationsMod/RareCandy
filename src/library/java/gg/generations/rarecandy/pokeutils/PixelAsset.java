@@ -91,12 +91,6 @@ public class PixelAsset {
                 var string = String.format("#%02X%02X%02X", r, g, b);
 
                 return new JsonPrimitive(string);
-
-//                var array =  new JsonArray();
-//                array.add(json.x);
-//                array.add(json.y);
-//                array.add(json.z);
-//                return array;
             }, (json, ctx) -> {
                 var vec = new Vector3f();
                 if (json.isJsonArray()) {

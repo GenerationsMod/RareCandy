@@ -19,6 +19,7 @@ import org.lwjgl.assimp.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.*;
@@ -652,7 +653,7 @@ public class ModelLoader {
         }
     }
 
-    public MultiRenderObject createObject(BiFunction<Names, TextureArray, MultiRenderObject> objBuilder, @NotNull Supplier<PixelAsset> is, BiFunction<MaterialReference, List<String>, Material> materialProcess, Consumer<MultiRenderObject> onFinish) {
+    public MultiRenderObject createObject(Function<Names, MultiRenderObject> objBuilder, @NotNull Supplier<PixelAsset> is, BiFunction<MaterialReference, List<String>, Material> materialProcess, Consumer<MultiRenderObject> onFinish) {
         var asset = is.get();
         var config = asset.getConfig();
 
@@ -707,8 +708,8 @@ public class ModelLoader {
             }
         });
 
-        var images = readImages(asset, names.images);
-        var obj = objBuilder.apply(names, images);
+        readImages(asset, names.images);
+        var obj = objBuilder.apply(names);
 
         config.materials.forEach((name, reference) -> {
             var id = obj.materialNameToId.getOrDefault(name, -1);
@@ -813,38 +814,22 @@ public class ModelLoader {
     }
 
 
-    public static TextureArray readImages(PixelAsset asset, List<String> imageNames) {
+    public static void readImages(PixelAsset asset, List<String> imageNames) {
         var images = asset.getImageFiles();
-
-        TextureArray array = new TextureArray(1024, 1024, imageNames.size(), false);
-
-        var finished = new boolean[array.getLayerCount()];
 
         for (var entry : images) {
             var key = entry.getKey();
 
-            var index = imageNames.indexOf(key);
+            var index = imageNames.contains(key);
 
-            if(index == -1) continue;
+            if(!index) continue;
 
-            var data = Texture.scaleAndProcess(entry.getValue());
-
-            array.fillLayer(index, data);
-
-            MemoryUtil.memFree(data);
-
-            finished[index] = true;
-        }
-
-        for (int i = 0; i < finished.length; i++) {
-            if(!finished[i]) {
-                var texture = ITextureLoader.instance().getTexture(imageNames.get(i));
-
-                array.fillLayer(i, texture);
+            try {
+                ITextureLoader.instance().register(entry.getKey(), Texture.read(entry.getValue(), entry.getKey()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
-
-        return array;
     }
 
     public void close() {

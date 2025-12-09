@@ -157,6 +157,10 @@ public class RareCandyCanvas {
     }
 
     public void initGL() {
+        if (!GL.getCapabilities().GL_ARB_bindless_texture) {
+            throw new RuntimeException("Bindless textures not supported!");
+        }
+
         projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) handler.getWidth() / handler.getHeight(), 0.1f, 1000.0f);
         GL.createCapabilities(true);
         GuiPipelines.onInitialize(this, handler.settings);
@@ -370,8 +374,8 @@ public class RareCandyCanvas {
         public boolean[] overrides;
         public String[] meshNames;
 
-        public ToggleableMultiRenderObject(ModelLoader.Names names, TextureArray images) {
-            super(names, images);
+        public ToggleableMultiRenderObject(ModelLoader.Names names) {
+            super(names);
             overrides = new boolean[names.meshes().size()];
             meshNames = names.meshes().toArray(String[]::new);
         }

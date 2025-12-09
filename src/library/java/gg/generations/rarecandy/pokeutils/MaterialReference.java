@@ -1,9 +1,13 @@
 package gg.generations.rarecandy.pokeutils;
 
 import com.google.gson.*;
+import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.model.material.MaterialImages;
 import gg.generations.rarecandy.renderer.model.material.MaterialValues;
+import gg.generations.rarecandy.renderer.textures.ITexture;
+import gg.generations.rarecandy.renderer.textures.SamplerPresets;
+import org.apache.commons.compress.harmony.pack200.IntList;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -15,7 +19,7 @@ import java.util.*;
 public class MaterialReference {
     public String parent;
     public String shader;
-    public String effect;
+    public List<String> effect;
 
     public CullType cull;
 
@@ -27,7 +31,7 @@ public class MaterialReference {
 
     public boolean useDepthTest = true;
 
-    public MaterialReference(String parent, String shader, String effect, CullType cull, BlendType blend, MaterialImages images, MaterialValues values, boolean useDepthTest) {
+    public MaterialReference(String parent, String shader, List<String> effect, CullType cull, BlendType blend, MaterialImages images, MaterialValues values, boolean useDepthTest) {
         this.parent = parent;
         this.shader = shader;
         this.effect = effect;
@@ -66,42 +70,62 @@ public class MaterialReference {
         images = images.complete();
     }
 
+    public static long getHandle(ITextureLoader loader, String name) {
+        ITexture tex = loader.getTexture(name);
+
+        return tex == null ? 0L : tex.getSamplerHandle(SamplerPresets.NEAREST_REPEAT);
+    }
+
     public static Material process(MaterialReference reference, List<String> imageNames) {
-        var images = reference.images.toArray(imageNames);
+        var loader = ITextureLoader.instance();
+        var images = reference.images;
+
+        long[] handles = new long[4];
+
+        handles[0] = getHandle(loader, images.getDiffuse());
+        handles[1] = getHandle(loader, images.getLayer());
+        handles[2] = getHandle(loader, images.getMask());
+        handles[3] = getHandle(loader, images.getEmission());
 
         int method;
-        int actualEffect;
 
-        if (reference.shader.equals("masked_paradox")) {
-            method = 2;
-            actualEffect = 3;
-        } else {
-            method = reference.shader != null ? switch (reference.shader) {
+        int[] effects;
+
+         method = switch (reference.shader) {
                 case "layered" -> 1;
                 case "masked" -> 2;
                 default -> 0;
-            } : 0;
+         };
 
-            actualEffect = reference.effect != null ? switch (reference.effect) {
-                case "cartoon" -> 1;
-                case "galaxy" -> 2;
-                case "paradox" -> 3;
-                case "pastel" -> 4;
-                case "shadow" -> 5;
-                case "sketch" -> 6;
-                case "vintage" -> 7;
-                default -> 0;
-            } : 0;
+        if(reference.effect != null) {
+            effects = new int[reference.effect.size()];
+
+            for (int index = 0; index < effects.length; index++) {
+                var e = reference.effect.get(index);
+
+                effects[index] = switch (e) {
+                    case "cartoon" -> 1;
+                    case "galaxy" -> 2;
+                    case "paradox" -> 3;
+                    case "pastel" -> 4;
+                    case "shadow" -> 5;
+                    case "sketch" -> 6;
+                    case "vintage" -> 7;
+                    default -> 0;
+                };
+            }
+        } else {
+            effects = new int[] { 0 };
         }
 
         return new Material(
-                images,
+                handles,
                 reference.values,
                 reference.useDepthTest,
                 reference.cull,
                 reference.blend,
                 method,
-                actualEffect
+                effects
         );
     }
 
@@ -111,7 +135,7 @@ public class MaterialReference {
 
             String shader = null;
 
-            String effect = null;
+            List<String> effect = null;
 
             CullType cull = CullType.None;
 
@@ -162,8 +186,34 @@ public class MaterialReference {
                     }
                 }
             } else {
-                if(jsonObject.has("shader")) shader = jsonObject.getAsJsonPrimitive("shader").getAsString();
-                if(jsonObject.has("effect")) effect = jsonObject.getAsJsonPrimitive("effect").getAsString();
+                var addParadox = false;
+
+                if(jsonObject.has("shader")) {
+                    shader = jsonObject.getAsJsonPrimitive("shader").getAsString();
+
+                    switch (shader) {
+                        case "masked_paradox" -> {
+                            shader = "masked";
+                            addParadox = true;
+                        }
+                        case "paradox", "solid_paradox" -> {
+                            shader = "solid";
+                            addParadox = true;
+                        }
+                    }
+                }
+
+                if(jsonObject.has("effect")) {
+                    effect = new ArrayList<>();
+                    effect.add(jsonObject.getAsJsonPrimitive("effect").getAsString());
+
+                    if(addParadox) effect.add("paradox");
+                }
+                else if(addParadox) {
+                    effect = new ArrayList<>();
+                    effect.add("paradox");
+                }
+
                 if(jsonObject.has("cull")) cull = CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString());
                 if(jsonObject.has("blend")) blend = BlendType.from(jsonObject.getAsJsonPrimitive("blend").getAsString());
                 if(jsonObject.has("images")) images.fill(jsonObject.getAsJsonObject("images"));
@@ -179,38 +229,7 @@ public class MaterialReference {
         }
     }
 
-//        object.asMap().forEach((key, value) -> {
-//            if(value.isJsonObject()) {
-//                if(object.has("type")) {
-//
-//                    var obj = value.getAsJsonObject();
-//                    var val = obj.get("value");
-//
-//                    switch (obj.getAsJsonPrimitive("type").getAsString()) {
-//                        case "boolean" -> {
-//                            values.put(key, val.getAsBoolean());
-//                        }
-//                        case "color" -> {
-//                            values.put(key, MaterialReference.color(val));
-//                        }
-//                        case "float" -> {
-//                            values.put(key, val.getAsFloat());
-//                        }
-//                    }
-//                } else {
-//                    if(object.has("x") && object.has("y") && object.has("z")) {
-//                        values.put(key, new Vector3f(object.getAsJsonPrimitive("x").getAsFloat(), object.getAsJsonPrimitive("y").getAsFloat(), object.getAsJsonPrimitive("z").getAsFloat()));
-//                    }
-//                }
-//            } else if(value.isJsonPrimitive()) {
-//                if (value.getAsJsonPrimitive().isBoolean()) values.put(key, value.getAsBoolean());
-//                else if (value.getAsJsonPrimitive().isNumber()) values.put(key, value.getAsFloat());
-//                else if (value.getAsJsonPrimitive().isString()) values.put(key, color(value));
-//            } else if(value.isJsonArray()) values.put(key, color(value));
-//        });
-//
-//        return values;
-//    }
+
 
 
     public static Vector3f color(JsonElement element) {

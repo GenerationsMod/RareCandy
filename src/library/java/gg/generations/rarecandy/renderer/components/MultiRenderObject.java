@@ -37,7 +37,6 @@ public class MultiRenderObject {
     public Material[] materials;
     public Variant[] variants;
     public int[][] variantRelationships;
-    public TextureArray images;
 
     public SbboOffset vertex;
     public SbboOffset index;
@@ -57,7 +56,7 @@ public class MultiRenderObject {
 
     private Matrix4f rootTransformation = new Matrix4f();
 
-    public MultiRenderObject(ModelLoader.Names names, TextureArray images) {
+    public MultiRenderObject(ModelLoader.Names names) {
         meshes = new DrawRecord[names.meshes().size()];
         meshNameToId = listToMap(names.meshes());
         materials = new Material[names.materials().size()];
@@ -65,7 +64,6 @@ public class MultiRenderObject {
         variants = new Variant[names.variants().size()];
         variantNameToId = listToMap(names.variants());
         variantRelationships = new int[meshes.length][variants.length];
-        this.images = images;
     }
 
     public static Map<String, Integer> listToMap(List<String> list) {
@@ -121,7 +119,7 @@ public class MultiRenderObject {
                 if (!shouldRender(mesh, instance)) {
                     continue;
                 }
-                
+
                 var model = this.meshes[mesh];
 
                 if (model == null) {
@@ -169,7 +167,6 @@ public class MultiRenderObject {
     }
 
     public void close() throws IOException {
-        images.close();
         for (Material material : this.materials) {
             material.close();
         }

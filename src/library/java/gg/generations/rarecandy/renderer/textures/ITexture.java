@@ -23,6 +23,31 @@ public interface ITexture extends Closeable {
         return ComputeAccess.READ_ONLY;
     }
 
+    /* ───────── Bindless (default no-op; implementations may override) ───────── */
+    /**
+     * Returns a resident sampler handle for this texture using the provided sampler description.
+     * Default implementation throws if bindless is unavailable or unimplemented for this texture type.
+     */
+    default long getSamplerHandle(SamplerDesc sampler) {
+        throw new UnsupportedOperationException("Bindless sampler handle not implemented for " + getClass().getName());
+    }
+
+    /**
+     * Returns a resident image handle for this texture for image load/store.
+     * Implementations may ignore {@code level} and {@code layered} if not applicable.
+     */
+    default long getImageHandle(int level, boolean layered, ITexture.ComputeAccess access) {
+        throw new UnsupportedOperationException("Bindless image handle not implemented for " + getClass().getName());
+    }
+
+    /**
+     * Implementations should call glMake*HandleNonResidentARB for any resident handles here.
+     */
+    @Override
+    default void close() throws java.io.IOException {
+        // default: nothing; concrete textures should delete GL objects and unresident handles
+    }
+
     enum Type {
         RGBA_BYTE(GL30.GL_RGBA8, GL30.GL_RGBA, GL30.GL_UNSIGNED_BYTE),
         RGB_BYTE(GL30.GL_RGB8, GL30.GL_RGB, GL30.GL_UNSIGNED_BYTE);

@@ -2,9 +2,6 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 
 layout(rgba8, binding = 0) uniform image2D solidTex;
-layout(rgba8, binding = 1) uniform image2D litTex;
-
-uniform sampler2DArray images;
 
 layout(std140, binding = 0) uniform material {
     vec3 baseColor1;
@@ -22,13 +19,11 @@ layout(std140, binding = 0) uniform material {
     float emiIntensity3;
     float emiIntensity4;
     float emiIntensity5;
-    int diffuse;
-    int emission;
-    int layer;
-    int mask;
+    sampler2D diffuse;
+    sampler2D emission;
+    sampler2D layer;
+    sampler2D mask;
 };
-
-uniform sampler2D solidTexSampler;
 
 const float edgeThreshold = 0.08;
 const float blockSize = 0.0015;
@@ -83,7 +78,7 @@ void main() {
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
     vec2 uv = (pixel + 0.5) / imageSize(solidTex);
 
-    vec4 originalColor = texture(solidTexSampler, uv);
+    vec4 originalColor = texture(solidTex, uv);
 
     float edge = detectEdge(uv);
     vec3 filtered = originalColor.rgb;
@@ -94,8 +89,5 @@ void main() {
 
     vec3 color = mix(filtered, originalColor.rgb, edge);
 
-    float emiAlpha = texture(images, vec3(uv, emission)).r * color.a;
-
     imageStore(solidTex, pixel, color);
-    imageStore(litTex, pixel, vec4(color.rgb, emiAlpha));
 }

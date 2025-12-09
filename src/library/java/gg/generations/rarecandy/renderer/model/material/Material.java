@@ -7,11 +7,11 @@ import org.lwjgl.system.MemoryUtil;
 import java.io.Closeable;
 
 public class Material implements Closeable {
-    private final int[] images;
+    private final long[] handles;
 
     private final MaterialValues values;
     private final int colorMethod;
-    private final int effect;
+    private final int[] effect;
 
     private final CullType cullType;
     private final BlendType blendType;
@@ -20,8 +20,8 @@ public class Material implements Closeable {
 
     private final long pointer;
 
-    public Material(int[] images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, int colorMethod, int effect) {
-        this.images = images;
+    public Material(long[] images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, int colorMethod, int effect[]) {
+        this.handles = images;
         this.disableDepth = disableDepth;
         this.cullType = cullType;
         this.blendType = blendType;
@@ -29,26 +29,24 @@ public class Material implements Closeable {
         this.colorMethod = colorMethod;
         this.effect = effect;
 
-        this.pointer = MemoryUtil.nmemAlloc(208);
+        this.pointer = MemoryUtil.nmemAlloc(220);
         updateUbo();
     }
 
+    //TODO: Reworking memory upload
     public void updateUbo() {
         values.put(pointer);
-        MemoryUtil.memPutInt(pointer + 176, colorMethod);
-        MemoryUtil.memPutInt(pointer + 180, effect);
-        MemoryUtil.memPutInt(pointer + 184, values.getUseLight() ? 1 : 0);
-        MemoryUtil.memPutInt(pointer + 188, images[0]);
-        MemoryUtil.memPutInt(pointer + 192, images[1]);
-        MemoryUtil.memPutInt(pointer + 196, images[2]);
-        MemoryUtil.memPutInt(pointer + 200, images[3]);
+        MemoryUtil.memPutLong(pointer + 188, handles[0]);
+        MemoryUtil.memPutLong(pointer + 196, handles[1]);
+        MemoryUtil.memPutLong(pointer + 204, handles[2]);
+        MemoryUtil.memPutLong(pointer + 212, handles[3]);
     }
 
     public int getColorMethod() {
         return colorMethod;
     }
 
-    public int getEffect() {
+    public int[] getEffects() {
         return effect;
     }
 
@@ -60,8 +58,8 @@ public class Material implements Closeable {
         return blendType;
     }
 
-    public int[] images() {
-        return images;
+    public long[] handles() {
+        return handles;
     }
 
     @Override

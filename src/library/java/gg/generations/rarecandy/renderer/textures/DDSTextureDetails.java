@@ -23,8 +23,7 @@ public record DDSTextureDetails(DDSFile file) implements TextureDetails {
                     0,
                     file.getBuffer(level)
             );
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, file.getMipMapCount() - 1);
+
         return textureID;
     }
 

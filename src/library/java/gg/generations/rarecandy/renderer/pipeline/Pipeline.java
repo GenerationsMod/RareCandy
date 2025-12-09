@@ -12,6 +12,7 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.IntBuffer;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
 
@@ -315,6 +316,11 @@ public class Pipeline {
                 );
             }
             return u;
+        }
+
+        public V apply(Consumer<V> consumer) {
+            consumer.accept((V) this);
+            return (V) this;
         }
 
         // ============================================================

@@ -6,28 +6,43 @@ import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 public class ObjectManager {
     private final AnimationController animationController = new AnimationController();
     private final Map<RenderObject, List<ObjectInstance>> objects = new HashMap<>();
+    private final List<RenderObject> objectsToRemove = new ArrayList<>();
 
     public void update(double secondsPassed) {
+
+
         for (var entries : objects.entrySet()) {
             var value = entries.getValue();
             var object = entries.getKey();
             if(object.isReady()) object.update();
 
-            for (var objectInstance : value)
-                    if (objectInstance instanceof AnimatedObjectInstance animatedObjectInstance)
-                        if (animatedObjectInstance.currentAnimation != null)
-                            if (!animationController.playingInstances.contains((animatedObjectInstance.currentAnimation)))
-                                animationController.playingInstances.add(animatedObjectInstance.currentAnimation);
+            for (var objectInstance : value) {
+                if (objectInstance instanceof AnimatedObjectInstance animatedObjectInstance) {
+                    if (animatedObjectInstance.currentAnimation != null) {
+                        animatedObjectInstance.currentAnimation.ensureRegistered(animationController);
+                    }
+                }
+                objectInstance.update(secondsPassed);
+            }
+
+            value.removeIf(a -> !a.isLinked());
+
+            if(value.isEmpty()) {
+                objectsToRemove.add(object);
+            }
         }
 
+        if(!objectsToRemove.isEmpty()) {
+            for(var object : objectsToRemove) {
+                objects.remove(object);
+            }
+        }
 
         animationController.render(secondsPassed);
     }
@@ -43,6 +58,20 @@ public class ObjectManager {
         }
     }
 
+    public void endFrame() {
+        if(!objectsToRemove.isEmpty()) {
+            for (RenderObject renderObject : objectsToRemove) {
+                try {
+                    renderObject.close();
+                } catch (IOException e) {
+                    throw new RuntimeException("Something went wrong when removing model", e);
+                }
+            }
+
+            objectsToRemove.clear();
+        }
+    }
+
     public static void render(RenderObject object, ObjectInstance instance) {
         if (object == null) return;
 
@@ -53,9 +82,20 @@ public class ObjectManager {
     }
 
     public <T extends ObjectInstance> T add(@NotNull RenderObject object, @NotNull T instance) {
-        instance.link(object);
-        objects.putIfAbsent(object, new ArrayList<>());
-        objects.get(object).add(instance);
+        if(!instance.isLinked()) {
+            List<ObjectInstance> list;
+
+            if(objects.containsKey(object)) {
+                list = objects.get(object);
+            } else {
+                list = new ArrayList<>();
+
+                objects.put(object, list);
+            }
+
+            instance.link(object);
+            list.add(instance);
+        }
         return instance;
     }
 

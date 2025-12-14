@@ -16,7 +16,7 @@ public class AnimationController {
         Arrays.fill(NO_ANIMATION, identity);
     }
 
-    public final List<AnimationInstance> playingInstances = new ArrayList<>();
+    public final Set<AnimationInstance> playingInstances = new LinkedHashSet<>();
     public final Map<Animation, Matrix4f[]> instanceIgnoringAnimTransforms = new HashMap<>();
 
     public void render(double globalSecondsPassed) {
@@ -44,6 +44,8 @@ public class AnimationController {
             playingInstance.animation.getFrameOffset(playingInstance);
         }
 
-        playingInstances.removeAll(instancesToRemove);
+        for (AnimationInstance animationInstance : instancesToRemove) {
+            playingInstances.remove(animationInstance);
+        }
     }
 }

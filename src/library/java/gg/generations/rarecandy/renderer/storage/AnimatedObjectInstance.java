@@ -10,6 +10,7 @@ import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,20 +25,22 @@ public class AnimatedObjectInstance extends ObjectInstance {
     }
 
     public Map<String, Animation> getAnimationsIfAvailable() {
+        var mesh = getAnimatedMesh();
 
-        try {
-            return getAnimatedMesh().animations;
-        } catch (Exception ignored) {
+        if(mesh != null) {
+            return mesh.animations;
+        } else {
+            return Collections.emptyMap();
         }
-
-        return new HashMap<>();
     }
 
     public AnimatedMeshObject getAnimatedMesh() {
-        if (object() instanceof MultiRenderObject<?> mro) {
+        var obj = object();
+
+        if (obj instanceof MultiRenderObject<?> mro) {
             return ((List<AnimatedMeshObject>) mro.objects).get(0);
         }
-        return (AnimatedMeshObject) object();
+        return obj instanceof AnimatedMeshObject animatedMesh ? animatedMesh : null;
     }
 
     public Matrix4f[] getTransforms() {
@@ -53,5 +56,11 @@ public class AnimatedObjectInstance extends ObjectInstance {
 
     public Transform getTransform(String material) {
         return currentAnimation != null ? currentAnimation.getOffset(material) : null;
+    }
+
+    @Override
+    protected void delink() {
+        super.delink();
+        if (currentAnimation != null) currentAnimation.destroy();
     }
 }

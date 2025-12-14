@@ -13,7 +13,7 @@ public class AnimationInstance {
     public double startTime = -1;
     public Matrix4f[] matrixTransforms;
     public final Map<String, Transform> offsets = new HashMap<>();
-
+    private boolean registered = false;
 
     protected Animation animation;
     protected float currentTime;
@@ -67,6 +67,7 @@ public class AnimationInstance {
 
     public void destroy() {
         this.unused = true;
+        this.registered = false;
     }
 
     public boolean shouldDestroy() {
@@ -81,5 +82,16 @@ public class AnimationInstance {
         var offset = offsets.get(name.replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/);
 
         return offset;
+    }
+
+    /**
+     * Ensures this instance is registered with the controller exactly once.
+     * O(1) check instead of O(n) contains().
+     */
+    public void ensureRegistered(AnimationController controller) {
+        if (!registered && !unused) {
+            controller.playingInstances.add(this);
+            registered = true;
+        }
     }
 }

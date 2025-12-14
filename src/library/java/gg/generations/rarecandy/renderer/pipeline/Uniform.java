@@ -115,6 +115,10 @@ public class Uniform {
     }
 
     public void uploadTexture(ITexture texture, int slot) {
+        if(texture == null) {
+            return;
+        }
+
         texture.bind(slot);
         uploadInt(slot);
     }

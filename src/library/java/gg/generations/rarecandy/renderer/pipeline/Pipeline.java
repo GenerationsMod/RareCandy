@@ -31,22 +31,26 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
     }
 
     public void updateOtherUniforms(ObjectInstance instance, RenderObject renderObject) {
+        var context = UniformUploadContext.INSTANCE.with(renderObject, instance);
+
         for (var name : uniforms.keySet()) {
             var uniform = uniforms.get(name);
             if (!uniformSuppliers.containsKey(name))
                 RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
             if (uniform.type != GL20C.GL_SAMPLER_2D)
-                uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
+                uniformSuppliers.get(name).accept(context.with(uniform));
         }
     }
 
     public void updateTexUniforms(ObjectInstance instance, RenderObject renderObject) {
+        var context = UniformUploadContext.INSTANCE.with(renderObject, instance);
+
         for (var name : uniforms.keySet()) {
             var uniform = uniforms.get(name);
             if (!uniformSuppliers.containsKey(name))
                 RareCandy.fatal("No handler for uniform with name \"" + name + "\"");
             if (uniform.type == GL20C.GL_SAMPLER_2D)
-                uniformSuppliers.get(name).accept(new UniformUploadContext(renderObject, instance, uniform));
+                uniformSuppliers.get(name).accept(UniformUploadContext.INSTANCE.with(uniform));
         }
     }
 

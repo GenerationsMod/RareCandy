@@ -13,6 +13,7 @@ import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.model.GLModel;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.renderer.storage.ObjectManager;
 import gg.generations.rarecandy.tools.TextureLoader;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -58,9 +59,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
     private RareCandy renderer;
     private MultiRenderObject<MeshObject> plane;
     private ObjectInstance planeInstance;
-
-    public ToggleableMultiRenderObject loadedModel;
     public AnimatedObjectInstance loadedModelInstance;
+    public ToggleableMultiRenderObject loadedModel;
     private static float previousLightLevel;
     private String fileName;
     public static boolean cycling;
@@ -129,9 +129,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     public void openFile(PixelAsset pkFile, String name, Runnable runnable, boolean resetAnimation) throws IOException {
         currentAnimation = null;
-        renderer.objectManager.clearObjects();
-        renderer.objectManager.add(plane, planeInstance);
-
 //        for (ObjectInstance instance : cubeInstances) {
 //            renderer.objectManager.add(cube, instance);
 //        }
@@ -185,15 +182,6 @@ public class RareCandyCanvas extends AWTGLCanvas {
             plane = model;
             planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), null));
         });
-
-//        loadCube(1, 1, 1, model -> {
-//            cube = model;
-//            cubeInstances = new ObjectInstance[4];
-//            cubeInstances[0] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, -0.5f, 0), viewMatrix, null));
-//            cubeInstances[1] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 0.5f, -1), viewMatrix, null));
-//            cubeInstances[2] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 1.5f, -1), viewMatrix, null));
-//            cubeInstances[3] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 02.5f, -1), viewMatrix, null));
-//        });
     }
 
     private MultiRenderObject<MeshObject> loadPlane(int width, int length, Consumer<MultiRenderObject<MeshObject>> onFinish) {
@@ -207,10 +195,12 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
     private final Vector3f size = new Vector3f();
 
-    private final double fraciton = 1/16f;
     @Override
     public void paintGL() {
+        if(planeInstance != null) planeInstance.use();
+
         if (loadedModelInstance != null) {
+            loadedModelInstance.use();
             loadedModelInstance.transformationMatrix().identity().scale(scaleModifier);
 
             size.set(loadedModel.dimensions).mul(scaleModifier);
@@ -220,8 +210,12 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         if (runnable != null) runnable.pre();
 
+        renderer.update(time);
+
         renderToFramebuffer();
         renderToScreen();
+
+        renderer.end();
 
         if (runnable != null) runnable.post();
         swapBuffers();
@@ -255,8 +249,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClearColor(0.3f, 0.3f, 0.5f, 0.0f); // Ensure alpha is set to 0 for transparency
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 
-        renderer.render(RenderStage.SOLID, false, time);
-        renderer.render(RenderStage.TRANSPARENT, false, time);
+        renderer.render(RenderStage.SOLID, false);
+        renderer.render(RenderStage.TRANSPARENT, false);
 
         framebuffer.unbindFramebuffer();
 
@@ -271,9 +265,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
         GL11C.glClearColor(0,0,0, 1f); // Ensure alpha is set to 0 for transparency
         GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 
-//        ObjectManager.render(plane, planeInstance);
-        renderer.render(RenderStage.SOLID, false, time);
-        renderer.render(RenderStage.TRANSPARENT, false, time);
+        renderer.render(RenderStage.SOLID, false);
+        renderer.render(RenderStage.TRANSPARENT, false);
 
 //        BlendType.Regular.disable();
     }

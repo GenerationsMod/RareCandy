@@ -61,11 +61,7 @@ public class ObjectManager {
     public void endFrame() {
         if(!objectsToRemove.isEmpty()) {
             for (RenderObject renderObject : objectsToRemove) {
-                try {
-                    renderObject.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("Something went wrong when removing model", e);
-                }
+                objects.remove(renderObject);
             }
 
             objectsToRemove.clear();

@@ -9,7 +9,7 @@ public class ObjectInstance {
     private RenderObject object;
     private boolean used = false;
     private double secondsPassed = 0f;
-    private static final float DELINK_THRESHOLD =  1.0f; // Seconds before delinking
+    public static final float DELINK_THRESHOLD = 0.1f; // Seconds before delinking
 
     public ObjectInstance(Matrix4f transformationMatrix, String variant) {
         this.transformationMatrix = transformationMatrix;

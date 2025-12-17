@@ -179,7 +179,7 @@ public class Animation {
                 // Reuse pooled Vector3f for "origin" case
                 Vector3f translation;
                 if (name.equalsIgnoreCase("origin")) {
-                    translation = TEMP_ORIGIN_VECTOR;
+                    translation = TEMP_ORIGIN_VECTOR.set(0);
                 } else {
                     translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
                 }

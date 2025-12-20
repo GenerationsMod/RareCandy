@@ -155,6 +155,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
             var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
 
             loadedModelInstance = renderer.objectManager.add(model, instance);
+            loadedModelInstance.use();
             model.updateDimensions();
             runnable.run();
 
@@ -181,6 +182,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
         loadPlane(100, 100, model -> {
             plane = model;
             planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), null));
+            planeInstance.use();
         });
     }
 
@@ -206,11 +208,11 @@ public class RareCandyCanvas extends AWTGLCanvas {
             size.set(loadedModel.dimensions).mul(scaleModifier);
         }
 
+        renderer.update(time);
+
         if(animate) time = (System.currentTimeMillis() - startTime) / 1000f;
 
         if (runnable != null) runnable.pre();
-
-        renderer.update(time);
 
         renderToFramebuffer();
         renderToScreen();

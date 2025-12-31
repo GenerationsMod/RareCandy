@@ -36,12 +36,15 @@ public class RareCandy {
         objectManager.update(secondsPassed);
     }
 
-    public void render(TraditionalPipeline pipeline, RenderStage stage, boolean clearInstances) {
+    public void render(RenderStage stage) {
+        objectManager.render(stage);
+    }
 
-        objectManager.render(pipeline, stage);
+    public void clear() {
+        this.objectManager.clearObjects();
+    }
 
-        if (clearInstances) {
-            this.objectManager.clearObjects();
-        }
+    public void end() {
+        objectManager.endFrame();
     }
 }

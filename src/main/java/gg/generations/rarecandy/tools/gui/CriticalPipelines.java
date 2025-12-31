@@ -15,14 +15,13 @@ import static gg.generations.rarecandy.tools.gui.GuiPipelines.pingpong;
 
 public class CriticalPipelines {
     private static ITexture[] textures = new ITexture[2];
-    private static TextureArray textureArray = null;
-    private static int layer = -1;
 
     public static ComputePipeline[] colors = new ComputePipeline[3];
     public static ComputePipeline[] effects = new ComputePipeline[7];
     private static ComputePipeline emissive;
 
     public static void init() {
+
         textures[0] = new BlankTexture(ITexture.Type.RGBA_BYTE, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
         textures[1] = new BlankTexture(ITexture.Type.RGBA_BYTE, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
 

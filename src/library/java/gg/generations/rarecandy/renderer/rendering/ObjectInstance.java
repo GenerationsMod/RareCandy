@@ -14,6 +14,9 @@ public class ObjectInstance implements Closeable {
     public final long pointer;
     private int variant;
     private MultiRenderObject object;
+    private boolean used = false;
+    private double secondsPassed = 0f;
+    public static final float DELINK_THRESHOLD =  0.1f; // Seconds before delinking
 
     public ObjectInstance(Matrix4f transformationMatrix, int variant) {
         this(MAT4_SIZE, transformationMatrix, variant);
@@ -58,5 +61,30 @@ public class ObjectInstance implements Closeable {
     @Override
     public void close() throws IOException {
         MemoryUtil.nmemFree(pointer);
+    }
+
+    public boolean isLinked() {
+        return object != null;
+    }
+
+    public void use() {
+        used = true;
+    }
+
+    protected void delink() {
+        this.object = null;
+    }
+
+    public void update(double absoluteTime) {
+        if(object != null) {
+            if(used) {
+                secondsPassed = absoluteTime; // Store current time as "last used"
+                used = false;
+            } else {
+                if(absoluteTime - secondsPassed >= DELINK_THRESHOLD) {
+                    delink();
+                }
+            }
+        }
     }
 }

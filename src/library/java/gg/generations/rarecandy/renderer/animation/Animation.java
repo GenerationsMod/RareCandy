@@ -3,6 +3,7 @@ package gg.generations.rarecandy.renderer.animation;
 import gg.generations.rarecandy.pokeutils.ModelNode;
 import gg.generations.rarecandy.pokeutils.SkeletalTransform;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fStack;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -11,8 +12,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class Animation {
-    private final static Matrix4f IDENTITY = new Matrix4f();
-
     public static final int FPS_60 = 1000;
     public static final int FPS_24 = 400;
     public static final int GLB_SPEED = 30;
@@ -21,6 +20,20 @@ public class Animation {
     public static Vector3f TRANSLATE = new Vector3f();
     protected static Vector3f SCALE = new Vector3f(1, 1, 1);
     protected static Vector3f TRANSLATION = new Vector3f();
+
+    private static final Matrix4f[] MATRIX = new Matrix4f[220];
+    private static final Matrix4fStack GLOBAL = new Matrix4fStack(220);
+    private final static Matrix4f IDENTITY = new Matrix4f();
+    private static final Matrix4f TEMP_GLOBAL_TRANSFORM = new Matrix4f();
+    private static final Matrix4f TEMP_BONE_RESULT = new Matrix4f();
+    private static final Vector3f TEMP_ORIGIN_VECTOR = new Vector3f();
+
+    static {
+        for (int i = 0; i < MATRIX.length; i++) {
+            MATRIX[i] = new Matrix4f();
+        }
+    }
+
     public final int id;
     public final double animationDuration;
     protected final Skeleton skeleton;
@@ -28,6 +41,10 @@ public class Animation {
 
     private final AnimationNode[] animationNodes;
     public Offset[] offsets;
+
+
+    private Matrix4f[] cachedBoneTransforms;
+    private final Matrix4f cachedIdentity = new Matrix4f().identity();
 
     public float ticksPerSecond;
     public boolean loops;
@@ -92,13 +109,23 @@ public class Animation {
     }
 
     public Matrix4f[] getFrameTransform(AnimationInstance instance) {
-        var boneTransforms = new Matrix4f[this.skeleton.jointMap.size()];
-        readNodeHierarchy(instance.getCurrentTime(), skeleton.rootNode, new Matrix4f().identity(), boneTransforms, false);
-        for (int i = 0; i < boneTransforms.length; i++) {
-            if(boneTransforms[i] == null) boneTransforms[i] = new Matrix4f();
+
+        if (cachedBoneTransforms == null || cachedBoneTransforms.length != skeleton.jointMap.size()) {
+            cachedBoneTransforms = new Matrix4f[skeleton.jointMap.size()];
+            for (int i = 0; i < cachedBoneTransforms.length; i++) {
+                cachedBoneTransforms[i] = new Matrix4f();
+            }
         }
 
-        return boneTransforms;
+        // Reset all transforms to identity before populating
+        for (Matrix4f mat : cachedBoneTransforms) {
+            mat.identity();
+        }
+
+        GLOBAL.identity();
+
+        readNodeHierarchy(instance.getCurrentTime(), skeleton.rootNode, cachedBoneTransforms, false, 0);
+        return cachedBoneTransforms;
     }
 
     public void getFrameOffset(AnimationInstance instance) {
@@ -114,21 +141,26 @@ public class Animation {
     }
 
     public Matrix4f[] getFrameTransform(double secondsPassed) {
-        var boneTransforms = new Matrix4f[this.skeleton.jointMap.size()];
-        readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, new Matrix4f().identity(), boneTransforms, false);
-
-        for (int i = 0; i < boneTransforms.length; i++) {
-            if(boneTransforms[i] == null) boneTransforms[i] = new Matrix4f();
+        if (cachedBoneTransforms == null || cachedBoneTransforms.length != skeleton.jointMap.size()) {
+            cachedBoneTransforms = new Matrix4f[skeleton.jointMap.size()];
+            for (int i = 0; i < cachedBoneTransforms.length; i++) {
+                cachedBoneTransforms[i] = new Matrix4f();
+            }
         }
 
-        return boneTransforms;
+        for (Matrix4f mat : cachedBoneTransforms) {
+            mat.identity();
+        }
+
+        readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, cachedBoneTransforms, false, 0);
+        return cachedBoneTransforms;
     }
 
-    private static final Matrix4f matrix = new Matrix4f();
+    public void readNodeHierarchy(float animTime, ModelNode node, Matrix4f[] boneTransforms, boolean offsetUsed, int depth) {
 
-    public void readNodeHierarchy(float animTime, ModelNode node, Matrix4f parentTransform, Matrix4f[] boneTransforms, boolean offsetUsed) {
+
         var name = node.name;
-        var nodeTransform = matrix.set(node.transform);
+        var nodeTransform = MATRIX[depth].set(node.transform);  // Reuses existing static 'matrix' field
 
         var animationNodeId = skeleton.boneIdMap.getOrDefault(name, -1);
         var bone = skeleton.get(name);
@@ -139,26 +171,44 @@ public class Animation {
             if (animNode != null) {
                 var scale = ignoreScaling ? SCALE : AnimationMath.calcInterpolatedScaling(animTime, animNode);
                 var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
-                var translation = name.equalsIgnoreCase("origin") ? new Vector3f() : AnimationMath.calcInterpolatedPosition(animTime, animNode);
 
-                if(!offsetUsed) {
+                // Reuse pooled Vector3f for "origin" case
+                Vector3f translation;
+                if (name.equalsIgnoreCase("origin")) {
+                    translation = TEMP_ORIGIN_VECTOR.set(0);
+                } else {
+                    translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
+                }
+
+                if (!offsetUsed) {
                     offsetUsed = true;
                     translation.add(rootOffset.position());
                     rotation.mul(rootOffset.rotation());
                 }
 
-                nodeTransform.identity().translationRotateScale(translation, rotation, scale);
+                if(!isIdentityTransform(translation, scale, rotation, 1e-5f)) nodeTransform.identity().translationRotateScale(translation, rotation, scale);
             }
         }
 
-        var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
 
-        if (bone != null) {
-            boneTransforms[animationNodeId] = globalTransform.mul(bone.inverseBindMatrix, new Matrix4f());
+
+        // Reuse pooled Matrix4f for globalTransform
+        TEMP_GLOBAL_TRANSFORM.set(GLOBAL).mul(nodeTransform);
+
+        if (bone != null && animationNodeId >= 0 && animationNodeId < boneTransforms.length) {
+            // Write directly into pre-allocated array slot
+            TEMP_GLOBAL_TRANSFORM.mul(bone.inverseBindMatrix, boneTransforms[animationNodeId]);
         }
 
-        for (var child : node.children)
-            readNodeHierarchy(animTime, child, globalTransform, boneTransforms, offsetUsed);
+        var nextDepth = depth + 1;
+
+        GLOBAL.pushMatrix();
+        GLOBAL.set(TEMP_GLOBAL_TRANSFORM);
+
+        for (var child : node.children) {
+            readNodeHierarchy(animTime, child, boneTransforms, offsetUsed, nextDepth);
+        }
+        GLOBAL.popMatrix();
     }
 
     private boolean isNaN(Matrix4f nodeTransform) {
@@ -242,6 +292,30 @@ public class Animation {
             instance.offset().set(uOffset, vOffset);
             instance.scale().set(uScale, vScale);
         }
+    }
+
+    public static boolean isIdentityTransform(
+            Vector3f translation,
+            Vector3f scale,
+            Quaternionf rotation,
+            float eps
+    ) {
+        boolean tX = translation.x == 0.0f;
+        boolean tY = translation.y == 0.0f;
+        boolean tZ = translation.z == 0.0f;
+
+        boolean sX = scale.x == 0.0f;
+        boolean sY = scale.y == 0.0f;
+        boolean sZ = scale.z == 0.0f;
+
+        boolean rX = rotation.x == 0.0f;
+        boolean rY = rotation.y == 0.0f;
+        boolean rZ = rotation.z == 0.0f;
+        boolean rW = rotation.w == 1.0f;
+
+        return tX && tY && tZ
+                && sX && sY && sZ
+                && rX && rY && rZ && rW;
     }
 }
 

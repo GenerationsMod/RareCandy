@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.renderer.components;
 
+import com.google.errorprone.annotations.Var;
 import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.renderer.animation.Animation;
@@ -33,9 +34,11 @@ public class MultiRenderObject {
     public Map<String, Integer> meshNameToId;
     public Map<String, Integer> materialNameToId;
     public Map<String, Integer> variantNameToId;
+    public Map<String, Integer> imageNameToId;
     public DrawRecord[] meshes;
     public Material[] materials;
     public Variant[] variants;
+    public String[] images;
     public int[][] variantRelationships;
 
     public SbboOffset vertex;
@@ -64,6 +67,8 @@ public class MultiRenderObject {
         variants = new Variant[names.variants().size()];
         variantNameToId = listToMap(names.variants());
         variantRelationships = new int[meshes.length][variants.length];
+        images = names.images().toArray(String[]::new);
+        imageNameToId = listToMap(names.images());
     }
 
     public static Map<String, Integer> listToMap(List<String> list) {
@@ -116,27 +121,26 @@ public class MultiRenderObject {
             pipeline.bindInstance(instance, this);
 
             for (int mesh = 0; mesh < meshes.length; mesh++) {
-                if (!shouldRender(mesh, instance)) {
-                    continue;
+                if (shouldRender(mesh, instance)) {
+                    var model = this.meshes[mesh];
+
+                    if (model == null) {
+                        continue;
+                    }
+
+                    pipeline.bindDraw(instance, this, mesh);
+
+                    var material = getMaterial(mesh, instance.variant());
+                    pipeline.preDraw(material);
+                    var transparent = material.blendType() != BlendType.None;
+
+                    if (transparent && stage == RenderStage.TRANSPARENT || stage == RenderStage.SOLID) {
+                        model.render();
+                    }
+
+                    pipeline.postDraw(material);
                 }
 
-                var model = this.meshes[mesh];
-
-                if (model == null) {
-                    continue;
-                }
-
-                pipeline.bindDraw(instance, this, mesh);
-
-                var material = getMaterial(mesh, instance.variant());
-                pipeline.preDraw(material);
-                var transparent = material.blendType() != BlendType.None;
-
-                if (transparent && stage == RenderStage.TRANSPARENT || stage == RenderStage.SOLID) {
-                    model.render();
-                }
-
-                pipeline.postDraw(material);
             }
         }
     }

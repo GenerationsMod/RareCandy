@@ -1,6 +1,8 @@
 #version 430
 layout(local_size_x = 256) in;
 
+uniform vec4 transform;
+
 struct SourceVertex {
     vec3 position;
     vec2 texcoord;
@@ -21,16 +23,21 @@ layout(std140, binding = 0) uniform Instance {
 };
 
 layout(std430, binding = 0) readonly buffer SrcBuffer {
-    SourceVertex src[];
+    uint data[];
 };
 
-layout(std430, binding = 1) writeonly buffer DstBuffer {
+layout(std430, binding = 1) readonly buffer IndexBuffer {
+    int indices[];
+};
+
+
+layout(std430, binding = 2) writeonly buffer DstBuffer {
     TargetVertex dst[];
 };
 
 SourceVertex decodeVertex(uint index) {
     SourceVertex v;
-    uint base = index;
+    uint base = indices[index];
 
     uint p0 = data[base + 0];
     int qx = int(p0 & 0xFFFFu);
@@ -81,7 +88,7 @@ void main() {
     vec4 pos = vec4(src.position, 1.0) * getBoneTransform(src.joints, src.weights);
 
     dst.position = pos.xyz;
-    dst.texcoord = src.texcoord;
+    dst.texcoord = (src.texcoord * transform.xy) + transform.zw;
     dst.normal = src.normal;
 }
 

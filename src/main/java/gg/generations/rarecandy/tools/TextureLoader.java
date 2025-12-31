@@ -12,6 +12,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class TextureLoader extends ITextureLoader {
+    private static final Set<String> systemTextures = Set.of(
+            "dark", "neutral", "bright", "paradox_mask", "blank",
+            "burnt_concrete", "concrete", "glass", "metal", "silver",
+            "smooth_stone", "stars", "light_map"
+    );
+
     public static Map<String, ITexture> MAP = new HashMap<>();
 
     public TextureLoader() {
@@ -97,5 +103,39 @@ public class TextureLoader extends ITextureLoader {
         register("smooth_stone", generateDirectReference("smooth_stone.png"));
         register("stars", generateDirectReference("stars.png"));
         register("light_map", generateDirectReference("light_map.png"));
+    }
+
+
+    /**
+     * Remove all textures except the default system textures.
+     * Call when changing Pokemon/scenes to prevent texture accumulation.
+     */
+    public void clearDynamicTextures() {
+        var iterator = MAP.entrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            if (!systemTextures.contains(entry.getKey())) {
+                try {
+                    entry.getValue().close();
+                } catch (IOException ignored) {}
+                iterator.remove();
+            }
+        }
+    }
+
+    /**
+     * Remove textures matching a prefix (e.g., "pokemon_pikachu_*").
+     */
+    public void removeTexturesWithPrefix(String prefix) {
+        var iterator = MAP.entrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            if (entry.getKey().startsWith(prefix)) {
+                try {
+                    entry.getValue().close();
+                } catch (IOException ignored) {}
+                iterator.remove();
+            }
+        }
     }
 }

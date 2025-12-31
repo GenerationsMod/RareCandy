@@ -27,6 +27,12 @@ public final class Pair<A, B> {
         this.b = b;
     }
 
+    public Pair<A, B> set(A a, B b) {
+        a(a);
+        b(b);
+        return this;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(a, b);

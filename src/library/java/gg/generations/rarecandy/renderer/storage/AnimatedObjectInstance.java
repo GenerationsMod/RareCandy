@@ -46,4 +46,10 @@ public class AnimatedObjectInstance extends ObjectInstance {
     public Transform getTransform(int material) {
         return currentAnimation != null ? currentAnimation.getOffset(material) : null;
     }
+
+    @Override
+    protected void delink() {
+        super.delink();
+        if(currentAnimation != null) currentAnimation.destroy();
+    }
 }

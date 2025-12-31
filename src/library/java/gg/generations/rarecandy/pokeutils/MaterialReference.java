@@ -1,25 +1,18 @@
 package gg.generations.rarecandy.pokeutils;
 
 import com.google.gson.*;
-import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.model.material.MaterialImages;
 import gg.generations.rarecandy.renderer.model.material.MaterialValues;
-import gg.generations.rarecandy.renderer.textures.ITexture;
-import gg.generations.rarecandy.renderer.textures.SamplerPresets;
-import org.apache.commons.compress.harmony.pack200.IntList;
-import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class MaterialReference {
     public String parent;
     public String shader;
-    public List<String> effect;
+    public String effect;
 
     public CullType cull;
 
@@ -29,9 +22,7 @@ public class MaterialReference {
 
     public MaterialValues values;
 
-    public boolean useDepthTest = true;
-
-    public MaterialReference(String parent, String shader, List<String> effect, CullType cull, BlendType blend, MaterialImages images, MaterialValues values, boolean useDepthTest) {
+    public MaterialReference(String parent, String shader, String effect, CullType cull, BlendType blend, MaterialImages images, MaterialValues values) {
         this.parent = parent;
         this.shader = shader;
         this.effect = effect;
@@ -39,11 +30,10 @@ public class MaterialReference {
         this.blend = blend;
         this.images = images;
         this.values = values;
-        this.useDepthTest = useDepthTest;
     }
 
     public void complete(Map<String, MaterialReference> materialReferenceMap) {
-        MaterialReference reference = null;
+        MaterialReference reference;
 
         while (parent != null) {
             reference = materialReferenceMap.get(parent);
@@ -55,8 +45,6 @@ public class MaterialReference {
                 if (effect == null) effect = reference.effect;
                 if (!Objects.equals(cull, reference.cull)) cull = reference.cull;
                 if (!Objects.equals(blend, reference.blend)) blend = reference.blend;
-                if(useDepthTest != reference.useDepthTest) useDepthTest = reference.useDepthTest;
-
 
                 //TODO: Check if the parent's values are overriden vs it overriding child.
                 images.fill(reference.images);
@@ -70,62 +58,39 @@ public class MaterialReference {
         images = images.complete();
     }
 
-    public static long getHandle(ITextureLoader loader, String name) {
-        ITexture tex = loader.getTexture(name);
-
-        return tex == null ? 0L : tex.getSamplerHandle(SamplerPresets.NEAREST_REPEAT);
-    }
+//    public static long getHandle(ITextureLoader loader, String name) {
+//        ITexture tex = loader.getTexture(name);
+//
+//        return tex == null ? 0L : tex.getSamplerHandle(SamplerPresets.NEAREST_REPEAT);
+//    }
 
     public static Material process(MaterialReference reference, List<String> imageNames) {
-        var loader = ITextureLoader.instance();
-        var images = reference.images;
+        var images = reference.images.toArray(imageNames);
 
-        long[] handles = new long[4];
-
-        handles[0] = getHandle(loader, images.getDiffuse());
-        handles[1] = getHandle(loader, images.getLayer());
-        handles[2] = getHandle(loader, images.getMask());
-        handles[3] = getHandle(loader, images.getEmission());
-
-        int method;
-
-        int[] effects;
-
-         method = switch (reference.shader) {
+        int method = switch (reference.shader) {
                 case "layered" -> 1;
                 case "masked" -> 2;
                 default -> 0;
-         };
+        };
 
-        if(reference.effect != null) {
-            effects = new int[reference.effect.size()];
+        var effectRef = reference.effect;
 
-            for (int index = 0; index < effects.length; index++) {
-                var e = reference.effect.get(index);
-
-                effects[index] = switch (e) {
-                    case "cartoon" -> 1;
-                    case "galaxy" -> 2;
-                    case "paradox" -> 3;
-                    case "pastel" -> 4;
-                    case "shadow" -> 5;
-                    case "sketch" -> 6;
-                    case "vintage" -> 7;
-                    default -> 0;
-                };
-            }
-        } else {
-            effects = new int[] { 0 };
-        }
+        var effect = switch (reference.effect) {
+                case "galaxy" -> 1;
+                case "pastel" -> 2;
+                case "shadow" -> 3;
+                case "sketch" -> 4;
+                case "vintage" -> 5;
+                default -> 0;
+            };
 
         return new Material(
-                handles,
+                images,
                 reference.values,
-                reference.useDepthTest,
                 reference.cull,
                 reference.blend,
                 method,
-                effects
+                effect
         );
     }
 
@@ -135,7 +100,7 @@ public class MaterialReference {
 
             String shader = null;
 
-            List<String> effect = null;
+            String effect = null;
 
             CullType cull = CullType.None;
 
@@ -144,8 +109,6 @@ public class MaterialReference {
             MaterialImages images = new MaterialImages();
 
             MaterialValues values = new MaterialValues();
-
-            boolean useDepthTest = false;
 
             var jsonObject = json.getAsJsonObject();
 
@@ -169,49 +132,35 @@ public class MaterialReference {
                     } else {
 
                         switch (type) {
-                            case "transparent" -> {
-                                blend = BlendType.Regular;
-                            }
-                            case "cull" -> {
-                                cull = CullType.Forward;
-                            }
+                            case "transparent" -> blend = BlendType.Regular;
+                            case "cull" -> cull = CullType.Forward;
                             case "unlit_cull" -> {
                                 cull = CullType.Forward;
                                 values.setUseLight(false);
                             }
-                            case "unlit" -> {
-                                values.setUseLight(false);
-                            }
+                            case "unlit" -> values.setUseLight(false);
                         }
                     }
                 }
             } else {
-                var addParadox = false;
-
                 if(jsonObject.has("shader")) {
                     shader = jsonObject.getAsJsonPrimitive("shader").getAsString();
 
                     switch (shader) {
                         case "masked_paradox" -> {
                             shader = "masked";
-                            addParadox = true;
+                            values.setUseParadox(true);
                         }
                         case "paradox", "solid_paradox" -> {
                             shader = "solid";
-                            addParadox = true;
+                            values.setUseParadox(true);
                         }
                     }
                 }
 
                 if(jsonObject.has("effect")) {
-                    effect = new ArrayList<>();
-                    effect.add(jsonObject.getAsJsonPrimitive("effect").getAsString());
 
-                    if(addParadox) effect.add("paradox");
-                }
-                else if(addParadox) {
-                    effect = new ArrayList<>();
-                    effect.add("paradox");
+                    effect = jsonObject.getAsJsonPrimitive("effect").getAsString();
                 }
 
                 if(jsonObject.has("cull")) cull = CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString());
@@ -221,11 +170,10 @@ public class MaterialReference {
                 if(jsonObject.has("values")) {
                     var valuesObj = jsonObject.getAsJsonObject("values");
                     values.fill(valuesObj);
-                    if(valuesObj.has("useDepthTest")) useDepthTest = valuesObj.getAsJsonPrimitive("useDepthTest").getAsBoolean();
                 }
             }
 
-            return new MaterialReference(parent, shader, effect, cull, blend, images, values, useDepthTest);
+            return new MaterialReference(parent, shader, effect, cull, blend, images, values);
         }
     }
 
@@ -257,7 +205,7 @@ public class MaterialReference {
     }
 
     // Tolerance for floating-point comparison (epsilon)
-    private static final float EPSILON = 1e-6f;
+//    private static final float EPSILON = 1e-6f;
 
     @Override
     public boolean equals(Object o) {
@@ -275,130 +223,119 @@ public class MaterialReference {
         // Compare the images map based on byte content
         if (!Objects.equals(images, that.images)) return false;
 
-        // Compare the values map
-        if (!Objects.equals(values, that.values)) return false;
-
-        return useDepthTest != that.useDepthTest;
+        return Objects.equals(values, that.values);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(parent, shader, effect, cull, blend, values, images, (Boolean) useDepthTest);
-        return result;
+        return Objects.hash(parent, shader, effect, cull, blend, values, images);
     }
 
     // Helper method to compare images based on exact byte content of key-value pairs
-    private boolean compareImages(Map<String, String> images1, Map<String, String> images2) {
-        if (images1 == images2) return true;
-        if (images1 == null || images2 == null || images1.size() != images2.size()) return false;
-
-        for (Map.Entry<String, String> entry : images1.entrySet()) {
-            String key1 = entry.getKey();
-            String value1 = entry.getValue();
-            String value2 = images2.get(key1);
-
-            // Compare key and value byte arrays
-            if (value2 == null ||
-                    !Arrays.equals(key1.getBytes(StandardCharsets.UTF_8), key1.getBytes(StandardCharsets.UTF_8)) ||
-                    !Arrays.equals(value1.getBytes(StandardCharsets.UTF_8), value2.getBytes(StandardCharsets.UTF_8))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Helper method to hash images based on byte content
-    private int hashImages(Map<String, String> images) {
-        if (images == null) return 0;
-        return images.entrySet().stream()
-                .mapToInt(e -> Arrays.hashCode(e.getKey().getBytes(StandardCharsets.UTF_8)) ^
-                        Arrays.hashCode(e.getValue().getBytes(StandardCharsets.UTF_8)))
-                .sum();
-    }
-
-    // Helper method to compare values map
-    private boolean compareValues(Map<String, Object> values1, Map<String, Object> values2) {
-        if (values1 == values2) return true;
-        if (values1 == null || values2 == null || values1.size() != values2.size()) return false;
-
-        for (Map.Entry<String, Object> entry : values1.entrySet()) {
-            String key1 = entry.getKey();
-            Object value1 = entry.getValue();
-            Object value2 = values2.get(key1);
-
-            if (value2 == null || !deepEquals(value1, value2)) {
-                return false;
-            }
-        }
-        return true;
-    }
+//    private boolean compareImages(Map<String, String> images1, Map<String, String> images2) {
+//        if (images1 == images2) return true;
+//        if (images1 == null || images2 == null || images1.size() != images2.size()) return false;
+//
+//        for (Map.Entry<String, String> entry : images1.entrySet()) {
+//            String key1 = entry.getKey();
+//            String value1 = entry.getValue();
+//            String value2 = images2.get(key1);
+//
+//            // Compare key and value byte arrays
+//            if (value2 == null ||
+//                    !Arrays.equals(key1.getBytes(StandardCharsets.UTF_8), key1.getBytes(StandardCharsets.UTF_8)) ||
+//                    !Arrays.equals(value1.getBytes(StandardCharsets.UTF_8), value2.getBytes(StandardCharsets.UTF_8))) {
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
+//
+//    // Helper method to hash images based on byte content
+//    private int hashImages(Map<String, String> images) {
+//        if (images == null) return 0;
+//        return images.entrySet().stream()
+//                .mapToInt(e -> Arrays.hashCode(e.getKey().getBytes(StandardCharsets.UTF_8)) ^
+//                        Arrays.hashCode(e.getValue().getBytes(StandardCharsets.UTF_8)))
+//                .sum();
+//    }
+//
+//    // Helper method to compare values map
+//    private boolean compareValues(Map<String, Object> values1, Map<String, Object> values2) {
+//        if (values1 == values2) return true;
+//        if (values1 == null || values2 == null || values1.size() != values2.size()) return false;
+//
+//        for (Map.Entry<String, Object> entry : values1.entrySet()) {
+//            String key1 = entry.getKey();
+//            Object value1 = entry.getValue();
+//            Object value2 = values2.get(key1);
+//
+//            if (value2 == null || !deepEquals(value1, value2)) {
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
 
     // Helper method to deeply compare objects in values map
-    private boolean deepEquals(Object o1, Object o2) {
-        if (o1 == o2) return true;
-        if (o1 == null || o2 == null) return false;
-
-        // Handle specific types
-        if (o1 instanceof Vector3f && o2 instanceof Vector3f) {
-            return compareVector3f((Vector3f) o1, (Vector3f) o2);
-        }
-        if (o1 instanceof Vector4f && o2 instanceof Vector4f) {
-            return compareVector4f((Vector4f) o1, (Vector4f) o2);
-        }
-        if (o1 instanceof Boolean && o2 instanceof Boolean) {
-            return o1.equals(o2); // Booleans can be compared directly
-        }
-        if (o1 instanceof Number && o2 instanceof Number) {
-            return ((Number) o1).doubleValue() == ((Number) o2).doubleValue(); // Compare numbers as doubles
-        }
-        if (o1 instanceof String && o2 instanceof String) {
-            // Compare strings by byte content
-            return Arrays.equals(((String) o1).getBytes(StandardCharsets.UTF_8),
-                    ((String) o2).getBytes(StandardCharsets.UTF_8));
-        }
-
-        // Default to regular equals for other types
-        return Objects.equals(o1, o2);
-    }
+//    private boolean deepEquals(Object o1, Object o2) {
+//        if (o1 == o2) return true;
+//        if (o1 == null || o2 == null) return false;
+//
+//        // Handle specific types
+//        return switch (o1) {
+//            case Vector3f vector3f when o2 instanceof Vector3f -> compareVector3f(vector3f, (Vector3f) o2);
+//            case Vector4f vector4f when o2 instanceof Vector4f -> compareVector4f(vector4f, (Vector4f) o2);
+//            case Boolean b when o2 instanceof Boolean -> o1.equals(o2); // Booleans can be compared directly
+//
+//            case Number number when o2 instanceof Number ->
+//                    number.doubleValue() == ((Number) o2).doubleValue(); // Compare numbers as doubles
+//
+//            case String s when o2 instanceof String ->
+//                // Compare strings by byte content
+//                    Arrays.equals(s.getBytes(StandardCharsets.UTF_8),
+//                            ((String) o2).getBytes(StandardCharsets.UTF_8));
+//            default ->
+//
+//                // Default to regular equals for other types
+//                    Objects.equals(o1, o2);
+//        };
+//
+//    }
 
     // Helper method to deeply hash objects in values map
-    private int deepHashCode(Object o) {
-        if (o == null) return 0;
-
-        // Handle specific types
-        if (o instanceof Vector3f) {
-            return Arrays.hashCode(new float[] { ((Vector3f) o).x, ((Vector3f) o).y, ((Vector3f) o).z });
-        }
-        if (o instanceof Vector4f) {
-            return Arrays.hashCode(new float[] { ((Vector4f) o).x, ((Vector4f) o).y, ((Vector4f) o).z, ((Vector4f) o).w });
-        }
-        if (o instanceof Boolean) {
-            return Boolean.hashCode((Boolean) o);
-        }
-        if (o instanceof Number) {
-            return Double.hashCode(((Number) o).doubleValue());
-        }
-        if (o instanceof String) {
-            // Hash the byte content of the string
-            return Arrays.hashCode(((String) o).getBytes(StandardCharsets.UTF_8));
-        }
-
-        // Default to regular hashCode for other types
-        return o.hashCode();
-    }
+//    private int deepHashCode(Object o) {
+//        return switch (o) {
+//            case null -> 0;
+//
+//            // Handle specific types
+//            case Vector3f vector3f -> Arrays.hashCode(new float[]{vector3f.x, vector3f.y, vector3f.z});
+//            case Vector4f vector4f -> Arrays.hashCode(new float[]{vector4f.x, vector4f.y, vector4f.z, vector4f.w});
+//            case Boolean b -> Boolean.hashCode(b);
+//            case Number number -> Double.hashCode(number.doubleValue());
+//            case String s ->
+//                // Hash the byte content of the string
+//                    Arrays.hashCode(s.getBytes(StandardCharsets.UTF_8));
+//            default ->
+//
+//                // Default to regular hashCode for other types
+//                    o.hashCode();
+//        };
+//
+//    }
 
     // Helper method to compare Vector3f components with an epsilon tolerance
-    private boolean compareVector3f(Vector3f v1, Vector3f v2) {
-        return Math.abs(v1.x - v2.x) < EPSILON &&
-                Math.abs(v1.y - v2.y) < EPSILON &&
-                Math.abs(v1.z - v2.z) < EPSILON;
-    }
+//    private boolean compareVector3f(Vector3f v1, Vector3f v2) {
+//        return Math.abs(v1.x - v2.x) < EPSILON &&
+//                Math.abs(v1.y - v2.y) < EPSILON &&
+//                Math.abs(v1.z - v2.z) < EPSILON;
+//    }
 
     // Helper method to compare Vector4f components with an epsilon tolerance
-    private boolean compareVector4f(Vector4f v1, Vector4f v2) {
-        return Math.abs(v1.x - v2.x) < EPSILON &&
-                Math.abs(v1.y - v2.y) < EPSILON &&
-                Math.abs(v1.z - v2.z) < EPSILON &&
-                Math.abs(v1.w - v2.w) < EPSILON;
-    }
+//    private boolean compareVector4f(Vector4f v1, Vector4f v2) {
+//        return Math.abs(v1.x - v2.x) < EPSILON &&
+//                Math.abs(v1.y - v2.y) < EPSILON &&
+//                Math.abs(v1.z - v2.z) < EPSILON &&
+//                Math.abs(v1.w - v2.w) < EPSILON;
+//    }
 }

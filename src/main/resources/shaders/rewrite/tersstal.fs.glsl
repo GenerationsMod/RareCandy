@@ -1,12 +1,25 @@
 #version 420 core
+#define TERA_LIGHT_DIRECT   vec3(0.3f, 0.9f, 0.0f)
+#define TERATYPE_TINT       vec3(0.161, 0.502, 0.937)
 
-in vec2 texCoord0;
-in vec4 vertexColor;
+#define FACET_RES           8.0
+#define SHIMMER_BANDS       5.0
+#define GAMMA_CORRECTION    1.05
+#define SHIMMER_STRENGTH    0.8
+#define IRIDESCENCE_STRENGTH 0.2
+
 in float vertexDistance;
+in vec2 texCoord0;
+in vec3 fragViewDir;
+in vec3 worldPos;
 
 out vec4 outColor;
 
 uniform vec4 ColorModulator;
+uniform sampler2D tex;
+uniform vec3 tint;
+
+uniform vec3 teraTint;
 
 //fog
 layout(std140, binding = 0) uniform Fog {
@@ -15,13 +28,6 @@ layout(std140, binding = 0) uniform Fog {
     float FogEnd;
     int FogShape;
 };
-
-uniform sampler2D solid;
-
-uniform vec3 tint;
-
-uniform vec3 Light0_Direction;
-uniform vec3 Light1_Direction;
 
 vec4 linear_fog(vec4 inColor, float vertexDistance, float fogStart, float fogEnd, vec4 fogColor) {
     if (vertexDistance <= fogStart) {
@@ -41,21 +47,6 @@ float linear_fog_fade(float vertexDistance, float fogStart, float fogEnd) {
 
     return smoothstep(fogEnd, fogStart, vertexDistance);
 }
-
-#define TERA_LIGHT_DIRECT   vec3(0.3f, 0.9f, 0.0f)
-#define TERATYPE_TINT       vec3(0.161, 0.502, 0.937)
-
-#define FACET_RES           8.0
-#define SHIMMER_BANDS       5.0
-#define GAMMA_CORRECTION    1.05
-#define SHIMMER_STRENGTH    0.8
-#define IRIDESCENCE_STRENGTH 0.2
-
-uniform bool tera;
-uniform vec3 teraTint;
-
-in vec3 fragViewDir;
-in vec3 worldPos;
 
 vec3 calculateTersaalizationEffect(vec3 baseColor) {
     vec3 N = normalize(cross(dFdx(worldPos), dFdy(worldPos)));
@@ -98,7 +89,7 @@ vec3 calculateTersaalizationEffect(vec3 baseColor) {
 //////////////////////////////////////
 
 void main() {
-    outColor = texture(solid, texCoord0) * ColorModulator;
+    outColor = texture(tex, texCoord0) * ColorModulator;
 
     if (outColor.a < 0.004) {
         discard;

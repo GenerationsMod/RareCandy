@@ -14,6 +14,7 @@ public class AnimationInstance {
     public Matrix4f[] matrixTransforms;
     public Transform[] offsets;
 
+    private boolean registered = false;
 
     protected Animation animation;
     protected float currentTime;
@@ -73,6 +74,7 @@ public class AnimationInstance {
 
     public void destroy() {
         this.unused = true;
+        this.registered = false;
     }
 
     public boolean shouldDestroy() {
@@ -87,5 +89,16 @@ public class AnimationInstance {
         //TODO: Might still need thsi correction? .replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/);
 
         return offsets[material];
+    }
+
+    /**
+     * Ensures this instance is registered with the controller exactly once.
+     * O(1) check instead of O(n) contains().
+     */
+    public void ensureRegistered(AnimationController controller) {
+        if (!registered && !unused) {
+            controller.playingInstances.add(this);
+            registered = true;
+        }
     }
 }

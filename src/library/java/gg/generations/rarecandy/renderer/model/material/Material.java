@@ -7,46 +7,42 @@ import org.lwjgl.system.MemoryUtil;
 import java.io.Closeable;
 
 public class Material implements Closeable {
-    private final long[] handles;
+    private final int[] images;
 
     private final MaterialValues values;
     private final int colorMethod;
-    private final int[] effect;
+    private final int effect;
 
     private final CullType cullType;
     private final BlendType blendType;
 
-    private final boolean disableDepth;
-
     private final long pointer;
 
-    public Material(long[] images, MaterialValues values, boolean disableDepth, CullType cullType, BlendType blendType, int colorMethod, int effect[]) {
-        this.handles = images;
-        this.disableDepth = disableDepth;
+    public Material(int[] images, MaterialValues values, CullType cullType, BlendType blendType, int colorMethod, int effect) {
+        this.images = images;
         this.cullType = cullType;
         this.blendType = blendType;
         this.values = values;
         this.colorMethod = colorMethod;
         this.effect = effect;
 
-        this.pointer = MemoryUtil.nmemAlloc(220);
+        this.pointer = MemoryUtil.nmemAlloc(188);
         updateUbo();
     }
 
     //TODO: Reworking memory upload
     public void updateUbo() {
         values.put(pointer);
-        MemoryUtil.memPutLong(pointer + 188, handles[0]);
-        MemoryUtil.memPutLong(pointer + 196, handles[1]);
-        MemoryUtil.memPutLong(pointer + 204, handles[2]);
-        MemoryUtil.memPutLong(pointer + 212, handles[3]);
+        MemoryUtil.memPutInt(pointer + 176, colorMethod);
+        MemoryUtil.memPutInt(pointer + 180, effect);
+        MemoryUtil.memPutInt(pointer + 184, values.getUseParadox() ? 1: 0);
     }
 
     public int getColorMethod() {
         return colorMethod;
     }
 
-    public int[] getEffects() {
+    public int getEffect() {
         return effect;
     }
 
@@ -58,8 +54,8 @@ public class Material implements Closeable {
         return blendType;
     }
 
-    public long[] handles() {
-        return handles;
+    public int[] images() {
+        return images;
     }
 
     @Override
@@ -68,7 +64,7 @@ public class Material implements Closeable {
     }
 
     public boolean disableDepth() {
-        return disableDepth;
+        return values().getDisableDepth();
     }
 
     public MaterialValues values() {

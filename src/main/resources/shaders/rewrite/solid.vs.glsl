@@ -3,21 +3,15 @@
 #define MINECRAFT_LIGHT_POWER   (0.6)
 #define MINECRAFT_AMBIENT_LIGHT (0.4)
 
-out float vertexDistance;
-out vec4 vertexColor;
 out vec2 texCoord0;
-out vec3 fragNormal;
-out vec3 fragViewDir;
-out vec3 worldPos;
+out vec4 vertexColor;
+out float vertexDistance;
 
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
 uniform vec3 Light0_Direction;
 uniform vec3 Light1_Direction;
-
-uniform vec2 uvOffset;
-uniform vec2 uvScale;
 
 layout(std140, binding = 0) uniform Fog {
     vec4 FogColor;
@@ -33,10 +27,6 @@ layout(std140, binding = 1) uniform Instance {
 
 layout(std430, binding = 0) readonly buffer VertexBuffer {
     Vertex vertices[];
-};
-
-layout(std430, binding = 1) readonly buffer IndexBuffer {
-    int indices[];
 };
 
 struct Vertex {
@@ -56,12 +46,16 @@ float fog_distance(vec3 pos, int shape) {
 }
 
 vec4 getVertexColor(vec3 normal) {
-    vec3 lightDir0 = normalize(Light0_Direction);
-    vec3 lightDir1 = normalize(Light1_Direction);
-    float light0 = max(0.0, dot(lightDir0, normal));
-    float light1 = max(0.0, dot(lightDir1, normal));
-    float lightAccum = min(1.0, (light0 + light1) * MINECRAFT_LIGHT_POWER + MINECRAFT_AMBIENT_LIGHT);
-    return vec4(lightAccum, lightAccum, lightAccum, 1);
+    if(shading) {
+        vec3 lightDir0 = normalize(Light0_Direction);
+        vec3 lightDir1 = normalize(Light1_Direction);
+        float light0 = max(0.0, dot(lightDir0, normal));
+        float light1 = max(0.0, dot(lightDir1, normal));
+        float lightAccum = min(1.0, (light0 + light1) * MINECRAFT_LIGHT_POWER + MINECRAFT_AMBIENT_LIGHT);
+        return vec4(lightAccum, lightAccum, lightAccum, 1);
+    } else {
+        return vec4(1.0);
+    }
 }
 
 void main() {
@@ -72,7 +66,7 @@ void main() {
     mat4 worldSpace = projectionMatrix * viewMatrix;
     vec4 worldPosition = modelMatrix * vec4(v.position, 1.0);
 
-    texCoord0 = (v.texcoord * uvScale) + uvOffset;
+    texCoord0 = v.texcoord;
     gl_Position = worldSpace * worldPosition;
     vertexDistance = fog_distance(v.position, FogShape);
     vertexColor = getVertexColor(v.normal);

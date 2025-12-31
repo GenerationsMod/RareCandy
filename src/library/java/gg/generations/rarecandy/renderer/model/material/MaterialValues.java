@@ -28,6 +28,8 @@ public class MaterialValues {
     private float emiIntensity5 = 1.0f;
 
     private boolean useLight = true;
+    private boolean useParadox = false;
+    private boolean disableDepth = false;
 
     public Vector3f getBaseColor1() {
         return baseColor1;
@@ -157,6 +159,23 @@ public class MaterialValues {
         this.useLight = useLight;
     }
 
+    public boolean getUseParadox() {
+        return useParadox;
+    }
+
+    public void setUseParadox(boolean useParadox) {
+        this.useParadox = useParadox;
+    }
+
+    public boolean getDisableDepth() {
+        return disableDepth;
+    }
+
+    public void setDisableDepth(boolean disableDepth) {
+        this.disableDepth = disableDepth;
+    }
+
+
     public void fill(JsonObject object) {
         if (object.has("color")) baseColor1 = MaterialReference.color(object.get("color"));
         if (object.has("baseColor1")) baseColor1 = MaterialReference.color(object.get("baseColor1"));
@@ -175,6 +194,8 @@ public class MaterialValues {
         if (object.has("emiIntensity4")) emiIntensity4 = object.get("emiIntensity4").getAsFloat();
         if (object.has("emiIntensity5")) emiIntensity5 = object.get("emiIntensity5").getAsFloat();
         if (object.has("useLight")) useLight = object.get("useLight").getAsBoolean();
+        if (object.has("useParadox")) useParadox = object.get("useParadox").getAsBoolean();
+        if (object.has("disableDepth")) disableDepth = object.get("disableDepth").getAsBoolean();
     }
 
     public MaterialValues fill(MaterialValues values) {
@@ -197,6 +218,8 @@ public class MaterialValues {
         if(values.emiIntensity5 != 1.0f) this.emiIntensity5 = values.emiIntensity5;
 
         if(values.useLight != this.useLight) this.useLight = values.useLight;
+        if(values.useParadox != this.useParadox) this.useLight = values.useParadox;
+        if(values.disableDepth != this.disableDepth) this.disableDepth = values.disableDepth;
 
         return this;
     }
@@ -221,12 +244,47 @@ public class MaterialValues {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof MaterialValues that)) return false;
-        return Float.compare(emiIntensity1, that.emiIntensity1) == 0 && Float.compare(emiIntensity2, that.emiIntensity2) == 0 && Float.compare(emiIntensity3, that.emiIntensity3) == 0 && Float.compare(emiIntensity4, that.emiIntensity4) == 0 && Float.compare(emiIntensity5, that.emiIntensity5) == 0 && useLight == that.useLight && Objects.equals(baseColor1, that.baseColor1) && Objects.equals(baseColor2, that.baseColor2) && Objects.equals(baseColor3, that.baseColor3) && Objects.equals(baseColor4, that.baseColor4) && Objects.equals(baseColor5, that.baseColor5) && Objects.equals(emiColor1, that.emiColor1) && Objects.equals(emiColor2, that.emiColor2) && Objects.equals(emiColor3, that.emiColor3) && Objects.equals(emiColor4, that.emiColor4) && Objects.equals(emiColor5, that.emiColor5);
+        return Float.compare(emiIntensity1, that.emiIntensity1) == 0 &&
+                Float.compare(emiIntensity2, that.emiIntensity2) == 0 &&
+                Float.compare(emiIntensity3, that.emiIntensity3) == 0 &&
+                Float.compare(emiIntensity4, that.emiIntensity4) == 0 &&
+                Float.compare(emiIntensity5, that.emiIntensity5) == 0 &&
+                Objects.equals(baseColor1, that.baseColor1) &&
+                Objects.equals(baseColor2, that.baseColor2) &&
+                Objects.equals(baseColor3, that.baseColor3) &&
+                Objects.equals(baseColor4, that.baseColor4) &&
+                Objects.equals(baseColor5, that.baseColor5) &&
+                Objects.equals(emiColor1, that.emiColor1) &&
+                Objects.equals(emiColor2, that.emiColor2) &&
+                Objects.equals(emiColor3, that.emiColor3) &&
+                Objects.equals(emiColor4, that.emiColor4) &&
+                Objects.equals(emiColor5, that.emiColor5) &&
+                useLight == that.useLight &&
+                useParadox == that.useParadox &&
+                disableDepth == that.disableDepth;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(baseColor1, baseColor2, baseColor3, baseColor4, baseColor5, emiColor1, emiColor2, emiColor3, emiColor4, emiColor5, emiIntensity1, emiIntensity2, emiIntensity3, emiIntensity4, emiIntensity5, useLight);
+        return Objects.hash(
+                baseColor1,
+                baseColor2,
+                baseColor3,
+                baseColor4,
+                baseColor5,
+                emiColor1,
+                emiColor2,
+                emiColor3,
+                emiColor4,
+                emiColor5,
+                emiIntensity1,
+                emiIntensity2,
+                emiIntensity3,
+                emiIntensity4,
+                emiIntensity5,
+                useLight,
+                useParadox,
+                disableDepth);
     }
 
     public void put(long pointer) {

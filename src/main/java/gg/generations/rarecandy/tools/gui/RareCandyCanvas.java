@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.MaterialReference;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
-import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
 import gg.generations.rarecandy.renderer.components.DummyVAO;
@@ -13,7 +12,6 @@ import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipelin
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.textures.FrameBuffer;
-import gg.generations.rarecandy.renderer.textures.TextureArray;
 import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -23,13 +21,10 @@ import org.lwjgl.opengl.GL11C;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.IntFunction;
 
 
 public class RareCandyCanvas {
@@ -82,7 +77,6 @@ public class RareCandyCanvas {
     public RareCandyCanvas(PokeUtilsGui handler) {
         this.handler = handler;
         resize(handler.getWidth(), handler.getHeight());
-
     }
 
     public void resize(int width, int height) {
@@ -102,12 +96,7 @@ public class RareCandyCanvas {
         currentAnimation = null;
         rendering = false;
 
-//        renderer.objectManager.clearObjects();
-//        renderer.objectManager.add(plane, planeInstance);
 
-//        for (ObjectInstance instance : cubeInstances) {
-//            renderer.objectManager.add(cube, instance);
-//        }
 
         if(loadedModel != null) {
             loadedModel.close();
@@ -147,6 +136,8 @@ public class RareCandyCanvas {
             var instance = new AnimatedObjectInstance(new Matrix4f(), loadedModel.variantNameToId.get(variant));
 
             loadedModelInstance = renderer.objectManager.add(model, instance);
+            loadedModelInstance.use();
+
             model.updateDimensions();
             runnable.run();
 
@@ -206,18 +197,23 @@ public class RareCandyCanvas {
     private final double fraciton = 1/16f;
 //    @Override
     public void render() {
-        if(animate) time = (System.currentTimeMillis() - startTime) / 1000f;
-        renderer.update(time);
-
         if(!rendering) return;
+
+//        if(planeInstance != null) planeInstance.use();
 
         if (loadedModelInstance != null) {
             loadedModelInstance.transformationMatrix().identity().scale(scaleModifier);
-
+            loadedModelInstance.use();
             size.set(loadedModel.dimensions).mul(scaleModifier);
+
         }
 
+        if(animate) time = (System.currentTimeMillis() - startTime) / 1000f;
+        renderer.update(time);
+
         if (runnable != null) runnable.pre();
+
+        renderer.update(time);
 
         vao.bind();
 
@@ -228,6 +224,8 @@ public class RareCandyCanvas {
         pipeline.bindGlobal();
 
         renderToScreen(pipeline);
+
+        renderer.end();
 
         if (runnable != null) runnable.post();
 
@@ -267,8 +265,8 @@ public class RareCandyCanvas {
     }
 
     private void renderToScreen(TraditionalPipeline pipeline) {
-        renderer.render(pipeline, RenderStage.SOLID, false);
-        renderer.render(pipeline, RenderStage.TRANSPARENT, false);
+        renderer.render(RenderStage.SOLID);
+        renderer.render(RenderStage.TRANSPARENT);
     }
 
     public AnimationInstance createInstance(Animation animation) {

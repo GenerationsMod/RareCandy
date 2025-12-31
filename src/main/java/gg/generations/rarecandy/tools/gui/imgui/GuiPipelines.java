@@ -28,7 +28,7 @@
 //    }
 //
 //    public static final Pipeline.Builder LAYERED_BASE = new Pipeline.Builder(BASE)
-//            .shader(builtin("animated.vs.glsl"), builtin("layered.fs.glsl"))
+//            .shader(builtin("solid.vs.glsl"), builtin("layered.fs.glsl"))
 //            .configure(GuiPipelines::baseColors)
 //            .configure(GuiPipelines::emissionColors)
 //            .supplySampler("layer", 2, MaterialImages::getLayer)
@@ -38,22 +38,22 @@
 //            .supplyUniform("frame", ctx -> ctx.uniform().uploadInt(-1))
 //            .build();
 //    public static final Pipeline VINTAGE = new Pipeline.Builder(BASE)
-//            .shader(builtin("animated.vs.glsl"), builtin("vintage.fs.glsl"))
+//            .shader(builtin("solid.vs.glsl"), builtin("vintage.fs.glsl"))
 //            .build();
 //    public static final Pipeline SKETCH = new Pipeline.Builder(BASE)
-//            .shader(builtin("animated.vs.glsl"), builtin("sketch.fs.glsl"))
+//            .shader(builtin("solid.vs.glsl"), builtin("sketch.fs.glsl"))
 //            .build();
 //    public static final Pipeline CARTOON = new Pipeline.Builder(BASE)
-//            .shader(builtin("animated.vs.glsl"), builtin("cartoon.fs.glsl"))
+//            .shader(builtin("solid.vs.glsl"), builtin("cartoon.fs.glsl"))
 //            .build();
 //    public static final Pipeline PASTEL = new Pipeline.Builder(BASE)
-//            .shader(builtin("animated.vs.glsl"), builtin("pastel.fs.glsl"))
+//            .shader(builtin("solid.vs.glsl"), builtin("pastel.fs.glsl"))
 //            .build();
 //    public static final Pipeline SHADOW = new Pipeline.Builder(BASE)
-//            .shader(builtin("animated.vs.glsl"), builtin("shadow.fs.glsl"))
+//            .shader(builtin("solid.vs.glsl"), builtin("shadow.fs.glsl"))
 //            .build();
 //    public static final Pipeline.Builder GALAXY_BASE = new Pipeline.Builder(BASE)
-//            .shader(builtin("animated.vs.glsl"), builtin("galaxy.fs.glsl"))
+//            .shader(builtin("solid.vs.glsl"), builtin("galaxy.fs.glsl"))
 //            .configure(GuiPipelines::baseColors)
 //            .configure(GuiPipelines::emissionColors)
 //            .supplySampler("layer", 2, MaterialImages::getLayer)
@@ -64,11 +64,11 @@
 //
 //
 //    public static final Pipeline SOLID = new Pipeline.Builder(BASE)
-//            .shader(builtin("animated.vs.glsl"), builtin("base.fs.glsl", "solid"))
+//            .shader(builtin("solid.vs.glsl"), builtin("base.fs.glsl", "solid"))
 //            .build();
 //
 //    public static final Pipeline MASKED = new Pipeline.Builder(BASE)
-//            .shader(builtin("animated.vs.glsl"), builtin("masked.fs.glsl"))
+//            .shader(builtin("solid.vs.glsl"), builtin("masked.fs.glsl"))
 //            .supplySampler("diffuse", 0, MaterialImages::getDiffuse)
 //            .supplySampler("mask",2 , MaterialImages::getMask)
 //            .supplyUniform("color", ctx -> ctx.uniform().uploadVec3f(ctx.getMaterial().values().getBaseColor1()))

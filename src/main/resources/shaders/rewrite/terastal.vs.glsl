@@ -11,9 +11,6 @@ out vec3 worldPos;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
-uniform vec3 Light0_Direction;
-uniform vec3 Light1_Direction;
-
 layout(std140, binding = 0) uniform Fog {
     vec4 FogColor;
     float FogStart;
@@ -26,14 +23,14 @@ layout(std140, binding = 1) uniform Instance {
     mat4 boneTransforms[MAX_BONES];
 };
 
-layout(std430, binding = 0) readonly buffer VertexBuffer {
-    Vertex vertices[];
-};
-
 struct Vertex {
     vec3 position;
     vec2 texcoord;
     vec3 normal;
+};
+
+layout(std430, binding = 0) readonly buffer VertexBuffer {
+    Vertex vertices[];
 };
 
 float fog_distance(vec3 pos, int shape) {

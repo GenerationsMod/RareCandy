@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 /**
  *
  */
-public class MultiRenderObject {
+public abstract class MultiRenderObject {
     public Map<String, Integer> meshNameToId;
     public Map<String, Integer> materialNameToId;
     public Map<String, Integer> variantNameToId;
@@ -115,35 +115,7 @@ public class MultiRenderObject {
         return materials[getVariant(mesh,variant).material()];
     }
 
-    public void render(TraditionalPipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
-        for (var instance : instances) {
-
-            pipeline.bindInstance(instance, this);
-
-            for (int mesh = 0; mesh < meshes.length; mesh++) {
-                if (shouldRender(mesh, instance)) {
-                    var model = this.meshes[mesh];
-
-                    if (model == null) {
-                        continue;
-                    }
-
-                    pipeline.bindDraw(instance, this, mesh);
-
-                    var material = getMaterial(mesh, instance.variant());
-                    pipeline.preDraw(material);
-                    var transparent = material.blendType() != BlendType.None;
-
-                    if (transparent && stage == RenderStage.TRANSPARENT || stage == RenderStage.SOLID) {
-                        model.render();
-                    }
-
-                    pipeline.postDraw(material);
-                }
-
-            }
-        }
-    }
+    abstract public void render(RenderStage stage, List<ObjectInstance> instances);
 
     public boolean shouldRender(int mesh, ObjectInstance instance) {
         if(instance instanceof AnimatedObjectInstance animationInstance) {

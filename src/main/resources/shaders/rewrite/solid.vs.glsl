@@ -25,14 +25,16 @@ layout(std140, binding = 1) uniform Instance {
     mat4 boneTransforms[MAX_BONES];
 };
 
-layout(std430, binding = 0) readonly buffer VertexBuffer {
-    Vertex vertices[];
-};
+const bool shading = true;
 
 struct Vertex {
     vec3 position;
     vec2 texcoord;
     vec3 normal;
+};
+
+layout(std430, binding = 0) readonly buffer VertexBuffer {
+    Vertex vertices[];
 };
 
 float fog_distance(vec3 pos, int shape) {
@@ -60,8 +62,8 @@ vec4 getVertexColor(vec3 normal) {
 
 void main() {
     // Lookup vertex through index buffer
-    int vertexIndex = indices[gl_VertexID];
-    Vertex v = vertices[vertexIndex];
+//    int vertexIndex = indices[gl_VertexID];
+    Vertex v = vertices[gl_VertexID];
 
     mat4 worldSpace = projectionMatrix * viewMatrix;
     vec4 worldPosition = modelMatrix * vec4(v.position, 1.0);
@@ -70,7 +72,4 @@ void main() {
     gl_Position = worldSpace * worldPosition;
     vertexDistance = fog_distance(v.position, FogShape);
     vertexColor = getVertexColor(v.normal);
-
-    fragViewDir = normalize(-(viewMatrix * worldPosition).xyz);
-    worldPos = worldPosition.xyz;
 }

@@ -6,6 +6,9 @@ import org.lwjgl.opengl.GL11C;
 import java.io.IOException;
 import java.util.Objects;
 
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.GL_TEXTURE_BASE_LEVEL;
+import static org.lwjgl.opengl.GL12.GL_TEXTURE_MAX_LEVEL;
 import static org.lwjgl.opengl.GL42.glTexStorage2D;
 
 public final class BlankTexture implements ITexture {
@@ -25,6 +28,14 @@ public final class BlankTexture implements ITexture {
         id = GL11.glGenTextures();
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, id);
         glTexStorage2D(GL11C.GL_TEXTURE_2D, 1, type.internalFormat, width, height);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // or GL_LINEAR
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // or GL_LINEAR
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, 0);
     }
 
@@ -85,7 +96,7 @@ public final class BlankTexture implements ITexture {
         GL11.glDeleteTextures(id);
     }
 
-    public ComputeAccess getAccess() {
+    public ComputeAccess access() {
         return access;
     }
 

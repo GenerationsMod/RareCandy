@@ -56,7 +56,7 @@ in vec3 fragViewDir;
 in vec3 worldPos;
 
 void main() {
-    outColor = texture(solid, texCoord0) * ColorModulator;
+    outColor = texture(tex, texCoord0) * ColorModulator;
 
     if (outColor.a < 0.004) {
         discard;
@@ -67,7 +67,7 @@ void main() {
     outColor *= vertexColor;
     // Sample Minecraft's light level from the lightmap texture
     vec4 minecraftLight = minecraft_sample_lightmap(lightmap, light);
-    outColor *= mix(minecraftLight, vec4(1, 1, 1, 1), texture(images, vec3(texCoord0, emission)).r);
+    outColor *= minecraftLight;
 
     outColor = linear_fog(outColor, vertexDistance, FogStart, FogEnd, FogColor);
 }

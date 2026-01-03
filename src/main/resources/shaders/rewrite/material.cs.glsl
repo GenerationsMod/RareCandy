@@ -1,7 +1,7 @@
 #version 430
 layout(local_size_x = 16, local_size_y = 16) in;
 
-const vec2 outputSize = vec2(1024);
+const vec2 outputSize = vec2(1024.0);
 
 layout(rgba8, binding = 0) uniform image2D solidTex;
 layout(rgba8, binding = 1) uniform image2D litTex;
@@ -18,42 +18,40 @@ layout(std140, binding = 0) uniform Material {
     vec3 baseColor3;
     vec3 baseColor4;
     vec3 baseColor5;
+
     vec3 emiColor1;
     vec3 emiColor2;
     vec3 emiColor3;
     vec3 emiColor4;
     vec3 emiColor5;
+
     float emiIntensity1;
     float emiIntensity2;
     float emiIntensity3;
     float emiIntensity4;
     float emiIntensity5;
+
     int colorMethod;
     int effect;
     bool paradox;
 };
 
-//Layered
 vec4 adjust(vec4 color) {
-    return clamp(color * 2, 0, 1);
+    return clamp(color * 2.0, 0.0, 1.0);
 }
 
 float adjustScalar(float color) {
-    return clamp(color * 2, 0.0, 1.0);
+    return clamp(color * 2.0, 0.0, 1.0);
 }
 
 vec3 applyEmission(vec3 base, vec3 emissionColor, float intensity) {
     return base + (emissionColor - base) * intensity;
 }
 
-vec4 getColor(sampler2D sampler, vec2 pixel) {
-    return texture(sampler, pixel);
-}
-
-vec4 layered(vec2 pixel) {
-    vec4 color = texture(diffuse, pixel);
-    vec4 layerMasks = adjust(texture(layer, pixel));
-    float maskColor = adjustScalar(texture(mask, pixel).r);
+vec4 layered(vec2 uv) {
+    vec4 color = texture(diffuse, uv);
+    vec4 layerMasks = adjust(texture(layer, uv));
+    float maskColor = adjustScalar(texture(mask, uv).r);
 
     vec3 base = mix(color.rgb, color.rgb * baseColor1, layerMasks.r);
     base = mix(base, color.rgb * baseColor2, layerMasks.g);
@@ -65,24 +63,26 @@ vec4 layered(vec2 pixel) {
     base = mix(base, applyEmission(base, emiColor2, emiIntensity2), layerMasks.g);
     base = mix(base, applyEmission(base, emiColor3, emiIntensity3), layerMasks.b);
     base = mix(base, applyEmission(base, emiColor4, emiIntensity4), layerMasks.a);
-    base = mix(base, applyEmission(vec3(0), emiColor5, emiIntensity5), maskColor);
+    base = mix(base, applyEmission(vec3(0.0), emiColor5, emiIntensity5), maskColor);
 
     return vec4(base, color.a);
 }
-//
 
-//Masked
-vec4 masked(vec2 pixel) {
-    vec4 color = texture(diffuse , pixel);
-    float maskColor = texture(mask, pixel).r;
-    float emiAlpha = texture(emission, pixel).r * color.a;
-
+vec4 masked(vec2 uv) {
+    vec4 color = texture(diffuse, uv);
+    float maskColor = texture(mask, uv).r;
     color.rgb = mix(color.rgb, color.rgb * baseColor1, maskColor);
     return color;
 }
-//
 
-//Galaxy
+vec4 baseColor(vec2 uv) {
+    if (colorMethod == 0) return texture(diffuse, uv);
+    else if (colorMethod == 1) return layered(uv);
+    else if (colorMethod == 2) return masked(uv);
+    else return texture(diffuse, uv);
+}
+
+// Galaxy
 const float darkenFactor = 0.3;
 
 vec4 galaxy(vec4 color) {
@@ -107,13 +107,12 @@ vec4 galaxy(vec4 color) {
 
     return color;
 }
-//
-//Pastel
+
+// Pastel
 vec4 pastel(vec4 inColor, vec2 uv) {
     vec2 wrappedUV = fract(uv * 5.0);
 
     float gradient = sin(wrappedUV.x * 3.14159) * sin(wrappedUV.y * 3.14159);
-
     gradient = (gradient + 1.0) * 0.5;
 
     vec3 pastelBlue = vec3(0.8, 0.9, 1.0);
@@ -123,90 +122,89 @@ vec4 pastel(vec4 inColor, vec2 uv) {
 
     return vec4(mix(inColor.rgb, pastelColor, 0.5), inColor.a);
 }
-//
-//Shadow
-vec4 shadow(vec4 inColor) {
-    float grayscale = 0.2126 * inColor.r + 0.7152 * inColor.g + 0.0722 * inColor.b;
 
-    vec3 baseColor = vec3(grayscale);
+// Shadow
+vec4 shadow(vec4 inColor, vec2 uv) {
+    float grayscale = dot(inColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    vec3 base = vec3(grayscale);
 
-    vec2 wrappedUV = fract(texCoord0 * 5.0);
+    vec2 wrappedUV = fract(uv * 5.0);
     float gradient = sin(wrappedUV.x * 3.14159) * sin(wrappedUV.y * 3.14159);
-
     gradient = (gradient + 1.0) * 0.5;
 
     vec3 deepPurpleBlue = vec3(0.1, 0.1, 0.2);
-    vec3 darkerShade = vec3(0.05, 0.05, 0.1);
+    vec3 darkerShade    = vec3(0.05, 0.05, 0.1);
 
     vec3 shadowColor = mix(deepPurpleBlue, darkerShade, gradient);
 
-    vec3 finalColor = mix(baseColor, shadowColor, 0.7);
-
-    finalColor = finalColor * 0.9;
-
-    finalColor = clamp(finalColor, 0.0, 1.0);
+    vec3 finalColor = mix(base, shadowColor, 0.7);
+    finalColor = clamp(finalColor * 0.9, 0.0, 1.0);
 
     return vec4(finalColor, inColor.a);
 }
-//
-//Sketch
-vec4 sketch(vec4 inColor) {
-    float grayscale = 0.2126 * inColor.r + 0.7152 * inColor.g + 0.0722 * inColor.b;
 
-    float luminanceDx = dFdx(grayscale);
-    float luminanceDy = dFdy(grayscale);
-    float edgeFactor = length(vec2(luminanceDx, luminanceDy));
+// Sketch (portable Sobel on diffuse luminance)
+float luminanceAt(vec2 uv) {
+    return dot(texture(diffuse, uv).rgb, vec3(0.2126, 0.7152, 0.0722));
+}
 
-    float outline = 1.0 - smoothstep(0.02, 0.05, edgeFactor);
+vec3 sketchRGB(vec2 uv, vec2 texel) {
+    float tl = luminanceAt(uv + texel * vec2(-1.0, -1.0));
+    float  t = luminanceAt(uv + texel * vec2( 0.0, -1.0));
+    float tr = luminanceAt(uv + texel * vec2( 1.0, -1.0));
+    float  l = luminanceAt(uv + texel * vec2(-1.0,  0.0));
+    float  c = luminanceAt(uv + texel * vec2( 0.0,  0.0));
+    float  r = luminanceAt(uv + texel * vec2( 1.0,  0.0));
+    float bl = luminanceAt(uv + texel * vec2(-1.0,  1.0));
+    float  b = luminanceAt(uv + texel * vec2( 0.0,  1.0));
+    float br = luminanceAt(uv + texel * vec2( 1.0,  1.0));
+
+    float gx = (-1.0 * tl) + ( 1.0 * tr)
+    + (-2.0 *  l) + ( 2.0 *  r)
+    + (-1.0 * bl) + ( 1.0 * br);
+
+    float gy = (-1.0 * tl) + (-2.0 *  t) + (-1.0 * tr)
+    + ( 1.0 * bl) + ( 2.0 *  b) + ( 1.0 * br);
+
+    float edge = length(vec2(gx, gy));
+    float outline = 1.0 - smoothstep(0.10, 0.25, edge);
+
+    vec3 baseGray = vec3(c);
     vec3 edgeColor = vec3(0.0);
 
-    vec3 finalColor = mix(vec3(grayscale), edgeColor, outline);
-
-    return vec4(finalColor, inColor.a);
+    return mix(baseGray, edgeColor, outline);
 }
-//
 
-//Vintage
+// Vintage
 vec4 vintage(vec4 inColor) {
-    float grayscale = 0.2126 * inColor.r + 0.7152 * inColor.g + 0.0722 * inColor.b;
-
+    float grayscale = dot(inColor.rgb, vec3(0.2126, 0.7152, 0.0722));
     return vec4(vec3(grayscale), inColor.a);
 }
-//
 
-vec4 baseColor(vec2 samplerPixel) {
-
-    if(colorMethod == 0) return texture(diffuse, samplerPixel);
-    else if(colorMethod == 1) return layered(samplerPixel);
-    else if(colorMethod == 2) return masked(samplerPixel);
-    else return texture(diffuse, samplerPixel);
-}
-
-vec4 process(vec4 color, vec2 uv) {
-    if(effect == 0) return color;
-    else if(effect == 1) return galaxy(color);
-    else if(effect == 2) return pastel(color, uv);
-    else if(effect == 3) return shadow(color);
-    else if(effect == 4) return sketch(color);
-    else if(effect == 5) return vintage(color);
+vec4 process(vec4 color, vec2 uv, vec2 texel) {
+    if (effect == 0) return color;
+    else if (effect == 1) return galaxy(color);
+    else if (effect == 2) return pastel(color, uv);
+    else if (effect == 3) return shadow(color, uv);
+    else if (effect == 4) return vec4(sketchRGB(uv, texel), color.a);
+    else if (effect == 5) return vintage(color);
     else return color;
 }
 
 void main() {
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
-    vec2 samplerPixel = (storePixel + 0.5) / outputSize;
+    vec2 uv = (vec2(pixel) + 0.5) / outputSize;
+    vec2 texel = 1.0 / outputSize;
 
-    vec4 color = baseColor(samplerPixel);
+    vec4 color = baseColor(uv);
+    color = process(color, uv, texel);
 
-    color = process(color, samplerPixel);
-
-    if(paradox) {
-       color.rgb = mix(color.rgb, vec3(1.0), texture(paradoxTexture, samplerPixel).r);
+    if (paradox) {
+        color.rgb = mix(color.rgb, vec3(1.0), texture(paradoxTexture, uv).r);
     }
 
-    float emiAlpha = texture(emission, samplerPixel).r * color.a;
+    float emiAlpha = texture(emission, uv).r * color.a;
 
-    imageStore(solidTex, storePixel, color);
-    imageStore(litTex,   storePixel, vec4(color.rgb, emiAlpha));
+    imageStore(solidTex, pixel, color);
+    imageStore(litTex,   pixel, vec4(color.rgb, emiAlpha));
 }
-

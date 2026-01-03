@@ -145,6 +145,8 @@ public class Uniform {
     public void uploadImage2D(int texture, ITexture.Type type, ITexture.ComputeAccess access, int unit, int layer) {
         var layered = layer > -1;
 
+        layer = layer == -1 ? 0 : layer;
+
         glBindImageTexture(
                 unit,                  // image unit = layout(binding=unit)
                 texture,       // GL texture ID from ITexture

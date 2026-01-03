@@ -1,8 +1,6 @@
 #version 430
 layout(local_size_x = 256) in;
 
-uniform vec4 transform;
-
 struct SourceVertex {
     vec3 position;
     vec2 texcoord;
@@ -19,11 +17,14 @@ struct TargetVertex {
 
 layout(std140, binding = 0) uniform Instance {
     mat4 modelMatrix;
-    mat4 boneTransforms[MAX_BONES];
+    mat4 boneTransforms[220];
 };
 
+uniform vec4 transform;
+//uniform int offset;
+
 layout(std430, binding = 0) readonly buffer SrcBuffer {
-    uint data[];
+    SourceVertex src[];
 };
 
 layout(std430, binding = 1) readonly buffer IndexBuffer {
@@ -35,41 +36,6 @@ layout(std430, binding = 2) writeonly buffer DstBuffer {
     TargetVertex dst[];
 };
 
-SourceVertex decodeVertex(uint index) {
-    SourceVertex v;
-    uint base = indices[index];
-
-    uint p0 = data[base + 0];
-    int qx = int(p0 & 0xFFFFu);
-    int qy = int((p0 >> 16) & 0xFFFFu);
-    qx = (qx << 16) >> 16;
-    qy = (qy << 16) >> 16;
-
-    uint p1 = data[base + 1];
-    int qz = int(p1 & 0xFFFFu);
-    qz = (qz << 16) >> 16;
-    v.position = vec3(qx, qy, qz) * 0.001;
-
-    uint uvPacked = data[base + 2];
-    v.texcoord = unpackHalf2x16(uvPacked);
-
-    int packedNormal = int(data[base + 3]);
-    int nx =  (packedNormal       & 0x3FF);
-    int ny = ((packedNormal >>10) & 0x3FF);
-    int nz = ((packedNormal >>20) & 0x3FF);
-    nx = (nx << 22) >> 22;
-    ny = (ny << 22) >> 22;
-    nz = (nz << 22) >> 22;
-    v.normal = vec3(float(nx), float(ny), float(nz)) / 511.0;
-
-    uint bIds = data[base + 4];v.joints = uvec4((bIds      ) & 0xFFu, (bIds >>  8) & 0xFFu, (bIds >> 16) & 0xFFu, (bIds >> 24) & 0xFFu);
-
-    uint bW = data[base + 5];
-    v.weights = vec4(float((bW      ) & 0xFFu), float((bW >>  8) & 0xFFu), float((bW >> 16) & 0xFFu), float((bW >> 24) & 0xFFu)) / 255.0;
-
-    return v;
-}
-
 mat4 getBoneTransform(uvec4 joints, vec4 weights) {
     return
     boneTransforms[joints.x] * weights.x +
@@ -79,16 +45,19 @@ mat4 getBoneTransform(uvec4 joints, vec4 weights) {
 }
 
 void main() {
-    uint idx = gl_GlobalInvocationID.x;
-    if (idx >= vertexCount) return;
+    uint local = gl_GlobalInvocationID.x;
+//    if (local >= count) return;
 
-    SourceVertex src = decodeVertex(idx);
-    TargetVertex dst;
+    uint idx = local;
 
-    vec4 pos = vec4(src.position, 1.0) * getBoneTransform(src.joints, src.weights);
+    SourceVertex src = src[idx];
+    TargetVertex outV;
 
-    dst.position = pos.xyz;
-    dst.texcoord = (src.texcoord * transform.xy) + transform.zw;
-    dst.normal = src.normal;
+    vec4 pos = getBoneTransform(src.joints, src.weights) * vec4(src.position, 1.0);
+
+    outV.position = pos.xyz;
+    outV.texcoord = src.texcoord * transform.xy + transform.zw;
+    outV.normal   = src.normal;
+
+    dst[idx] = outV;
 }
-

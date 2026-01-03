@@ -90,7 +90,7 @@ public class ModelLoader {
 
         indexBytes *= Integer.BYTES;
 
-        int vertexBytes = vertexCount * 24;
+        int vertexBytes = vertexCount * 80;
 
         int indexOffset = alignUp(vertexBytes, alignment);
         int totalBytes  = indexOffset + indexBytes;
@@ -457,89 +457,46 @@ public class ModelLoader {
 
         var isEmpty = IntStream.range(0, ids.length).allMatch(a -> ids[a] == 0);
 
-        var indexArray = new int[amount];
-
         for (int i = 0; i < amount; i++) {
 
             var position = aiVert.get(i);
             var uv = aiUV.get(i);
             var normal = aiNormals.get(i);
 
-//            vertexBuffer.putFloat(position.x());
-//            vertexBuffer.putFloat(position.y());
-//            vertexBuffer.putFloat(position.z());
-//            vertexBuffer.putFloat(0);
-//            vertexBuffer.putFloat(uv.x());
-//            vertexBuffer.putFloat(1 - uv.y());
-//            vertexBuffer.putFloat(0);
-//            vertexBuffer.putFloat(0);
-//            vertexBuffer.putFloat(normal.x());
-//            vertexBuffer.putFloat(normal.y());
-//            vertexBuffer.putFloat(normal.z());
-//            vertexBuffer.putFloat(0);
-//
-//            if(isEmpty) {
-//                vertexBuffer.putInt(1);
-//                vertexBuffer.putInt(0);
-//                vertexBuffer.putInt(0);
-//                vertexBuffer.putInt(0);
-//
-//                vertexBuffer.putFloat(1);
-//                vertexBuffer.putFloat(0);
-//                vertexBuffer.putFloat(0);
-//                vertexBuffer.putFloat(0);
-//            } else {
-//                vertexBuffer.putInt(ids[i * 4]);
-//                vertexBuffer.putInt(ids[i * 4 + 1]);
-//                vertexBuffer.putInt(ids[i * 4 + 2]);
-//                vertexBuffer.putInt(ids[i * 4 + 3]);
-//
-//                vertexBuffer.putFloat(weights[i * 4]);
-//                vertexBuffer.putFloat(weights[i * 4 + 1]);
-//                vertexBuffer.putFloat(weights[i * 4 + 2]);
-//                vertexBuffer.putFloat(weights[i * 4 + 3]);
-//            }
-
-            short qx = (short) Math.round(position.x() * 1000f);
-            short qy = (short) Math.round(position.y() * 1000f);
-            short qz = (short) Math.round(position.z() * 1000f);
-
-            int uvPacked = (floatToHalf(1.0f - uv.y()) << 16) | (floatToHalf(uv.x()) & 0xFFFF);
-
-            int nx = Math.round(normal.x() * 511.0f);
-            int ny = Math.round(normal.y() * 511.0f);
-            int nz = Math.round(normal.z() * 511.0f);
-            int packedNormal = (nx & 0x3FF) | ((ny & 0x3FF) << 10) | ((nz & 0x3FF) << 20);
-
-            int boneIdPacked;
-
-            int boneWeightPacked;
+            vertexBuffer.putFloat(position.x());
+            vertexBuffer.putFloat(position.y());
+            vertexBuffer.putFloat(position.z());
+            vertexBuffer.putFloat(0);
+            vertexBuffer.putFloat(uv.x());
+            vertexBuffer.putFloat(1 - uv.y());
+            vertexBuffer.putFloat(0);
+            vertexBuffer.putFloat(0);
+            vertexBuffer.putFloat(normal.x());
+            vertexBuffer.putFloat(normal.y());
+            vertexBuffer.putFloat(normal.z());
+            vertexBuffer.putFloat(0);
 
             if(isEmpty) {
-                boneIdPacked = 1;
-                boneWeightPacked = 255;
+                vertexBuffer.putInt(1);
+                vertexBuffer.putInt(0);
+                vertexBuffer.putInt(0);
+                vertexBuffer.putInt(0);
+
+                vertexBuffer.putFloat(1);
+                vertexBuffer.putFloat(0);
+                vertexBuffer.putFloat(0);
+                vertexBuffer.putFloat(0);
             } else {
-                boneIdPacked =
-                        (ids[i * 4] & 0xFF) |
-                                ((ids[i * 4 + 1] & 0xFF) << 8) |
-                                ((ids[i * 4 + 2] & 0xFF) << 16) |
-                                ((ids[i * 4 + 3] & 0xFF) << 24);
+                vertexBuffer.putInt(ids[i * 4]);
+                vertexBuffer.putInt(ids[i * 4 + 1]);
+                vertexBuffer.putInt(ids[i * 4 + 2]);
+                vertexBuffer.putInt(ids[i * 4 + 3]);
 
-                boneWeightPacked =
-                        ((int)(weights[i * 4] * 255.0f) & 0xFF) |
-                                (((int)(weights[i * 4 + 1] * 255.0f) & 0xFF) << 8) |
-                                (((int)(weights[i * 4 + 2] * 255.0f) & 0xFF) << 16) |
-                                (((int)(weights[i * 4 + 3] * 255.0f) & 0xFF) << 24);
+                vertexBuffer.putFloat(weights[i * 4]);
+                vertexBuffer.putFloat(weights[i * 4 + 1]);
+                vertexBuffer.putFloat(weights[i * 4 + 2]);
+                vertexBuffer.putFloat(weights[i * 4 + 3]);
             }
-
-            vertexBuffer.putShort(qx);
-            vertexBuffer.putShort(qy);
-            vertexBuffer.putShort(qz);
-            vertexBuffer.putShort((short) 0);
-            vertexBuffer.putInt(uvPacked);
-            vertexBuffer.putInt(packedNormal);
-            vertexBuffer.putInt(boneIdPacked);
-            vertexBuffer.putInt(boneWeightPacked);
 
             dimensions.max(temp.set(position.x(), position.y(), position.z()));
         }
@@ -641,10 +598,6 @@ public class ModelLoader {
                 false,
                 0,
                 0);
-    }
-
-    public MultiRenderObject createObject(@NotNull Supplier<PixelAsset> is, Consumer<MultiRenderObject> onFinish) {
-        return createObject(MultiRenderObject::new, is, MaterialReference::process, onFinish);
     }
 
     public record Names(List<String> meshes, List<String> variants, List<String> images, List<String> materials) {

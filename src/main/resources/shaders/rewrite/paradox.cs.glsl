@@ -4,7 +4,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 uniform sampler2D sampler;
 uniform int frame;
 
-layout(rgba8, binding = 0) uniform image2D texture;
+layout(rgba8, binding = 0) uniform image2D outputTexture;
 
 float getParadoxIntensity(vec2 effectTexCoord) {
     effectTexCoord *= 4.0;
@@ -21,5 +21,5 @@ void main() {
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
     vec2 uv = (pixel + 0.5) / textureSize(sampler, 0);
 
-    imageStore(texture, pixel, vec4(getParadoxIntensity(uv), 1.0, 1.0, 1.0));
+    imageStore(outputTexture, pixel, vec4(getParadoxIntensity(uv), 1.0, 1.0, 1.0));
 }

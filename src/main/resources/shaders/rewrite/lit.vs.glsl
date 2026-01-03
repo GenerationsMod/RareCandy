@@ -24,14 +24,14 @@ layout(std140, binding = 1) uniform Instance {
     mat4 boneTransforms[MAX_BONES];
 };
 
-layout(std430, binding = 0) readonly buffer VertexBuffer {
-    Vertex vertices[];
-};
-
 struct Vertex {
     vec3 position;
     vec2 texcoord;
     vec3 normal;
+};
+
+layout(std430, binding = 0) readonly buffer VertexBuffer {
+    Vertex vertices[];
 };
 
 float fog_distance(vec3 pos, int shape) {
@@ -46,8 +46,8 @@ float fog_distance(vec3 pos, int shape) {
 
 void main() {
     // Lookup vertex through index buffer
-    int vertexIndex = indices[gl_VertexID];
-    Vertex v = vertices[vertexIndex];
+//    int vertexIndex = indices[gl_VertexID];
+    Vertex v = vertices[gl_VertexID];
 
     mat4 worldSpace = projectionMatrix * viewMatrix;
     vec4 worldPosition = modelMatrix * vec4(v.position, 1.0);

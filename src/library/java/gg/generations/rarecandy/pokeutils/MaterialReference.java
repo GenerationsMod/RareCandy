@@ -75,14 +75,15 @@ public class MaterialReference {
 
         var effectRef = reference.effect;
 
+
         var effect = switch (reference.effect) {
                 case "galaxy" -> 1;
                 case "pastel" -> 2;
                 case "shadow" -> 3;
                 case "sketch" -> 4;
                 case "vintage" -> 5;
-                default -> 0;
-            };
+            case null, default -> 0;
+        };
 
         return new Material(
                 images,

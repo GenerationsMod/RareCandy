@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
+import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.MaterialReference;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.animation.Animation;
@@ -7,6 +8,7 @@ import gg.generations.rarecandy.renderer.animation.AnimationInstance;
 import gg.generations.rarecandy.renderer.components.DummyVAO;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.*;
@@ -17,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.system.MemoryUtil;
 
@@ -25,6 +28,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import static org.lwjgl.opengl.GL42C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT;
 
 
 public class RareCandyCanvas {
@@ -148,9 +154,9 @@ public class RareCandyCanvas {
     }
 
     public void initGL() {
-        if (!GL.getCapabilities().GL_ARB_bindless_texture) {
-            throw new RuntimeException("Bindless textures not supported!");
-        }
+//        if (!GL.getCapabilities().GL_ARB_bindless_texture) {
+//            throw new RuntimeException("Bindless textures not supported!");
+//        }
 
         projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) handler.getWidth() / handler.getHeight(), 0.1f, 1000.0f);
         GL.createCapabilities(true);
@@ -215,15 +221,15 @@ public class RareCandyCanvas {
 
         renderer.update(time);
 
+        GuiPipelines.PARADOX.useProgram();
+        GuiPipelines.PARADOX.bindGlobal();
+        GuiPipelines.PARADOX.dispatch(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT, 64, 64, 1);
+
         vao.bind();
 
-        var pipeline = PipelineRegistry.get("animated");
-
-        pipeline.useProgram();
 //        renderToFramebuffer();
-        pipeline.bindGlobal();
 
-        renderToScreen(pipeline);
+        renderToScreen();
 
         renderer.end();
 
@@ -264,9 +270,9 @@ public class RareCandyCanvas {
 //        renderingFrame = false;
     }
 
-    private void renderToScreen(TraditionalPipeline pipeline) {
+    private void renderToScreen() {
         renderer.render(RenderStage.SOLID);
-        renderer.render(RenderStage.TRANSPARENT);
+//        renderer.render(RenderStage.TRANSPARENT);
     }
 
     public AnimationInstance createInstance(Animation animation) {
@@ -368,7 +374,73 @@ public class RareCandyCanvas {
         }
     }
 
-    public static class ToggleableMultiRenderObject extends MultiRenderObject {
+    public static class BaseMultiRenderObject extends MultiRenderObject {
+
+        public BaseMultiRenderObject(ModelLoader.Names names) {
+            super(names);
+        }
+
+        @Override
+        public void render(RenderStage stage, List<ObjectInstance> instances) {
+            for (var instance : instances) {
+                for (int mesh = 0; mesh < meshes.length; mesh++) {
+                    if (shouldRender(mesh, instance)) {
+                        var model = this.meshes[mesh];
+                        var material = this.getMaterial(mesh, instance.variant());
+
+                        if (model == null) {
+                            continue;
+                        }
+
+                        GuiPipelines.transformVertices(instance, this, mesh, model);
+                        GuiPipelines.processMaterial(instance, this, mesh);
+
+                        GuiPipelines.SOLID.useProgram();
+                        GuiPipelines.SOLID.bindGlobal();
+                        GuiPipelines.SOLID.bindModel(this);
+                        GuiPipelines.SOLID.bindInstance(instance, this);
+                        GuiPipelines.SOLID.bindDraw(instance, this, mesh);
+
+
+
+                        if(material.disableDepth()) {
+                            GL11.glDisable(GL11.GL_DEPTH_TEST);
+                        }
+
+                        material.cullType().enable();
+                        material.blendType().enable();
+
+                        model.render();
+
+                        if(material.disableDepth()) {
+                            GL11.glEnable(GL11.GL_DEPTH_TEST);
+                        }
+
+                        material.cullType().disable();
+                        material.blendType().disable();
+
+//                        pipeline.bindInstance(instance, this);
+//
+//
+//                        pipeline.bindDraw(instance, this, mesh);
+//
+//                        var material = getMaterial(mesh, instance.variant());
+//                        pipeline.preDraw(material);
+//                        var transparent = material.blendType() != BlendType.None;
+//
+//                        if (transparent && stage == RenderStage.TRANSPARENT || stage == RenderStage.SOLID) {
+//                            model.render();
+//                        }
+//
+//                        pipeline.postDraw(material);
+                    }
+
+                }
+            }
+        }
+    }
+
+    public static class ToggleableMultiRenderObject extends BaseMultiRenderObject {
         public boolean[] overrides;
         public String[] meshNames;
 

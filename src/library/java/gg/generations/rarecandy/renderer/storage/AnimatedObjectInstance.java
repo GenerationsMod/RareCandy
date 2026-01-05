@@ -8,26 +8,24 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 public class AnimatedObjectInstance extends ObjectInstance {
+    public static final int ANIMATED_SIZE = MAT4_SIZE * 221;
+
     @Nullable
     public AnimationInstance currentAnimation;
 
-    public AnimatedObjectInstance(int size, Matrix4f transformationMatrix, int materialId) {
-        super(size, transformationMatrix, materialId);
-    }
-
     public AnimatedObjectInstance(Matrix4f transformationMatrix, int materialId) {
-        this(MAT4_SIZE * 221, transformationMatrix, materialId);
+        super(transformationMatrix, materialId);
     }
 
     @Override
-    public void update() {
-        super.update();
+    public void update(int pos, SSBOBuffer instanceBuffer) {
+        super.update(pos, instanceBuffer);
 
         var bones = getTransforms();
 
         for (int i = 0; i < bones.length; i++) {
             var bone = bones[i];
-            bone.getToAddress(pointer + (long) (1 + i) * MAT4_SIZE);
+            instanceBuffer.put((1 + i) * MAT4_SIZE, bone);
         }
     }
 
@@ -45,6 +43,15 @@ public class AnimatedObjectInstance extends ObjectInstance {
 
     public Transform getTransform(int material) {
         return currentAnimation != null ? currentAnimation.getOffset(material) : null;
+    }
+
+    @Override
+    public void update(double absoluteTime) {
+        super.update(absoluteTime);
+
+        if(currentAnimation != null) {
+            currentAnimation.update(absoluteTime);
+        }
     }
 
     @Override

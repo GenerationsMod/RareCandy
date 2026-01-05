@@ -19,11 +19,6 @@ layout(std140, binding = 0) uniform Fog {
     int FogShape;
 };
 
-layout(std140, binding = 1) uniform Instance {
-    mat4 modelMatrix;
-    mat4 boneTransforms[MAX_BONES];
-};
-
 struct Vertex {
     vec3 position;
     vec2 texcoord;
@@ -50,7 +45,7 @@ void main() {
     Vertex v = vertices[gl_VertexID];
 
     mat4 worldSpace = projectionMatrix * viewMatrix;
-    vec4 worldPosition = modelMatrix * vec4(v.position, 1.0);
+    vec4 worldPosition = vec4(v.position, 1.0);
 
     texCoord0 = v.texcoord;
     gl_Position = worldSpace * worldPosition;

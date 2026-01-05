@@ -2,16 +2,21 @@ package gg.generations.rarecandy.renderer.rendering;
 
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.ThreadSafety;
-import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
-import gg.generations.rarecandy.renderer.storage.ObjectManager;
+import gg.generations.rarecandy.renderer.components.MultiRenderObject;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RareCandy {
     private static final Queue<Runnable> TASKS = new ConcurrentLinkedQueue<>();
-    public static boolean DEBUG_THREADS = true;
-    public final ObjectManager objectManager = new ObjectManager();
+
+    private final List<MultiRenderObject> objects = new ArrayList<>();
+    private final List<MultiRenderObject> objectsToRemove = new ArrayList<>();
+
     public RareCandy() {
         ThreadSafety.initContextThread();
         var startLoad = System.currentTimeMillis();
@@ -33,18 +38,62 @@ public class RareCandy {
             task = TASKS.poll();
         }
 
-        objectManager.update(secondsPassed);
+        for (var object : objects) {
+            object.update(secondsPassed);
+
+            if (object.isEmpty()) {
+                objectsToRemove.add(object);
+            }
+        }
+
+        if(!objectsToRemove.isEmpty()) {
+            for(var object : objectsToRemove) {
+                objects.remove(object);
+            }
+        }
     }
 
     public void render(RenderStage stage) {
-        objectManager.render(stage);
+        for (var object : objects) {
+            if (object == null) continue;
+
+            object.render(stage);
+        }
     }
 
     public void clear() {
-        this.objectManager.clearObjects();
+        for (var obj : objects) {
+            try {
+                obj.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        objects.clear();
     }
 
+    public <T extends ObjectInstance> T add(@NotNull MultiRenderObject object, @NotNull T instance) {
+        object.add(instance);
+
+        if(!objects.contains(object)) objects.add(object);
+
+        return instance;
+    }
+
+
     public void end() {
-        objectManager.endFrame();
+        if(!objectsToRemove.isEmpty()) {
+            for (var renderObject : objectsToRemove) {
+                objects.remove(renderObject);
+                try {
+                    renderObject.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            objectsToRemove.clear();
+        }
     }
 }

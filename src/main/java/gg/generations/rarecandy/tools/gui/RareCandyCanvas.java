@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.MaterialReference;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.animation.Animation;
@@ -8,9 +7,6 @@ import gg.generations.rarecandy.renderer.animation.AnimationInstance;
 import gg.generations.rarecandy.renderer.components.DummyVAO;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
-import gg.generations.rarecandy.renderer.model.material.Material;
-import gg.generations.rarecandy.renderer.model.material.PipelineRegistry;
-import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.textures.FrameBuffer;
@@ -30,7 +26,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL42C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
-import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT;
 
 
 public class RareCandyCanvas {
@@ -107,7 +102,7 @@ public class RareCandyCanvas {
         if(loadedModel != null) {
             loadedModel.close();
 
-            renderer.objectManager.clearObjects();
+            renderer.clear();
 
             loadedModel = null;
             instances.forEach(animatedObjectInstance -> {
@@ -141,7 +136,7 @@ public class RareCandyCanvas {
 
             var instance = new AnimatedObjectInstance(new Matrix4f(), loadedModel.variantNameToId.get(variant));
 
-            loadedModelInstance = renderer.objectManager.add(model, instance);
+            loadedModelInstance = renderer.add(model, instance);
             loadedModelInstance.use();
 
             model.updateDimensions();
@@ -382,7 +377,12 @@ public class RareCandyCanvas {
 
         @Override
         public void render(RenderStage stage, List<ObjectInstance> instances) {
-            for (var instance : instances) {
+            updateSSBOs();
+
+            for (int i = 0; i < instances.size(); i++) {
+                GuiPipelines.transformVertices(this, i);
+
+                var instance = instances.get(i);
                 for (int mesh = 0; mesh < meshes.length; mesh++) {
                     if (shouldRender(mesh, instance)) {
                         var model = this.meshes[mesh];
@@ -392,7 +392,6 @@ public class RareCandyCanvas {
                             continue;
                         }
 
-                        GuiPipelines.transformVertices(instance, this, mesh, model);
                         GuiPipelines.processMaterial(instance, this, mesh);
 
                         GuiPipelines.SOLID.useProgram();
@@ -401,9 +400,7 @@ public class RareCandyCanvas {
                         GuiPipelines.SOLID.bindInstance(instance, this);
                         GuiPipelines.SOLID.bindDraw(instance, this, mesh);
 
-
-
-                        if(material.disableDepth()) {
+                        if (material.disableDepth()) {
                             GL11.glDisable(GL11.GL_DEPTH_TEST);
                         }
 
@@ -412,7 +409,7 @@ public class RareCandyCanvas {
 
                         model.render();
 
-                        if(material.disableDepth()) {
+                        if (material.disableDepth()) {
                             GL11.glEnable(GL11.GL_DEPTH_TEST);
                         }
 
@@ -437,6 +434,11 @@ public class RareCandyCanvas {
 
                 }
             }
+        }
+
+        @Override
+        public int targetVertexStride() {
+            return 32;
         }
     }
 

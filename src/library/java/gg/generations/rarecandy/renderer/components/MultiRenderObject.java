@@ -1,22 +1,19 @@
 package gg.generations.rarecandy.renderer.components;
 
-import com.google.errorprone.annotations.Var;
-import gg.generations.rarecandy.pokeutils.BlendType;
-import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.renderer.animation.Animation;
+import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.loading.SbboOffset;
-import gg.generations.rarecandy.renderer.model.RenderModel;
 import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
-import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
-import gg.generations.rarecandy.renderer.textures.TextureArray;
-import org.jetbrains.annotations.Nullable;
+import gg.generations.rarecandy.renderer.storage.SSBOBuffer;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.lwjgl.opengl.GL43;
 import org.lwjgl.opengl.GL43C;
 
 import java.io.IOException;
@@ -25,7 +22,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  *
@@ -43,8 +39,16 @@ public abstract class MultiRenderObject {
 
     public SbboOffset vertex;
     public SbboOffset index;
+    public SbboOffset draw;
+    public SbboOffset target;
 
-    public int bufferSize;
+    public SSBOBuffer instanceBuffer;
+    public SSBOBuffer uvTransformBuffer;
+
+    public int modelBuffer;
+    public int destBuffer;
+
+    public int maxVertex;
 
     public Animation[] animations = new Animation[0];
     public String[] animationNames = new String[0];
@@ -55,9 +59,10 @@ public abstract class MultiRenderObject {
 
     public final Vector3f dimensions = new Vector3f();
     public float scale = 1.0f;
-    public int buffer;
 
     private Matrix4f rootTransformation = new Matrix4f();
+
+    private final List<ObjectInstance> instances = new ArrayList<>();
 
     public MultiRenderObject(ModelLoader.Names names) {
         meshes = new DrawRecord[names.meshes().size()];
@@ -100,11 +105,17 @@ public abstract class MultiRenderObject {
         return dimensions;
     }
 
-    public void update() {
+    public void update(double absoluteTime) {
         for (var consumer : queue) {
                 consumer.accept(this);
         }
         queue.clear();
+
+        for (ObjectInstance instance : instances) {
+            instance.update(absoluteTime);
+        }
+
+        instances.removeIf(a -> !a.isLinked());
     }
 
     public Set<String> availableVariants() {
@@ -116,6 +127,10 @@ public abstract class MultiRenderObject {
     }
 
     abstract public void render(RenderStage stage, List<ObjectInstance> instances);
+
+    public void render(RenderStage stage) {
+        render(stage, instances);
+    }
 
     public boolean shouldRender(int mesh, ObjectInstance instance) {
         if(instance instanceof AnimatedObjectInstance animationInstance) {
@@ -147,6 +162,70 @@ public abstract class MultiRenderObject {
             material.close();
         }
 
-        GL43C.glDeleteBuffers(buffer);
+        GL43.glDeleteBuffers(modelBuffer);
+        GL43.glDeleteBuffers(destBuffer);
+    }
+
+    public boolean isEmpty() {
+        return instances.isEmpty();
+    }
+
+    public void updateSSBOs() {
+        ensureCapacity();
+        for (int i = 0; i < instances.size(); i++) {
+            var instance = instances.get(i);
+
+            instance.update(i * InstanceDetails.size, instanceBuffer);
+
+            for (int meshId = 0; meshId < meshes.length; meshId++) {
+
+                var variant = getVariant(meshId, instance.variant());
+
+                Transform transform = variant.offset();
+
+                if (instance instanceof AnimatedObjectInstance animatedInstance) {
+
+                    var material = variant.material();
+
+                    var t = animatedInstance.getTransform(material);
+
+                    if (t != null && !t.isUnit()) {
+                        transform = t;
+                    }
+                }
+
+                if(transform == null) {
+                    transform = Transform.DEFAULT;
+                }
+
+                transform.upload(i * meshes.length + meshId * Float.BYTES * 4, uvTransformBuffer);
+            }
+
+            instanceBuffer.upload();
+            uvTransformBuffer.upload();
+        }
+    }
+
+    public <T extends ObjectInstance> boolean add(@NotNull T instance) {
+        if(!instance.isLinked()) {
+            instance.link(this);
+            instances.add(instance);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void ensureCapacity() {
+        var size = instances.size();
+
+        instanceBuffer.ensureCapacity((long) size * InstanceDetails.size);
+    }
+
+    public abstract int targetVertexStride();
+
+    public int numOfInstances() {
+        return instances.size();
     }
 }

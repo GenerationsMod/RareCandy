@@ -44,6 +44,9 @@ public class AnimationInstance {
             currentTime = animation.getAnimationTime(secondsPassed - timeAtUnpause);
             if (prevTime > currentTime) onLoop();
         } else if (timeAtPause == -1) timeAtPause = secondsPassed;
+
+        if(animation == null) return;
+        matrixTransforms = animation.getFrameTransform(secondsPassed);
     }
 
     public void updateStart(double secondsPassed) {

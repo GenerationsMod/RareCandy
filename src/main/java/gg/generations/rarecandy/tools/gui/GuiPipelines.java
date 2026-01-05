@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.components.DrawRecord;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.SbboOffset;
@@ -17,7 +16,6 @@ import gg.generations.rarecandy.renderer.textures.BlankTexture;
 import gg.generations.rarecandy.renderer.textures.ITexture;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL43C;
 
 import static gg.generations.rarecandy.renderer.pipeline.Pipelines.builtin;
@@ -44,25 +42,22 @@ public class GuiPipelines {
     public static TraditionalPipeline SOLID;
     public static TraditionalPipeline TERSTAL;
     public static TraditionalPipeline PLANE;
-    private static int offset;
+
 
     public static double pingpong(double time) {
         return (int) (Math.sin(time * Math.PI * 2) * 7 + 7);
     }
 
-    public static final SbboOffset TRANSFORM_BUFFER_OFFSET =  new SbboOffset(0, 48*5000);
-    public static int TRANSFORM_BUFFER_ID;
+    private static int instanceId;
 
     private static ITexture[] textures = new ITexture[3];
 
-    public static void transformVertices(ObjectInstance instance, MultiRenderObject object, int mesh, DrawRecord record) {
-        offset = record.base();
+    public static void transformVertices(MultiRenderObject object, int instanceId) {
+        GuiPipelines.instanceId = instanceId;
         GuiPipelines.TRANSFORM.useProgram();
         GuiPipelines.TRANSFORM.bindGlobal();
         GuiPipelines.TRANSFORM.bindModel(object);
-        GuiPipelines.TRANSFORM.bindInstance(instance, object);
-        GuiPipelines.TRANSFORM.bindDraw(instance, object, mesh);
-        GuiPipelines.TRANSFORM.dispatch(GL_SHADER_STORAGE_BARRIER_BIT, (record.size() + 255) / 256, 1, 1);
+        GuiPipelines.TRANSFORM.dispatch(GL_SHADER_STORAGE_BARRIER_BIT, (object.maxVertex + 255) / 256, object.meshes.length, 1);
     }
 
     public static void onInitialize(RareCandyCanvas canvas, PokeUtilsGui.Settings settings) {
@@ -70,46 +65,17 @@ public class GuiPipelines {
         textures[1] = new BlankTexture(ITexture.Type.RGBA_BYTE, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
         textures[2] = new BlankTexture(ITexture.Type.RGBA_BYTE, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
 
-        TRANSFORM_BUFFER_ID = GL43C.glGenBuffers();
-        GL43C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, TRANSFORM_BUFFER_ID);
-        glBufferData(GL43C.GL_SHADER_STORAGE_BUFFER, TRANSFORM_BUFFER_OFFSET.size(), GL43C.GL_DYNAMIC_DRAW);
-        GL43C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-//        InstanceBlockUploader.register(ObjectInstance.class, ObjectInstance.MAT4_SIZE);
-        InstanceBlockUploader.register(AnimatedObjectInstance.class, ObjectInstance.MAT4_SIZE * 221);
         MaterialUploader.setup();
 
         TRANSFORM = ComputePipeline.builder(builtin("rewrite/transform.cs.glsl"))
-                .addSSBORange(Scope.MODEL, "SrcBuffer", 0, ctx -> ctx.object().buffer, ctx -> ctx.object().vertex)
-                .addSSBORange(Scope.MODEL, "IndexBuffer", 1, ctx -> ctx.object().buffer, ctx -> ctx.object().index)
-                .addSSBORange(Scope.GLOBAL, "DstBuffer", 2, ctx -> TRANSFORM_BUFFER_ID, ctx -> TRANSFORM_BUFFER_OFFSET)
-                .addUBO(Scope.INSTANCE, "Instance", 0, (ctx) -> InstanceBlockUploader.bind(ctx.instance()))
-                .addUniform(Scope.DRAW, "transform", (uniform, ctx) -> {
-                    var variant = ctx.object().getVariant(ctx.mesh(), ctx.instance().variant());
-
-                    Transform transform = variant.offset();
-
-                    if (ctx.instance() instanceof AnimatedObjectInstance animatedInstance) {
-
-                        var material = variant.material();
-
-                        var t = animatedInstance.getTransform(material);
-
-                        if (t != null && !t.isUnit()) {
-                            transform = t;
-                        }
-                    }
-
-                    if(transform == null) {
-                        transform = Transform.DEFAULT;
-                    }
-
-                    var scale = transform.scale();
-                    var offset = transform.offset();
-
-                    uniform.upload4f(scale.x, scale.y, offset.x, offset.y);
-                })
-//                .addUniform(Scope.GLOBAL, "offset", (uniform, ctx) -> uniform.uploadInt(offset))
+                .addSSBORange(Scope.MODEL, "SrcBuffer", 0, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().vertex)
+                .addSSBORange(Scope.MODEL, "IndexBuffer", 1, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().index)
+                .addSSBORange(Scope.MODEL, "DrawCommands", 2, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().draw)
+                .addSSBO(Scope.MODEL, "InstanceBuffer", 3, ctx -> ctx.object().instanceBuffer.getBufferId())
+                .addSSBO(Scope.MODEL, "TransformBuffer", 4, ctx -> ctx.object().instanceBuffer.getBufferId())
+                .addSSBO(Scope.MODEL, "DstBuffer", 5, ctx -> ctx.object().destBuffer)
+                .addUniform(Scope.MODEL, "variantSize", (uniform, ctx) -> uniform.uploadInt(ctx.object().meshes.length))
+                .addUniform(Scope.GLOBAL, "instanceId", (uniform, ctx) -> uniform.uploadInt(instanceId))
                 .build();
 
         PARADOX = ComputePipeline.builder(builtin("rewrite/paradox.cs.glsl"))
@@ -172,25 +138,8 @@ public class GuiPipelines {
                 .autoMat4(Scope.GLOBAL, "projectionMatrix", (ctx) -> projectionMatrix)
                 .autoVec4(Scope.GLOBAL, "ColorModulator", (ctx) -> colorMOdulator)
                 .autoVec3(Scope.GLOBAL, "tint", (ctx) -> ONE)
-//                .prePostDraw(material -> {
-//
-//                    if(material.disableDepth()) {
-//                        GL11.glDisable(GL11.GL_DEPTH_TEST);
-//                    }
-//
-//                    material.cullType().enable();
-//                    material.blendType().enable();
-//                }, material -> {
-//                    if(material.disableDepth()) {
-//                        GL11.glEnable(GL11.GL_DEPTH_TEST);
-//                    }
-//
-//                    material.cullType().disable();
-//                    material.blendType().disable();
-//                })
                 .addUBO(Scope.GLOBAL, "Fog", 0, (ctx) -> canvas.getFogUploader().id)
-                .addUBO(Scope.INSTANCE, "Instance", 1, (ctx) -> InstanceBlockUploader.bind(ctx.instance()))
-                .addSSBORange(Scope.GLOBAL, "VertexBuffer", 0, ctx -> TRANSFORM_BUFFER_ID, ctx -> TRANSFORM_BUFFER_OFFSET)
+                .addSSBORange(Scope.MODEL, "VertexBuffer", 0, ctx -> ctx.object().destBuffer, ctx -> ctx.object().target)
         ;
     }
 

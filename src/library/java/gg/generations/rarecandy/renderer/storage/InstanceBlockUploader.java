@@ -21,9 +21,9 @@ public class InstanceBlockUploader extends UniformBlockUploader {
 
         if(uploader == null) throw new RuntimeException("Error no block uploader for " + t.getClass().getSimpleName());
 
-        t.update();
+//        t.update(pos, instanceBuffer);/
 
-        uploader.upload(0, uploader.size, t.pointer);
+//        uploader.upload(0, uploader.size, t.pointer);
 
         return uploader.id;
     }

@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.renderer.animation;
 
+import gg.generations.rarecandy.renderer.storage.SSBOBuffer;
 import org.joml.Vector2f;
 
 public record Transform(Vector2f scale, Vector2f offset) {
@@ -18,6 +19,11 @@ public record Transform(Vector2f scale, Vector2f offset) {
 
     public boolean isUnit() {
         return offset.x == 0f && offset.y == 0f && scale.x == 1f && scale.y == 1f;
+    }
+
+    public void upload(int pos, SSBOBuffer buffer) {
+        buffer.put(pos, scale);
+        buffer.put(pos + Float.BYTES * 2, offset);
     }
 }
 

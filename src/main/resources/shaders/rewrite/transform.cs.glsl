@@ -1,5 +1,5 @@
 #version 430
-layout(local_size_x = 256) in;
+layout(local_size_x = 256, local_size_y = 1) in;
 
 struct SourceVertex {
     vec3 position;
@@ -15,48 +15,61 @@ struct TargetVertex {
     vec3 normal;
 };
 
-layout(std140, binding = 0) uniform Instance {
+struct DrawCmd {
+    uint baseIndex;
+    uint indexCount;
+};
+
+struct Instance {
     mat4 modelMatrix;
     mat4 boneTransforms[220];
 };
 
-uniform vec4 transform;
-//uniform int offset;
-
-layout(std430, binding = 0) readonly buffer SrcBuffer {
-    SourceVertex src[];
+struct Transform {
+    vec2 scale;
+    vec2 offset;
 };
 
-layout(std430, binding = 1) readonly buffer IndexBuffer {
-    int indices[];
-};
+uniform uint variantSize;
+uniform uint instanceId;
 
+layout(std430, binding = 0) readonly  buffer SrcBuffer       { SourceVertex src[]; };
+layout(std430, binding = 1) readonly  buffer IndexBuffer     { uint indices[]; };
+layout(std430, binding = 2) readonly  buffer DrawCommands    { DrawCmd cmd[]; };
+layout(std430, binding = 3) readonly  buffer InstanceBuffer  { Instance instances[]; };
+layout(std430, binding = 4) readonly  buffer TransformBuffer { Transform transforms[]; };
+layout(std430, binding = 5) writeonly buffer DstBuffer       { TargetVertex dst[]; };
 
-layout(std430, binding = 2) writeonly buffer DstBuffer {
-    TargetVertex dst[];
-};
+mat4 getBoneTransform(Instance instance, uvec4 joints, vec4 weights) {
+    mat4[] bone = instance.boneTransforms;
 
-mat4 getBoneTransform(uvec4 joints, vec4 weights) {
     return
-    boneTransforms[joints.x] * weights.x +
-    boneTransforms[joints.y] * weights.y +
-    boneTransforms[joints.z] * weights.z +
-    boneTransforms[joints.w] * weights.w;
+        bone[joints.x] * weights.x +
+        bone[joints.y] * weights.y +
+        bone[joints.z] * weights.z +
+        bone[joints.w] * weights.w;
 }
 
 void main() {
     uint local = gl_GlobalInvocationID.x;
-//    if (local >= count) return;
+    uint meshId = gl_GlobalInvocationID.y;
 
-    uint idx = local;
+    DrawCmd c = cmd[meshId];
+    if (local >= c.indexCount) return;
 
-    SourceVertex src = src[idx];
+    uint idx = c.baseIndex + local;
+
+    SourceVertex src = src[indices[idx]];
     TargetVertex outV;
 
-    vec4 pos = getBoneTransform(src.joints, src.weights) * vec4(src.position, 1.0);
+    Instance instance = instances[instanceId];
+
+    vec4 pos = getBoneTransform(instance, src.joints, src.weights) * vec4(src.position, 1.0) * instance.modelMatrix;
+
+    Transform transform = transforms[instanceId * variantSize + meshId];
 
     outV.position = pos.xyz;
-    outV.texcoord = src.texcoord * transform.xy + transform.zw;
+    outV.texcoord = src.texcoord * transform.scale + transform.offset;
     outV.normal   = src.normal;
 
     dst[idx] = outV;

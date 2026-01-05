@@ -5,11 +5,12 @@ import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.components.DrawRecord;
+import gg.generations.rarecandy.renderer.components.InstanceDetails;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.model.*;
 import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.storage.SSBOBuffer;
 import gg.generations.rarecandy.renderer.textures.Texture;
-import gg.generations.rarecandy.renderer.textures.TextureArray;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -27,8 +28,7 @@ import java.util.stream.IntStream;
 
 import static java.util.Objects.requireNonNull;
 import static org.lwjgl.opengl.GL30C.*;
-import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER;
-import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT;
+import static org.lwjgl.opengl.GL43C.*;
 
 public class ModelLoader {
     public static int byteAmount;
@@ -83,25 +83,39 @@ public class ModelLoader {
 
         int alignment = glGetInteger(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
 
+        int maxVertex = 0;
+
         for (var mesh : meshes) {
+            maxVertex = Math.max(maxVertex, mesh.mNumFaces() * 3);
+
             vertexCount += mesh.mNumVertices();
             indexBytes += mesh.mNumFaces() * 3;
         }
 
+        objects.maxVertex = maxVertex;
+
+
+
         indexBytes *= Integer.BYTES;
+
+        int drawBytes = meshes.length * Integer.BYTES * 2;
 
         int vertexBytes = vertexCount * 80;
 
         int indexOffset = alignUp(vertexBytes, alignment);
-        int totalBytes  = indexOffset + indexBytes;
+        int drawOffset  = indexOffset + alignUp(indexBytes, alignment);
+        int totalBytes = drawOffset + drawBytes;
 
         var vertexBuffer = MemoryUtil.memAlloc(vertexBytes);
 
         var indexBuffer = MemoryUtil.memAlloc(indexBytes);
 
+        var drawBuffer = MemoryUtil.memAlloc(drawBytes);
+
         objects.vertex = new SbboOffset(0, vertexBytes);
         objects.index = new SbboOffset(indexOffset, indexBytes);
-
+        objects.draw = new SbboOffset(drawOffset, drawBytes);
+        objects.target = new SbboOffset(0, objects.targetVertexStride() * maxVertex);
 
         int[] counters = new int[2]; // index Count
 
@@ -110,30 +124,37 @@ public class ModelLoader {
         for (int i = 0; i < names.meshes.size(); i++) {
             var mesh = list.get(i);
 
-            var drawRecord = processPrimitiveModel(
+            objects.meshes[i] = processPrimitiveModel(
                     vertexBuffer,
                     indexBuffer,
+                    drawBuffer,
                     counters, skeleton, mesh, config.modelOptions != null ? config.modelOptions : Collections.emptyMap(), dimensions);
-
-            objects.meshes[i] = drawRecord;
         }
 
         var buffer = MemoryUtil.memAlloc(totalBytes);
         objects.vertex.put(buffer, vertexBuffer.flip());
         objects.index.put(buffer, indexBuffer.flip());
-//        System.out.println("totalBytes = " + totalBytes/1024f + "kb");
-        System.out.println("buffer.limit() = " + (vertexBuffer.limit() + indexBuffer.limit()) + " " + buffer.limit());
+        objects.draw.put(buffer, drawBuffer.flip());
 
         var bufferId = GL43C.glGenBuffers();
         GL43C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
         glBufferData(GL43C.GL_SHADER_STORAGE_BUFFER, buffer, GL43C.GL_STATIC_READ);
         GL43C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        objects.modelBuffer = bufferId;
 
-        objects.buffer = bufferId;
+        bufferId = GL43.glGenBuffers();
+        GL43.glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
+        glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, objects.target.size(), GL43.GL_DYNAMIC_DRAW);
+        GL43.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        objects.destBuffer = bufferId;
+
+        objects.uvTransformBuffer = new SSBOBuffer(Float.BYTES * 4);
+        objects.instanceBuffer = new SSBOBuffer(InstanceDetails.size);
 
         MemoryUtil.memFree(buffer);
         MemoryUtil.memFree(vertexBuffer);
         MemoryUtil.memFree(indexBuffer);
+        MemoryUtil.memFree(drawBuffer);
 
 
         var transform = new Matrix4f();
@@ -389,7 +410,9 @@ public class ModelLoader {
 
     private static DrawRecord processPrimitiveModel(
             ByteBuffer vertexBuffer,
-            ByteBuffer indexBuffer, int[] counters, Skeleton skeleton, AIMesh mesh, Map<String, MeshOptions> options, Vector3f dimensions) {
+            ByteBuffer indexBuffer,
+            ByteBuffer drawBuffer,
+            int[] counters, Skeleton skeleton, AIMesh mesh, Map<String, MeshOptions> options, Vector3f dimensions) {
         var name = mesh.mName().dataString();
 
         var faceArray = options.containsKey(name) && options.get(name).invert() ? INVERT_FACE : NORMAL_FACE;
@@ -403,6 +426,8 @@ public class ModelLoader {
 
         var numFaces = mesh.mNumFaces();
         var indexAmount = numFaces * 3;
+
+        drawBuffer.putInt(indexOffset).putInt(indexAmount);
 
         var drawRecord = new DrawRecord(indexOffset, indexAmount);
 

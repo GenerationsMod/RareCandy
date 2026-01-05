@@ -30,7 +30,7 @@ public class SSBOBuffer {
     public void ensureCapacity(long newCapacity) {
         // Resize native buffer if needed
         if (pointer == 0 || currentCapacity < newCapacity) {
-            if(pointer > 0) MemoryUtil.nmemAlloc(pointer);
+            if(pointer > 0) MemoryUtil.nmemFree(pointer);
             pointer = MemoryUtil.nmemAlloc((int) newCapacity);
         }
 

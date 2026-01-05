@@ -7,4 +7,8 @@ package gg.generations.rarecandy.renderer.pipeline.util;
 public record UniformBinding(
     Uniform uniform,
     UniformCallback callback
-) {}
+) {
+    public String name() {
+        return uniform.name;
+    }
+}

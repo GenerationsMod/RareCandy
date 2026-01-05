@@ -71,9 +71,14 @@ public class GuiPipelines {
                 .addSSBORange(Scope.MODEL, "SrcBuffer", 0, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().vertex)
                 .addSSBORange(Scope.MODEL, "IndexBuffer", 1, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().index)
                 .addSSBORange(Scope.MODEL, "DrawCommands", 2, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().draw)
-                .addSSBO(Scope.MODEL, "InstanceBuffer", 3, ctx -> ctx.object().instanceBuffer.getBufferId())
-                .addSSBO(Scope.MODEL, "TransformBuffer", 4, ctx -> ctx.object().instanceBuffer.getBufferId())
-                .addSSBO(Scope.MODEL, "DstBuffer", 5, ctx -> ctx.object().destBuffer)
+                .addSSBO(Scope.MODEL, "InstanceBuffer", 3, ctx -> {
+                    var id = ctx.object().instanceBuffer.getBufferId();
+                    return id;
+                })
+                .addSSBO(Scope.MODEL, "TransformBuffer", 4, ctx -> ctx.object().uvTransformBuffer.getBufferId())
+                .addSSBO(Scope.MODEL, "DstBuffer", 5, ctx -> {
+                    return ctx.object().destBuffer;
+                })
                 .addUniform(Scope.MODEL, "variantSize", (uniform, ctx) -> uniform.uploadInt(ctx.object().meshes.length))
                 .addUniform(Scope.GLOBAL, "instanceId", (uniform, ctx) -> uniform.uploadInt(instanceId))
                 .build();
@@ -103,11 +108,11 @@ public class GuiPipelines {
         SOLID = TraditionalPipeline.builder(builtin("rewrite/solid.vs.glsl"), builtin("rewrite/solid.fs.glsl"))
                 .apply(builder -> GuiPipelines.common(builder, canvas))
                 .autoSampler2D(Scope.GLOBAL, "tex", 0, ctx -> textures[1].getId())
-//                .addUniform(Scope.GLOBAL, "light", (uniform, ctx) -> {
-//                    var light = (int) (RareCandyCanvas.getLightLevel() * 15);
-//
-//                    uniform.upload2i(0, light);
-//                })
+                .addUniform(Scope.GLOBAL, "light", (uniform, ctx) -> {
+                    var light = (int) (RareCandyCanvas.getLightLevel() * 15);
+
+                    uniform.upload2i(0, light);
+                })
                 .autoSampler2D(Scope.GLOBAL, "lightmap", 1, (ctx) -> ITextureLoader.instance().getTexture("light_map").getId())
                 .autoVec3(Scope.GLOBAL, "Light0_Direction", (ctx) -> light0)
                 .autoVec3(Scope.GLOBAL, "Light1_Direction", (ctx) -> light1)

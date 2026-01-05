@@ -97,32 +97,39 @@ public class RareCandyCanvas {
         currentAnimation = null;
         rendering = false;
 
+        // Detach references immediately so render() will not touch freed objects
+        final ToggleableMultiRenderObject oldModel = loadedModel;
+        final AnimatedObjectInstance oldInstance = loadedModelInstance;
+        final List<AnimatedObjectInstance> oldInstances = new ArrayList<>(instances);
 
+        loadedModel = null;
+        loadedModelInstance = null;
+        instances.clear();
 
-        if(loadedModel != null) {
-            loadedModel.close();
+        this.fileName = name;
 
-            renderer.clear();
-
-            loadedModel = null;
-            instances.forEach(animatedObjectInstance -> {
+        // Schedule destruction on the GL/context thread at a safe point
+        if (oldModel != null) {
+            RareCandy.runLater(() -> {
                 try {
-                    animatedObjectInstance.close();
+                    // Ensure renderer no longer references the object BEFORE deleting its GL resources
+                    renderer.remove(oldModel); // must only detach, not close
+
+                    // Close instances first (if they own per-instance GL objects), then the model
+                    for (var inst : oldInstances) {
+                        inst.close();
+                    }
+
+                    oldModel.close();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             });
-
-            instances.clear();
         }
 
-        this.fileName = name;
-
-        if(pkFile == null) return;
+        if (pkFile == null) return;
 
         loadPokemonModel(pkFile, model -> {
-            var i = 0;
-
             loadedModel = (ToggleableMultiRenderObject) model;
 
             scaleModifier = loadedModel.scale;
@@ -131,18 +138,16 @@ public class RareCandyCanvas {
             handler.fileViewer.scale.reset();
 
             var variants = model.availableVariants();
-
             var variant = !variants.isEmpty() ? variants.iterator().next() : null;
 
             var instance = new AnimatedObjectInstance(new Matrix4f(), loadedModel.variantNameToId.get(variant));
-
             loadedModelInstance = renderer.add(model, instance);
             loadedModelInstance.use();
 
             model.updateDimensions();
             runnable.run();
 
-            if(resetAnimation) setAnimation("idle");
+            if (resetAnimation) setAnimation("idle");
 
             rendering = true;
         });
@@ -210,7 +215,7 @@ public class RareCandyCanvas {
         }
 
         if(animate) time = (System.currentTimeMillis() - startTime) / 1000f;
-        renderer.update(time);
+//        renderer.update(time);
 
         if (runnable != null) runnable.pre();
 

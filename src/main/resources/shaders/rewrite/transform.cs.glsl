@@ -66,10 +66,10 @@ void main() {
 
     vec4 pos = getBoneTransform(instance, src.joints, src.weights) * vec4(src.position, 1.0) * instance.modelMatrix;
 
-    Transform transform = transforms[instanceId * variantSize + meshId];
+    Transform uvTransform = transforms[instanceId * variantSize + meshId];
 
     outV.position = pos.xyz;
-    outV.texcoord = src.texcoord * transform.scale + transform.offset;
+    outV.texcoord = src.texcoord * uvTransform.scale + uvTransform.offset;
     outV.normal   = src.normal;
 
     dst[idx] = outV;

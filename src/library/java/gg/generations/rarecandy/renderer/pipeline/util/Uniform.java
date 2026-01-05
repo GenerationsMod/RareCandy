@@ -17,11 +17,13 @@ public class Uniform {
     private static final FloatBuffer VEC2_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(2);
     private static final FloatBuffer VEC3_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(3);
     private static final FloatBuffer VEC4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(4);
+    protected final String name;
     public final int type;
     public final int count;
     private final int[] locations;
 
     public Uniform(int program, String name, int type, int count) {
+        this.name = name;
         this.type = type;
         this.count = count;
         this.locations = new int[count];

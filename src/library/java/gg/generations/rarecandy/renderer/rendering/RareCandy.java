@@ -15,7 +15,7 @@ public class RareCandy {
     private static final Queue<Runnable> TASKS = new ConcurrentLinkedQueue<>();
 
     private final List<MultiRenderObject> objects = new ArrayList<>();
-    private final List<MultiRenderObject> objectsToRemove = new ArrayList<>();
+    private final java.util.Set<MultiRenderObject> objectsToRemove = new java.util.HashSet<>();
 
     public RareCandy() {
         ThreadSafety.initContextThread();
@@ -95,5 +95,9 @@ public class RareCandy {
 
             objectsToRemove.clear();
         }
+    }
+
+    public void remove(MultiRenderObject loadedModel) {
+        objects.remove(loadedModel);
     }
 }

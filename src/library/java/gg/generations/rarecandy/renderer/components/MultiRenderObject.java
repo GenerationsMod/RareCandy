@@ -164,6 +164,8 @@ public abstract class MultiRenderObject {
 
         GL43.glDeleteBuffers(modelBuffer);
         GL43.glDeleteBuffers(destBuffer);
+        this.uvTransformBuffer.delete();
+        this.instanceBuffer.delete();
     }
 
     public boolean isEmpty() {
@@ -198,12 +200,13 @@ public abstract class MultiRenderObject {
                     transform = Transform.DEFAULT;
                 }
 
-                transform.upload(i * meshes.length + meshId * Float.BYTES * 4, uvTransformBuffer);
-            }
-
-            instanceBuffer.upload();
-            uvTransformBuffer.upload();
+                int stride = Float.BYTES * 4; // 16
+                int index = i * meshes.length + meshId;
+                transform.upload(index * stride, uvTransformBuffer);            }
         }
+
+        instanceBuffer.upload();
+        uvTransformBuffer.upload();
     }
 
     public <T extends ObjectInstance> boolean add(@NotNull T instance) {
@@ -221,6 +224,11 @@ public abstract class MultiRenderObject {
         var size = instances.size();
 
         instanceBuffer.ensureCapacity((long) size * InstanceDetails.size);
+        uvTransformBuffer.ensureCapacity(
+                (long) instances.size()
+                        * meshes.length
+                        * Float.BYTES * 4
+        );
     }
 
     public abstract int targetVertexStride();

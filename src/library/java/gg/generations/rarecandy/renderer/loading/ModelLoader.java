@@ -78,7 +78,7 @@ public class ModelLoader {
         var dimensions = new Vector3f();
 
         var vertexCount = 0;
-        var indexBytes = 0;
+        var indexCount = 0;
 
 
         int alignment = glGetInteger(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
@@ -89,14 +89,14 @@ public class ModelLoader {
             maxVertex = Math.max(maxVertex, mesh.mNumFaces() * 3);
 
             vertexCount += mesh.mNumVertices();
-            indexBytes += mesh.mNumFaces() * 3;
+            indexCount += mesh.mNumFaces() * 3;
         }
 
         objects.maxVertex = maxVertex;
 
 
 
-        indexBytes *= Integer.BYTES;
+        var indexBytes = indexCount *= Integer.BYTES;
 
         int drawBytes = meshes.length * Integer.BYTES * 2;
 
@@ -115,7 +115,7 @@ public class ModelLoader {
         objects.vertex = new SbboOffset(0, vertexBytes);
         objects.index = new SbboOffset(indexOffset, indexBytes);
         objects.draw = new SbboOffset(drawOffset, drawBytes);
-        objects.target = new SbboOffset(0, objects.targetVertexStride() * maxVertex);
+        objects.target = new SbboOffset(0, objects.targetVertexStride() * indexCount);
 
         int[] counters = new int[2]; // index Count
 
@@ -148,7 +148,7 @@ public class ModelLoader {
         GL43.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
         objects.destBuffer = bufferId;
 
-        objects.uvTransformBuffer = new SSBOBuffer(Float.BYTES * 4);
+        objects.uvTransformBuffer = new SSBOBuffer(Float.BYTES * 4 * objects.meshes.length);
         objects.instanceBuffer = new SSBOBuffer(InstanceDetails.size);
 
         MemoryUtil.memFree(buffer);

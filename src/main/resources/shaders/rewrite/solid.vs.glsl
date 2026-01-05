@@ -61,10 +61,10 @@ void main() {
     Vertex v = vertices[gl_VertexID];
 
     mat4 worldSpace = projectionMatrix * viewMatrix;
-    vec4 worldPosition = vec4(v.position, 1.0);
+    vec4 pos = worldSpace * vec4(v.position, 1.0);
 
     texCoord0 = v.texcoord;
-    gl_Position = worldSpace * worldPosition;
-    vertexDistance = fog_distance(v.position, FogShape);
+    gl_Position = pos;
+    vertexDistance = fog_distance(pos.xyz, FogShape);
     vertexColor = getVertexColor(v.normal);
 }

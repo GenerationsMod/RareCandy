@@ -124,7 +124,7 @@ public class MaterialReference {
 
                     images.setDiffuse(texture);
 
-                    if (type.equals("masked")) {
+                    if (type.contains("masked")) {
                         var color = jsonObject.has("color") ? color(jsonObject.get("color")) : new Vector3f(1.0f, 1.0f, 1.0f);
                         shader = "masked";
                         values.setBaseColor1(color);

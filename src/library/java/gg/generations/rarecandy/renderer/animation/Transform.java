@@ -21,9 +21,9 @@ public record Transform(Vector2f scale, Vector2f offset) {
         return offset.x == 0f && offset.y == 0f && scale.x == 1f && scale.y == 1f;
     }
 
-    public void upload(int pos, SSBOBuffer buffer) {
-        buffer.put(pos, scale);
-        buffer.put(pos + Float.BYTES * 2, offset);
+    public void upload(SSBOBuffer buffer) {
+        buffer.put(scale);
+        buffer.put(offset);
     }
 }
 

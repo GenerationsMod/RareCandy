@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static gg.generations.rarecandy.renderer.loading.ModelLoader.createObject;
 import static org.lwjgl.opengl.GL42C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
 
 
@@ -32,8 +33,6 @@ public class RareCandyCanvas {
     private static CycleVariants runnable;
     public static Matrix4f projectionMatrix;
     public static float radius = 2.0f;
-
-    private final ModelLoader loader = new ModelLoader();
 
     public static float lightLevel = 1;
     private static double time;
@@ -280,7 +279,7 @@ public class RareCandyCanvas {
     }
 
     protected void loadPokemonModel(PixelAsset is, Consumer<MultiRenderObject> onFinish) {
-        loader.createObject(
+        createObject(
                 ToggleableMultiRenderObject::new,
                 () -> is, MaterialReference::process, onFinish);
     }

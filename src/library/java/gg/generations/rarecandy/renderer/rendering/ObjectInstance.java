@@ -24,8 +24,8 @@ public class ObjectInstance implements Closeable {
         this.variant = variant;
     }
 
-    public void update(int pos, SSBOBuffer instanceBuffer) {
-        instanceBuffer.put(pos, transformationMatrix);
+    public void update(SSBOBuffer instanceBuffer) {
+        instanceBuffer.put(transformationMatrix);
     }
 
     public void link(MultiRenderObject object) {

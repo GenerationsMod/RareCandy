@@ -7,6 +7,8 @@ import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
+import java.util.Arrays;
+
 public class AnimatedObjectInstance extends ObjectInstance {
     public static final int ANIMATED_SIZE = MAT4_SIZE * 221;
 
@@ -18,15 +20,12 @@ public class AnimatedObjectInstance extends ObjectInstance {
     }
 
     @Override
-    public void update(int pos, SSBOBuffer instanceBuffer) {
-        super.update(pos, instanceBuffer);
+    public void update(SSBOBuffer instanceBuffer) {
+        super.update(instanceBuffer);
 
         var bones = getTransforms();
 
-        for (int i = 0; i < bones.length; i++) {
-            var bone = bones[i];
-            instanceBuffer.put((1 + i) * MAT4_SIZE, bone);
-        }
+        Arrays.stream(bones).forEach(instanceBuffer::put);
     }
 
 

@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL43;
-import org.lwjgl.opengl.GL43C;
 
 import java.io.IOException;
 import java.util.*;
@@ -62,7 +61,7 @@ public abstract class MultiRenderObject {
 
     private Matrix4f rootTransformation = new Matrix4f();
 
-    private final List<ObjectInstance> instances = new ArrayList<>();
+    protected final List<ObjectInstance> instances = new ArrayList<>();
 
     public MultiRenderObject(ModelLoader.Names names) {
         meshes = new DrawRecord[names.meshes().size()];
@@ -174,10 +173,10 @@ public abstract class MultiRenderObject {
 
     public void updateSSBOs() {
         ensureCapacity();
-        for (int i = 0; i < instances.size(); i++) {
-            var instance = instances.get(i);
+        resetSSBOs();
 
-            instance.update(i * InstanceDetails.size, instanceBuffer);
+        for (ObjectInstance instance : instances) {
+            instance.update(instanceBuffer);
 
             for (int meshId = 0; meshId < meshes.length; meshId++) {
 
@@ -196,17 +195,21 @@ public abstract class MultiRenderObject {
                     }
                 }
 
-                if(transform == null) {
+                if (transform == null) {
                     transform = Transform.DEFAULT;
                 }
 
-                int stride = Float.BYTES * 4; // 16
-                int index = i * meshes.length + meshId;
-                transform.upload(index * stride, uvTransformBuffer);            }
+                transform.upload(uvTransformBuffer);
+            }
         }
 
         instanceBuffer.upload();
         uvTransformBuffer.upload();
+    }
+
+    private void resetSSBOs() {
+        instanceBuffer.reset();
+        uvTransformBuffer.reset();
     }
 
     public <T extends ObjectInstance> boolean add(@NotNull T instance) {

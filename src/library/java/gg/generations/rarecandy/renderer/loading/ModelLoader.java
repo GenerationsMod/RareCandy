@@ -32,18 +32,8 @@ import static org.lwjgl.opengl.GL43C.*;
 
 public class ModelLoader {
     public static int byteAmount;
-//    private final ExecutorService modelLoadingPool;
 
     private static final Vector3f temp = new Vector3f();
-
-    public ModelLoader() {
-        this(4);
-    }
-
-    public ModelLoader(int numThreads) {
-//        this.modelLoadingPool = Executors.newFixedThreadPool(numThreads);
-    }
-
 
     public static List<Attribute> ATTRIBUTES = List.of(
             Attribute.POSITION,
@@ -631,7 +621,7 @@ public class ModelLoader {
         }
     }
 
-    public MultiRenderObject createObject(Function<Names, MultiRenderObject> objBuilder, @NotNull Supplier<PixelAsset> is, BiFunction<MaterialReference, List<String>, Material> materialProcess, Consumer<MultiRenderObject> onFinish) {
+    public static MultiRenderObject createObject(Function<Names, MultiRenderObject> objBuilder, @NotNull Supplier<PixelAsset> is, BiFunction<MaterialReference, List<String>, Material> materialProcess, Consumer<MultiRenderObject> onFinish) {
         var asset = is.get();
         var config = asset.getConfig();
 
@@ -783,11 +773,11 @@ public class ModelLoader {
 //        }
 //    }
 
-    private void checkIfAlreadyIn(List<String> list, String entry) {
+    private static void checkIfAlreadyIn(List<String> list, String entry) {
         checkIfAlreadyIn(list, entry, false);
     }
 
-    private void checkIfAlreadyIn(List<String> list, String entry, boolean addFirst) {
+    private static void checkIfAlreadyIn(List<String> list, String entry, boolean addFirst) {
         if(!list.contains(entry)) if(addFirst) list.addFirst(entry); else list.add(entry);
     }
 

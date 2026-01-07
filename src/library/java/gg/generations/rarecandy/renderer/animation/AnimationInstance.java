@@ -36,6 +36,11 @@ public class AnimationInstance {
     }
 
     public void update(double secondsPassed) {
+        if(animation == null) {
+            this.matrixTransforms = AnimationController.NO_ANIMATION;
+
+            return;
+        }
         updateStart(secondsPassed);
 
         if (!paused) {
@@ -45,7 +50,6 @@ public class AnimationInstance {
             if (prevTime > currentTime) onLoop();
         } else if (timeAtPause == -1) timeAtPause = secondsPassed;
 
-        if(animation == null) return;
         matrixTransforms = animation.getFrameTransform(secondsPassed);
     }
 

@@ -12,7 +12,6 @@ import java.util.*;
 public class MaterialReference {
     public String parent;
     public String shader;
-    public String effect;
 
     public CullType cull;
 
@@ -22,10 +21,9 @@ public class MaterialReference {
 
     public MaterialValues values;
 
-    public MaterialReference(String parent, String shader, String effect, CullType cull, BlendType blend, MaterialImages images, MaterialValues values) {
+    public MaterialReference(String parent, String shader, CullType cull, BlendType blend, MaterialImages images, MaterialValues values) {
         this.parent = parent;
         this.shader = shader;
-        this.effect = effect;
         this.cull = cull;
         this.blend = blend;
         this.images = images;
@@ -42,7 +40,6 @@ public class MaterialReference {
             else {
 
                 if (!Objects.equals(shader, reference.shader)) shader = reference.shader;
-                if (effect == null) effect = reference.effect;
                 if (!Objects.equals(cull, reference.cull)) cull = reference.cull;
                 if (!Objects.equals(blend, reference.blend)) blend = reference.blend;
 
@@ -67,31 +64,21 @@ public class MaterialReference {
     public static Material process(MaterialReference reference, List<String> imageNames) {
         var images = reference.images.toArray(imageNames);
 
-        int method = switch (reference.shader) {
+        int method = 0;
+        if (reference.shader != null) {
+            method = switch (reference.shader) {
                 case "layered" -> 1;
                 case "masked" -> 2;
                 default -> 0;
-        };
-
-        var effectRef = reference.effect;
-
-
-        var effect = switch (reference.effect) {
-                case "galaxy" -> 1;
-                case "pastel" -> 2;
-                case "shadow" -> 3;
-                case "sketch" -> 4;
-                case "vintage" -> 5;
-            case null, default -> 0;
-        };
+            };
+        }
 
         return new Material(
                 images,
                 reference.values,
                 reference.cull,
                 reference.blend,
-                method,
-                effect
+                method
         );
     }
 
@@ -100,8 +87,6 @@ public class MaterialReference {
         public MaterialReference deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
             String shader = null;
-
-            String effect = null;
 
             CullType cull = CullType.None;
 
@@ -150,18 +135,11 @@ public class MaterialReference {
                     switch (shader) {
                         case "masked_paradox" -> {
                             shader = "masked";
-                            values.setUseParadox(true);
                         }
                         case "paradox", "solid_paradox" -> {
                             shader = "solid";
-                            values.setUseParadox(true);
                         }
                     }
-                }
-
-                if(jsonObject.has("effect")) {
-
-                    effect = jsonObject.getAsJsonPrimitive("effect").getAsString();
                 }
 
                 if(jsonObject.has("cull")) cull = CullType.from(jsonObject.getAsJsonPrimitive("cull").getAsString());
@@ -174,7 +152,7 @@ public class MaterialReference {
                 }
             }
 
-            return new MaterialReference(parent, shader, effect, cull, blend, images, values);
+            return new MaterialReference(parent, shader, cull, blend, images, values);
         }
     }
 
@@ -217,7 +195,6 @@ public class MaterialReference {
         // Compare simple fields
         if (!Objects.equals(parent, that.parent)) return false;
         if (!Objects.equals(shader, that.shader)) return false;
-        if (!Objects.equals(effect, that.effect)) return false;
         if (!Objects.equals(cull, that.cull)) return false;
         if (!Objects.equals(blend, that.blend)) return false;
 
@@ -229,7 +206,7 @@ public class MaterialReference {
 
     @Override
     public int hashCode() {
-        return Objects.hash(parent, shader, effect, cull, blend, values, images);
+        return Objects.hash(parent, shader, cull, blend, values, images);
     }
 
     // Helper method to compare images based on exact byte content of key-value pairs

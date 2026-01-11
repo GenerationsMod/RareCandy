@@ -93,7 +93,7 @@ public class GuiHandler implements KeyListener {
             getCanvas().openFile(asset, FilenameUtils.getBaseName(filePath.getFileName().toString()), () -> gui.fileViewer.initializeAsset(asset, assetPath, getCanvas().loadedModel.animationNameToId.keySet()), true);
 
         } catch (Exception e) {
-            System.out.println("SCREAM");
+            e.printStackTrace();
         }
     }
 

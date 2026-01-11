@@ -25,13 +25,20 @@ struct Instance {
     mat4 boneTransforms[220];
 };
 
+struct Variant {
+    int material;
+    int effect;
+    bool paradox;
+};
+
 struct Transform {
     vec2 scale;
     vec2 offset;
+    int variant;
 };
 
-uniform uint variantSize;
-uniform uint instanceId;
+uniform int variantSize;
+uniform int instanceId;
 
 layout(std430, binding = 0) readonly  buffer SrcBuffer       { SourceVertex src[]; };
 layout(std430, binding = 1) readonly  buffer IndexBuffer     { uint indices[]; };
@@ -66,10 +73,10 @@ void main() {
 
     vec4 pos = getBoneTransform(instance, src.joints, src.weights) * vec4(src.position, 1.0) * instance.modelMatrix;
 
-    Transform uvTransform = transforms[instanceId * variantSize + meshId];
+    Transform variant = transforms[instanceId * variantSize + meshId];
 
     outV.position = pos.xyz;
-    outV.texcoord = src.texcoord * uvTransform.scale + uvTransform.offset;
+    outV.texcoord = src.texcoord * variant.scale + variant.offset;
     outV.normal   = src.normal;
 
     dst[idx] = outV;

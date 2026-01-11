@@ -6,6 +6,7 @@ import imgui.ImGui;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 public class MaterialValues {
@@ -28,7 +29,6 @@ public class MaterialValues {
     private float emiIntensity5 = 1.0f;
 
     private boolean useLight = true;
-    private boolean useParadox = false;
     private boolean disableDepth = false;
 
     public Vector3f getBaseColor1() {
@@ -159,14 +159,6 @@ public class MaterialValues {
         this.useLight = useLight;
     }
 
-    public boolean getUseParadox() {
-        return useParadox;
-    }
-
-    public void setUseParadox(boolean useParadox) {
-        this.useParadox = useParadox;
-    }
-
     public boolean getDisableDepth() {
         return disableDepth;
     }
@@ -194,7 +186,6 @@ public class MaterialValues {
         if (object.has("emiIntensity4")) emiIntensity4 = object.get("emiIntensity4").getAsFloat();
         if (object.has("emiIntensity5")) emiIntensity5 = object.get("emiIntensity5").getAsFloat();
         if (object.has("useLight")) useLight = object.get("useLight").getAsBoolean();
-        if (object.has("useParadox")) useParadox = object.get("useParadox").getAsBoolean();
         if (object.has("disableDepth")) disableDepth = object.get("disableDepth").getAsBoolean();
     }
 
@@ -218,7 +209,6 @@ public class MaterialValues {
         if(values.emiIntensity5 != 1.0f) this.emiIntensity5 = values.emiIntensity5;
 
         if(values.useLight != this.useLight) this.useLight = values.useLight;
-        if(values.useParadox != this.useParadox) this.useLight = values.useParadox;
         if(values.disableDepth != this.disableDepth) this.disableDepth = values.disableDepth;
 
         return this;
@@ -260,7 +250,6 @@ public class MaterialValues {
                 Objects.equals(emiColor4, that.emiColor4) &&
                 Objects.equals(emiColor5, that.emiColor5) &&
                 useLight == that.useLight &&
-                useParadox == that.useParadox &&
                 disableDepth == that.disableDepth;
     }
 
@@ -283,25 +272,34 @@ public class MaterialValues {
                 emiIntensity4,
                 emiIntensity5,
                 useLight,
-                useParadox,
                 disableDepth);
     }
 
-    public void put(long pointer) {
-        baseColor1.getToAddress(pointer);
-        baseColor2.getToAddress(pointer + 16);
-        baseColor3.getToAddress(pointer + 32);
-        baseColor4.getToAddress(pointer + 48);
-        baseColor5.getToAddress(pointer + 64);
-        emiColor1.getToAddress(pointer + 80);
-        emiColor2.getToAddress(pointer + 96);
-        emiColor3.getToAddress(pointer + 112);
-        emiColor4.getToAddress(pointer + 128);
-        emiColor5.getToAddress(pointer + 144);
-        MemoryUtil.memPutFloat(pointer + 156, emiIntensity1);
-        MemoryUtil.memPutFloat(pointer + 160, emiIntensity2);
-        MemoryUtil.memPutFloat(pointer + 164, emiIntensity3);
-        MemoryUtil.memPutFloat(pointer + 168, emiIntensity4);
-        MemoryUtil.memPutFloat(pointer + 172, emiIntensity5);
+    public void put(ByteBuffer pointer) {
+        baseColor1.get(pointer);
+        pointer.position(pointer.position() + 16);
+        baseColor2.get(pointer);
+        pointer.position(pointer.position() + 16);
+        baseColor3.get(pointer);
+        pointer.position(pointer.position() + 16);
+        baseColor4.get(pointer);
+        pointer.position(pointer.position() + 16);
+        baseColor5.get(pointer);
+        pointer.position(pointer.position() + 16);
+        emiColor1.get(pointer);
+        pointer.position(pointer.position() + 16);
+        emiColor2.get(pointer);
+        pointer.position(pointer.position() + 16);
+        emiColor3.get(pointer);
+        pointer.position(pointer.position() + 16);
+        emiColor4.get(pointer);
+        pointer.position(pointer.position() + 16);
+        emiColor5.get(pointer);
+        pointer.position(pointer.position() + 16);
+        pointer.putFloat(emiIntensity1);
+        pointer.putFloat(emiIntensity2);
+        pointer.putFloat(emiIntensity3);
+        pointer.putFloat(emiIntensity4);
+        pointer.putFloat(emiIntensity5);
     }
 }

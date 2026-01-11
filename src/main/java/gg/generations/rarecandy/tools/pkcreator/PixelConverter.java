@@ -2,6 +2,8 @@ package gg.generations.rarecandy.tools.pkcreator;
 
 import dev.thecodewarrior.binarysmd.formats.SMDBinaryReader;
 import dev.thecodewarrior.binarysmd.formats.SMDTextWriter;
+import gg.generations.rarecandy.pokeutils.PixelAsset;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -91,12 +93,36 @@ public class PixelConverter {
     }
 
     public static void unpackPk(Path path, Path outputPath) {
-        try (var xzReader = new XZInputStream(Files.newInputStream(path))) {
-            try (var tarReader = new TarArchiveInputStream(xzReader)) {
-                extractTarArchive(tarReader, outputPath);
+        try {
+            SevenZFile seven = PixelAsset.getSevenZipFile(path);
+
+            for (var entry : seven.getEntries()) {
+                var name = entry.getName();
+
+                if (name == null || name.isEmpty()) continue;
+
+                // Normalize and resolve the path
+                var filePath = outputPath.resolve(name).normalize();
+
+                // Security: Prevent directory traversal attacks
+                if (!filePath.startsWith(outputPath)) {
+                    throw new IOException("Entry is outside target directory: " + name);
+                }
+
+                if (entry.isDirectory()) {
+                    // Create directory if it doesn't exist
+                    Files.createDirectories(filePath);
+                } else {
+                    // Ensure parent directories exist
+                    Files.createDirectories(filePath.getParent());
+
+                    // Extract file
+                    Files.write(filePath, seven.getInputStream(entry).readAllBytes());
+                }
             }
-        } catch (IOException e) {
-            printError(e);
+        } catch (Exception e) {
+            System.out.println("Issue: " + path);
+            e.printStackTrace();
         }
     }
 

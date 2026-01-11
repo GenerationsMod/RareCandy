@@ -30,59 +30,6 @@ public class PixelAssetTree {
         super();
         this.gui = gui;
         scale = new PokeUtilsGui.FloatInputComponent("Scale", () -> gui.canvas.originalScaleModifer, scale -> gui.canvas.scaleModifier = (float) scale);
-
-//
-//        setDragEnabled(false);
-//        setTransferHandler(new FilesystemTransferHandler());
-//        setModel(null);
-//
-//        addMouseListener(new MouseAdapter() {
-//            public void mouseReleased(MouseEvent e) {
-//                var path = getClosestPathForLocation(e.getPoint().x, e.getPoint().y);
-//
-//                if (path == null) return;
-//
-//                if (e.isPopupTrigger())
-//                    switch (path.getLastPathComponent().toString()) {
-//                        case "animations" ->
-//                                new AnimationNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
-//                        case "images" ->
-//                                new ImageNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
-//                        default ->
-//                                new TreeNodePopup(PixelAssetTree.this, PixelAssetTree.this.gui.handler, e).show(e.getComponent(), e.getX(), e.getY());
-//                    }
-//                else if (path.getParentPath() != null) {
-//                    var node = path.getParentPath().getLastPathComponent().toString();
-//
-//                    switch (node) {
-//                        case "animations" -> PixelAssetTree.this.gui.handler.getCanvas().setAnimation(path.getLastPathComponent().toString().replace(".tranm", "").replace(".smd", "").replace(".gfbanm", ""));
-//                        case "variants" -> PixelAssetTree.this.gui.handler.getCanvas().setVariant(path.getLastPathComponent().toString());
-//                        case "objects" -> {
-//                            var object1 = path.getLastPathComponent();
-//
-//                            var object = object1.toString();
-//                            var add = object.startsWith("-");
-//
-//                            if(add) object = object.substring(1);
-//
-//                            if(object1 instanceof DefaultMutableTreeNode) {
-//                                PixelAssetTree.this.gui.handler.getCanvas().toggleObject(add, object);
-//                                ((DefaultMutableTreeNode) object1).setUserObject(!add ? "-" + object : object);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        });
-//
-//        addTreeSelectionListener(e -> {
-//            var selectedNode = (DefaultMutableTreeNode) getLastSelectedPathComponent();
-//
-//            if (selectedNode != null && selectedNode.getParent() != null && selectedNode.getParent().toString().equals("animations")) {
-//                this.gui.handler.getCanvas().currentAnimation = selectedNode.toString();
-//                this.gui.handler.getCanvas().startTime = System.currentTimeMillis();
-//            }
-//        });
     }
 
     public void render() {

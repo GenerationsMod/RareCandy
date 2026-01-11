@@ -30,6 +30,11 @@ public class TextureLoader extends ITextureLoader {
     }
 
     @Override
+    public boolean contains(String name) {
+        return MAP.containsKey(name);
+    }
+
+    @Override
     public void register(String name, ITexture texture) {
         long startTime = System.nanoTime();
         MAP.computeIfAbsent(name, s -> {

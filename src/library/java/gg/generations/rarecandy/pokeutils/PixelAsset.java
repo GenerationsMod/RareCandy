@@ -24,7 +24,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -54,6 +56,7 @@ public class PixelAsset {
                 var obj = new JsonObject();
                 if (variantDetails.material() != null) obj.addProperty("material", variantDetails.material());
                 if (variantDetails.hide() != null) obj.addProperty("hide", variantDetails.hide());
+                if (variantDetails.paradox() != null) obj.addProperty("paradox", variantDetails.paradox());
                 if (variantDetails.offset() != null && variantDetails.offset() != AnimationController.NO_OFFSET)
                     obj.add("transform", ctx.serialize(variantDetails.offset()));
 
@@ -61,10 +64,12 @@ public class PixelAsset {
             }, (jsonElement, ctx) -> {
                 var obj = jsonElement.getAsJsonObject();
                 var material = obj.has("material") ? obj.getAsJsonPrimitive("material").getAsString() : null;
+                var effect = obj.has("effect") ? obj.getAsJsonPrimitive("effect").getAsString() : null;
+                var paradox = obj.has("paradox") ? obj.getAsJsonPrimitive("paradox").getAsBoolean() : null;
                 var hide = obj.has("hide") ? obj.getAsJsonPrimitive("hide").getAsBoolean() : null;
                 Transform offset = obj.has("offset") ? ctx.deserialize(obj.get("offset"), Transform.class) : null;
                 if(offset == null && obj.has("transform")) offset = ctx.deserialize(obj.get("transform"), Transform.class);
-                return new VariantDetails(material, hide, offset);
+                return new VariantDetails(material, effect, paradox, hide, offset);
             }))
             .registerTypeAdapter(Transform.class, new GenericJsonThing<>((transform, ctx) -> {
                 if (transform.scale().x == 1 && transform.scale().y == 1) {
@@ -214,12 +219,20 @@ public class PixelAsset {
                 var json = new String(entry.getValue());
 
                 config = GSON.fromJson(json, ModelConfig.class);
+
+                config.materials.forEach((s, reference) -> {
+                    var images = reference.images;
+
+                    images.applyModelName(name);
+                });
             }
 
-            files.put(entry.getKey(), entry.getValue());
+            var key = entry.getKey();
+
+            key = key.contains(".png") ? name + "-" + key : key;
+
+            files.put(key, entry.getValue());
         }
-
-
 
         updateSettings();
 

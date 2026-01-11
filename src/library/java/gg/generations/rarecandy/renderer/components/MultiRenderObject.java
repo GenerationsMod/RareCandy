@@ -39,6 +39,8 @@ public abstract class MultiRenderObject {
     public SbboOffset vertex;
     public SbboOffset index;
     public SbboOffset draw;
+    public SbboOffset material;
+    public SbboOffset variant;
     public SbboOffset target;
 
     public SSBOBuffer instanceBuffer;
@@ -184,9 +186,9 @@ public abstract class MultiRenderObject {
 
                 Transform transform = variant.offset();
 
-                if (instance instanceof AnimatedObjectInstance animatedInstance) {
+                var material = variant.material();
 
-                    var material = variant.material();
+                if (instance instanceof AnimatedObjectInstance animatedInstance) {
 
                     var t = animatedInstance.getTransform(material);
 
@@ -200,6 +202,8 @@ public abstract class MultiRenderObject {
                 }
 
                 transform.upload(uvTransformBuffer);
+                uvTransformBuffer.put(instance.variant());
+                uvTransformBuffer.move(4);
             }
         }
 
@@ -230,7 +234,7 @@ public abstract class MultiRenderObject {
         uvTransformBuffer.ensureCapacity(
                 (long) instances.size()
                         * meshes.length
-                        * Float.BYTES * 4
+                        * (Float.BYTES * 4 + Integer.BYTES * 2)
         );
     }
 

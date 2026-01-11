@@ -31,17 +31,7 @@ import static org.lwjgl.opengl.GL30C.*;
 import static org.lwjgl.opengl.GL43C.*;
 
 public class ModelLoader {
-    public static int byteAmount;
-
     private static final Vector3f temp = new Vector3f();
-
-    public static List<Attribute> ATTRIBUTES = List.of(
-            Attribute.POSITION,
-            Attribute.TEXCOORD,
-            Attribute.NORMAL,
-            Attribute.BONE_IDS,
-            Attribute.BONE_WEIGHTS
-    );
 
     static int alignUp(int value, int alignment) {
         return (value + alignment - 1) / alignment * alignment;
@@ -92,9 +82,15 @@ public class ModelLoader {
 
         int vertexBytes = vertexCount * 80;
 
+        int materialBytes = objects.materials.length * 192;
+        int variantBytes = objects.variants.length * Variant.SIZE;
+
         int indexOffset = alignUp(vertexBytes, alignment);
         int drawOffset  = indexOffset + alignUp(indexBytes, alignment);
-        int totalBytes = drawOffset + drawBytes;
+        int materialOffset = drawOffset + alignUp(drawBytes, alignment);
+        int variantOffset = materialOffset + alignUp(materialBytes, alignment);
+
+        int totalBytes = variantOffset + variantBytes;
 
         var vertexBuffer = MemoryUtil.memAlloc(vertexBytes);
 
@@ -102,9 +98,14 @@ public class ModelLoader {
 
         var drawBuffer = MemoryUtil.memAlloc(drawBytes);
 
+        var materialBuffer = MemoryUtil.memAlloc(materialBytes);
+        var variantBuffer = MemoryUtil.memAlloc(variantBytes);
+
         objects.vertex = new SbboOffset(0, vertexBytes);
         objects.index = new SbboOffset(indexOffset, indexBytes);
         objects.draw = new SbboOffset(drawOffset, drawBytes);
+        objects.material = new SbboOffset(materialOffset, materialBytes);
+        objects.variant = new SbboOffset(variantOffset, variantBytes);
         objects.target = new SbboOffset(0, objects.targetVertexStride() * indexCount);
 
         int[] counters = new int[2]; // index Count
@@ -121,10 +122,20 @@ public class ModelLoader {
                     counters, skeleton, mesh, config.modelOptions != null ? config.modelOptions : Collections.emptyMap(), dimensions);
         }
 
+        for(var material : objects.materials) {
+            material.put(materialBuffer);
+        }
+
+        for(var variant : objects.variants) {
+            variant.put(variantBuffer);
+        }
+
         var buffer = MemoryUtil.memAlloc(totalBytes);
         objects.vertex.put(buffer, vertexBuffer.flip());
         objects.index.put(buffer, indexBuffer.flip());
         objects.draw.put(buffer, drawBuffer.flip());
+        objects.material.put(buffer, materialBuffer.flip());
+        objects.variant.put(buffer, variantBuffer.flip());
 
         var bufferId = GL43C.glGenBuffers();
         GL43C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
@@ -145,7 +156,7 @@ public class ModelLoader {
         MemoryUtil.memFree(vertexBuffer);
         MemoryUtil.memFree(indexBuffer);
         MemoryUtil.memFree(drawBuffer);
-
+        MemoryUtil.memFree(variantBuffer);
 
         var transform = new Matrix4f();
 
@@ -182,10 +193,10 @@ public class ModelLoader {
 
             Animation.Offset[] offsetsArray = new Animation.Offset[names.materials.size()];
 
-            offsets.forEach(new BiConsumer<String, Animation.Offset>() {
-                @Override
-                public void accept(String s, Animation.Offset offset) {
-                    var id = names.materials.indexOf(s);
+            offsets.forEach((s, offset) -> {
+                var id = names.materials.indexOf(s);
+
+                if(id != -1) {
                     offsetsArray[id] = offset;
                 }
             });
@@ -285,7 +296,22 @@ public class ModelLoader {
         config.defaultVariant.forEach((k, v) -> {
             var mesh = names.meshes.indexOf(k);
 
-            var variant = addOrGetIndex(variantList, new Variant(names.materials.indexOf(v.material()), v.hide(), v.offset()));
+            int effect = 0;
+            if (v.effect() != null) {
+                effect = switch (v.effect()) {
+                    case "galaxy" -> 1;
+                    case "pastel" -> 2;
+                    case "shadow" -> 3;
+                    case "sketch" -> 4;
+                    case "vintage" -> 5;
+                    default -> 0;
+                };
+            }
+
+            var paradox = v.paradox() != null && v.paradox();
+            var hide = v.hide() != null && v.hide();
+
+            var variant = addOrGetIndex(variantList, new Variant(names.materials.indexOf(v.material()), effect, paradox, hide, v.offset()));
 
             if(!aliases.isEmpty() && aliases.containsKey(k)) {
                 for (String s : aliases.get(k)) {
@@ -365,9 +391,21 @@ public class ModelLoader {
 
             int mat = names.materials.indexOf(v.material());
             boolean hide = v.hide() != null && v.hide();
+            boolean paradox = v.paradox() != null && v.paradox();
             var offset = v.offset() != null ? v.offset() : null;
+            int effect = 0;
+            if (v.effect() != null) {
+                effect = switch (v.effect()) {
+                    case "galaxy" -> 1;
+                    case "pastel" -> 2;
+                    case "shadow" -> 3;
+                    case "sketch" -> 4;
+                    case "vintage" -> 5;
+                    default -> 0;
+                };
+            }
 
-            var variant = addOrGetIndex(variants, new Variant(mat, hide, offset));
+            var variant = addOrGetIndex(variants, new Variant(mat, effect, paradox, hide, offset));
 
             if(!aliases.isEmpty() && aliases.containsKey(k)) {
                 for (String s : aliases.get(k)) {
@@ -533,96 +571,16 @@ public class ModelLoader {
         }
     }
 
-    public static short floatToHalf(float fval) {
-        int fbits = Float.floatToIntBits(fval);
-        int sign = (fbits >>> 16) & 0x8000;
-        int val = (fbits & 0x7fffffff) + 0x1000;
-        if (val >= 0x47800000) {
-            if ((fbits & 0x7fffffff) >= 0x47800000) {
-                if (val < 0x7f800000) return (short) (sign | 0x7c00);
-                return (short) (sign | 0x7c00 | ((fbits & 0x007fffff) >>> 13));
-            }
-            return (short) (sign | 0x7bff);
-        }
-        if (val >= 0x38800000) return (short) (sign | ((val - 0x38000000) >>> 13));
-        if (val < 0x33000000) return (short) sign;
-        val = (fbits & 0x7fffffff) >>> 23;
-        return (short) (sign | ((((fbits & 0x7fffff) | 0x800000) + (0x800000 >>> (val - 102))) >>> (126 - val)));
-    }
-
-    public static int calculateVertexSize(List<Attribute> layout) {
-        var size = 0;
-        for (var attrib : layout) size += calculateAttributeSize(attrib);
-        return size;
-    }
-
-    public static int calculateAttributeSize(Attribute attrib) {
-        return switch (attrib.glType()) {
-            case GL_FLOAT, GL_UNSIGNED_INT, GL_INT -> 4;
-            case GL_BYTE, GL_UNSIGNED_BYTE -> 1;
-            case GL_SHORT, GL_UNSIGNED_SHORT, GL_HALF_FLOAT -> 2;
-            default -> throw new IllegalStateException("Unexpected OpenGL Attribute type: " + attrib.glType() + ". If this is wrong, please contact hydos");
-        } * attrib.amount();
-    }
-
-    private static final List<Attribute> DEFAULT_ATTRIBUTES = List.of(
-            Attribute.POSITION,
-            Attribute.TEXCOORD,
-            Attribute.NORMAL,
-            Attribute.BONE_IDS,
-            Attribute.BONE_WEIGHTS
-    );
-
-
-    public static void generateVao(GLModel model, ByteBuffer vertexBuffer, List<Attribute> layout) {
-        model.vao = glGenVertexArrays();
-
-        glBindVertexArray(model.vao);
-        var stride = calculateVertexSize(layout);
-        var attribPtr = 0;
-
-        // I hate openGL. why cant I keep the vertex data and vertex layout separate :(
-        model.vbo = glGenBuffers();
-
-        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
-
-        for (int i = 0; i < layout.size(); i++) {
-            var attrib = layout.get(i);
-            glEnableVertexAttribArray(i);
-            glVertexAttribPointer(
-                    i,
-                    attrib.amount(),
-                    attrib.glType(),
-                    false,
-                    stride,
-                    attribPtr
-            );
-            attribPtr += calculateAttributeSize(attrib);
-        }
-
-        glBindVertexArray(0);
-    }
-
-    private static void vertexAttribPointer(Attribute data, int binding) {
-        GL20.glEnableVertexAttribArray(binding);
-        GL20.glVertexAttribPointer(
-                binding,
-                data.amount(),
-                data.glType(),
-                false,
-                0,
-                0);
-    }
-
     public record Names(List<String> meshes, List<String> variants, List<String> images, List<String> materials) {
         public Names() {
             this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         }
     }
 
-    public static MultiRenderObject createObject(Function<Names, MultiRenderObject> objBuilder, @NotNull Supplier<PixelAsset> is, BiFunction<MaterialReference, List<String>, Material> materialProcess, Consumer<MultiRenderObject> onFinish) {
+    public static MultiRenderObject createObject(Function<Names, MultiRenderObject> objBuilder, @NotNull Supplier<PixelAsset> is, BiConsumer<PixelAsset, List<String>> imageConsumer, BiFunction<MaterialReference, List<String>, Material> materialProcess, Consumer<MultiRenderObject> onFinish) {
         var asset = is.get();
+
+
         var config = asset.getConfig();
 
         if (asset.getModelFile() == null) throw new RuntimeException("model.config not found");
@@ -633,14 +591,14 @@ public class ModelLoader {
 
         config.defaultVariant.forEach((s, variantDetails) -> {
             if(!aliases.isEmpty() && aliases.containsKey(s)) {
-                var meshesToRenderFirst = config.meshesToRenderFirst != null ? config.meshesToRenderFirst.contains(s) : false;
+                var meshesToRenderFirst = config.meshesToRenderFirst != null && config.meshesToRenderFirst.contains(s);
 
                 for (String s2 : aliases.get(s)) {
                     checkIfAlreadyIn(names.meshes(), s2, meshesToRenderFirst);
                 }
             }
             else {
-                checkIfAlreadyIn(names.meshes(), s, config.meshesToRenderFirst != null ? config.meshesToRenderFirst.contains(s) : false);
+                checkIfAlreadyIn(names.meshes(), s, config.meshesToRenderFirst != null && config.meshesToRenderFirst.contains(s));
             }
 
             checkIfAlreadyIn(names.materials(), variantDetails.material());
@@ -676,7 +634,7 @@ public class ModelLoader {
             }
         });
 
-        readImages(asset, names.images);
+        imageConsumer.accept(asset, names.images);
         var obj = objBuilder.apply(names);
 
         config.materials.forEach((name, reference) -> {
@@ -782,18 +740,20 @@ public class ModelLoader {
     }
 
 
+
     public static void readImages(PixelAsset asset, List<String> imageNames) {
         var images = asset.getImageFiles();
 
-        for (var entry : images) {
+
+        for (Map.Entry<String, byte[]> entry : images) {
             var key = entry.getKey();
 
             var index = imageNames.contains(key);
 
-            if(!index) continue;
+            if (!index) continue;
 
             try {
-                ITextureLoader.instance().register(entry.getKey(), Texture.read(entry.getValue(), entry.getKey()));
+                ITextureLoader.instance().register(key, Texture.read(entry.getValue(), key));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

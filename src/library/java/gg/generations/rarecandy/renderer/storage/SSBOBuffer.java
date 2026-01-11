@@ -126,4 +126,8 @@ public class SSBOBuffer {
     public void reset() {
         this.pos = pointer;
     }
+
+    public void move(int i) {
+        pos += i;
+    }
 }

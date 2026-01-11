@@ -19,7 +19,19 @@ public abstract class ITextureLoader {
         ITextureLoader.instance = instance;
     }
 
+    public abstract boolean contains(String name);
+
     public abstract ITexture getTexture(String name);
+
+    public ITexture getTexture(String name, String defaultName) {
+        if(contains(name)) {
+            return getTexture(name);
+        } else if(contains(defaultName)) {
+            return getTexture(defaultName);
+        } else {
+            return getDarkFallback();
+        }
+    }
 
     public abstract void register(String name, ITexture reference);
 

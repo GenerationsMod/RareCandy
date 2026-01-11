@@ -281,7 +281,7 @@ public class RareCandyCanvas {
     protected void loadPokemonModel(PixelAsset is, Consumer<MultiRenderObject> onFinish) {
         createObject(
                 ToggleableMultiRenderObject::new,
-                () -> is, MaterialReference::process, onFinish);
+                () -> is, ModelLoader::readImages, MaterialReference::process, onFinish);
     }
 
     public void setAnimation(@NotNull String animation) {

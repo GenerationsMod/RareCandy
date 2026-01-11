@@ -97,4 +97,11 @@ public class MaterialImages {
                 imageNames.indexOf(emission)
         };
     }
+
+    public void applyModelName(String modelName) {
+        if(diffuse != null && diffuse.contains(".png")) diffuse = modelName + "-" + diffuse;
+        if(layer != null && layer.contains(".png")) layer = modelName + "-" + layer;
+        if(mask != null && mask.contains(".png")) mask = modelName + "-" + mask;
+        if(emission != null && emission.contains(".png")) emission = modelName + "-" + emission;
+    }
 }

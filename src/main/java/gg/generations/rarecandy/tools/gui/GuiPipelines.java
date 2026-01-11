@@ -5,7 +5,6 @@ import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.components.DrawRecord;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.SbboOffset;
-import gg.generations.rarecandy.renderer.model.material.MaterialUploader;
 import gg.generations.rarecandy.renderer.pipeline.compute.ComputePipeline;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.pipeline.util.*;
@@ -65,8 +64,6 @@ public class GuiPipelines {
         textures[1] = new BlankTexture(ITexture.Type.RGBA_BYTE, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
         textures[2] = new BlankTexture(ITexture.Type.RGBA_BYTE, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
 
-        MaterialUploader.setup();
-
         TRANSFORM = ComputePipeline.builder(builtin("rewrite/transform.cs.glsl"))
                 .addSSBORange(Scope.MODEL, "SrcBuffer", 0, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().vertex)
                 .addSSBORange(Scope.MODEL, "IndexBuffer", 1, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().index)
@@ -85,12 +82,17 @@ public class GuiPipelines {
                 .build();
 
         MATERIAL = ComputePipeline.builder(builtin("rewrite/material.cs.glsl"))
-                .autoSampler2D(Scope.DRAW, "diffuse", 0, createMaterialTextureProvider(0))
-                .autoSampler2D(Scope.DRAW, "emission", 1, createMaterialTextureProvider(1))
-                .autoSampler2D(Scope.DRAW, "layer", 2, createMaterialTextureProvider(2))
-                .autoSampler2D(Scope.DRAW, "mask", 3, createMaterialTextureProvider(3))
+                .autoSampler2D(Scope.DRAW, "diffuse", 0, createMaterialTextureProvider(0, "neutral"))
+                .autoSampler2D(Scope.DRAW, "emission", 1, createMaterialTextureProvider(1, "dark"))
+                .autoSampler2D(Scope.DRAW, "layer", 2, createMaterialTextureProvider(2, "dark"))
+                .autoSampler2D(Scope.DRAW, "mask", 3, createMaterialTextureProvider(3, "dark"))
                 .autoSampler2D(Scope.DRAW, "paradoxTexture", 4, ctx -> textures[0].getId())
-                .addUBO(Scope.DRAW, "Material", 0, (ctx) -> ctx.object().getMaterial(ctx.mesh(), ctx.instance().variant()).bindMaterial())
+                .addUniform(Scope.DRAW, "instanceId", (uniform, ctx) -> uniform.uploadInt(instanceId))
+                .addUniform(Scope.DRAW, "meshId", (uniform, ctx) -> uniform.uploadInt(ctx.mesh()))
+                .addUniform(Scope.DRAW, "variantSize", (uniform, ctx) -> uniform.uploadInt(ctx.object().meshes.length))
+                .addSSBORange(Scope.DRAW, "MaterialBuffer", 0, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().material)
+                .addSSBORange(Scope.DRAW, "VariantBuffer", 1, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().variant)
+                .addSSBO(Scope.DRAW, "TransformBuffer", 2, ctx -> ctx.object().uvTransformBuffer.getBufferId())
                 .autoImage2D(Scope.DRAW, "solidTex", 0, ctx -> textures[1])
                 .autoImage2D(Scope.DRAW, "litTex", 1, ctx -> textures[2])
                 .build();
@@ -143,14 +145,14 @@ public class GuiPipelines {
         ;
     }
 
-    private static TextureIdSupplier createMaterialTextureProvider(int index) {
+    private static TextureIdSupplier createMaterialTextureProvider(int index, String defaultName) {
         return ctx -> {
             var variant = ctx.instance().variant();
             var imageIndex = ctx.object().getMaterial(ctx.mesh(), variant).images()[index];
 
             var name = ctx.object().images[imageIndex];
 
-            return ITextureLoader.instance().getTexture(name).getId();
+            return ITextureLoader.instance().getTexture(name, defaultName).getId();
         };
     }
 

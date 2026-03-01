@@ -10,6 +10,7 @@ import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
+import org.lwjgl.opengl.GL32;
 import org.lwjgl.system.MemoryStack;
 
 import java.util.HashMap;
@@ -54,6 +55,10 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
         }
     }
 
+    public void destroy() {
+        GL32.glDeleteProgram(program);
+    }
+
     public static class Builder {
 
         public Map<String, Uniform> uniforms = new HashMap<>();
@@ -83,6 +88,7 @@ public record Pipeline(Map<String, Consumer<UniformUploadContext>> uniformSuppli
             if (GL20C.glGetShaderi(shader, GL20C.GL_COMPILE_STATUS) == 0)
                 RareCandy.fatal(GL20C.glGetShaderInfoLog(shader, 1024));
             GL20C.glAttachShader(programId, shader);
+            GL20C.glDeleteShader(shader);
         }
 
         private void compileShader(int programId) {

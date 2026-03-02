@@ -11,7 +11,7 @@ import static org.lwjgl.opengl.GL11C.GL_UNSIGNED_BYTE;
 public record Attribute(int glType, int amount) {
     public static final Attribute POSITION = new Attribute(GL_FLOAT, 3);
     public static final Attribute NORMAL = new Attribute(GL_FLOAT, 3);
-    public static final Attribute COLOR = new Attribute(GL_UNSIGNED_BYTE, 4);
+    public static final Attribute TANGENT = new Attribute(GL_FLOAT, 4);
     public static final Attribute TEXCOORD = new Attribute(GL_FLOAT, 2);
     public static final Attribute BONE_IDS = new Attribute(GL_UNSIGNED_BYTE, 4);
     public static final Attribute BONE_WEIGHTS = new Attribute(GL_FLOAT, 4);

@@ -17,6 +17,7 @@ import gg.generations.rarecandy.tools.TextureLoader;
 import gg.generations.rarecandy.tools.gui.imgui.GuiPipelines;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.util.nfd.NativeFileDialog;
@@ -45,7 +46,7 @@ public class MinimalQuad {
 
     private int index = 0;
 
-    private ObjectInstance instance = new ObjectInstance(new Matrix4f(), null);
+    private ObjectInstance instance = new ObjectInstance(new Matrix4f(), new Matrix3f(), null);
 
     public MeshObject object = new MeshObject() {
         @Override

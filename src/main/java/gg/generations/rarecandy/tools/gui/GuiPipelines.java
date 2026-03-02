@@ -39,7 +39,8 @@ public class GuiPipelines {
 
     public static final Pipeline ANIMATED = new Pipeline.Builder()
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
-            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
+            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().modelMatrix()))
+            .supplyUniform("normalMatrix", ctx -> ctx.uniform().uploadMat3f(ctx.instance().normalMatrix()))
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
             .supplyUniform("boneTransforms", ctx -> {
                 var mats = ctx.instance() instanceof AnimatedObjectInstance instance ? instance.getTransforms() != null ? instance.getTransforms() : AnimationController.NO_ANIMATION : AnimationController.NO_ANIMATION;
@@ -204,7 +205,8 @@ public class GuiPipelines {
 
     public static final Pipeline PLANE = new Pipeline.Builder()
             .supplyUniform("viewMatrix", ctx -> ctx.uniform().uploadMat4f(RareCandyCanvas.viewMatrix))
-            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().transformationMatrix()))
+            .supplyUniform("modelMatrix", ctx -> ctx.uniform().uploadMat4f(ctx.instance().modelMatrix()))
+            .supplyUniform("normalMatrix", ctx -> ctx.uniform().uploadMat3f(ctx.instance().normalMatrix()))
             .supplyUniform("projectionMatrix", (ctx) -> ctx.uniform().uploadMat4f(projectionMatrix))
             .supplyUniform("lightLevel", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.getLightLevel()))
             .supplyUniform("radius", ctx -> ctx.uniform().uploadFloat(RareCandyCanvas.radius))

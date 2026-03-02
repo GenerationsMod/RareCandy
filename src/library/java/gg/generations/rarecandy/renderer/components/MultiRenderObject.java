@@ -53,7 +53,7 @@ public class MultiRenderObject<T extends RenderObject> extends RenderObject {
     }
 
     public void applyRootTransformation(ObjectInstance state) {
-        state.transformationMatrix().mul(rootTransformation, state.transformationMatrix());
+        state.modelMatrix().mul(rootTransformation, state.modelMatrix());
     }
 
     public Vector3f getDimensions() {

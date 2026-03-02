@@ -1,18 +1,21 @@
 package gg.generations.rarecandy.renderer.rendering;
 
 import gg.generations.rarecandy.renderer.components.RenderObject;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class ObjectInstance {
-    private final Matrix4f transformationMatrix;
+    private final Matrix4f modelMatrix;
+    private final Matrix3f normalMatrix;
     private String variant;
     private RenderObject object;
     private boolean used = false;
     private double secondsPassed = 0f;
     public static final float DELINK_THRESHOLD = 0.1f; // Seconds before delinking
 
-    public ObjectInstance(Matrix4f transformationMatrix, String variant) {
-        this.transformationMatrix = transformationMatrix;
+    public ObjectInstance(Matrix4f modelMatrix, Matrix3f normalMatrix, String variant) {
+        this.modelMatrix = modelMatrix;
+        this.normalMatrix = normalMatrix;
         this.variant = variant;
     }
 
@@ -20,8 +23,12 @@ public class ObjectInstance {
         this.object = object;
     }
 
-    public Matrix4f transformationMatrix() {
-        return transformationMatrix;
+    public Matrix4f modelMatrix() {
+        return modelMatrix;
+    }
+
+    public Matrix3f normalMatrix() {
+        return normalMatrix;
     }
 
     public String materialId() {

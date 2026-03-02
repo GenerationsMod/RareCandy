@@ -16,6 +16,7 @@ import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.storage.ObjectManager;
 import gg.generations.rarecandy.tools.TextureLoader;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
@@ -152,7 +153,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
             var variants = model.availableVariants();
 
             var variant = !variants.isEmpty() ? variants.iterator().next() : null;
-            var instance = new AnimatedObjectInstance(new Matrix4f(), viewMatrix, variant);
+            var instance = new AnimatedObjectInstance(new Matrix4f(), new Matrix3f(), variant);
 
             loadedModelInstance = renderer.objectManager.add(model, instance);
             loadedModelInstance.use();
@@ -181,7 +182,7 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         loadPlane(100, 100, model -> {
             plane = model;
-            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), null));
+            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), new Matrix3f(), null));
             planeInstance.use();
         });
     }
@@ -203,7 +204,8 @@ public class RareCandyCanvas extends AWTGLCanvas {
 
         if (loadedModelInstance != null) {
             loadedModelInstance.use();
-            loadedModelInstance.transformationMatrix().identity().scale(scaleModifier);
+            loadedModelInstance.modelMatrix().identity().scale(scaleModifier);
+            loadedModelInstance.normalMatrix().identity().scale(scaleModifier);
 
             size.set(loadedModel.dimensions).mul(scaleModifier);
         }

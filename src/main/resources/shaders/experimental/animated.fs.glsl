@@ -3,6 +3,9 @@
 in vec2 texCoord0;
 in vec4 vertexColor;
 in float vertexDistance;
+in vec3 fragNormal;
+in vec3 fragTangent;
+in vec3 fragBitangent;
 
 out vec4 outColor;
 
@@ -310,6 +313,13 @@ vec4 process(vec4 color) {
     return color;
 }
 
+mat3 getTBN() {
+    vec3 N = normalize(fragNormal);
+    vec3 T = normalize(fragTangent);
+    vec3 B = normalize(fragBitangent);
+    return mat3(T, B, N);
+}
+
 // ===== Tersaalization Effect =====
 
 #define TERA_LIGHT_DIRECT   vec3(0.3f, 0.9f, 0.0f)
@@ -329,7 +339,9 @@ in vec3 worldPos;
 vec3 calculateTersaalizationEffect(
     vec3 baseColor
 ) {
-    vec3 N = normalize(cross(dFdx(worldPos), dFdy(worldPos)));
+    mat3 TBN = getTBN();
+
+    vec3 N = TBN[2];
     vec3 V = normalize(fragViewDir);
 
     // Fresnel rim lighting

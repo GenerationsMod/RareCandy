@@ -5,16 +5,19 @@
 
 layout(location = 0) in vec3 positions;
 layout(location = 1) in vec2 texcoords;
-layout(location = 2) in vec3 inNormal;
-layout(location = 3) in vec4 joints;
-layout(location = 4) in vec4 weights;
+layout(location = 2) in vec3 normals;
+layout(location = 3) in vec4 tangents;
+layout(location = 4) in vec4 joints;
+layout(location = 5) in vec4 weights;
 
 out float vertexDistance;
 out vec4 vertexColor;
 out vec2 texCoord0;
-out vec3 fragNormal;
 out vec3 fragViewDir;
 out vec3 worldPos;
+out vec3 fragNormal;
+out vec3 fragTangent;
+out vec3 fragBitangent;
 
 uniform bool dynamicVertexColor;
 
@@ -22,6 +25,7 @@ uniform int FogShape;
 
 uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
+uniform mat3 normalMatrix;
 uniform mat4 projectionMatrix;
 uniform vec2 uvOffset;
 uniform vec2 uvScale;
@@ -55,8 +59,8 @@ vec4 getVertexColor() {
 
     vec3 lightDir0 = normalize(Light0_Direction);
     vec3 lightDir1 = normalize(Light1_Direction);
-    float light0 = max(0.0, dot(Light0_Direction, inNormal));
-    float light1 = max(0.0, dot(Light1_Direction, inNormal));
+    float light0 = max(0.0, dot(Light0_Direction, normals));
+    float light1 = max(0.0, dot(Light1_Direction, normals));
     float lightAccum = min(1.0, (light0 + light1) * MINECRAFT_LIGHT_POWER + MINECRAFT_AMBIENT_LIGHT);
     return vec4(lightAccum, lightAccum, lightAccum, 1);
 }
@@ -65,6 +69,11 @@ void main() {
     mat4 worldSpace = projectionMatrix * viewMatrix;
     mat4 modelTransform = modelMatrix * getBoneTransform();
     vec4 worldPosition = modelTransform * vec4(positions, 1.0);
+
+    fragNormal    = normalize(normalMatrix * normals);
+    fragTangent   = normalize(normalMatrix * tangents.xyz);
+    fragTangent   = normalize(fragTangent - dot(fragTangent, fragNormal) * fragNormal);
+    fragBitangent = cross(fragNormal, fragTangent) * tangents.w;
 
     texCoord0 = (texcoords * uvScale) + uvOffset;
     gl_Position = worldSpace * worldPosition;

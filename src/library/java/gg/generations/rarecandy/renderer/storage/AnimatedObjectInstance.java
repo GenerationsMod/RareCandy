@@ -8,6 +8,7 @@ import gg.generations.rarecandy.renderer.components.AnimatedMeshObject;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 import java.util.Collections;
@@ -20,8 +21,8 @@ public class AnimatedObjectInstance extends ObjectInstance {
     @Nullable
     public AnimationInstance currentAnimation;
 
-    public AnimatedObjectInstance(Matrix4f transformationMatrix, Matrix4f viewMatrix, String materialId) {
-        super(transformationMatrix, materialId);
+    public AnimatedObjectInstance(Matrix4f transformationMatrix, Matrix3f normalMatrix, String materialId) {
+        super(transformationMatrix, normalMatrix, materialId);
     }
 
     public Map<String, Animation> getAnimationsIfAvailable() {

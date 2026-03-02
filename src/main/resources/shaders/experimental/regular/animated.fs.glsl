@@ -3,9 +3,9 @@
 in vec2 texCoord0;
 in vec4 vertexColor;
 in float vertexDistance;
-in vec3 fragNormal;
-in vec3 fragTangent;
-in vec3 fragBitangent;
+flat in vec3 fragNormal;
+flat in vec3 fragTangent;
+flat in vec3 fragBitangent;
 
 out vec4 outColor;
 
@@ -320,62 +320,6 @@ mat3 getTBN() {
     return mat3(T, B, N);
 }
 
-// ===== Tersaalization Effect =====
-
-#define TERA_LIGHT_DIRECT   vec3(0.3f, 0.9f, 0.0f)
-#define TERATYPE_TINT       vec3(0.161, 0.502, 0.937)
-
-#define FACET_RES           8.0
-#define SHIMMER_BANDS       5.0
-#define GAMMA_CORRECTION    1.4
-#define SHIMMER_STRENGTH    0.8
-#define IRIDESCENCE_STRENGTH 0.2
-
-uniform bool tera;
-
-in vec3 fragViewDir;
-in vec3 worldPos;
-
-vec3 calculateTersaalizationEffect(
-    vec3 baseColor
-) {
-    mat3 TBN = getTBN();
-
-    vec3 N = TBN[2];
-    vec3 V = normalize(fragViewDir);
-
-    // Fresnel rim lighting
-    float fresnel = pow(1.0 - max(dot(N, V), 0.0), 5.0);
-
-    // Directional lighting response
-    float lightResponse = max(dot(N, TERA_LIGHT_DIRECT), 0.0);
-
-    // Facet simulation via quantized normals
-    vec3 faceted = normalize(floor(N * FACET_RES + 0.5) / FACET_RES);
-    float facetResponse = pow(max(dot(faceted, V), 0.0), 6.0);
-
-    // Composite shimmer signal
-    float shimmer = fresnel * 0.5 + lightResponse * 0.3 + facetResponse * 0.8;
-    shimmer = pow(clamp(shimmer, 0.0, 1.0), GAMMA_CORRECTION);
-
-    // Posterization
-    shimmer = floor(shimmer * SHIMMER_BANDS) / SHIMMER_BANDS;
-
-    // Micro-noise based on 3D direction
-    float angleNoise = abs(sin(dot(N.xyz, vec3(12.9898, 78.233, 45.164)) * 43758.5453));
-    shimmer += angleNoise * 0.02;
-
-    // Optional iridescent variation
-    vec3 iridescent = vec3(1.0, 0.9, 0.8) + vec3(0.05, -0.02, 0.03) * sin(shimmer * 20.0);
-
-    // Tint variation based on light response
-    vec3 directionalTint = mix(TERATYPE_TINT, vec3(1.0), lightResponse);
-
-    // Final output
-    return baseColor
-    + directionalTint * shimmer * SHIMMER_STRENGTH
-    + iridescent * shimmer * IRIDESCENCE_STRENGTH;
-}
 //////////////////////////////////////
 
 void main() {
@@ -387,9 +331,7 @@ void main() {
 
     outColor.rgb *= tint;
 
-    if(tera) {
-        outColor.rgb = calculateTersaalizationEffect(outColor.rgb);
-    } else if (useLight) {
+    if (useLight) {
         outColor *= vertexColor;
         // Sample Minecraft's light level from the lightmap texture
         vec4 minecraftLight = minecraft_sample_lightmap(lightmap, light);

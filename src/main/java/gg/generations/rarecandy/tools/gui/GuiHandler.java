@@ -179,6 +179,7 @@ public class GuiHandler implements KeyListener {
             }
         } else {
             switch (code) {
+                case KeyEvent.VK_U -> GuiPipelines.terastalToggle = !GuiPipelines.terastalToggle;
                 case KeyEvent.VK_P -> {
                     new RareCandyCanvas.CycleVariants(getCanvas(), false);
                 }

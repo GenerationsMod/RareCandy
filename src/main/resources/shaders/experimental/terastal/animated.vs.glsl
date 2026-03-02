@@ -15,9 +15,9 @@ out vec4 vertexColor;
 out vec2 texCoord0;
 out vec3 fragViewDir;
 out vec3 worldPos;
-out vec3 fragNormal;
-out vec3 fragTangent;
-out vec3 fragBitangent;
+flat out vec3 fragNormal;
+flat out vec3 fragTangent;
+flat out vec3 fragBitangent;
 
 uniform bool dynamicVertexColor;
 
@@ -54,31 +54,25 @@ float fog_distance(mat4 modelViewMat, vec3 pos, int shape) {
     }
 }
 
-vec4 getVertexColor() {
-    if(dynamicVertexColor) return vec4(1);
-
-    vec3 lightDir0 = normalize(Light0_Direction);
-    vec3 lightDir1 = normalize(Light1_Direction);
-    float light0 = max(0.0, dot(Light0_Direction, normals));
-    float light1 = max(0.0, dot(Light1_Direction, normals));
-    float lightAccum = min(1.0, (light0 + light1) * MINECRAFT_LIGHT_POWER + MINECRAFT_AMBIENT_LIGHT);
-    return vec4(lightAccum, lightAccum, lightAccum, 1);
-}
-
 void main() {
+    mat4 boneTransform = getBoneTransform();
+    mat4 modelTransform = modelMatrix * boneTransform;
     mat4 worldSpace = projectionMatrix * viewMatrix;
-    mat4 modelTransform = modelMatrix * getBoneTransform();
+    mat4 modelView = viewMatrix * modelTransform;
     vec4 worldPosition = modelTransform * vec4(positions, 1.0);
 
-    fragNormal    = normalize(normalMatrix * normals);
-    fragTangent   = normalize(normalMatrix * tangents.xyz);
+    mat3 boneMatrix = mat3(boneTransform);
+    vec3 skinnedNormal = normalize(boneMatrix * normals);
+    vec3 skinnedTangent = normalize(boneMatrix * tangents.xyz);
+
+    fragNormal    = normalize(normalMatrix * skinnedNormal);
+    fragTangent   = normalize(normalMatrix * skinnedTangent);
     fragTangent   = normalize(fragTangent - dot(fragTangent, fragNormal) * fragNormal);
     fragBitangent = cross(fragNormal, fragTangent) * tangents.w;
 
     texCoord0 = (texcoords * uvScale) + uvOffset;
-    gl_Position = worldSpace * worldPosition;
-    vertexDistance = fog_distance(worldSpace * modelTransform, positions, FogShape);
-    vertexColor = getVertexColor();
+    gl_Position = projectionMatrix * modelView * vec4(positions, 1.0);
+    vertexDistance = fog_distance(modelView, positions, FogShape);
 
     fragViewDir = normalize(-(viewMatrix * worldPosition).xyz);
     worldPos = worldPosition.xyz;

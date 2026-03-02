@@ -129,7 +129,7 @@ public class GuiPipelines {
 
     public static void init() {
 
-        PipelineRegistry.setFunction(s-> switch(s) {
+        PipelineRegistry.setFunction((s, v, k) -> switch(s.getPipeline()) {
             case "masked" -> GuiPipelines.MASKED;
             case "layered" -> GuiPipelines.LAYERED;
             case "paradox" -> GuiPipelines.LAYERED;

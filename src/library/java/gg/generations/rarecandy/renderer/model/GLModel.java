@@ -134,7 +134,7 @@ public class GLModel implements RenderModel {
     }
 
     private <T extends RenderObject> void render(Material k, ObjectInstance instance, T object) {
-        var pl = PipelineRegistry.get(k.getPipeline());
+        var pl = PipelineRegistry.get(k, instance, object);
 
         if(pl == null) return;
 

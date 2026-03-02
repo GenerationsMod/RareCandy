@@ -141,17 +141,17 @@ public class MinimalQuad {
     }
 
     public void render() {
-        var material = object.getMaterial(null);
-
-        if (material == null) return;
-
-        var pipeline = PipelineRegistry.get(material.getPipeline());
-
-        pipeline.bind(material);
-        pipeline.updateOtherUniforms(instance, object);
-        pipeline.updateTexUniforms(instance, object);
-        model.runDrawCalls();
-        pipeline.unbind(material);
+//        var material = object.getMaterial(null);
+//
+//        if (material == null) return;
+//
+//        var pipeline = PipelineRegistry.get(material.getPipeline());
+//
+//        pipeline.bind(material);
+//        pipeline.updateOtherUniforms(instance, object);
+//        pipeline.updateTexUniforms(instance, object);
+//        model.runDrawCalls();
+//        pipeline.unbind(material);
     }
 
     protected void load(Supplier<PixelAsset> asset) {

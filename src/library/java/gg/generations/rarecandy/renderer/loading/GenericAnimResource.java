@@ -1,14 +1,13 @@
 package gg.generations.rarecandy.renderer.loading;
 
 import gg.generations.rarecandy.renderer.animation.Animation;
-import gg.generations.rarecandy.renderer.animation.Skeleton;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public record GenericAnimResource(long fps, boolean loops, Animation.AnimationNode[] nodes) implements AnimResource {
+public record GenericAnimResource(long fps, boolean loops, Map<String, Animation.AnimationNode> nodes) implements AnimResource {
     @Override
-    public Animation.AnimationNode[] getNodes(Skeleton skeleton) {
+    public Map<String, Animation.AnimationNode> getNodes() {
         return nodes;
     }
 

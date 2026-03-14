@@ -88,7 +88,7 @@ public class ModelLoader {
     }
 
     private static Map<String, Animation> processAnimations(AIScene scene, Skeleton skeleton, Map<String, AnimResource> animResources, ModelConfig config) {
-        extractAssimpAnimations(scene, skeleton, animResources);
+//        extractAssimpAnimations(scene, animResources);
 
         Map<String, Animation> animations = new HashMap<>();
 
@@ -106,7 +106,7 @@ public class ModelLoader {
             offsets.putAll(offSetsToInsert);
             offSetsToInsert.clear();
 
-            var nodes = animResource.getNodes(skeleton);
+            var nodes = animResource.getNodes();
             var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
 
             animations.put(name, new Animation(name, (int) fps, loops, skeleton, nodes, offsets, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale)));
@@ -115,23 +115,22 @@ public class ModelLoader {
         return animations;
     }
 
-    private static void extractAssimpAnimations(AIScene scene, Skeleton skeleton, Map<String, AnimResource> animResources) {
+    private static void extractAssimpAnimations(AIScene scene, Map<String, AnimResource> animResources) {
         for (int i = 0; i < scene.mNumAnimations(); i++) {
             AIAnimation aiAnimation = AIAnimation.create(scene.mAnimations().get(i));
             var animName = aiAnimation.mName().dataString();
 
             var fps = aiAnimation.mTicksPerSecond();
 
-            var animationNodes = new Animation.AnimationNode[skeleton.jointMap.size()];
+            var animationNodes = new HashMap<String, Animation.AnimationNode>();
 
             for (int channelIndex = 0; channelIndex < aiAnimation.mNumChannels(); channelIndex++) {
                 var channel = AINodeAnim.create(aiAnimation.mChannels().get(channelIndex));
 
                 var boneName = channel.mNodeName().dataString();
 
-                if(!skeleton.boneIdMap.containsKey(boneName)) continue;
 
-                var node = animationNodes[skeleton.boneIdMap.get(boneName)] = new Animation.AnimationNode();
+                var node = new Animation.AnimationNode();
 
 
                 for (int posIndex = 0; posIndex < channel.mNumPositionKeys(); posIndex++) {
@@ -160,18 +159,8 @@ public class ModelLoader {
 
                     node.scaleKeys.add(time, scale);
                 }
-            }
 
-            for (int nodeIndex = 0; nodeIndex < animationNodes.length; nodeIndex++) {
-
-                if(animationNodes[nodeIndex] == null) {
-                    var node = new Animation.AnimationNode();
-                    var joint = skeleton.jointMap.get(skeleton.bones[nodeIndex].name);
-
-                    node.rotationKeys.add(0, joint.poseRotation);
-                    node.rotationKeys.add(0, joint.poseRotation);
-                    node.scaleKeys.add(0, joint.poseScale);
-                }
+                animationNodes.put(boneName, node);
             }
 
             animResources.putIfAbsent(animName, new GenericAnimResource((long) fps, false, animationNodes)); //TODO: Figure out if assimp derived anims can actually loop or I'm dumb. -Waterpicker

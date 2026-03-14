@@ -40,7 +40,7 @@ public class Animation {
     protected final Skeleton skeleton;
     private final SkeletalTransform rootOffset;
 
-    private final AnimationNode[] animationNodes;
+    private final Map<String, AnimationNode> animationNodes;
     public Map<String, Offset> offsets;
 
     private Matrix4f[] cachedBoneTransforms;
@@ -52,7 +52,7 @@ public class Animation {
 
     private boolean ignoreScaling;
 
-    public Animation(String name, int ticksPerSecond, boolean loops, Skeleton skeleton, AnimationNode[] animationNodes, Map<String, Offset> offsets, boolean ignoreScaling, SkeletalTransform offset) {
+    public Animation(String name, int ticksPerSecond, boolean loops, Skeleton skeleton, Map<String, AnimationNode> animationNodes, Map<String, Offset> offsets, boolean ignoreScaling, SkeletalTransform offset) {
         this.name = name;
         this.ticksPerSecond = ticksPerSecond;
         this.loops = loops;
@@ -65,7 +65,7 @@ public class Animation {
         this.ignoreScaling = ignoreScaling;
 
         if(this.animationNodes != null) {
-            for (var animationNode : getAnimationNodes()) {
+            for (var animationNode : animationNodes.values()) {
                 if (animationNode != null) {
                     if (animationNode.positionKeys.getAtTime((int) animationDuration - 10) == null)
                         animationNode.positionKeys.add(animationDuration, animationNode.positionKeys.get(0).value());
@@ -87,7 +87,7 @@ public class Animation {
 
         if(animationNodes != null) {
 
-            for (var value : this.getAnimationNodes()) {
+            for (var value : animationNodes.values()) {
                 if (value != null) {
                     for (var key : value.positionKeys) duration = Math.max(key.time(), duration);
                     for (var key : value.rotationKeys) duration = Math.max(key.time(), duration);
@@ -168,33 +168,30 @@ public class Animation {
 
         var animationNodeId = skeleton.boneIdMap.getOrDefault(name, -1);
         var bone = skeleton.get(name);
+        var animNode = animationNodes != null ? animationNodes.get(name) : null;
 
-        if (animationNodeId != -1) {
-            var animNode = animationNodes[animationNodeId];
 
-            if (animNode != null) {
-                var scale = ignoreScaling ? SCALE : AnimationMath.calcInterpolatedScaling(animTime, animNode);
-                var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
+        if (animNode != null) {
+            var scale = ignoreScaling ? SCALE : AnimationMath.calcInterpolatedScaling(animTime, animNode);
+            var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
 
-                // Reuse pooled Vector3f for "origin" case
-                Vector3f translation;
-                if (name.equalsIgnoreCase("origin")) {
-                    translation = TEMP_ORIGIN_VECTOR.set(0);
-                } else {
-                    translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
-                }
-
-                if (!offsetUsed) {
-                    offsetUsed = true;
-                    translation.add(rootOffset.position());
-                    rotation.mul(rootOffset.rotation());
-                }
-
-                if(!isIdentityTransform(translation, scale, rotation, 1e-5f)) nodeTransform.identity().translationRotateScale(translation, rotation, scale);
+            // Reuse pooled Vector3f for "origin" case
+            Vector3f translation;
+            if (name.equalsIgnoreCase("origin")) {
+                translation = TEMP_ORIGIN_VECTOR.set(0);
+            } else {
+                translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
             }
+
+            if (!offsetUsed) {
+                offsetUsed = true;
+                translation.add(rootOffset.position());
+                rotation.mul(rootOffset.rotation());
+            }
+
+            if (!isIdentityTransform(translation, scale, rotation, 1e-5f))
+                nodeTransform.identity().translationRotateScale(translation, rotation, scale);
         }
-
-
 
         // Reuse pooled Matrix4f for globalTransform
         TEMP_GLOBAL_TRANSFORM.set(GLOBAL).mul(nodeTransform);
@@ -221,23 +218,20 @@ public class Animation {
 
         var animationNodeId = skeleton.boneIdMap.getOrDefault(name, -1);
         var bone = skeleton.get(name);
+        var animNode = animationNodes != null ? animationNodes.get(name) : null;
 
-        if (animationNodeId != -1) {
-            var animNode = animationNodes[animationNodeId];
+        if (animNode != null) {
+            var scale = ignoreScaling ? SCALE : AnimationMath.calcInterpolatedScaling(animTime, animNode);
+            var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
+            var translation = name.equalsIgnoreCase("origin") ? new Vector3f() : AnimationMath.calcInterpolatedPosition(animTime, animNode);
 
-            if (animNode != null) {
-                var scale = ignoreScaling ? SCALE : AnimationMath.calcInterpolatedScaling(animTime, animNode);
-                var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
-                var translation = name.equalsIgnoreCase("origin") ? new Vector3f() : AnimationMath.calcInterpolatedPosition(animTime, animNode);
-
-                if(!offsetUsed) {
-                    offsetUsed = true;
-                    translation.add(rootOffset.position());
-                    rotation.mul(rootOffset.rotation());
-                }
-
-                nodeTransform.identity().translationRotateScale(translation, rotation, scale);
+            if (!offsetUsed) {
+                offsetUsed = true;
+                translation.add(rootOffset.position());
+                rotation.mul(rootOffset.rotation());
             }
+
+            nodeTransform.identity().translationRotateScale(translation, rotation, scale);
         }
 
         var globalTransform = parentTransform.mul(nodeTransform, new Matrix4f());
@@ -259,7 +253,7 @@ public class Animation {
         return this.name;
     }
 
-    public AnimationNode[] getAnimationNodes() {
+    public Map<String, AnimationNode> getAnimationNodes() {
         return animationNodes;
     }
 
@@ -270,25 +264,6 @@ public class Animation {
         public final TransformStorage<Vector3f> scaleKeys = new TransformStorage<>();
 
         public AnimationNode() {
-        }
-
-        public static AnimationNode[] generateDefaults(Skeleton skeleton) {
-            var animationNodes = new Animation.AnimationNode[skeleton.jointMap.size()];
-
-            for (int i = 0; i < animationNodes.length; i++) {
-
-                if(animationNodes[i] == null) {
-                    var node = new Animation.AnimationNode();
-                    var joint = skeleton.jointMap.get(skeleton.bones[i].name);
-
-                    node.rotationKeys.add(0, joint.poseRotation);
-                    node.rotationKeys.add(0, joint.poseRotation);
-                    node.scaleKeys.add(0, joint.poseScale);
-
-                }
-            }
-
-            return animationNodes;
         }
 
         public TransformStorage.TimeKey<Vector3f> getDefaultPosition() {

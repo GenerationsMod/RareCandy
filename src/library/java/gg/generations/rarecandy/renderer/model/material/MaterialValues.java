@@ -276,26 +276,18 @@ public class MaterialValues {
     }
 
     public void put(ByteBuffer pointer) {
-        baseColor1.get(pointer);
-        pointer.position(pointer.position() + 16);
-        baseColor2.get(pointer);
-        pointer.position(pointer.position() + 16);
-        baseColor3.get(pointer);
-        pointer.position(pointer.position() + 16);
-        baseColor4.get(pointer);
-        pointer.position(pointer.position() + 16);
-        baseColor5.get(pointer);
-        pointer.position(pointer.position() + 16);
-        emiColor1.get(pointer);
-        pointer.position(pointer.position() + 16);
-        emiColor2.get(pointer);
-        pointer.position(pointer.position() + 16);
-        emiColor3.get(pointer);
-        pointer.position(pointer.position() + 16);
-        emiColor4.get(pointer);
-        pointer.position(pointer.position() + 16);
-        emiColor5.get(pointer);
-        pointer.position(pointer.position() + 16);
+        pointer.putFloat(baseColor1.x).putFloat(baseColor1.y).putFloat(baseColor1.z).putFloat(0f);
+        pointer.putFloat(baseColor2.x).putFloat(baseColor2.y).putFloat(baseColor2.z).putFloat(0f);
+        pointer.putFloat(baseColor3.x).putFloat(baseColor3.y).putFloat(baseColor3.z).putFloat(0f);
+        pointer.putFloat(baseColor4.x).putFloat(baseColor4.y).putFloat(baseColor4.z).putFloat(0f);
+        pointer.putFloat(baseColor5.x).putFloat(baseColor5.y).putFloat(baseColor5.z).putFloat(0f);
+
+        pointer.putFloat(emiColor1.x).putFloat(emiColor1.y).putFloat(emiColor1.z).putFloat(0f);
+        pointer.putFloat(emiColor2.x).putFloat(emiColor2.y).putFloat(emiColor2.z).putFloat(0f);
+        pointer.putFloat(emiColor3.x).putFloat(emiColor3.y).putFloat(emiColor3.z).putFloat(0f);
+        pointer.putFloat(emiColor4.x).putFloat(emiColor4.y).putFloat(emiColor4.z).putFloat(0f);
+        pointer.putFloat(emiColor5.x).putFloat(emiColor5.y).putFloat(emiColor5.z).putFloat(0f);
+
         pointer.putFloat(emiIntensity1);
         pointer.putFloat(emiIntensity2);
         pointer.putFloat(emiIntensity3);

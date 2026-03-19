@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.lightLevel;
 
@@ -167,8 +168,7 @@ public class GuiHandler implements KeyListener {
                     new RareCandyCanvas.CycleVariants(getCanvas(), true);
                 }
                 case GLFW.GLFW_KEY_O -> {
-                    var chosenFiles = DialogueUtils.chooseMultipleFiles("PK;pk");
-                    if (chosenFiles != null) openAsset(chosenFiles);
+                    DialogueUtils.chooseMultipleFiles("Choose multiple files", gui.settings.urls.sequenceUrl, "PK;pk", this::openAsset);
                 }
                 case GLFW.GLFW_KEY_SPACE -> {
                     try {
@@ -184,18 +184,17 @@ public class GuiHandler implements KeyListener {
                     new RareCandyCanvas.CycleVariants(getCanvas(), false);
                 }
                 case GLFW.GLFW_KEY_O -> {
-                    Path chosenFile;
                     if (filesToOpen.isEmpty()) {
 
-                        chosenFile = DialogueUtils.chooseFile("PK;pk");
+                        DialogueUtils.chooseFile("Select PK", this.gui.settings.urls.openArchiveUrl, "PK;pk", this::openAsset);
                     }
                     else {
                         index++;
                         System.out.println("Selecting: " + (index + 1) + "/" + amount);
-                        chosenFile = filesToOpen.remove(0);
+                        Path chosenFile = filesToOpen.remove(0);
+                        if (chosenFile != null) openAsset(chosenFile);
                     }
 
-                    if (chosenFile != null) openAsset(chosenFile);
                 }
                 case GLFW.GLFW_KEY_LEFT_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.max(lightLevel - 0.01, 0));
                 case GLFW.GLFW_KEY_RIGHT_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.min(lightLevel + 0.01, 1));

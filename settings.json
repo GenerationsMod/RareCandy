@@ -1,0 +1,30 @@
+{
+  "urls": {
+    "openArchiveUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 2\\assets\\generations_core\\bedrock\\pokemon\\models\\lugia.pk",
+    "saveAsUrl": "",
+    "createArchiveUrl": "",
+    "sequenceUrl": ""
+  },
+  "terastalization": {
+    "enabled": false,
+    "tint": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
+    }
+  },
+  "features": {
+    "terastalization": true,
+    "fog": true
+  },
+  "fog": {
+    "color": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0,
+      "w": 1.0
+    },
+    "start": 0.0,
+    "end": 5.0
+  }
+}

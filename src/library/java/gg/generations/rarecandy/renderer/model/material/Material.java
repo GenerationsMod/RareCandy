@@ -13,7 +13,7 @@ public record Material(
         BlendType blendType,
         int colorMethod) implements Closeable {
 
-    public void  put(ByteBuffer buffer) {
+    public void put(ByteBuffer buffer) {
         values.put(buffer);
         buffer.putInt(colorMethod);
         buffer.putInt(0);

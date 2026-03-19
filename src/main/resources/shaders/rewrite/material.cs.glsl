@@ -31,7 +31,7 @@ struct Material {
     float emiIntensity4;
     float emiIntensity5;
 
-    int colorMethod;
+    float colorMethod;
 };
 
 struct Variant {

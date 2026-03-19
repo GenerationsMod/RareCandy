@@ -1,9 +1,5 @@
 package gg.generations.rarecandy.tools.gui;
 
-import imgui.extension.imguifiledialog.ImGuiFileDialog;
-import imgui.extension.imguifiledialog.callback.ImGuiFileDialogPaneFun;
-import imgui.extension.imguifiledialog.flag.ImGuiFileDialogFlags;
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.util.nfd.NFDFilterItem;
 import org.lwjgl.util.nfd.NFDPathSetEnum;
@@ -13,6 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -22,140 +21,133 @@ import static org.lwjgl.util.nfd.NativeFileDialog.*;
 
 public class DialogueUtils {
 
-    public static Path saveFile(String filterList) {
-        try (MemoryStack stack = MemoryStack.stackPush(); var filters = NFDFilterItem.malloc(1)) {
-            var array = filterList.split(";");
-            filters.get(0).name(stack.UTF8(array[0])).spec(stack.UTF8(array[1]));
+    private static ExecutorService DIALOG_THREAD;
 
+    public static void init() {
+        DIALOG_THREAD = Executors.newSingleThreadExecutor();
+        CompletableFuture.runAsync(NativeFileDialog::NFD_Init, DIALOG_THREAD);
+    }
+
+    public static void quit() {
+        CompletableFuture.runAsync(NativeFileDialog::NFD_Quit, DIALOG_THREAD)
+                .thenRun(DIALOG_THREAD::shutdown);
+    }
+
+    public static void saveFile(String title, String defaultPath, String filterList, Consumer<Path> consumer) {
+        CompletableFuture.supplyAsync(() -> {
+            var array = filterList.split(";");
+            var filters = NFDFilterItem.malloc(1);
+            var name = MemoryUtil.memUTF8(array[0]);
+            var spec = MemoryUtil.memUTF8(array[1]);
             var outPath = MemoryUtil.memAllocPointer(1);
-            var result = NativeFileDialog.NFD_SaveDialog(outPath, filters, null, (CharSequence) null);
-            if (result == NativeFileDialog.NFD_OKAY)
-                return Paths.get(outPath.getStringUTF8(0));
-        }
-
-        return null;
-    }
-
-    public static List<Path> chooseMultipleFiles(String filterList) {
-        var list = Stream.of(filterList.split(":")).map(a -> a.split(";")).filter(a -> a.length == 2).toList();
-
-        try (MemoryStack stack = MemoryStack.stackPush(); var filters = NFDFilterItem.malloc(list.size())) {
-            var pp = stack.callocPointer(1);
-            for (int i = 0; i < list.size(); i++) {
-                var element = list.get(i);
-                filters.get(i).name(stack.UTF8(element[0])).spec(stack.UTF8(element[1]));
-            }
-
-            var result = NativeFileDialog.NFD_OpenDialogMultiple(pp, filters, (CharSequence) null);
-
-            if (result == NativeFileDialog.NFD_OKAY) {
-                long pathSet = pp.get(0);
-
-                NFDPathSetEnum psEnum = NFDPathSetEnum.calloc(stack);
-                NFD_PathSet_GetEnum(pathSet, psEnum);
-
-                List<Path> paths = new ArrayList<>();
-
-                int i = 0;
-                while (NFD_PathSet_EnumNext(psEnum, pp) == NFD_OKAY && pp.get(0) != NULL) {
-                    paths.add(Path.of(pp.getStringUTF8(0)));
-                    NFD_PathSet_FreePath(pp.get(0));
+            try {
+                filters.get(0).name(name).spec(spec);
+                var result = NativeFileDialog.NFD_SaveDialog(outPath, filters, null, defaultPath);
+                if (result == NFD_OKAY) {
+                    var path = Paths.get(outPath.getStringUTF8(0));
+                    NFD_FreePath(outPath.get(0));
+                    return path;
                 }
-
-                NFD_PathSet_FreeEnum(psEnum);
-                NFD_PathSet_Free(pathSet);
-
-                return paths;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                MemoryUtil.memFree(name);
+                MemoryUtil.memFree(spec);
+                MemoryUtil.memFree(outPath);
+                filters.free();
             }
-        }
-
-        return null;
+            return null;
+        }, DIALOG_THREAD).thenAccept(consumer);
     }
 
-    public static Path chooseFile(String filterList) {
-        try (MemoryStack stack = MemoryStack.stackPush(); var filters = NFDFilterItem.malloc(1)) {
-            var outPath = stack.callocPointer(1);
+    public static void chooseMultipleFiles(String title, String defaultPath, String filterList, Consumer<List<Path>> consumer) {
+        CompletableFuture.supplyAsync(() -> {
+            var list = Stream.of(filterList.split(":")).map(a -> a.split(";")).filter(a -> a.length == 2).toList();
+            var filters = NFDFilterItem.malloc(list.size());
+            var names = list.stream().map(a -> MemoryUtil.memUTF8(a[0])).toList();
+            var specs = list.stream().map(a -> MemoryUtil.memUTF8(a[1])).toList();
+            var pp = MemoryUtil.memAllocPointer(1);
+            try {
+                for (int i = 0; i < list.size(); i++) {
+                    filters.get(i).name(names.get(i)).spec(specs.get(i));
+                }
+                var result = NativeFileDialog.NFD_OpenDialogMultiple(pp, filters, defaultPath);
+                if (result == NFD_OKAY) {
+                    long pathSet = pp.get(0);
+                    NFDPathSetEnum psEnum = NFDPathSetEnum.calloc();
+                    NFD_PathSet_GetEnum(pathSet, psEnum);
+                    List<Path> paths = new ArrayList<>();
+                    while (NFD_PathSet_EnumNext(psEnum, pp) == NFD_OKAY && pp.get(0) != NULL) {
+                        paths.add(Path.of(pp.getStringUTF8(0)));
+                        NFD_PathSet_FreePath(pp.get(0));
+                    }
+                    NFD_PathSet_FreeEnum(psEnum);
+                    NFD_PathSet_Free(pathSet);
+                    return paths;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                names.forEach(MemoryUtil::memFree);
+                specs.forEach(MemoryUtil::memFree);
+                MemoryUtil.memFree(pp);
+                filters.free();
+            }
+            return null;
+        }, DIALOG_THREAD).thenAccept(consumer);
+    }
+
+    public static void chooseFile(String title, String defaultPath, String filterList, Consumer<Path> consumer) {
+//        var path = Path.of(defaultPath).toAbsolutePath().toString();
+
+        CompletableFuture.supplyAsync(() -> {
             var array = filterList.split(";");
-            filters.get(0).name(stack.UTF8(array[0])).spec(stack.UTF8(array[1]));
-
-            var result = NativeFileDialog.NFD_OpenDialog(outPath, filters, (CharSequence) null);
-            if (result == NativeFileDialog.NFD_OKAY) {
-                return Paths.get(outPath.getStringUTF8(0));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public static Path chooseFolder() {
-        var outPath = MemoryUtil.memAllocPointer(1);
-
-        try {
-            var result = NativeFileDialog.NFD_PickFolder(outPath, (CharSequence) null);
-
-            if (result == NativeFileDialog.NFD_OKAY) {
-                return Paths.get(outPath.getStringUTF8(0));
-            } else if (result == NativeFileDialog.NFD_ERROR) {
-                print(NativeFileDialog.NFD_GetError());
-            }
-        } finally {
-            MemoryUtil.memFree(outPath);
-        }
-
-
-        return null;
-    }
-
-    private static ImGuiFileDialogPaneFun dummy = new ImGuiFileDialogPaneFun() {
-        @Override
-        public void accept(String filter, long userDatas, boolean canContinue) {
-
-        }
-    };
-
-    public static void chooseMultipleFiles(String id, String title, String filter, String path) {
-        choose(id, title, filter, path, 500);
-    }
-
-    public static void choose(String id, String title, String filter, String path, int count) {
-        ImGuiFileDialog.openModal(id, title, filter, path, dummy, 250, count, 0, ImGuiFileDialogFlags.None);
-    }
-
-    public static void chooseFile(String id, String title, String filter, String path) {
-        choose(id, title, filter, path, 1);
-    }
-
-    public static boolean checkSingleFile(String id, Consumer<Path> consumer) {
-        var wasUsed = false;
-
-        if (ImGuiFileDialog.display(id, ImGuiFileDialogFlags.None, 600, 400, 800, 600)) {
-            if (ImGuiFileDialog.isOk()) {
-                ImGuiFileDialog.getSelection().values().stream().map(Paths::get).findFirst().ifPresent(consumer);
-            }
-            ImGuiFileDialog.close();
-            wasUsed = true;
-        }
-
-        return wasUsed;
-    }
-
-    public static boolean checkMultipleFiles(String id, Consumer<List<Path>> consumer) {
-        var wasUsed = false;
-
-        if (ImGuiFileDialog.display(id, ImGuiFileDialogFlags.None, 600, 400, 800, 600)) {
-            if (ImGuiFileDialog.isOk()) {
-                var list = ImGuiFileDialog.getSelection().values().stream().map(Paths::get).toList();
-
-                if(!list.isEmpty()) {
-                    consumer.accept(list);
-                    wasUsed = true;
+            var filters = NFDFilterItem.malloc(1);
+            var name = MemoryUtil.memUTF8(array[0]);
+            var spec = MemoryUtil.memUTF8(array[1]);
+            var outPath = MemoryUtil.memAllocPointer(1);
+            try {
+                filters.get(0).name(name).spec(spec);
+                var result = NativeFileDialog.NFD_OpenDialog(outPath, filters, defaultPath);
+                print("NFD_OpenDialog result: " + result);
+                print("NFD_OpenDialog defaultPath: " + defaultPath);
+                if (result == NFD_OKAY) {
+                    var path = Paths.get(outPath.getStringUTF8(0));
+                    NFD_FreePath(outPath.get(0));
+                    return path;
+                } else if (result == NFD_ERROR) {
+                    print("NFD_Error: " + NativeFileDialog.NFD_GetError());
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                MemoryUtil.memFree(name);
+                MemoryUtil.memFree(spec);
+                MemoryUtil.memFree(outPath);
+                filters.free();
             }
-            ImGuiFileDialog.close();
-        }
+            return null;
+        }, DIALOG_THREAD).thenAccept(consumer);
+    }
 
-        return wasUsed;
+    public static void chooseFolder(String title, String defaultPath, Consumer<Path> consumer) {
+        CompletableFuture.supplyAsync(() -> {
+            var outPath = MemoryUtil.memAllocPointer(1);
+            try {
+                var result = NativeFileDialog.NFD_PickFolder(outPath, defaultPath);
+                if (result == NFD_OKAY) {
+                    var path = Paths.get(outPath.getStringUTF8(0));
+                    NFD_FreePath(outPath.get(0));
+                    return path;
+                } else if (result == NFD_ERROR) {
+                    print(NativeFileDialog.NFD_GetError());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                MemoryUtil.memFree(outPath);
+            }
+            return null;
+        }, DIALOG_THREAD).thenAccept(consumer);
     }
 }

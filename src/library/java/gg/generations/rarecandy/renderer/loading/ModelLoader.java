@@ -93,11 +93,8 @@ public class ModelLoader {
         int totalBytes = variantOffset + variantBytes;
 
         var vertexBuffer = MemoryUtil.memAlloc(vertexBytes);
-
         var indexBuffer = MemoryUtil.memAlloc(indexBytes);
-
         var drawBuffer = MemoryUtil.memAlloc(drawBytes);
-
         var materialBuffer = MemoryUtil.memAlloc(materialBytes);
         var variantBuffer = MemoryUtil.memAlloc(variantBytes);
 
@@ -122,8 +119,12 @@ public class ModelLoader {
                     counters, skeleton, mesh, config.modelOptions != null ? config.modelOptions : Collections.emptyMap(), dimensions);
         }
 
-        for(var material : objects.materials) {
-            material.put(materialBuffer);
+        for (int i = 0; i < objects.materials.length; i++) {
+            var material = objects.materials[i];
+            System.out.println("material[" + i + "] = " + material);
+            if (material != null) {
+                material.put(materialBuffer);
+            }
         }
 
         for(var variant : objects.variants) {
@@ -134,6 +135,14 @@ public class ModelLoader {
         objects.vertex.put(buffer, vertexBuffer.flip());
         objects.index.put(buffer, indexBuffer.flip());
         objects.draw.put(buffer, drawBuffer.flip());
+
+
+        System.out.println("objects.materials.length = " + objects.materials.length);
+        System.out.println("materialBytes = " + materialBytes);
+        System.out.println("materialBuffer.position() = " + materialBuffer.position());
+        System.out.println("objects.material.size() = " + objects.material.size());
+
+
         objects.material.put(buffer, materialBuffer.flip());
         objects.variant.put(buffer, variantBuffer.flip());
 
@@ -156,6 +165,7 @@ public class ModelLoader {
         MemoryUtil.memFree(vertexBuffer);
         MemoryUtil.memFree(indexBuffer);
         MemoryUtil.memFree(drawBuffer);
+        MemoryUtil.memFree(materialBuffer);
         MemoryUtil.memFree(variantBuffer);
 
         var transform = new Matrix4f();

@@ -60,7 +60,7 @@ dependencies {
     shadow(implementation("org.lwjgl", "lwjgl-assimp", "3.3.4")) {
         isTransitive = true
     }
-    shadow(implementation("com.github.thecodewarrior", "BinarySMD", "-SNAPSHOT"))
+    shadow(implementation("com.github.thecodewarrior", "BinarySMD", "d10a00b720"))
     shadow(implementation("org.msgpack", "msgpack-core", "0.8.17"))
     shadowTools(implementation(fileTree(mapOf("dir" to "libs", "include" to "*.jar")))!!)
     shadow(implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")!!)

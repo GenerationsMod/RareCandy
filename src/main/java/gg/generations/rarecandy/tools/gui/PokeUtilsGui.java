@@ -4,8 +4,6 @@ import com.bedrockk.molang.MoLang;
 import com.bedrockk.molang.runtime.value.DoubleValue;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.launch.OpenGL;
 import gg.generations.rarecandy.tools.AppBase;
@@ -15,18 +13,12 @@ import gg.generations.rarecandy.tools.gui.imgui.ImVector3f;
 import gg.generations.rarecandy.tools.gui.imgui.ImVector4f;
 import gg.generations.rarecandy.tools.gui.imgui.Serializers;
 import imgui.ImGui;
-import imgui.extension.imguifiledialog.ImGuiFileDialog;
-import imgui.extension.imguifiledialog.callback.ImGuiFileDialogPaneFun;
-import imgui.extension.imguifiledialog.flag.ImGuiFileDialogFlags;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.type.ImFloat;
 import imgui.type.ImString;
-import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWWindowCloseCallback;
-import org.lwjgl.glfw.GLFWWindowCloseCallbackI;
-import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.nfd.NativeFileDialog;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -100,6 +92,8 @@ public class PokeUtilsGui extends AppBase {
             System.out.println("Renderdoc not loaded. Continuing without.");
         }
 
+        DialogueUtils.init();
+
         new PokeUtilsGui(GuiHandler.BASE_TITLE, 250+512 + (512 - 482), 512).run();
     }
 
@@ -114,7 +108,6 @@ public class PokeUtilsGui extends AppBase {
         menu.render();
         fileViewer.render();
         settings.render();
-        processFileDialogs();
     }
 
     @Override
@@ -125,11 +118,24 @@ public class PokeUtilsGui extends AppBase {
     private AdvancedMenuBar configureMenu() {
         var toolbar = new AdvancedMenuBar();
         var file = toolbar.addMenu("File");
-        file.addItem("Open Archive (.pk)", () -> DialogueUtils.chooseFile("open-archive", "Open Archive", ".pk", settings.urls.openArchiveUrl));
-        file.addItem("Create Archive (.glb)", () -> DialogueUtils.chooseFile("create-archive", "Create Archive", ".glb", settings.urls.createArchiveUrl));
-        file.addItem("Open Multiple Archives in sequence (.pk)", () -> DialogueUtils.chooseMultipleFiles("sequence", "Open Multiple Archives", ".pk", settings.urls.sequenceUrl));
+        file.addItem("Open Archive (.pk)", () -> DialogueUtils.chooseFile("Open Archive", settings.urls.openArchiveUrl, "PK;pk", path -> {
+            addRunnable(() -> handler.openAsset(path));
+            settings.urls.openArchiveUrl = path.toString();
+        }));
+        file.addItem("Create Archive (.glb)", () -> DialogueUtils.chooseFile("Create Archive", "GLB;glb", settings.urls.createArchiveUrl, path -> {
+            addRunnable(() -> handler.convertGlb(path));
+            settings.urls.createArchiveUrl = path.toString();
+        }));
+        file.addItem("Open Multiple Archives in sequence (.pk)", () -> DialogueUtils.chooseMultipleFiles( "Open Multiple Archives", settings.urls.sequenceUrl, "PK;pk", files -> {
+            addRunnable(() -> handler.openAsset(files));
+            settings.urls.sequenceUrl = files.get(0).toString();
+        }));
         file.addItem("Save", () -> handler.save());
-        file.addItem("Save As", () -> DialogueUtils.chooseFile("save-as", "Save As", ".pk", settings.urls.saveAsUrl));
+        file.addItem("Save As", () -> DialogueUtils.chooseFile("Save As", settings.urls.saveAsUrl, "PK;pk", path -> {
+            handler.markDirty();
+            handler.save(path);
+            settings.urls.saveAsUrl = path.toString();
+        }));
 
         return toolbar;
     }
@@ -140,27 +146,6 @@ public class PokeUtilsGui extends AppBase {
         } catch (IOException e) {
 
         }
-    }
-
-    private void processFileDialogs() {
-
-        if(DialogueUtils.checkSingleFile("open-archive", path -> {
-            handler.openAsset(path);
-            settings.urls.openArchiveUrl = path.toString();
-        })) {}
-        else if(DialogueUtils.checkSingleFile("create-archive", file -> {
-            handler.convertGlb(file);
-            settings.urls.createArchiveUrl = file.toString();
-        })) {}
-        else if(DialogueUtils.checkMultipleFiles("sequence", files -> {
-            handler.openAsset(files);
-            settings.urls.sequenceUrl = files.get(0).toString();
-        })) {}
-        else if(DialogueUtils.checkSingleFile("save-as", file -> {
-            handler.markDirty();
-            handler.save(file);
-            settings.urls.saveAsUrl = file.toString();
-        })) {}
     }
 
     public void setTitle(String title) {
@@ -258,10 +243,10 @@ public class PokeUtilsGui extends AppBase {
         }
 
         public static class Urls {
-            public String openArchiveUrl = ".";
-            public String saveAsUrl = ".";
-            public String createArchiveUrl = ".";
-            public String sequenceUrl = ".";
+            public String openArchiveUrl = "";
+            public String saveAsUrl = "";
+            public String createArchiveUrl = "";
+            public String sequenceUrl = "";
         }
 
         public static class Terastalization {

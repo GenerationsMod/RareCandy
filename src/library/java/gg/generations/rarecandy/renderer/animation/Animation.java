@@ -50,7 +50,7 @@ public class Animation {
     public boolean loops;
     public boolean ignoreInstancedTime = false;
 
-    private boolean ignoreScaling;
+    private final boolean ignoreScaling;
 
     public Animation(int id, int ticksPerSecond, boolean loops, Skeleton skeleton, AnimationNode[] animationNodes, Offset[] offsets, boolean ignoreScaling, SkeletalTransform offset) {
         this.id = id;

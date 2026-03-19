@@ -344,4 +344,8 @@ public class Pipeline {
             return result;
         }
     }
+
+    public void destroy() {
+        GL32.glDeleteProgram(program);
+    }
 }

@@ -15,6 +15,8 @@ import org.lwjgl.opengl.GL;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -31,6 +33,7 @@ public abstract class AppBase {
     private ImGuiImplGlfw imguiGlfw;
     private ImGuiImplGl3 imguiGl3;
     private BlankTexture target;
+    private Queue<Runnable> runnables = new ArrayDeque<>();
 
     public static void main(String[] args) throws IOException {
         new ComputeShaderDemo().run();
@@ -82,8 +85,20 @@ public abstract class AppBase {
 
     protected abstract void initGL();
 
+    protected void addRunnable(Runnable runnable) {
+        runnables.add(runnable);
+    }
+
     private void loop() {
         while (!glfwWindowShouldClose(window)) {
+
+            var runnable = runnables.poll();
+
+            while(runnable != null) {
+                runnable.run();
+                runnable = runnables.poll();
+            }
+
             glfwPollEvents();
 
             var clear = clearColor();

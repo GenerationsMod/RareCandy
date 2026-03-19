@@ -83,9 +83,9 @@ public class GuiPipelines {
 
         MATERIAL = ComputePipeline.builder(builtin("rewrite/material.cs.glsl"))
                 .autoSampler2D(Scope.DRAW, "diffuse", 0, createMaterialTextureProvider(0, "neutral"))
-                .autoSampler2D(Scope.DRAW, "emission", 1, createMaterialTextureProvider(1, "dark"))
-                .autoSampler2D(Scope.DRAW, "layer", 2, createMaterialTextureProvider(2, "dark"))
-                .autoSampler2D(Scope.DRAW, "mask", 3, createMaterialTextureProvider(3, "dark"))
+                .autoSampler2D(Scope.DRAW, "layer", 1, createMaterialTextureProvider(1, "dark"))
+                .autoSampler2D(Scope.DRAW, "mask", 2, createMaterialTextureProvider(2, "dark"))
+                .autoSampler2D(Scope.DRAW, "emission", 3, createMaterialTextureProvider(3, "dark"))
                 .autoSampler2D(Scope.DRAW, "paradoxTexture", 4, ctx -> textures[0].getId())
                 .addUniform(Scope.DRAW, "instanceId", (uniform, ctx) -> uniform.uploadInt(instanceId))
                 .addUniform(Scope.DRAW, "meshId", (uniform, ctx) -> uniform.uploadInt(ctx.mesh()))

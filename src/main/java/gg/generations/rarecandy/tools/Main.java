@@ -7,10 +7,6 @@ import gg.generations.rarecandy.tools.gui.PokeUtilsGui;
 import gg.generations.rarecandy.tools.pkcreator.PixelConverter;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 import gg.generations.rarecandy.tools.pokemodding.QuaternionConverterGUI;
-import gg.generations.rarecandy.tools.swsh.EyeTexture;
-import gg.generations.rarecandy.tools.swsh.LongBoi;
-import gg.generations.rarecandy.tools.swsh.MouthTexture;
-import org.lwjgl.util.nfd.NativeFileDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,14 +23,14 @@ public class Main {
             new Command("archiveExplorer", "Opens a AWT Gui allowing you to view the structure of a PK file", Main::archiveExplorer),
             new Command("experimentalViewer", "Just an entry for testing the new viewer.", ExperimentalViewer::main),
             new Command("converter", "Lets you convert individual files inside of converter/in into their opposite. eg: pk -> glb, glb -> pk, smd -> smdx, etc", Main::converter),
-            new Command("pixelmonArchiveBuilder", "Allows you to build an entire pokemon. each pokemon should match their folder name eg: converter/in/koraidon should have a glb called koraidon.glb and all the anims", Main::pixelmonArchiveBuilder),
-            new Command("texgen", "Runs the texgen program.", strings -> {
-                try {
-                    texgen(strings);
-                } catch (IOException | InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            })
+            new Command("pixelmonArchiveBuilder", "Allows you to build an entire pokemon. each pokemon should match their folder name eg: converter/in/koraidon should have a glb called koraidon.glb and all the anims", Main::pixelmonArchiveBuilder)
+//            new Command("texgen", "Runs the texgen program.", strings -> {
+//                try {
+////                    texgen(strings);
+//                } catch (IOException | InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            })
             //,
 
 //            new Command("eyeFixer (swsh)", "Used to convert all pairs of iris and eye textures in a folder into the format used in Sword and Shield pokemon model eyes", Main::eyeFixer),
@@ -100,69 +96,69 @@ public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static DualOutputStream outStream;
 
-    public static void texgen(String[] strings) throws IOException, InterruptedException {
-        NativeFileDialog.NFD_Init();
+//    public static void texgen(String[] strings) throws IOException, InterruptedException {
+//        NativeFileDialog.NFD_Init();
+//
+//        System.out.println("Choose texgen executable:");
+//        var texGenPath = DialogueUtils.chooseFile("EXE;exe");
+//
+//        if(texGenPath == null) return;
+//
+//        var inputFolder = DialogueUtils.chooseFolder();
+//
+//        if(inputFolder == null) return;
+//
+//        var outputFolder = DialogueUtils.chooseFolder();
+//
+//        if(outputFolder == null) return;
+//
+//        List<Path> pngFiles = Files.walk(inputFolder).filter(name -> name.getFileName().toString().endsWith(".png")).toList();
+//
+//        if (pngFiles.isEmpty()) {
+//            System.out.println("No PNG files found in the input directory.");
+//            return;
+//        }
+//
+//        for (Path pngFile : pngFiles) {
+//            // Build the texconv command for each PNG file
+//            List<String> command = new ArrayList<>();
+//            command.add(texGenPath.toString());
+//            command.add("-f");
+//            command.add("BC7_UNORM");
+//            command.add("-o");
+//            command.add(outputFolder.toString());
+//            command.add(pngFile.toAbsolutePath().toString());
+//
+//            // Run the command
+//            ProcessBuilder processBuilder = new ProcessBuilder(command);
+//            processBuilder.redirectErrorStream(true); // Merge stdout and stderr
+//            Process process = processBuilder.start();
+//
+//            // Wait for the process to complete
+//            int exitCode = process.waitFor();
+//            if (exitCode == 0) {
+//                System.out.println("Successfully converted: " + pngFile.getFileName());
+//            } else {
+//                System.out.println("Error converting: " + pngFile.getFileName());
+//            }
+//        }
+//    }
 
-        System.out.println("Choose texgen executable:");
-        var texGenPath = DialogueUtils.chooseFile("EXE;exe");
+//    private static void mouthFixer(String[] strings) {
+//        try {
+//            MouthTexture.main(strings);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
-        if(texGenPath == null) return;
-
-        var inputFolder = DialogueUtils.chooseFolder();
-
-        if(inputFolder == null) return;
-
-        var outputFolder = DialogueUtils.chooseFolder();
-
-        if(outputFolder == null) return;
-
-        List<Path> pngFiles = Files.walk(inputFolder).filter(name -> name.getFileName().toString().endsWith(".png")).toList();
-
-        if (pngFiles.isEmpty()) {
-            System.out.println("No PNG files found in the input directory.");
-            return;
-        }
-
-        for (Path pngFile : pngFiles) {
-            // Build the texconv command for each PNG file
-            List<String> command = new ArrayList<>();
-            command.add(texGenPath.toString());
-            command.add("-f");
-            command.add("BC7_UNORM");
-            command.add("-o");
-            command.add(outputFolder.toString());
-            command.add(pngFile.toAbsolutePath().toString());
-
-            // Run the command
-            ProcessBuilder processBuilder = new ProcessBuilder(command);
-            processBuilder.redirectErrorStream(true); // Merge stdout and stderr
-            Process process = processBuilder.start();
-
-            // Wait for the process to complete
-            int exitCode = process.waitFor();
-            if (exitCode == 0) {
-                System.out.println("Successfully converted: " + pngFile.getFileName());
-            } else {
-                System.out.println("Error converting: " + pngFile.getFileName());
-            }
-        }
-    }
-
-    private static void mouthFixer(String[] strings) {
-        try {
-            MouthTexture.main(strings);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void eyeFixer(String[] args) {
-        try {
-            EyeTexture.main(args);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    private static void eyeFixer(String[] args) {
+//        try {
+//            EyeTexture.main(args);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     private static void pixelmonArchiveBuilder(String[] args) {
         try {
@@ -172,13 +168,13 @@ public class Main {
         }
     }
 
-    private static void longBoi(String[] args) {
-        try {
-            LongBoi.main(args);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    private static void longBoi(String[] args) {
+//        try {
+////            LongBoi.main(args);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     private static void modelTester(String[] args) {
 //        MinecraftSimulator.main(args);

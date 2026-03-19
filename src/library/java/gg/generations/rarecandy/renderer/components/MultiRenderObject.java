@@ -202,7 +202,7 @@ public abstract class MultiRenderObject {
                 }
 
                 transform.upload(uvTransformBuffer);
-                uvTransformBuffer.put(instance.variant());
+                uvTransformBuffer.put(variantRelationships[meshId][instance.variant()]);
                 uvTransformBuffer.move(4);
             }
         }

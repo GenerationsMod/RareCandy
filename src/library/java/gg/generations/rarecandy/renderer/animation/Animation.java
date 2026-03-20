@@ -67,12 +67,9 @@ public class Animation {
         if(this.animationNodes != null) {
             for (var animationNode : getAnimationNodes()) {
                 if (animationNode != null) {
-                    if (animationNode.positionKeys.getAtTime((int) animationDuration - 10) == null)
-                        animationNode.positionKeys.add(animationDuration, animationNode.positionKeys.get(0).value());
-                    if (animationNode.rotationKeys.getAtTime((int) animationDuration - 10) == null)
-                        animationNode.rotationKeys.add(animationDuration, animationNode.rotationKeys.get(0).value());
-                    if (animationNode.scaleKeys.getAtTime((int) animationDuration - 10) == null)
-                        animationNode.scaleKeys.add(animationDuration, animationNode.scaleKeys.get(0).value());
+                    if (animationNode.positionKeys.getAtTime((int) animationDuration) == null) animationNode.positionKeys.add(animationDuration, animationNode.positionKeys.get(0).value());
+                    if (animationNode.rotationKeys.getAtTime((int) animationDuration) == null) animationNode.rotationKeys.add(animationDuration, animationNode.rotationKeys.get(0).value());
+                    if (animationNode.scaleKeys.getAtTime((int) animationDuration) == null) animationNode.scaleKeys.add(animationDuration, animationNode.scaleKeys.get(0).value());
                 }
             }
         }
@@ -104,8 +101,8 @@ public class Animation {
     }
 
     public float getAnimationTime(double secondsPassed) {
-        var ticksPassed = (float) secondsPassed * (ticksPerSecond);
-            return (float) (ticksPassed % animationDuration);
+        double ticksPassed = secondsPassed * ticksPerSecond;
+        return (float) (ticksPassed % animationDuration);
     }
 
     public Matrix4f[] getFrameTransform(AnimationInstance instance) {

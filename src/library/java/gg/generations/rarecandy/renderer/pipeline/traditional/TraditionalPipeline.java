@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.renderer.pipeline.traditional;
 
+import gg.generations.rarecandy.renderer.components.DrawRecord;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.pipeline.util.*;
@@ -67,8 +68,6 @@ public final class TraditionalPipeline extends Pipeline {
         linkProgram(programId);
         return new TraditionalPipeline.Builder(programId);
     }
-
-
 
     /**
      * Builder for creating fully configured Pipeline instances.

@@ -23,6 +23,8 @@ struct Vertex {
     vec3 position;
     vec2 texcoord;
     vec3 normal;
+    vec3 tangent;
+    vec3 bitangent;
 };
 
 layout(std430, binding = 0) readonly buffer VertexBuffer {

@@ -5,6 +5,7 @@ import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.components.DrawRecord;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.SbboOffset;
+import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.pipeline.compute.ComputePipeline;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.pipeline.util.*;
@@ -15,7 +16,10 @@ import gg.generations.rarecandy.renderer.textures.BlankTexture;
 import gg.generations.rarecandy.renderer.textures.ITexture;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL43C;
+
+import java.util.function.Consumer;
 
 import static gg.generations.rarecandy.renderer.pipeline.Pipelines.builtin;
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
@@ -49,7 +53,7 @@ public class GuiPipelines {
 
     private static int instanceId;
 
-    private static ITexture[] textures = new ITexture[3];
+    private static final ITexture[] textures = new ITexture[3];
 
     public static void transformVertices(MultiRenderObject object, int instanceId) {
         GuiPipelines.instanceId = instanceId;
@@ -142,6 +146,21 @@ public class GuiPipelines {
                 .autoVec3(Scope.GLOBAL, "tint", (ctx) -> ONE)
                 .addUBO(Scope.GLOBAL, "Fog", 0, (ctx) -> canvas.getFogUploader().id)
                 .addSSBORange(Scope.MODEL, "VertexBuffer", 0, ctx -> ctx.object().destBuffer, ctx -> ctx.object().target)
+                .prePostDraw(material -> {
+                    if (material.disableDepth()) {
+                        GL11.glDisable(GL11.GL_DEPTH_TEST);
+                    }
+
+                    material.cullType().enable();
+                    material.blendType().enable();
+                }, material -> {
+                    if (material.disableDepth()) {
+                        GL11.glEnable(GL11.GL_DEPTH_TEST);
+                    }
+
+                    material.cullType().disable();
+                    material.blendType().disable();
+                });
         ;
     }
 

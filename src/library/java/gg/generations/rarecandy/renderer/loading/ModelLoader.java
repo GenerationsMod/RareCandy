@@ -494,6 +494,18 @@ public class ModelLoader {
             throw new RuntimeException("Error Normals not found!");
         }
 
+        var aiTangents = mesh.mTangents();
+
+        if (aiTangents == null) {
+            throw new RuntimeException("Error Tangents not found!");
+        }
+
+        var aiBitangents = mesh.mBitangents();
+
+        if (aiBitangents == null) {
+            throw new RuntimeException("Error Bitangents not found!");
+        }
+
         int[] ids = new int[amount * 4];
         float[] weights = new float[amount * 4];
 
@@ -525,6 +537,8 @@ public class ModelLoader {
             var position = aiVert.get(i);
             var uv = aiUV.get(i);
             var normal = aiNormals.get(i);
+            var tangent = aiTangents.get(i);
+            var bitangent = aiBitangents.get(i);
 
             vertexBuffer.putFloat(position.x());
             vertexBuffer.putFloat(position.y());
@@ -538,6 +552,8 @@ public class ModelLoader {
             vertexBuffer.putFloat(normal.y());
             vertexBuffer.putFloat(normal.z());
             vertexBuffer.putFloat(0);
+
+            computeTangent(vertexBuffer, tangent, bitangent, normal);
 
             if(isEmpty) {
                 vertexBuffer.putInt(1);
@@ -565,6 +581,28 @@ public class ModelLoader {
         }
 
         return drawRecord;
+    }
+
+    private static final Vector3f N = new Vector3f(), T = new Vector3f(), B = new Vector3f(), TEMP = new Vector3f();
+
+    private static void computeTangent(ByteBuffer vertexBuffer, AIVector3D tangent, AIVector3D bitangent, AIVector3D normal) {
+        N.set(normal.x(),    normal.y(),    normal.z());
+        T.set(tangent.x(),   tangent.y(),   tangent.z());
+        B.set(bitangent.x(), bitangent.y(), bitangent.z());
+
+        // Gram-Schmidt
+        N.mul(T.dot(N), TEMP);
+        T.sub(TEMP).normalize();
+
+        // Handedness from original B
+        N.cross(T, TEMP);
+        float handedness = TEMP.dot(B) < 0f ? -1f : 1f;
+
+        // Reconstruct clean B
+        N.cross(T, B);
+        B.mul(handedness);
+
+        vertexBuffer.putFloat(T.x()); vertexBuffer.putFloat(T.y()); vertexBuffer.putFloat(T.z()).putFloat(handedness);
     }
 
     public static void addBoneData(int[] ids, float[] weights, int vertexId, int boneId, float weight) {
@@ -814,7 +852,7 @@ public class ModelLoader {
         var scene = Assimp.aiImportFileEx(name,
                 Assimp.aiProcess_Triangulate |
                         Assimp.aiProcess_OptimizeMeshes |
-                        Assimp.aiProcess_ImproveCacheLocality, fileIo);
+                        Assimp.aiProcess_ImproveCacheLocality | Assimp.aiProcess_CalcTangentSpace, fileIo);
 
         if (scene == null) throw new RuntimeException(Assimp.aiGetErrorString());
 

@@ -2,8 +2,8 @@ package gg.generations.rarecandy.renderer.rendering;
 
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.storage.SSBOBuffer;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
-import org.lwjgl.system.MemoryUtil;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -12,6 +12,7 @@ public class ObjectInstance implements Closeable {
     public static final int MAT4_SIZE = 16 * Float.BYTES;
 
     private final Matrix4f transformationMatrix;
+    private final Matrix3f normalMatrix;
     private int variant;
     private MultiRenderObject object;
     private boolean used = false;
@@ -19,8 +20,9 @@ public class ObjectInstance implements Closeable {
     public static final float DELINK_THRESHOLD =  0.1f; // Seconds before delinking
 
 
-    public ObjectInstance(Matrix4f transformationMatrix, int variant) {
+    public ObjectInstance(Matrix4f transformationMatrix, Matrix3f normalMatrix, int variant) {
         this.transformationMatrix = transformationMatrix;
+        this.normalMatrix = normalMatrix;
         this.variant = variant;
     }
 
@@ -32,8 +34,12 @@ public class ObjectInstance implements Closeable {
         this.object = object;
     }
 
-    public Matrix4f transformationMatrix() {
+    public Matrix4f modelMatrix() {
         return transformationMatrix;
+    }
+
+    public Matrix3f normalMatrix() {
+        return normalMatrix;
     }
 
     public int materialId() {

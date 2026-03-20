@@ -4,7 +4,8 @@ layout(local_size_x = 256, local_size_y = 1) in;
 struct SourceVertex {
     vec3 position;
     vec2 texcoord;
-    vec3 normal;
+    vec3 normals;
+    vec4 tangents;
     uvec4 joints;
     vec4 weights;
 };
@@ -13,6 +14,8 @@ struct TargetVertex {
     vec3 position;
     vec2 texcoord;
     vec3 normal;
+    vec3 tangent;
+    vec3 bitangent;
 };
 
 struct DrawCmd {
@@ -22,6 +25,7 @@ struct DrawCmd {
 
 struct Instance {
     mat4 modelMatrix;
+    mat3 normalMatrix;
     mat4 boneTransforms[220];
 };
 
@@ -77,7 +81,10 @@ void main() {
 
     outV.position = pos.xyz;
     outV.texcoord = src.texcoord * variant.scale + variant.offset;
-    outV.normal   = src.normal;
+    outV.normal = normalize(instance.normalMatrix * src.normals);
+    outV.tangent = normalize(instance.normalMatrix * src.tangents.xyz);
+    outV.tangent =  normalize(outV.tangent - dot(outV.tangent, outV.normal) * outV.normal);
+    outV.bitangent = cross(outV.normal, outV.tangent) * outV.tangent;
 
     dst[idx] = outV;
 }

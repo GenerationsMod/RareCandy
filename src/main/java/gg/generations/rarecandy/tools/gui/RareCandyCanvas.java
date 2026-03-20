@@ -12,10 +12,10 @@ import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.textures.FrameBuffer;
 import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.system.MemoryUtil;
 
@@ -139,7 +139,7 @@ public class RareCandyCanvas {
             var variants = model.availableVariants();
             var variant = !variants.isEmpty() ? variants.iterator().next() : null;
 
-            var instance = new AnimatedObjectInstance(new Matrix4f(), loadedModel.variantNameToId.get(variant));
+            var instance = new AnimatedObjectInstance(new Matrix4f(), new Matrix3f(), loadedModel.variantNameToId.get(variant));
             loadedModelInstance = renderer.add(model, instance);
             loadedModelInstance.use();
 
@@ -207,7 +207,7 @@ public class RareCandyCanvas {
 //        if(planeInstance != null) planeInstance.use();
 
         if (loadedModelInstance != null) {
-            loadedModelInstance.transformationMatrix().identity().scale(scaleModifier);
+            loadedModelInstance.modelMatrix().identity().scale(scaleModifier);
             loadedModelInstance.use();
             size.set(loadedModel.dimensions).mul(scaleModifier);
 
@@ -373,7 +373,7 @@ public class RareCandyCanvas {
         }
     }
 
-    public static class BaseMultiRenderObject extends MultiRenderObject {
+    public class BaseMultiRenderObject extends MultiRenderObject {
 
         public BaseMultiRenderObject(ModelLoader.Names names) {
             super(names);
@@ -398,27 +398,19 @@ public class RareCandyCanvas {
 
                         GuiPipelines.processMaterial(instance, this, mesh);
 
-                        GuiPipelines.SOLID.useProgram();
-                        GuiPipelines.SOLID.bindGlobal();
-                        GuiPipelines.SOLID.bindModel(this);
-                        GuiPipelines.SOLID.bindInstance(instance, this);
-                        GuiPipelines.SOLID.bindDraw(instance, this, mesh);
+                        var pipeline = RareCandyCanvas.this.handler.settings.terastalization.enabled.getValue() ? GuiPipelines.TERSTAL : GuiPipelines.SOLID;
 
-                        if (material.disableDepth()) {
-                            GL11.glDisable(GL11.GL_DEPTH_TEST);
-                        }
+                        pipeline.useProgram();
+                        pipeline.bindGlobal();
+                        pipeline.bindModel(this);
+                        pipeline.bindInstance(instance, this);
+                        pipeline.bindDraw(instance, this, mesh);
 
-                        material.cullType().enable();
-                        material.blendType().enable();
-
+                        pipeline.preDraw(material);
                         model.render();
+                        pipeline.postDraw(material);
 
-                        if (material.disableDepth()) {
-                            GL11.glEnable(GL11.GL_DEPTH_TEST);
-                        }
 
-                        material.cullType().disable();
-                        material.blendType().disable();
 
 //                        pipeline.bindInstance(instance, this);
 //
@@ -446,7 +438,7 @@ public class RareCandyCanvas {
         }
     }
 
-    public static class ToggleableMultiRenderObject extends BaseMultiRenderObject {
+    public class ToggleableMultiRenderObject extends BaseMultiRenderObject {
         public boolean[] overrides;
         public String[] meshNames;
 

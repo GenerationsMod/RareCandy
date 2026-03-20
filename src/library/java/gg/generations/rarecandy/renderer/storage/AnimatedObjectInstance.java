@@ -5,6 +5,7 @@ import gg.generations.rarecandy.renderer.animation.AnimationInstance;
 import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 import java.util.Arrays;
@@ -15,8 +16,8 @@ public class AnimatedObjectInstance extends ObjectInstance {
     @Nullable
     public AnimationInstance currentAnimation;
 
-    public AnimatedObjectInstance(Matrix4f transformationMatrix, int materialId) {
-        super(transformationMatrix, materialId);
+    public AnimatedObjectInstance(Matrix4f modelMatrix, Matrix3f normalMatrix, int materialId) {
+        super(modelMatrix, normalMatrix, materialId);
     }
 
     @Override

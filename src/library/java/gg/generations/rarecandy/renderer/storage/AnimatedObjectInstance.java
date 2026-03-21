@@ -11,7 +11,7 @@ import org.joml.Matrix4f;
 import java.util.Arrays;
 
 public class AnimatedObjectInstance extends ObjectInstance {
-    public static final int ANIMATED_SIZE = MAT4_SIZE * 221;
+    public static final int ANIMATED_SIZE = MAT4_SIZE * 222;
 
     @Nullable
     public AnimationInstance currentAnimation;

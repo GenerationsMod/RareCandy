@@ -80,7 +80,7 @@ public class ModelLoader {
 
         int drawBytes = meshes.length * Integer.BYTES * 2;
 
-        int vertexBytes = vertexCount * 80;
+        int vertexBytes = vertexCount * 96;
 
         int materialBytes = objects.materials.length * 192;
         int variantBytes = objects.variants.length * Variant.SIZE;

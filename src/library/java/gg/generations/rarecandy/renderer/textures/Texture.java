@@ -55,7 +55,7 @@ public class Texture implements ITexture {
     }
 
     @Override
-    public int getId() {
+    public int id() {
         if (details != null) {
             this.id = details.init();
             try {
@@ -71,7 +71,7 @@ public class Texture implements ITexture {
     }
 
     @Override
-    public ITexture.Type getType() {
+    public ITexture.Type type() {
         return type;
     }
 
@@ -83,7 +83,7 @@ public class Texture implements ITexture {
     @Override
     public long getSamplerHandle(SamplerDesc sampler) {
         BindlessSupport.require();
-        int tex = getId();
+        int tex = id();
         long handle = SamplerCache.getOrCreateHandle(tex, sampler);
         resident = true;
         return handle;
@@ -92,8 +92,8 @@ public class Texture implements ITexture {
     @Override
     public long getImageHandle(int level, boolean layered, ITexture.ComputeAccess access) {
         BindlessSupport.require();
-        int tex = getId();
-        long handle = ImageHandleCache.getOrCreate(tex, level, layered, getType().internalFormat, access);
+        int tex = id();
+        long handle = ImageHandleCache.getOrCreate(tex, level, layered, type().internalFormat, access);
         resident = true;
         return handle;
     }
@@ -148,7 +148,7 @@ public class Texture implements ITexture {
         if (comp != 3 && comp != 4) throw new RuntimeException("Inccorect amount of color channels");
 
 
-        return new TextureDetailsSTB(image, comp == 3 ? Type.RGB_BYTE : Type.RGBA_BYTE, w, h);
+        return new TextureDetailsSTB(image, comp == 3 ? Type.RGB8: Type.RGBA8, w, h);
     }
 
     public static ByteBuffer scaleAndProcess(byte[] bytes) {

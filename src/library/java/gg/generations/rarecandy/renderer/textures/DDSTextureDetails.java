@@ -39,7 +39,7 @@ public record DDSTextureDetails(DDSFile file) implements TextureDetails {
 
     @Override
     public ITexture.Type type() {
-        return ITexture.Type.RGBA_BYTE; //TODO: Not use an naiave assumption.
+        return ITexture.Type.RGBA8; //TODO: Not use an naiave assumption.
     }
 
     @Override

@@ -27,7 +27,7 @@ public final class TextureArray implements AutoCloseable {
     private final List<ITexture> layerViews;
 
     public TextureArray(int width, int height, int layers, boolean useViews) {
-        this(width, height, ITexture.Type.RGBA_BYTE, layers, useViews);
+        this(width, height, ITexture.Type.RGBA8, layers, useViews);
     }
 
     public TextureArray(int width, int height, ITexture.Type type, int layers, boolean useViews) {
@@ -69,7 +69,7 @@ public final class TextureArray implements AutoCloseable {
 //        }
 
         glCopyImageSubData(
-                src.getId(), GL_TEXTURE_2D, 0, 0, 0, 0,
+                src.id(), GL_TEXTURE_2D, 0, 0, 0, 0,
                 textureId, GL_TEXTURE_2D_ARRAY, 0, 0, 0, layerIndex,
                 src.width(), src.height(), 1
         );
@@ -163,10 +163,10 @@ public final class TextureArray implements AutoCloseable {
             public int height() { return height; }
 
             @Override
-            public int getId() { return viewTex; }
+            public int id() { return viewTex; }
 
             @Override
-            public Type getType() { return Type.RGBA_BYTE; }
+            public Type type() { return Type.RGBA8; }
 
             @Override
             public long getSamplerHandle(SamplerDesc sampler) {
@@ -180,7 +180,7 @@ public final class TextureArray implements AutoCloseable {
             public long getImageHandle(int level, boolean layered, ComputeAccess access) {
                 BindlessSupport.require();
                 // Non-layered image handle for the 2D view
-                long h = ImageHandleCache.getOrCreate(viewTex, level, false, getType().internalFormat, access);
+                long h = ImageHandleCache.getOrCreate(viewTex, level, false, type().internalFormat, access);
                 resident = true;
                 return h;
             }

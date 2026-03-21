@@ -148,11 +148,16 @@ public abstract class AppBase {
     }
 
     private void cleanup() {
+        cleanupGL();
         imguiGl3.shutdown();
         imguiGlfw.shutdown();
         ImGui.destroyContext();
         glfwDestroyWindow(window);
         glfwTerminate();
+    }
+
+    protected void cleanupGL() {
+
     }
 
     public int getWidth() {

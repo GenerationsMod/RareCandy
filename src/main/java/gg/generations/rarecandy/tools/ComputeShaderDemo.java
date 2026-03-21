@@ -69,7 +69,7 @@ public class ComputeShaderDemo {
 
     private void initGL() {
         // --- Texture ---
-        target = new BlankTexture(ITexture.Type.RGBA_BYTE, 1024, 1024, ITexture.ComputeAccess.WRITE_ONLY);
+        target = new BlankTexture(ITexture.Type.RGBA8, 1024, 1024, ITexture.ComputeAccess.WRITE_ONLY);
 
         // --- Compute Shader ---
         String computeSrc = """
@@ -122,7 +122,7 @@ public class ComputeShaderDemo {
                 .autoSampler2D(Scope.GLOBAL, "tex", 0, new TextureIdSupplier() {
                     @Override
                     public int get(UniformUploadContext ctx) {
-                        return target.getId();
+                        return target.id();
                     }
                 }).build();
     }
@@ -143,7 +143,7 @@ public class ComputeShaderDemo {
             quadProgram.useProgram();
             quadProgram.bindGlobal();
 
-            glBindTexture(GL_TEXTURE_2D, target.getId());
+            glBindTexture(GL_TEXTURE_2D, target.id());
             glDrawArrays(GL_TRIANGLES, 0, 3);
 
             // --- UI ---
@@ -162,7 +162,7 @@ public class ComputeShaderDemo {
             ImGui.setNextWindowPos(200, 300, ImGuiCond.Always);
             ImGui.setNextWindowSize(512, 512, ImGuiCond.Always);
             ImGui.begin("derp");
-            ImGui.image(target.getId(), 512, 512); // show the 1024x1024 image
+            ImGui.image(target.id(), 512, 512); // show the 1024x1024 image
 
             ImGui.end();
 

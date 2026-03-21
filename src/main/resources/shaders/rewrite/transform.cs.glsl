@@ -52,13 +52,11 @@ layout(std430, binding = 4) readonly  buffer TransformBuffer { Transform transfo
 layout(std430, binding = 5) writeonly buffer DstBuffer       { TargetVertex dst[]; };
 
 mat4 getBoneTransform(Instance instance, uvec4 joints, vec4 weights) {
-    mat4[] bone = instance.boneTransforms;
-
     return
-        bone[joints.x] * weights.x +
-        bone[joints.y] * weights.y +
-        bone[joints.z] * weights.z +
-        bone[joints.w] * weights.w;
+    instance.boneTransforms[joints.x] * weights.x +
+    instance.boneTransforms[joints.y] * weights.y +
+    instance.boneTransforms[joints.z] * weights.z +
+    instance.boneTransforms[joints.w] * weights.w;
 }
 
 void main() {
@@ -70,21 +68,28 @@ void main() {
 
     uint idx = c.baseIndex + local;
 
-    SourceVertex src = src[indices[idx]];
+    SourceVertex inV = src[indices[idx]];
     TargetVertex outV;
 
     Instance instance = instances[instanceId];
-
-    vec4 pos = getBoneTransform(instance, src.joints, src.weights) * vec4(src.position, 1.0) * instance.modelMatrix;
-
     Transform variant = transforms[instanceId * variantSize + meshId];
 
-    outV.position = pos.xyz;
-    outV.texcoord = src.texcoord * variant.scale + variant.offset;
-    outV.normal = normalize(instance.normalMatrix * src.normals);
-    outV.tangent = normalize(instance.normalMatrix * src.tangents.xyz);
-    outV.tangent =  normalize(outV.tangent - dot(outV.tangent, outV.normal) * outV.normal);
-    outV.bitangent = cross(outV.normal, outV.tangent) * outV.tangent;
+    mat4 skin = getBoneTransform(instance, inV.joints, inV.weights);
+    mat3 skin3 = mat3(skin);
+
+    vec4 skinnedPos = skin * vec4(inV.position, 1.0);
+    vec3 skinnedNormal = normalize(skin3 * inV.normals);
+    vec3 skinnedTangent = normalize(skin3 * inV.tangents.xyz);
+
+    vec4 worldPos = instance.modelMatrix * skinnedPos;
+
+    outV.position = worldPos.xyz;
+    outV.texcoord = inV.texcoord * variant.scale + variant.offset;
+
+    outV.normal = normalize(instance.normalMatrix * skinnedNormal);
+    outV.tangent = normalize(instance.normalMatrix * skinnedTangent);
+    outV.tangent = normalize(outV.tangent - dot(outV.tangent, outV.normal) * outV.normal);
+    outV.bitangent = cross(outV.normal, outV.tangent) * inV.tangents.w;
 
     dst[idx] = outV;
 }

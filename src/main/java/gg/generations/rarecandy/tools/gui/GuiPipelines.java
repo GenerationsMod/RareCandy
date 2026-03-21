@@ -2,31 +2,22 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.renderer.components.DrawRecord;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
-import gg.generations.rarecandy.renderer.loading.SbboOffset;
-import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.pipeline.compute.ComputePipeline;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.pipeline.util.*;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
-import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
-import gg.generations.rarecandy.renderer.storage.InstanceBlockUploader;
 import gg.generations.rarecandy.renderer.textures.BlankTexture;
 import gg.generations.rarecandy.renderer.textures.ITexture;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL43C;
-
-import java.util.function.Consumer;
 
 import static gg.generations.rarecandy.renderer.pipeline.Pipelines.builtin;
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
 import static org.lwjgl.opengl.GL15C.glBufferData;
 import static org.lwjgl.opengl.GL42C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
 import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT;
-import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER;
 
 public class GuiPipelines {
     public static final Vector3f light0 = new Vector3f(0.5f, 0.5f, -0.5f).normalize();
@@ -64,9 +55,9 @@ public class GuiPipelines {
     }
 
     public static void onInitialize(RareCandyCanvas canvas, PokeUtilsGui.Settings settings) {
-        textures[0] = new BlankTexture(ITexture.Type.RGBA_BYTE, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
-        textures[1] = new BlankTexture(ITexture.Type.RGBA_BYTE, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
-        textures[2] = new BlankTexture(ITexture.Type.RGBA_BYTE, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
+        textures[0] = new BlankTexture(ITexture.Type.RGBA8, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
+        textures[1] = new BlankTexture(ITexture.Type.RGBA8, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
+        textures[2] = new BlankTexture(ITexture.Type.RGBA8, 1024, 1024, ITexture.ComputeAccess.READ_WRITE);
 
         TRANSFORM = ComputePipeline.builder(builtin("rewrite/transform.cs.glsl"))
                 .addSSBORange(Scope.MODEL, "SrcBuffer", 0, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().vertex)
@@ -81,7 +72,7 @@ public class GuiPipelines {
 
         PARADOX = ComputePipeline.builder(builtin("rewrite/paradox.cs.glsl"))
                 .autoInt(Scope.GLOBAL, "frame", (ctx) -> (int) pingpong(RareCandyCanvas.getTime() % 1d))
-                .autoSampler2D(Scope.GLOBAL, "sampler", 0, (ctx) -> ITextureLoader.instance().getTexture("paradox_mask").getId())
+                .autoSampler2D(Scope.GLOBAL, "sampler", 0, (ctx) -> ITextureLoader.instance().getTexture("paradox_mask").id())
                 .autoImage2D(Scope.GLOBAL, "outputTexture", 0, ctx -> textures[0])
                 .build();
 
@@ -90,7 +81,7 @@ public class GuiPipelines {
                 .autoSampler2D(Scope.DRAW, "layer", 1, createMaterialTextureProvider(1, "dark"))
                 .autoSampler2D(Scope.DRAW, "mask", 2, createMaterialTextureProvider(2, "dark"))
                 .autoSampler2D(Scope.DRAW, "emission", 3, createMaterialTextureProvider(3, "dark"))
-                .autoSampler2D(Scope.DRAW, "paradoxTexture", 4, ctx -> textures[0].getId())
+                .autoSampler2D(Scope.DRAW, "paradoxTexture", 4, ctx -> textures[0].id())
                 .addUniform(Scope.DRAW, "instanceId", (uniform, ctx) -> uniform.uploadInt(instanceId))
                 .addUniform(Scope.DRAW, "meshId", (uniform, ctx) -> uniform.uploadInt(ctx.mesh()))
                 .addUniform(Scope.DRAW, "variantSize", (uniform, ctx) -> uniform.uploadInt(ctx.object().meshes.length))
@@ -103,25 +94,25 @@ public class GuiPipelines {
 
         LIT = TraditionalPipeline.builder(builtin("rewrite/lit.vs.glsl"), builtin("rewrite/lit.fs.glsl"))
                 .apply(builder -> GuiPipelines.common(builder, canvas))
-                .autoSampler2D(Scope.GLOBAL, "tex", 0, ctx -> textures[2].getId())
+                .autoSampler2D(Scope.GLOBAL, "tex", 0, ctx -> textures[2].id())
                 .build();
 
         SOLID = TraditionalPipeline.builder(builtin("rewrite/solid.vs.glsl"), builtin("rewrite/solid.fs.glsl"))
                 .apply(builder -> GuiPipelines.common(builder, canvas))
-                .autoSampler2D(Scope.GLOBAL, "tex", 0, ctx -> textures[1].getId())
+                .autoSampler2D(Scope.GLOBAL, "tex", 0, ctx -> textures[1].id())
                 .addUniform(Scope.GLOBAL, "light", (uniform, ctx) -> {
                     var light = (int) (RareCandyCanvas.getLightLevel() * 15);
 
                     uniform.upload2i(0, light);
                 })
-                .autoSampler2D(Scope.GLOBAL, "lightmap", 1, (ctx) -> ITextureLoader.instance().getTexture("light_map").getId())
+                .autoSampler2D(Scope.GLOBAL, "lightmap", 1, (ctx) -> ITextureLoader.instance().getTexture("light_map").id())
                 .autoVec3(Scope.GLOBAL, "Light0_Direction", (ctx) -> light0)
                 .autoVec3(Scope.GLOBAL, "Light1_Direction", (ctx) -> light1)
                 .build();
 
         TERSTAL = TraditionalPipeline.builder(builtin("rewrite/terastal.vs.glsl"), builtin("rewrite/terastal.fs.glsl"))
                 .apply(builder -> GuiPipelines.common(builder, canvas))
-                .autoSampler2D(Scope.GLOBAL, "tex", 0, ctx -> textures[1].getId())
+                .autoSampler2D(Scope.GLOBAL, "tex", 0, ctx -> textures[1].id())
                 .autoVec3(Scope.GLOBAL, "teraTint", (ctx) -> settings.terastalization.tint.getValue())
                 .build();
 
@@ -134,9 +125,9 @@ public class GuiPipelines {
                 .prePostDraw(material -> BlendType.Regular.enable(), material -> BlendType.Regular.disable())
                 .build();
 
-        TraditionalPipeline SCREEN_QUAD = TraditionalPipeline.builder(builtin("original/screen/screen_quad.vs.glsl"), builtin("original/screen/screen_quad.fs.glsl"))
-                .autoSampler2D(Scope.GLOBAL, "screenTexture", 0, (ctx) -> RareCandyCanvas.framebuffer.getId())
-                .build();
+//        TraditionalPipeline SCREEN_QUAD = TraditionalPipeline.builder(builtin("original/screen/screen_quad.vs.glsl"), builtin("original/screen/screen_quad.fs.glsl"))
+//                .autoSampler2D(Scope.GLOBAL, "screenTexture", 0, (ctx) -> RareCandyCanvas.framebuffer.())
+//                .build();
     }
 
     private static void common(TraditionalPipeline.Builder builder, RareCandyCanvas canvas) {
@@ -171,7 +162,7 @@ public class GuiPipelines {
 
             var name = ctx.object().images[imageIndex];
 
-            return ITextureLoader.instance().getTexture(name, defaultName).getId();
+            return ITextureLoader.instance().getTexture(name, defaultName).id();
         };
     }
 

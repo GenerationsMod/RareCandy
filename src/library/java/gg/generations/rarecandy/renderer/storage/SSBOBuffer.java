@@ -68,9 +68,10 @@ public class SSBOBuffer {
         return this;
     }
 
-    public SSBOBuffer put(Matrix3f transformationMatrix) {
-        transformationMatrix.getToAddress(pos);
-        pos += 36;
+    public SSBOBuffer put(Matrix3f matrix) {
+        put(matrix.m00()).put(matrix.m01()).put(matrix.m02()).put(0.0f);
+        put(matrix.m10()).put(matrix.m11()).put(matrix.m12()).put(0.0f);
+        put(matrix.m20()).put(matrix.m21()).put(matrix.m22()).put(0.0f);
         return this;
     }
     public SSBOBuffer put(Matrix4f transformationMatrix) {

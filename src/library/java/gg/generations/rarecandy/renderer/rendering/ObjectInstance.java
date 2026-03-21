@@ -28,6 +28,7 @@ public class ObjectInstance implements Closeable {
 
     public void update(SSBOBuffer instanceBuffer) {
         instanceBuffer.put(transformationMatrix);
+        instanceBuffer.put(normalMatrix);
     }
 
     public void link(MultiRenderObject object) {

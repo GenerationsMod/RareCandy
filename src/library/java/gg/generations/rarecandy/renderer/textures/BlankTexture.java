@@ -40,16 +40,12 @@ public final class BlankTexture implements ITexture {
     }
 
     @Override
-    public int getId() {
+    public int id() {
         return id;
     }
 
     @Override
-    public Type getType() {
-        return type;
-    }
-
-    public Texture.Type type() {
+    public Type type() {
         return type;
     }
 

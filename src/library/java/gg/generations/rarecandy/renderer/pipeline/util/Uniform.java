@@ -137,7 +137,7 @@ public class Uniform {
     }
 
     public void uploadImage2D(ITexture texture, int unit, int layer) {
-        uploadImage2D(texture.getId(), texture.getType(), texture.access(), unit, layer);
+        uploadImage2D(texture.id(), texture.type(), texture.access(), unit, layer);
     }
 
     public void uploadImage2D(TextureArray texture, ITexture.ComputeAccess access, int unit, int layer) {

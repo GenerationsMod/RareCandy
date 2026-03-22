@@ -7,7 +7,6 @@ import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
 import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.animation.Animation;
-import gg.generations.rarecandy.renderer.animation.Skeleton;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -50,7 +49,7 @@ public record SmdResource(SMDFile item) implements AnimResource {
         });
     }
 
-    public Animation.AnimationNode[] getNodes(Skeleton skeleton) {
+    public Map<String, Animation.AnimationNode> getNodes() {
         List<SkeletonBlock.@NotNull Keyframe> skeletonBlock = null;
         Map<Integer, String> nodesMap = null;
 
@@ -65,10 +64,10 @@ public record SmdResource(SMDFile item) implements AnimResource {
 
         if(skeletonBlock == null || nodesMap == null) throw new RuntimeException("Error!");
 
-        return fillAnimationNodesSmdx(skeleton, skeletonBlock, nodesMap);
+        return fillAnimationNodesSmdx(skeletonBlock, nodesMap);
     }
 
-    private static Animation.AnimationNode[] fillAnimationNodesSmdx(Skeleton skeleton, @NotNull List<SkeletonBlock.Keyframe> keyframes, Map<Integer, String> nodeMap) {
+    private static Map<String, Animation.AnimationNode> fillAnimationNodesSmdx(@NotNull List<SkeletonBlock.Keyframe> keyframes, Map<Integer, String> nodeMap) {
         var nodes = new HashMap<String, List<SmdBoneStateKey>>();
 
         for (var keyframe : keyframes) {
@@ -76,39 +75,21 @@ public record SmdResource(SMDFile item) implements AnimResource {
             var states = keyframe.states;
 
             for (var boneState : states) {
-                if (boneState.bone < skeleton.bones.length - 1) {
-                    var id = nodeMap.get(boneState.bone);
-                    var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
 
-                    var pos = new Vector3f(boneState.posX, boneState.posY, boneState.posZ);
+                var id = nodeMap.get(boneState.bone);
+                var list = nodes.computeIfAbsent(id, a -> new ArrayList<>());
 
-                    list.add(new SmdBoneStateKey(time, pos, new Quaternionf().rotateZYX(boneState.rotZ, boneState.rotY, boneState.rotX)));
-                }
+                var pos = new Vector3f(boneState.posX, boneState.posY, boneState.posZ);
+
+                list.add(new SmdBoneStateKey(time, pos, new Quaternionf().rotateZYX(boneState.rotZ, boneState.rotY, boneState.rotX)));
             }
 
             nodes.forEach((k, v) -> v.sort(Comparator.comparingInt(SmdBoneStateKey::time)));
         }
 
-        var animationNodes = new Animation.AnimationNode[skeleton.jointMap.size()];
+        var animationNodes = new HashMap<String, Animation.AnimationNode>();
         for (var entry : nodes.entrySet()) {
-            if (!skeleton.boneIdMap.containsKey(entry.getKey())) {
-                continue;
-            }
-
-            animationNodes[skeleton.boneIdMap.get(entry.getKey())] = createNode(entry.getValue());
-        }
-
-        for (int i = 0; i < animationNodes.length; i++) {
-
-            if(animationNodes[i] == null) {
-                var node = new Animation.AnimationNode();
-                var joint = skeleton.jointMap.get(skeleton.bones[i].name);
-
-                node.rotationKeys.add(0, joint.poseRotation);
-                node.rotationKeys.add(0, joint.poseRotation);
-                node.scaleKeys.add(0, joint.poseScale);
-
-            }
+            animationNodes.put(entry.getKey(), createNode(entry.getValue()));
         }
 
         return animationNodes;

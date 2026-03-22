@@ -7,7 +7,6 @@ import org.joml.Matrix4fStack;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -39,7 +38,7 @@ public class Animation {
     protected final Skeleton skeleton;
     private final SkeletalTransform rootOffset;
 
-    private final AnimationNode[] animationNodes;
+    private final Map<String, AnimationNode> animationNodes;
     public Offset[] offsets;
 
 
@@ -52,7 +51,7 @@ public class Animation {
 
     private final boolean ignoreScaling;
 
-    public Animation(int id, int ticksPerSecond, boolean loops, Skeleton skeleton, AnimationNode[] animationNodes, Offset[] offsets, boolean ignoreScaling, SkeletalTransform offset) {
+    public Animation(int id, int ticksPerSecond, boolean loops, Skeleton skeleton, Map<String, AnimationNode> animationNodes, Offset[] offsets, boolean ignoreScaling, SkeletalTransform offset) {
         this.id = id;
         this.ticksPerSecond = ticksPerSecond;
         this.loops = loops;
@@ -65,7 +64,7 @@ public class Animation {
         this.ignoreScaling = ignoreScaling;
 
         if(this.animationNodes != null) {
-            for (var animationNode : getAnimationNodes()) {
+            for (var animationNode : animationNodes.values()) {
                 if (animationNode != null) {
                     if (animationNode.positionKeys.getAtTime((int) animationDuration) == null) animationNode.positionKeys.add(animationDuration, animationNode.positionKeys.get(0).value());
                     if (animationNode.rotationKeys.getAtTime((int) animationDuration) == null) animationNode.rotationKeys.add(animationDuration, animationNode.rotationKeys.get(0).value());
@@ -80,7 +79,7 @@ public class Animation {
 
         if(animationNodes != null) {
 
-            for (var value : this.getAnimationNodes()) {
+            for (var value : animationNodes.values()) {
                 if (value != null) {
                     for (var key : value.positionKeys) duration = Math.max(key.time(), duration);
                     for (var key : value.rotationKeys) duration = Math.max(key.time(), duration);
@@ -162,32 +161,29 @@ public class Animation {
         var animationNodeId = skeleton.boneIdMap.getOrDefault(name, -1);
         var bone = skeleton.get(name);
 
-        if (animationNodeId != -1) {
-            var animNode = animationNodes[animationNodeId];
+        var animNode = animationNodes != null ? animationNodes.get(name) : null;
 
-            if (animNode != null) {
-                var scale = ignoreScaling ? SCALE : AnimationMath.calcInterpolatedScaling(animTime, animNode);
-                var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
+        if (animNode != null) {
+            var scale = ignoreScaling ? SCALE : AnimationMath.calcInterpolatedScaling(animTime, animNode);
+            var rotation = AnimationMath.calcInterpolatedRotation(animTime, animNode);
 
-                // Reuse pooled Vector3f for "origin" case
-                Vector3f translation;
-                if (name.equalsIgnoreCase("origin")) {
-                    translation = TEMP_ORIGIN_VECTOR.set(0);
-                } else {
-                    translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
-                }
-
-                if (!offsetUsed) {
-                    offsetUsed = true;
-                    translation.add(rootOffset.position());
-                    rotation.mul(rootOffset.rotation());
-                }
-
-                if(!isIdentityTransform(translation, scale, rotation, 1e-5f)) nodeTransform.identity().translationRotateScale(translation, rotation, scale);
+            // Reuse pooled Vector3f for "origin" case
+            Vector3f translation;
+            if (name.equalsIgnoreCase("origin")) {
+                translation = TEMP_ORIGIN_VECTOR.set(0);
+            } else {
+                translation = AnimationMath.calcInterpolatedPosition(animTime, animNode);
             }
+
+            if (!offsetUsed) {
+                offsetUsed = true;
+                translation.add(rootOffset.position());
+                rotation.mul(rootOffset.rotation());
+            }
+
+            if (!isIdentityTransform(translation, scale, rotation, 1e-5f))
+                nodeTransform.identity().translationRotateScale(translation, rotation, scale);
         }
-
-
 
         // Reuse pooled Matrix4f for globalTransform
         TEMP_GLOBAL_TRANSFORM.set(GLOBAL).mul(nodeTransform);
@@ -217,7 +213,7 @@ public class Animation {
 //        return this.name;
 //    }
 
-    public AnimationNode[] getAnimationNodes() {
+    public Map<String, AnimationNode> getAnimationNodes() {
         return animationNodes;
     }
 

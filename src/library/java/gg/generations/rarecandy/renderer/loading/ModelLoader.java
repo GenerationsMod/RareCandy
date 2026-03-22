@@ -178,7 +178,7 @@ public class ModelLoader {
     }
 
     private static void processAnimations(MultiRenderObject obj, AIScene scene, Skeleton skeleton, Map<String, AnimResource> animResources, Names names, ModelConfig config) {
-        extractAssimpAnimations(scene, skeleton, animResources);
+//        extractAssimpAnimations(scene, skeleton, animResources);
 
         obj.animations = new Animation[animResources.size()];
         obj.hideDuringAnimation = new boolean[obj.meshes.length][obj.animations.length];
@@ -212,7 +212,7 @@ public class ModelLoader {
                 }
             });
 
-            var nodes = animResource.getNodes(skeleton);
+            var nodes = animResource.getNodes();
             var ignoreScaling = config.ignoreScaleInAnimation != null && (config.ignoreScaleInAnimation.contains(name) || config.ignoreScaleInAnimation.contains("all"));
 
             obj.animations[i] = new Animation(i, (int) fps, loops, skeleton, nodes, offsetsArray, ignoreScaling, config.offsets.getOrDefault(name, new SkeletalTransform()).scale(config.scale));
@@ -235,68 +235,68 @@ public class ModelLoader {
         }
     }
 
-    private static void extractAssimpAnimations(AIScene scene, Skeleton skeleton, Map<String, AnimResource> animResources) {
-        for (int i = 0; i < scene.mNumAnimations(); i++) {
-            AIAnimation aiAnimation = AIAnimation.create(scene.mAnimations().get(i));
-            var animName = aiAnimation.mName().dataString();
-
-            var fps = aiAnimation.mTicksPerSecond();
-
-            var animationNodes = new Animation.AnimationNode[skeleton.jointMap.size()];
-
-            for (int channelIndex = 0; channelIndex < aiAnimation.mNumChannels(); channelIndex++) {
-                var channel = AINodeAnim.create(aiAnimation.mChannels().get(channelIndex));
-
-                var boneName = channel.mNodeName().dataString();
-
-                if(!skeleton.boneIdMap.containsKey(boneName)) continue;
-
-                var node = animationNodes[skeleton.boneIdMap.get(boneName)] = new Animation.AnimationNode();
-
-
-                for (int posIndex = 0; posIndex < channel.mNumPositionKeys(); posIndex++) {
-                    var posKey = channel.mPositionKeys().get(posIndex);
-
-                    var time = posKey.mTime();
-                    var pos = new Vector3f(posKey.mValue().x(), posKey.mValue().y(), posKey.mValue().z());
-
-                    node.positionKeys.add(time, pos);
-                }
-
-                for (int rotIndex = 0; rotIndex < channel.mNumRotationKeys(); rotIndex++) {
-                    var rotKey = channel.mRotationKeys().get(rotIndex);
-
-                    var time = rotKey.mTime();
-                    var rot = new Quaternionf(rotKey.mValue().x(), rotKey.mValue().y(), rotKey.mValue().z(), rotKey.mValue().w());
-
-                    node.rotationKeys.add(time, rot);
-                }
-
-                for (int scaleIndex = 0; scaleIndex < channel.mNumScalingKeys(); scaleIndex++) {
-                    var scaleKey = channel.mScalingKeys().get(scaleIndex);
-
-                    var time = scaleKey.mTime();
-                    var scale = new Vector3f(scaleKey.mValue().x(), scaleKey.mValue().y(), scaleKey.mValue().z());
-
-                    node.scaleKeys.add(time, scale);
-                }
-            }
-
-            for (int nodeIndex = 0; nodeIndex < animationNodes.length; nodeIndex++) {
-
-                if(animationNodes[nodeIndex] == null) {
-                    var node = new Animation.AnimationNode();
-                    var joint = skeleton.jointMap.get(skeleton.bones[nodeIndex].name);
-
-                    node.rotationKeys.add(0, joint.poseRotation);
-                    node.rotationKeys.add(0, joint.poseRotation);
-                    node.scaleKeys.add(0, joint.poseScale);
-                }
-            }
-
-            animResources.putIfAbsent(animName, new GenericAnimResource((long) fps, false, animationNodes)); //TODO: Figure out if assimp derived anims can actually loop or I'm dumb. -Waterpicker
-        }
-    }
+//    private static void extractAssimpAnimations(AIScene scene, Skeleton skeleton, Map<String, AnimResource> animResources) {
+//        for (int i = 0; i < scene.mNumAnimations(); i++) {
+//            AIAnimation aiAnimation = AIAnimation.create(scene.mAnimations().get(i));
+//            var animName = aiAnimation.mName().dataString();
+//
+//            var fps = aiAnimation.mTicksPerSecond();
+//
+//            var animationNodes = new Animation.AnimationNode[skeleton.jointMap.size()];
+//
+//            for (int channelIndex = 0; channelIndex < aiAnimation.mNumChannels(); channelIndex++) {
+//                var channel = AINodeAnim.create(aiAnimation.mChannels().get(channelIndex));
+//
+//                var boneName = channel.mNodeName().dataString();
+//
+//                if(!skeleton.boneIdMap.containsKey(boneName)) continue;
+//
+//                var node = animationNodes[skeleton.boneIdMap.get(boneName)] = new Animation.AnimationNode();
+//
+//
+//                for (int posIndex = 0; posIndex < channel.mNumPositionKeys(); posIndex++) {
+//                    var posKey = channel.mPositionKeys().get(posIndex);
+//
+//                    var time = posKey.mTime();
+//                    var pos = new Vector3f(posKey.mValue().x(), posKey.mValue().y(), posKey.mValue().z());
+//
+//                    node.positionKeys.add(time, pos);
+//                }
+//
+//                for (int rotIndex = 0; rotIndex < channel.mNumRotationKeys(); rotIndex++) {
+//                    var rotKey = channel.mRotationKeys().get(rotIndex);
+//
+//                    var time = rotKey.mTime();
+//                    var rot = new Quaternionf(rotKey.mValue().x(), rotKey.mValue().y(), rotKey.mValue().z(), rotKey.mValue().w());
+//
+//                    node.rotationKeys.add(time, rot);
+//                }
+//
+//                for (int scaleIndex = 0; scaleIndex < channel.mNumScalingKeys(); scaleIndex++) {
+//                    var scaleKey = channel.mScalingKeys().get(scaleIndex);
+//
+//                    var time = scaleKey.mTime();
+//                    var scale = new Vector3f(scaleKey.mValue().x(), scaleKey.mValue().y(), scaleKey.mValue().z());
+//
+//                    node.scaleKeys.add(time, scale);
+//                }
+//            }
+//
+//            for (int nodeIndex = 0; nodeIndex < animationNodes.length; nodeIndex++) {
+//
+//                if(animationNodes[nodeIndex] == null) {
+//                    var node = new Animation.AnimationNode();
+//                    var joint = skeleton.jointMap.get(skeleton.bones[nodeIndex].name);
+//
+//                    node.rotationKeys.add(0, joint.poseRotation);
+//                    node.rotationKeys.add(0, joint.poseRotation);
+//                    node.scaleKeys.add(0, joint.poseScale);
+//                }
+//            }
+//
+//            animResources.putIfAbsent(animName, new GenericAnimResource((long) fps, false, animationNodes)); //TODO: Figure out if assimp derived anims can actually loop or I'm dumb. -Waterpicker
+//        }
+//    }
 
 
     private static void processVariants(MultiRenderObject object, ModelConfig config, Names names, Map<String, List<String>> aliases) {
@@ -712,73 +712,6 @@ public class ModelLoader {
         return obj;
     }
 
-//    private <V extends MultiRenderObject> Callable<V> threadedCreateObject(Function<Names, V> objBuilder, @NotNull Supplier<PixelAsset> is, GlCallSupplier<V> objectCreator, Consumer<MultiRenderObject> onFinish) {
-//        return () -> {
-//            var asset = is.get();
-//            var config = asset.getConfig();
-//
-//            var names = new Names();
-//
-//            config.defaultVariant.forEach((s, variantDetails) -> {
-//                checkIfAlreadyIn(names.meshes(), s, config.meshesToRenderFirst.contains(s));
-//                checkIfAlreadyIn(names.materials(), variantDetails.material());
-//            });
-//
-//            config.variants.forEach((s, variantParent) -> {
-//                checkIfAlreadyIn(names.variants(), s);
-//
-//                if (variantParent.details() != null) {
-//                    variantParent.details().forEach((s1, variantDetails) -> {
-//                        checkIfAlreadyIn(names.meshes(), s1);
-//                        checkIfAlreadyIn(names.materials(), variantDetails.material());
-//                    });
-//                }
-//            });
-//
-//            config.materials.forEach((s, reference) -> {
-//                if (names.materials.contains(s)) {
-//                    reference.complete(config.materials);
-//
-//                    var images = reference.images;
-//
-//                    checkIfAlreadyIn(names.images, images.getDiffuse());
-//                    checkIfAlreadyIn(names.images, images.getLayer());
-//                    checkIfAlreadyIn(names.images, images.getEmission());
-//                    checkIfAlreadyIn(names.images, images.getMask());
-//                }
-//            });
-//
-//            var obj = objBuilder.apply(names);
-//
-//            var images = readImages(asset, names.images);
-//
-//            var variants = processVariants(config, names);
-//
-//            if (asset.getModelFile() == null) return;
-//
-//            if (config != null) obj.scale = config.scale;
-//
-//            var aninResouces = new HashMap<String, AnimResource>();
-//
-//            SmdResource.read(asset, aninResouces);
-//            GfbanmResource.read(asset, aninResouces);
-//            TrAnimationResource.read(asset, aninResouces);
-//
-//            var meshes = new RenderModel[names.meshes.size()];
-//
-//
-//            var glCalls = objectCreator.getCalls(asset, aninResouces, images, variants, names, config, obj);
-//            ThreadSafety.runOnContextThread(() -> {
-//                glCalls.forEach(Runnable::run);
-//                obj.updateDimensions();
-//                if (onFinish != null) onFinish.accept(obj);
-//            });
-//
-//            return obj;
-//
-//        }
-//    }
-
     private static void checkIfAlreadyIn(List<String> list, String entry) {
         if(entry == null) return;
         checkIfAlreadyIn(list, entry, false);
@@ -853,39 +786,6 @@ public class ModelLoader {
         if (scene == null) throw new RuntimeException(Assimp.aiGetErrorString());
 
         return scene;
-    }
-
-    public static <T> Map<String, Map<String, T>> reverseMap(Map<String, Map<String, T>> inputMap) {
-        Map<String, Map<String, T>> reversedMap = new HashMap<>();
-
-        for (Map.Entry<String, Map<String, T>> outerEntry : inputMap.entrySet()) {
-            String outerKey = outerEntry.getKey();
-            Map<String, T> innerMap = outerEntry.getValue();
-
-            for (Map.Entry<String, T> innerEntry : innerMap.entrySet()) {
-                String innerKey = innerEntry.getKey();
-                T value = innerEntry.getValue();
-
-                reversedMap.computeIfAbsent(innerKey, k -> new HashMap<>()).put(outerKey, value);
-            }
-        }
-
-        return reversedMap;
-    }
-
-    public static Map<String, List<String>> reverseListMap(Map<String, List<String>> inputMap) {
-        Map<String, List<String>> reversedMap = new HashMap<>();
-
-        for (Map.Entry<String, List<String>> entry : inputMap.entrySet()) {
-            String outerKey = entry.getKey();
-            List<String> innerList = entry.getValue();
-
-            for (String innerKey : innerList) {
-                reversedMap.computeIfAbsent(innerKey, k -> new ArrayList<>()).add(outerKey);
-            }
-        }
-
-        return reversedMap;
     }
 
     public static Matrix4f from(Matrix4f transform, AIMatrix4x4 aiMat4) {

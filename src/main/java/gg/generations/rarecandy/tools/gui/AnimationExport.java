@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 public class AnimationExport {
     public static void export(Animation animation, Path path) {
-        if(Stream.of(animation.getAnimationNodes()).anyMatch(a -> a.scaleKeys.values().length != 1)) {
+        if(animation.getAnimationNodes().values().stream().anyMatch(a -> a.scaleKeys.values().length != 1)) {
             System.out.println("Warning animation has scaling. SMD doesn't work.");
             return;
         }

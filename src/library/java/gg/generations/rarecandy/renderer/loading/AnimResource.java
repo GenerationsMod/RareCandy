@@ -6,7 +6,7 @@ import gg.generations.rarecandy.renderer.animation.Skeleton;
 import java.util.Map;
 
 public interface AnimResource {
-    Animation.AnimationNode[] getNodes(Skeleton skeleton);
+    Map<String, Animation.AnimationNode> getNodes();
 
     Map<String, Animation.Offset> getOffsets();
 

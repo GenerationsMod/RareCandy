@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.renderer.loading;
 
-import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
 import gg.generations.rarecandy.pokeutils.tracm.TRACM;
 import gg.generations.rarecandy.pokeutils.tracm.TrackMaterialValueList;
 import gg.generations.rarecandy.pokeutils.tranm.QuatTrack;
@@ -11,6 +11,7 @@ import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.animation.TranmUtil;
 import gg.generations.rarecandy.renderer.animation.TransformStorage;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,9 +21,9 @@ import java.util.stream.IntStream;
 
 public record TrAnimationResource(TRANMT tranm, TRACM tracm) implements AnimResource {
 
-    public static void read(PixelAsset asset, Map<String, AnimResource> completed) {
+    public static void read(ResourceReader asset, Map<String, AnimResource> completed) throws IOException {
 
-            var list = asset.files.keySet().stream().filter(a -> a.endsWith("tranm") || a.endsWith("tracm")).collect(Collectors.toCollection(ArrayList::new));
+            var list = asset.getFileNames().stream().filter(a -> a.endsWith("tranm") || a.endsWith("tracm")).collect(Collectors.toCollection(ArrayList::new));
 
             while (!list.isEmpty()) {
                 var a = list.removeFirst();
@@ -32,21 +33,21 @@ public record TrAnimationResource(TRANMT tranm, TRACM tracm) implements AnimReso
                 TRACM tracm = null;
 
                 if (a.endsWith(".tranm")) {
-                    tranm = TRANMT.deserializeFromBinary(asset.files.get(a));
+                    tranm = TRANMT.deserializeFromBinary(asset.getFile(a));
 
                     var index = list.indexOf(a.replace(".tranm", ".tracm"));
 
                     if (index != -1) {
-                        tracm = TRACM.getRootAsTRACM(ByteBuffer.wrap(asset.files.get(list.remove(index))));
+                        tracm = TRACM.getRootAsTRACM(ByteBuffer.wrap(asset.getFile(list.remove(index))));
                     }
                 } else {
                     if (a.endsWith(".tracm")) {
-                        tracm = TRACM.getRootAsTRACM(ByteBuffer.wrap(asset.files.get(a)));
+                        tracm = TRACM.getRootAsTRACM(ByteBuffer.wrap(asset.getFile(a)));
 
                         var index = list.indexOf(a.replace(".tracm", ".tranm"));
 
                         if (index != -1) {
-                            tranm = TRANMT.deserializeFromBinary(asset.files.get(list.remove(index)));
+                            tranm = TRANMT.deserializeFromBinary(asset.getFile(list.remove(index)));
                         }
                     }
                 }

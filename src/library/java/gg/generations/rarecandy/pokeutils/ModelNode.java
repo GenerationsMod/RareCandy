@@ -21,8 +21,6 @@ public class ModelNode {
     public final Vector3f poseScale;
     public final List<ModelNode> children = new ArrayList<>();
 
-    public int id = -1;
-
     private ModelNode(AINode aiNode, ModelNode parent) {
         this.name = aiNode.mName().dataString();
 

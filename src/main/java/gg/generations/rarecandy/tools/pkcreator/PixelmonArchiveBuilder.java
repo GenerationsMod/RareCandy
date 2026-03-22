@@ -2,8 +2,10 @@ package gg.generations.rarecandy.tools.pkcreator;
 
 import com.google.gson.JsonObject;
 import gg.generations.rarecandy.pokeutils.ModelConfig;
-import gg.generations.rarecandy.pokeutils.PixelAsset;
-import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
+import gg.generations.rarecandy.pokeutils.resource.PkResourceLocator;
+import gg.generations.rarecandy.pokeutils.resource.ResourceLocator;
+import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
+import gg.generations.rarecandy.pokeutils.resource.ResourceWriter;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -20,53 +22,18 @@ import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
  * Utility for writing and reading Pixelmon: Generation's model format.
  */
 public class PixelmonArchiveBuilder {
-    public static void convertToPk(Path relativeFolder, List<Path> files, Path output, Float scale) {
-        try {
-            if (!Files.exists(output)) {
-                Files.createDirectories(output.getParent());
-                Files.createFile(output);
-            }
-
-            files = files.stream().filter(path -> !(path.toString().endsWith("fbx") || path.toString().endsWith("dae"))).toList();
-
-            try (var sevenZOutput = new SevenZOutputFile(output.toFile())) {
-                for (var file : files) {
-                    processFileName(file, relativeFolder.resolve(output.getFileName().toString().substring(0, output.getFileName().toString().length() - 3))).ifPresent(name -> {
-                        try {
-                            var entry = sevenZOutput.createArchiveEntry(file, name);
-                            sevenZOutput.putArchiveEntry(entry);
-                            if (Files.isRegularFile(file)) {
-                                BufferedInputStream is = null;
-
-                                if (file.getFileName().toString().equals("config.json") && scale != null) {
-                                    var config = PixelAsset.GSON.fromJson(Files.readString(file), JsonObject.class);
-                                    config.addProperty("scale", scale);
-
-                                    is = new BufferedInputStream(new ByteArrayInputStream(PixelAsset.GSON.toJson(config).getBytes()));
-                                } else {
-                                    is = new BufferedInputStream(Files.newInputStream(file));
-                                }
-
-
-                                    byte[] buffer = new byte[1024];
-                                    int length;
-                                    while ((length = is.read(buffer)) > 0) {
-                                        sevenZOutput.write(buffer, 0, length);
-                                    }
-
-                            }
-
-                            sevenZOutput.closeArchiveEntry();
-                        } catch (IOException e) {
-                            printError(e);
-                        }
-                    });
-                }
-                sevenZOutput.finish();
-            }
-        } catch (IOException e) {
-            printError(e);
+    public static void convertToPk(ResourceReader source, ResourceWriter dest, Float scale) throws IOException {
+        if (scale != null && source.hasFile("config.json")) {
+            var config = ModelConfig.GSON.fromJson(new String(source.getFile("config.json")), JsonObject.class);
+            config.addProperty("scale", scale);
+            dest.putFile("config.json", ModelConfig.GSON.toJson(config).getBytes());
         }
+
+        for (var key : source.getFileNames()) {
+            dest.putFile(key, source.getFile(key));
+        }
+
+        dest.save();
     }
 
     //TODO: Add more animations
@@ -102,16 +69,16 @@ public class PixelmonArchiveBuilder {
         Files.createDirectories(outFolder);
 
         Files.list(inFolder).forEach(path -> {
-            if ((Files.isDirectory(path) || path.toString().endsWith(".glb"))) {
+            if (Files.isDirectory(path) || path.toString().endsWith(".glb")) {
                 try {
                     var relativePath = inFolder.relativize(path);
                     var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".glb", "") + ".pk");
 
-                    if (path.toString().endsWith(".glb")) {
-                        convertToPk(inFolder, List.of(path), outputPath, null);
-                    } else {
-                        convertToPk(inFolder, Files.walk(path).toList(), outputPath, null);
-                    }
+                    var source = ResourceLocator.of(path);
+                    var dest = new PkResourceLocator(outputPath);
+
+                    convertToPk(source, dest, null);
+                    dest.save(outputPath);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

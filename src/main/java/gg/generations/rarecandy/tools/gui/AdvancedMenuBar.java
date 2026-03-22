@@ -29,6 +29,7 @@ public class AdvancedMenuBar {
     public static class Menu {
         private final String label;
         private final List<MenuItem> items = new ArrayList<>();
+        private final List<Menu> menus = new ArrayList<>();
 
         public Menu(String label) {
             this.label = label;
@@ -40,11 +41,22 @@ public class AdvancedMenuBar {
             return item;
         }
 
+        public Menu addMenu(String name) {
+            var menu = new Menu(name);
+            menus.add(menu);
+            return menu;
+        }
+
         private void render() {
             if (ImGui.beginMenu(label, true)) {
                 for (MenuItem item : items) {
                     item.render();
                 }
+
+                for (Menu item : menus) {
+                    item.render();
+                }
+
                 ImGui.endMenu();
             }
         }

@@ -55,7 +55,7 @@ public class ModelTest {
                   }
                 }
                 """;
-        var obj = (PixelAsset.GSON.fromJson(json, ModelConfig.class));
+        var obj = (ModelConfig.GSON.fromJson(json, ModelConfig.class));
         System.out.println();
 
 

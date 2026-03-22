@@ -18,7 +18,6 @@ import imgui.type.ImFloat;
 import imgui.type.ImString;
 import org.joml.Vector4f;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.util.nfd.NativeFileDialog;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -115,27 +114,38 @@ public class PokeUtilsGui extends AppBase {
         canvas.render();
     }
 
+    private void open(Path path) {
+        addRunnable(() -> handler.openAsset(path));
+        settings.urls.openArchiveUrl = path.toString();
+    }
+
+    private void save(Path path) {
+        handler.markDirty();
+        handler.save(path);
+        settings.urls.saveAsUrl = path.toString();
+    }
+
     private AdvancedMenuBar configureMenu() {
         var toolbar = new AdvancedMenuBar();
         var file = toolbar.addMenu("File");
-        file.addItem("Open Archive (.pk)", () -> DialogueUtils.chooseFile("Open Archive", settings.urls.openArchiveUrl, "PK;pk", path -> {
-            addRunnable(() -> handler.openAsset(path));
-            settings.urls.openArchiveUrl = path.toString();
-        }));
-        file.addItem("Create Archive (.glb)", () -> DialogueUtils.chooseFile("Create Archive", "GLB;glb", settings.urls.createArchiveUrl, path -> {
-            addRunnable(() -> handler.convertGlb(path));
-            settings.urls.createArchiveUrl = path.toString();
-        }));
-        file.addItem("Open Multiple Archives in sequence (.pk)", () -> DialogueUtils.chooseMultipleFiles( "Open Multiple Archives", settings.urls.sequenceUrl, "PK;pk", files -> {
-            addRunnable(() -> handler.openAsset(files));
-            settings.urls.sequenceUrl = files.get(0).toString();
-        }));
+
+        var open = file.addMenu("Open");
+
+        open.addItem("PK (*.pk)", () -> DialogueUtils.chooseFile(settings.urls.openArchiveUrl, "PK;pk", this::open));
+        open.addItem("Folder", () -> DialogueUtils.chooseFolder(settings.urls.openArchiveUrl, this::open));
+
+//        file.addItem("Open Multiple Archives in sequence (.pk)", () -> DialogueUtils.chooseMultipleFiles( "Open Multiple Archives", settings.urls.sequenceUrl, "PK;pk", files -> {
+//            addRunnable(() -> handler.openAsset(files));
+//            settings.urls.sequenceUrl = files.get(0).toString();
+//        }));
+
+        var saveAs = file.addMenu("Save As");
+
+        saveAs.addItem("PK (*.pk)", () -> DialogueUtils.saveFile(settings.urls.saveAsUrl, "PK;pk", this::save));
+        saveAs.addItem("Folder", () -> DialogueUtils.chooseFolder(settings.urls.saveAsUrl, this::save));
+
         file.addItem("Save", () -> handler.save());
-        file.addItem("Save As", () -> DialogueUtils.chooseFile("Save As", settings.urls.saveAsUrl, "PK;pk", path -> {
-            handler.markDirty();
-            handler.save(path);
-            settings.urls.saveAsUrl = path.toString();
-        }));
+
 
         return toolbar;
     }

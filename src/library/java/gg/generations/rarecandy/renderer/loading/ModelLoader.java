@@ -1,7 +1,9 @@
 package gg.generations.rarecandy.renderer.loading;
 
 import gg.generations.rarecandy.pokeutils.*;
-import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
+import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
+import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingBiFunction;
+import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingConsumer;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.components.DrawRecord;
@@ -14,7 +16,6 @@ import gg.generations.rarecandy.renderer.textures.Texture;
 import gg.generations.rarecandy.renderer.textures.TextureArray;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.assimp.*;
@@ -41,9 +42,9 @@ public class ModelLoader {
     public static void processModel(
             MultiRenderObject objects,
             Names names,
-            PixelAsset asset,
+            ResourceReader asset,
             Map<String, AnimResource> animResources,
-            ModelConfig config) {
+            ModelConfig config) throws IOException {
         if (config == null) throw new RuntimeException("config.json can't be null.");
 
         var scene = ModelLoader.read(asset);
@@ -626,12 +627,10 @@ public class ModelLoader {
         }
     }
 
-    public static MultiRenderObject createObject(Function<Names, MultiRenderObject> objBuilder, @NotNull Supplier<PixelAsset> is, BiFunction<PixelAsset, List<String>, TextureArray> imageConsumer, BiFunction<MaterialReference, List<String>, Material> materialProcess, Consumer<MultiRenderObject> onFinish) {
+    public static MultiRenderObject createObject(Function<Names, MultiRenderObject> objBuilder, @NotNull Supplier<ResourceReader> is, ExceptionThrowingBiFunction<ResourceReader, List<String>, TextureArray> imageConsumer, ExceptionThrowingBiFunction<MaterialReference, List<String>, Material> materialProcess, ExceptionThrowingConsumer<MultiRenderObject> onFinish) throws Exception {
         var asset = is.get();
 
-        var config = asset.getConfig();
-
-        if (asset.getModelFile() == null) throw new RuntimeException("model.config not found");
+        var config = ModelConfig.read(asset);
 
         Map<String, List<String>> aliases = config.aliases != null ? config.aliases : Collections.emptyMap();
 
@@ -685,15 +684,17 @@ public class ModelLoader {
         var obj = objBuilder.apply(names);
         obj.images = imageConsumer.apply(asset, names.images);
 
-        config.materials.forEach((name, reference) -> {
+        for (Map.Entry<String, MaterialReference> entry : config.materials.entrySet()) {
+            String name = entry.getKey();
+            MaterialReference reference = entry.getValue();
             var id = obj.materialNameToId.getOrDefault(name, -1);
 
-            if(id != -1) {
+            if (id != -1) {
                 var material = materialProcess.apply(reference, names.images);
 
                 obj.materials[id] = material;
             }
-        });
+        }
 
         processVariants(obj, config, names, aliases);
 
@@ -723,11 +724,11 @@ public class ModelLoader {
 
 
 
-    public static TextureArray readImages(PixelAsset asset, List<String> imageNames) {
+    public static TextureArray readImages(ResourceReader asset, List<String> imageNames) throws IOException {
         var array = new TextureArray(1024, 1024,imageNames.size(), false);
 
         for (int i = 0; i < imageNames.size(); i++) {
-            var image = Texture.getColorBuffer(asset.get(imageNames.get(i)), 1024);
+            var image = Texture.getColorBuffer(asset.getFile(imageNames.get(i)), 1024);
 
             array.fillLayer(i, image);
 
@@ -741,51 +742,30 @@ public class ModelLoader {
 //        modelLoadingPool.shutdown();
     }
 
-    public static AIScene read(PixelAsset asset) {
-        var name = asset.modelName;
+    public static AIScene read(ResourceReader asset) throws IOException {
+        byte[] bytes = asset.getFile("model.glb");
 
-        var fileIo = AIFileIO.create()
-                .OpenProc((pFileIO, pFileName, openMode) -> {
-                    var fileName = MemoryUtil.memUTF8(pFileName);
-                    var bytes = asset.get(fileName);
-                    var data = BufferUtils.createByteBuffer(bytes.length);
-                    data.put(bytes);
-                    data.flip();
+        ByteBuffer buffer = MemoryUtil.memAlloc(bytes.length);
+        buffer.put(bytes).flip();
 
-                    return AIFile.create()
-                            .ReadProc((pFile, pBuffer, size, count) -> {
-                                var max = Math.min(data.remaining() / size, count);
-                                MemoryUtil.memCopy(MemoryUtil.memAddress(data), pBuffer, max * size);
-                                data.position((int) (data.position() + max * size));
-                                return max;
-                            })
-                            .SeekProc((pFile, offset, origin) -> {
-                                switch (origin) {
-                                    case Assimp.aiOrigin_CUR -> data.position(data.position() + (int) offset);
-                                    case Assimp.aiOrigin_SET -> data.position((int) offset);
-                                    case Assimp.aiOrigin_END -> data.position(data.limit() + (int) offset);
-                                }
+        try {
+            AIScene scene = Assimp.aiImportFileFromMemory(
+                    buffer,
+                    Assimp.aiProcess_Triangulate
+                            | Assimp.aiProcess_OptimizeMeshes
+                            | Assimp.aiProcess_ImproveCacheLocality
+                            | Assimp.aiProcess_CalcTangentSpace,
+                    "glb"
+            );
 
-                                return 0;
-                            })
-                            .FileSizeProc(pFile -> data.limit())
-                            .address();
-                })
-                .CloseProc((pFileIO, pFile) -> {
-                    var aiFile = AIFile.create(pFile);
-                    aiFile.ReadProc().free();
-                    aiFile.SeekProc().free();
-                    aiFile.FileSizeProc().free();
-                });
+            if (scene == null) {
+                throw new RuntimeException(Assimp.aiGetErrorString());
+            }
 
-        var scene = Assimp.aiImportFileEx(name,
-                Assimp.aiProcess_Triangulate |
-                        Assimp.aiProcess_OptimizeMeshes |
-                        Assimp.aiProcess_ImproveCacheLocality | Assimp.aiProcess_CalcTangentSpace, fileIo);
-
-        if (scene == null) throw new RuntimeException(Assimp.aiGetErrorString());
-
-        return scene;
+            return scene;
+        } finally {
+            MemoryUtil.memFree(buffer);
+        }
     }
 
     public static Matrix4f from(Matrix4f transform, AIMatrix4x4 aiMat4) {

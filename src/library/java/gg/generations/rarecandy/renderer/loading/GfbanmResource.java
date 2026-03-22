@@ -1,23 +1,24 @@
 package gg.generations.rarecandy.renderer.loading;
 
-import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.pokeutils.gfbanm.AnimationT;
+import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
 import gg.generations.rarecandy.renderer.animation.Animation;
-import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.animation.TransformStorage;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public record GfbanmResource(AnimationT rawAnimation) implements AnimResource {
 
-    public static void read(PixelAsset asset, HashMap<String, AnimResource> aninResouces) {
-        asset.files.entrySet().stream()
-                .filter(a -> !aninResouces.containsKey(a.getKey()))
-                .filter(entry -> entry.getKey().endsWith(".pkx") || entry.getKey().endsWith(".gfbanm"))
-                .forEach(entry -> {
-                    aninResouces.put(AnimResource.cleanAnimName(entry.getKey()), new GfbanmResource(AnimationT.deserializeFromBinary(entry.getValue())));
-                });
+    public static void read(ResourceReader asset, HashMap<String, AnimResource> aninResouces) throws IOException {
+        for (String a : asset.getFileNames()) {
+            if (!aninResouces.containsKey(a)) {
+                if (a.endsWith(".pkx") || a.endsWith(".gfbanm")) {
+                    aninResouces.put(AnimResource.cleanAnimName(a), new GfbanmResource(AnimationT.deserializeFromBinary(asset.getFile(a))));
+                }
+            }
+        }
     }
 
     public Map<String, Animation.Offset> getOffsets() {

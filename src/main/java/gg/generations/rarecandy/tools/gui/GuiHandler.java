@@ -1,33 +1,29 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.resource.FolderAsset;
+import gg.generations.rarecandy.pokeutils.resource.PkResourceLocator;
+import gg.generations.rarecandy.pokeutils.resource.ResourceLocator;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 import imgui.ImGui;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
-import org.tukaani.xz.LZMA2Options;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.lightLevel;
 
 public class GuiHandler implements KeyListener {
-    public static final Path TEMP = Path.of("temp");
-    public static final LZMA2Options OPTIONS = new LZMA2Options();
+    public static final FolderAsset TEMP = new FolderAsset(Path.of("temp"));
     public static final String BASE_TITLE = "Pk Explorer";
     private final PokeUtilsGui gui;
 
     private final Set<Integer> pressedKeys = new HashSet<>();
     private final ArcballOrbit arcBall;
 
-    public PixelAsset asset;
     public Path assetPath;
     public int index = 0;
     public int amount;
@@ -51,8 +47,7 @@ public class GuiHandler implements KeyListener {
         return gui.canvas;
     }
 
-    public void initializeAsset(PixelAsset asset, Path path) {
-        this.asset = asset;
+    public void initializeAsset(Path path) {
         this.assetPath = path;
     }
 
@@ -62,19 +57,11 @@ public class GuiHandler implements KeyListener {
 
     public void save(Path savePath) {
         try {
-            PixelmonArchiveBuilder.convertToPk(TEMP, Files.walk(TEMP).toList(), savePath, getCanvas().scaleModifier);
+            PixelmonArchiveBuilder.convertToPk(TEMP, ResourceLocator.of(savePath), getCanvas().scaleModifier);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
-//        if (dirty) {
-//
-//
-//
-//            dirty = false;
-//        }
-//
-//        LoggerUtil.print("Saving disabled for now.");
     }
 
     public void markDirty() {
@@ -88,49 +75,33 @@ public class GuiHandler implements KeyListener {
     public void openAsset(Path filePath) {
         try {
 
-            initializeAsset(new PixelAsset(move(filePath), filePath.getFileName().toString()), filePath);
+            move(filePath);
+
+            initializeAsset(filePath);
             var title = BASE_TITLE + " - " + filePath.getFileName().toString();
             gui.setTitle(title);
-            getCanvas().openFile(asset, FilenameUtils.getBaseName(filePath.getFileName().toString()), () -> gui.fileViewer.initializeAsset(asset, assetPath, getCanvas().loadedModel.animationNameToId.keySet()), true);
+            getCanvas().openFile(TEMP, FilenameUtils.getBaseName(filePath.getFileName().toString()), () -> gui.fileViewer.initializeAsset(TEMP, assetPath, getCanvas().loadedModel.animationNameToId.keySet()), true);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void reloadCurrent() throws IOException {
-        var filePath = TEMP;
-
-        initializeAsset(new PixelAsset(filePath, assetPath.getFileName().toString()), assetPath);
-        getCanvas().openFile(asset, FilenameUtils.getBaseName(assetPath.getFileName().toString()));
+    public void reloadCurrent() throws Exception {
+        initializeAsset(assetPath);
+        getCanvas().openFile(TEMP, FilenameUtils.getBaseName(assetPath.getFileName().toString()));
     }
 
-    public static Map<String, byte[]> move(Path path) throws IOException {
-        FileUtils.deleteDirectory(TEMP.toFile());
-        Files.createDirectories(TEMP);
+    public static void move(Path path) throws IOException {
+        TEMP.getFileNames().forEach(TEMP::deleteFile);
 
-        var seven = PixelAsset.getSevenZipFile(path);
+        var seven = ResourceLocator.of(path);
 
-        var files = new HashMap<String, byte[]>();
+        for (var file : seven.getFileNames()) {
+            if(file.isEmpty()) continue;
 
-        for (var entry : seven.getEntries()) {
-            files.put(entry.getName(), seven.getInputStream(entry).readAllBytes());
+            TEMP.putFile(file, seven.getFile(file));
         }
-
-//        System.out.println(files.keySet());
-
-        for (var file : files.entrySet()) {
-            if(file.getKey().isEmpty()) continue;
-
-            var filePath = TEMP.resolve(file.getKey());
-//            System.out.println(filePath);
-
-            if(Files.isDirectory(filePath)) continue;
-            Files.createFile(filePath);
-            Files.write(filePath, file.getValue());
-        }
-
-        return files;
     }
 
     @Override
@@ -173,7 +144,7 @@ public class GuiHandler implements KeyListener {
                 case GLFW.GLFW_KEY_SPACE -> {
                     try {
                         reloadCurrent();
-                    } catch (IOException ex) {
+                    } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
                 }
@@ -186,7 +157,7 @@ public class GuiHandler implements KeyListener {
                 case GLFW.GLFW_KEY_O -> {
                     if (filesToOpen.isEmpty()) {
 
-                        DialogueUtils.chooseFile("Select PK", this.gui.settings.urls.openArchiveUrl, "PK;pk", this::openAsset);
+                        DialogueUtils.chooseFile(this.gui.settings.urls.openArchiveUrl, "PK;pk", this::openAsset);
                     }
                     else {
                         index++;
@@ -219,19 +190,19 @@ public class GuiHandler implements KeyListener {
         handleKey(key, scancode, mods, true);
     }
 
-    public void convertGlb(Path chosenFile) {
-        try {
-            var is = Files.newInputStream(chosenFile);
-            var filePath = Path.of(chosenFile.toString().replace(".glb", ".pk"));
-            initializeAsset(new PixelAsset(chosenFile.getFileName().toString(), is.readAllBytes()), filePath);
-            var title = BASE_TITLE + " - " + filePath.getFileName().toString();
-            gui.setTitle(title);
-            gui.canvas.openFile(asset, "");
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    public void convertGlb(Path chosenFile) {
+//        try {
+//            var is = Files.newInputStream(chosenFile);
+//            var filePath = Path.of(chosenFile.toString().replace(".glb", ".pk"));
+//            initializeAsset(new PixelAsset(chosenFile.getFileName().toString(), is.readAllBytes()), filePath);
+//            var title = BASE_TITLE + " - " + filePath.getFileName().toString();
+//            gui.setTitle(title);
+//            gui.canvas.openFile(asset, "");
+//
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     public void openAsset(List<Path> chosenFiles) {
         System.out.println("Loading " + chosenFiles.size() + " into queue.");

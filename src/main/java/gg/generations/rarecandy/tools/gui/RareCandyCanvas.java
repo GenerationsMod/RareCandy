@@ -1,7 +1,10 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.MaterialReference;
-import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
+import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingBiFunction;
+import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingConsumer;
+import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingRunnable;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
 import gg.generations.rarecandy.renderer.components.DummyVAO;
@@ -10,6 +13,7 @@ import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.textures.FrameBuffer;
+import gg.generations.rarecandy.renderer.textures.TextureArray;
 import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
@@ -23,6 +27,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import static gg.generations.rarecandy.renderer.loading.ModelLoader.createObject;
@@ -88,11 +93,11 @@ public class RareCandyCanvas {
         return time;
     }
 
-    public void openFile(PixelAsset pkFile, String name) throws IOException {
+    public void openFile(ResourceReader pkFile, String name) throws Exception {
         openFile(pkFile, name, () -> {}, true);
     }
 
-    public void openFile(PixelAsset pkFile, String name, Runnable runnable, boolean resetAnimation) throws IOException {
+    public void openFile(ResourceReader pkFile, String name, ExceptionThrowingRunnable runnable, boolean resetAnimation) throws Exception {
         currentAnimation = null;
         rendering = false;
 
@@ -278,7 +283,7 @@ public class RareCandyCanvas {
         return new AnimationInstance(animation);
     }
 
-    protected void loadPokemonModel(PixelAsset is, Consumer<MultiRenderObject> onFinish) {
+    protected void loadPokemonModel(ResourceReader is, ExceptionThrowingConsumer<MultiRenderObject> onFinish) throws Exception {
         createObject(
                 ToggleableMultiRenderObject::new,
                 () -> is, ModelLoader::readImages, MaterialReference::process, onFinish);

@@ -5,7 +5,7 @@ import dev.thecodewarrior.binarysmd.formats.SMDTextReader;
 import dev.thecodewarrior.binarysmd.studiomdl.NodesBlock;
 import dev.thecodewarrior.binarysmd.studiomdl.SMDFile;
 import dev.thecodewarrior.binarysmd.studiomdl.SkeletonBlock;
-import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
@@ -21,16 +21,13 @@ public record SmdResource(SMDFile item) implements AnimResource {
     private static final SMDTextReader SMD_READER = new SMDTextReader();
     private static final SMDBinaryReader SMDX_READER = new SMDBinaryReader();
 
-    public static void read(PixelAsset asset, HashMap<String, AnimResource> aninResouces) {
-        var files = asset.files.entrySet().stream().filter(a -> {
-            var name = a.getKey();
-            return EXTENSIONS.stream().anyMatch(name::endsWith);
-        }).toList();
+    public static void read(ResourceReader asset, HashMap<String, AnimResource> aninResouces) throws IOException {
+        var files = asset.getFileNames().stream().filter(a -> EXTENSIONS.stream().anyMatch(a::endsWith)).toList();
 
         for (var entry : files) {
-            var split = entry.getKey().split("\\.");
+            var split = entry.split("\\.");
 
-            var smdFile = getFile(split[1], entry.getValue());
+            var smdFile = getFile(split[1], asset.getFile(entry));
             aninResouces.put(split[0], smdFile);
         }
     }

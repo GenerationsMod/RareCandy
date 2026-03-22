@@ -33,7 +33,7 @@ public class DialogueUtils {
                 .thenRun(DIALOG_THREAD::shutdown);
     }
 
-    public static void saveFile(String title, String defaultPath, String filterList, Consumer<Path> consumer) {
+    public static void saveFile(String defaultPath, String filterList, Consumer<Path> consumer) {
         CompletableFuture.supplyAsync(() -> {
             var array = filterList.split(";");
             var filters = NFDFilterItem.malloc(1);
@@ -97,7 +97,7 @@ public class DialogueUtils {
         }, DIALOG_THREAD).thenAccept(consumer);
     }
 
-    public static void chooseFile(String title, String defaultPath, String filterList, Consumer<Path> consumer) {
+    public static void chooseFile(String defaultPath, String filterList, Consumer<Path> consumer) {
 //        var path = Path.of(defaultPath).toAbsolutePath().toString();
 
         CompletableFuture.supplyAsync(() -> {
@@ -130,7 +130,7 @@ public class DialogueUtils {
         }, DIALOG_THREAD).thenAccept(consumer);
     }
 
-    public static void chooseFolder(String title, String defaultPath, Consumer<Path> consumer) {
+    public static void chooseFolder(String defaultPath, Consumer<Path> consumer) {
         CompletableFuture.supplyAsync(() -> {
             var outPath = MemoryUtil.memAllocPointer(1);
             try {

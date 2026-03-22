@@ -54,15 +54,15 @@ uniform int variantSize;
 uniform int instanceId;
 uniform int meshId;
 
-layout(std430, binding = 0) readonly  buffer MaterialBuffer {
+layout(std430, binding = 0) readonly buffer MaterialBuffer {
     Material materials[];
 };
 
-layout(std430, binding = 1) readonly  buffer VariantBuffer {
+layout(std430, binding = 1) readonly buffer VariantBuffer {
     Variant variants[];
 };
 
-layout(std430, binding = 2) readonly  buffer TransformBuffer { Transform transforms[]; };
+layout(std430, binding = 2) readonly buffer TransformBuffer { Transform transforms[]; };
 
 vec4 getColor(int layer, vec2 uv, vec4 fallback) {
     if(layer > 0) return fallback;

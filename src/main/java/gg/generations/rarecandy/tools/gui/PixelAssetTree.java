@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.pokeutils.PixelAsset;
+import gg.generations.rarecandy.pokeutils.ModelConfig;
+import gg.generations.rarecandy.pokeutils.resource.ResourceLocator;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import imgui.ImGui;
 
@@ -12,6 +13,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,18 +50,18 @@ public class PixelAssetTree {
         return list != null ? list : List.of();
     }
 
-    public void initializeAsset(PixelAsset asset, Path assetPath, Set<String> animations) {
+    public void initializeAsset(ResourceLocator asset, Path assetPath, Set<String> animations) throws IOException {
         tree = new CompositeNode(assetPath.getFileName().toString());
         var animationsNode = new RadioListNode("animations", animation -> gui.canvas.setAnimation(animation));
         var imagesNode = new CompositeNode("images");
 
+        var config = ModelConfig.read(asset);
 
+        List<String> variants = config.variants != null ? List.copyOf(config.variants.keySet()) : new ArrayList<>();
 
-        List<String> variants = asset.getConfig() != null && asset.getConfig().variants != null ? List.copyOf(asset.getConfig().variants.keySet()) : new ArrayList<>();
+        var objs = config.defaultVariant.keySet();
 
-        var objs = asset.getConfig().defaultVariant.keySet();
-
-        for (var s : asset.files.keySet()) {
+        for (var s : asset.getFileNames()) {
             if(s.endsWith("tranm") || s.endsWith("tracm") || s.endsWith("gfbanm") || s.endsWith("smd")) {
 //                if(!animations.contains(s)) {
 //                    animationsNode.add(s.replace(".tracm", "").replace(".tranm", "").replace(".gfbanm", "").replace(".smd", ""));

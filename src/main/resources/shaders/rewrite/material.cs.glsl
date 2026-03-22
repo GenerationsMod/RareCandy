@@ -2,17 +2,20 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 
 const vec2 outputSize = vec2(1024.0);
+const vec4 dark = vec4(0.0);
+const vec4 bright = vec4(1.0);
 
 layout(rgba8, binding = 0) uniform image2D solidTex;
 layout(rgba8, binding = 1) uniform image2D litTex;
 
-uniform sampler2D diffuse;
-uniform sampler2D emission;
-uniform sampler2D layer;
-uniform sampler2D mask;
+uniform sampler2DArray images;
 uniform sampler2D paradoxTexture;
 
 struct Material {
+    int diffuse;
+    int emission;
+    int layer;
+    int mask;
     vec3 baseColor1;
     vec3 baseColor2;
     vec3 baseColor3;
@@ -31,7 +34,7 @@ struct Material {
     float emiIntensity4;
     float emiIntensity5;
 
-    float colorMethod;
+    int colorMethod;
 };
 
 struct Variant {
@@ -61,6 +64,11 @@ layout(std430, binding = 1) readonly  buffer VariantBuffer {
 
 layout(std430, binding = 2) readonly  buffer TransformBuffer { Transform transforms[]; };
 
+vec4 getColor(int layer, vec2 uv, vec4 fallback) {
+    if(layer > 0) return fallback;
+    return texture(images, vec3(uv, layer));
+}
+
 vec4 adjust(vec4 color) {
     return clamp(color * 2.0, 0.0, 1.0);
 }
@@ -74,9 +82,9 @@ vec3 applyEmission(vec3 base, vec3 emissionColor, float intensity) {
 }
 
 vec4 layered(vec2 uv, Material material) {
-    vec4 color = texture(diffuse, uv);
-    vec4 layerMasks = adjust(texture(layer, uv));
-    float maskColor = adjustScalar(texture(mask, uv).r);
+    vec4 color = getColor(material.diffuse, uv, bright);
+    vec4 layerMasks = adjust(getColor(material.layer, uv, dark));
+    float maskColor = adjustScalar(getColor(material.mask, uv, dark).r);
 
     vec3 base = mix(color.rgb, color.rgb * material.baseColor1, layerMasks.r);
     base = mix(base, color.rgb * material.baseColor2, layerMasks.g);
@@ -94,17 +102,19 @@ vec4 layered(vec2 uv, Material material) {
 }
 
 vec4 masked(vec2 uv, Material material) {
-    vec4 color = texture(diffuse, uv);
-    float maskColor = texture(mask, uv).r;
+    vec4 color = getColor(material.diffuse, uv, bright);
+    float maskColor = getColor(material.mask, uv, dark).r;
     color.rgb = mix(color.rgb, color.rgb * material.baseColor1, maskColor);
     return color;
 }
 
 vec4 baseColor(vec2 uv, Material material) {
-    if (material.colorMethod == 0) return texture(diffuse, uv);
-    else if (material.colorMethod == 1) return layered(uv, material);
-    else if (material.colorMethod == 2) return masked(uv, material);
-    else return texture(diffuse, uv);
+    if(material.colorMethod > 0) {
+        if (material.colorMethod == 1) return layered(uv, material);
+        else if (material.colorMethod == 2) return masked(uv, material);
+    }
+
+    return getColor(material.diffuse, uv, bright);
 }
 
 // Galaxy
@@ -120,15 +130,13 @@ vec4 galaxy(vec4 color) {
     vec3 gradientColor = mix(
     lightGradientColor1,
     lightGradientColor2,
-    smoothstep(gradientThreshold, 1.0, brightness)
-    );
+    smoothstep(gradientThreshold, 1.0, brightness));
 
     color.rgb *= darkenFactor;
     color.rgb = mix(
     color.rgb,
     gradientColor,
-    smoothstep(gradientThreshold, 1.0, brightness)
-    );
+    smoothstep(gradientThreshold, 1.0, brightness));
 
     return color;
 }
@@ -169,20 +177,20 @@ vec4 shadow(vec4 inColor, vec2 uv) {
 }
 
 // Sketch (portable Sobel on diffuse luminance)
-float luminanceAt(vec2 uv) {
-    return dot(texture(diffuse, uv).rgb, vec3(0.2126, 0.7152, 0.0722));
+float luminanceAt(int layer, vec2 uv) {
+    return dot(getColor(layer, uv, bright).rgb, vec3(0.2126, 0.7152, 0.0722));
 }
 
-vec3 sketchRGB(vec2 uv, vec2 texel) {
-    float tl = luminanceAt(uv + texel * vec2(-1.0, -1.0));
-    float  t = luminanceAt(uv + texel * vec2( 0.0, -1.0));
-    float tr = luminanceAt(uv + texel * vec2( 1.0, -1.0));
-    float  l = luminanceAt(uv + texel * vec2(-1.0,  0.0));
-    float  c = luminanceAt(uv + texel * vec2( 0.0,  0.0));
-    float  r = luminanceAt(uv + texel * vec2( 1.0,  0.0));
-    float bl = luminanceAt(uv + texel * vec2(-1.0,  1.0));
-    float  b = luminanceAt(uv + texel * vec2( 0.0,  1.0));
-    float br = luminanceAt(uv + texel * vec2( 1.0,  1.0));
+vec3 sketchRGB(int layer, vec2 uv, vec2 texel) {
+    float tl = luminanceAt(layer, uv + texel * vec2(-1.0, -1.0));
+    float  t = luminanceAt(layer, uv + texel * vec2( 0.0, -1.0));
+    float tr = luminanceAt(layer, uv + texel * vec2( 1.0, -1.0));
+    float  l = luminanceAt(layer, uv + texel * vec2(-1.0,  0.0));
+    float  c = luminanceAt(layer, uv + texel * vec2( 0.0,  0.0));
+    float  r = luminanceAt(layer, uv + texel * vec2( 1.0,  0.0));
+    float bl = luminanceAt(layer, uv + texel * vec2(-1.0,  1.0));
+    float  b = luminanceAt(layer, uv + texel * vec2( 0.0,  1.0));
+    float br = luminanceAt(layer, uv + texel * vec2( 1.0,  1.0));
 
     float gx = (-1.0 * tl) + ( 1.0 * tr)
     + (-2.0 *  l) + ( 2.0 *  r)
@@ -206,14 +214,16 @@ vec4 vintage(vec4 inColor) {
     return vec4(vec3(grayscale), inColor.a);
 }
 
-vec4 process(vec4 color, vec2 uv, vec2 texel, int effect) {
-    if (effect == 0) return color;
-    else if (effect == 1) return galaxy(color);
-    else if (effect == 2) return pastel(color, uv);
-    else if (effect == 3) return shadow(color, uv);
-    else if (effect == 4) return vec4(sketchRGB(uv, texel), color.a);
-    else if (effect == 5) return vintage(color);
-    else return color;
+vec4 process(Material material, vec4 color, vec2 uv, vec2 texel, int effect) {
+    if (effect > 0) {
+        if (effect == 1) return galaxy(color);
+        else if (effect == 2) return pastel(color, uv);
+        else if (effect == 3) return shadow(color, uv);
+        else if (effect == 4) return vec4(sketchRGB(material.diffuse, uv, texel), color.a);
+        else if (effect == 5) return vintage(color);
+    }
+
+    return color;
 }
 
 void main() {
@@ -226,13 +236,13 @@ void main() {
     Material material = materials[variant.material];
 
     vec4 color = baseColor(uv, material);
-    color = process(color, uv, texel, variant.effect);
+    color = process(material, color, uv, texel, variant.effect);
 
     if (variant.paradox) {
         color.rgb = mix(color.rgb, vec3(1.0), texture(paradoxTexture, uv).r);
     }
 
-    float emiAlpha = texture(emission, uv).r * color.a;
+    float emiAlpha = getColor(material.emission, uv, dark).r * color.a;
 
     imageStore(solidTex, pixel, color);
     imageStore(litTex,   pixel, vec4(color.rgb, emiAlpha));

@@ -9,6 +9,7 @@ import gg.generations.rarecandy.renderer.pipeline.util.*;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.textures.BlankTexture;
 import gg.generations.rarecandy.renderer.textures.ITexture;
+import gg.generations.rarecandy.renderer.textures.TextureArray;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
@@ -77,11 +78,12 @@ public class GuiPipelines {
                 .build();
 
         MATERIAL = ComputePipeline.builder(builtin("rewrite/material.cs.glsl"))
-                .autoSampler2D(Scope.DRAW, "diffuse", 0, createMaterialTextureProvider(0, "neutral"))
-                .autoSampler2D(Scope.DRAW, "layer", 1, createMaterialTextureProvider(1, "dark"))
-                .autoSampler2D(Scope.DRAW, "mask", 2, createMaterialTextureProvider(2, "dark"))
-                .autoSampler2D(Scope.DRAW, "emission", 3, createMaterialTextureProvider(3, "dark"))
-                .autoSampler2D(Scope.DRAW, "paradoxTexture", 4, ctx -> textures[0].id())
+                .autoSampler2DArray(Scope.DRAW, "images", 0, ctx -> ctx.object().images)
+//                .autoSampler2D(Scope.DRAW, "diffuse", 0, createMaterialTextureProvider(0, "neutral"))
+//                .autoSampler2D(Scope.DRAW, "layer", 1, createMaterialTextureProvider(1, "dark"))
+//                .autoSampler2D(Scope.DRAW, "mask", 2, createMaterialTextureProvider(2, "dark"))
+//                .autoSampler2D(Scope.DRAW, "emission", 3, createMaterialTextureProvider(3, "dark"))
+                .autoSampler2D(Scope.DRAW, "paradoxTexture", 1, ctx -> textures[0].id())
                 .addUniform(Scope.DRAW, "instanceId", (uniform, ctx) -> uniform.uploadInt(instanceId))
                 .addUniform(Scope.DRAW, "meshId", (uniform, ctx) -> uniform.uploadInt(ctx.mesh()))
                 .addUniform(Scope.DRAW, "variantSize", (uniform, ctx) -> uniform.uploadInt(ctx.object().meshes.length))
@@ -155,16 +157,16 @@ public class GuiPipelines {
         ;
     }
 
-    private static TextureIdSupplier createMaterialTextureProvider(int index, String defaultName) {
-        return ctx -> {
-            var variant = ctx.instance().variant();
-            var imageIndex = ctx.object().getMaterial(ctx.mesh(), variant).images()[index];
-
-            var name = ctx.object().images[imageIndex];
-
-            return ITextureLoader.instance().getTexture(name, defaultName).id();
-        };
-    }
+//    private static TextureIdSupplier createMaterialTextureProvider(int index, String defaultName) {
+//        return ctx -> {
+//            var variant = ctx.instance().variant();
+//            var imageIndex = ctx.object().getMaterial(ctx.mesh(), variant).images()[index];
+//
+//            var name = ctx.object().images[imageIndex];
+//
+//            return ITextureLoader.instance().getTexture(name, defaultName).id();
+//        };
+//    }
 
     public static void processMaterial(ObjectInstance instance, MultiRenderObject object, int mesh) {
         GuiPipelines.MATERIAL.useProgram();

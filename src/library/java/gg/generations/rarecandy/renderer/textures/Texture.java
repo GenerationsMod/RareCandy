@@ -151,6 +151,46 @@ public class Texture implements ITexture {
         return new TextureDetailsSTB(image, comp == 3 ? Type.RGB8: Type.RGBA8, w, h);
     }
 
+    public static ByteBuffer getColorBuffer(byte[] bytes, int resolution) {
+        ByteBuffer imageBuffer = MemoryUtil.memAlloc(bytes.length).put(bytes).flip();
+
+        IntBuffer w = MemoryUtil.memAllocInt(1);
+        IntBuffer h = MemoryUtil.memAllocInt(1);
+        IntBuffer c = MemoryUtil.memAllocInt(1);
+
+        if (!STBImage.stbi_info_from_memory(imageBuffer, w, h, c)) {
+            MemoryUtil.memFree(w);
+            MemoryUtil.memFree(h);
+            MemoryUtil.memFree(c);
+            MemoryUtil.memFree(imageBuffer);
+            throw new RuntimeException("Failed to load texture");
+        }
+
+        // force decode to 4 channels (RGBA8)
+        ByteBuffer decoded = STBImage.stbi_load_from_memory(imageBuffer, w, h, c, 4);
+        if (decoded == null) {
+            MemoryUtil.memFree(w);
+            MemoryUtil.memFree(h);
+            MemoryUtil.memFree(c);
+            MemoryUtil.memFree(imageBuffer);
+            throw new RuntimeException("Failed to load texture");
+        }
+
+        int srcW = w.get(0);
+        int srcH = h.get(0);
+
+        if(srcH == resolution && srcW == resolution) {
+            MemoryUtil.memFree(w);
+            MemoryUtil.memFree(h);
+            MemoryUtil.memFree(c);
+            MemoryUtil.memFree(imageBuffer);
+
+            return decoded;
+        }
+
+        throw new RuntimeException("Texture needs to resolution " + resolution + "x" + resolution);
+    }
+
     public static ByteBuffer scaleAndProcess(byte[] bytes) {
         ByteBuffer imageBuffer = MemoryUtil.memAlloc(bytes.length).put(bytes).flip();
 

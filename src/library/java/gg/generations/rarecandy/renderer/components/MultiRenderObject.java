@@ -10,6 +10,7 @@ import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.storage.SSBOBuffer;
+import gg.generations.rarecandy.renderer.textures.TextureArray;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -33,7 +34,7 @@ public abstract class MultiRenderObject {
     public DrawRecord[] meshes;
     public Material[] materials;
     public Variant[] variants;
-    public String[] images;
+    public TextureArray images;
     public int[][] variantRelationships;
 
     public SbboOffset vertex;
@@ -73,7 +74,6 @@ public abstract class MultiRenderObject {
         variants = new Variant[names.variants().size()];
         variantNameToId = listToMap(names.variants());
         variantRelationships = new int[meshes.length][variants.length];
-        images = names.images().toArray(String[]::new);
         imageNameToId = listToMap(names.images());
     }
 

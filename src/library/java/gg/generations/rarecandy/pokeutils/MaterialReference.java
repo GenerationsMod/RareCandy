@@ -52,7 +52,7 @@ public class MaterialReference {
         }
 
         values.complete();
-        images = images.complete();
+//        images = images.complete();
     }
 
 //    public static long getHandle(ITextureLoader loader, String name) {

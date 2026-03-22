@@ -11,6 +11,7 @@ import gg.generations.rarecandy.renderer.model.*;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.storage.SSBOBuffer;
 import gg.generations.rarecandy.renderer.textures.Texture;
+import gg.generations.rarecandy.renderer.textures.TextureArray;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -82,7 +83,7 @@ public class ModelLoader {
 
         int vertexBytes = vertexCount * 96;
 
-        int materialBytes = objects.materials.length * 192;
+        int materialBytes = objects.materials.length * 208;
         int variantBytes = objects.variants.length * Variant.SIZE;
 
         int indexOffset = alignUp(vertexBytes, alignment);
@@ -625,9 +626,8 @@ public class ModelLoader {
         }
     }
 
-    public static MultiRenderObject createObject(Function<Names, MultiRenderObject> objBuilder, @NotNull Supplier<PixelAsset> is, BiConsumer<PixelAsset, List<String>> imageConsumer, BiFunction<MaterialReference, List<String>, Material> materialProcess, Consumer<MultiRenderObject> onFinish) {
+    public static MultiRenderObject createObject(Function<Names, MultiRenderObject> objBuilder, @NotNull Supplier<PixelAsset> is, BiFunction<PixelAsset, List<String>, TextureArray> imageConsumer, BiFunction<MaterialReference, List<String>, Material> materialProcess, Consumer<MultiRenderObject> onFinish) {
         var asset = is.get();
-
 
         var config = asset.getConfig();
 
@@ -682,8 +682,8 @@ public class ModelLoader {
             }
         });
 
-        imageConsumer.accept(asset, names.images);
         var obj = objBuilder.apply(names);
+        obj.images = imageConsumer.apply(asset, names.images);
 
         config.materials.forEach((name, reference) -> {
             var id = obj.materialNameToId.getOrDefault(name, -1);
@@ -780,6 +780,7 @@ public class ModelLoader {
 //    }
 
     private static void checkIfAlreadyIn(List<String> list, String entry) {
+        if(entry == null) return;
         checkIfAlreadyIn(list, entry, false);
     }
 
@@ -789,23 +790,18 @@ public class ModelLoader {
 
 
 
-    public static void readImages(PixelAsset asset, List<String> imageNames) {
-        var images = asset.getImageFiles();
+    public static TextureArray readImages(PixelAsset asset, List<String> imageNames) {
+        var array = new TextureArray(1024, 1024,imageNames.size(), false);
 
+        for (int i = 0; i < imageNames.size(); i++) {
+            var image = Texture.getColorBuffer(asset.get(imageNames.get(i)), 1024);
 
-        for (Map.Entry<String, byte[]> entry : images) {
-            var key = entry.getKey();
+            array.fillLayer(i, image);
 
-            var index = imageNames.contains(key);
-
-            if (!index) continue;
-
-            try {
-                ITextureLoader.instance().register(key, Texture.read(entry.getValue(), key));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            MemoryUtil.memFree(image);
         }
+
+        return array;
     }
 
     public void close() {

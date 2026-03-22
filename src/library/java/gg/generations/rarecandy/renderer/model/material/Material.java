@@ -14,6 +14,10 @@ public record Material(
         int colorMethod) implements Closeable {
 
     public void put(ByteBuffer buffer) {
+        buffer.putInt(images[0]);
+        buffer.putInt(images[1]);
+        buffer.putInt(images[2]);
+        buffer.putInt(images[3]);
         values.put(buffer);
         buffer.putInt(colorMethod);
         buffer.putInt(0);

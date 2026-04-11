@@ -8,7 +8,7 @@ public final class OpenGL {
 
     public OpenGL() {
         this.majorVersion = 4;
-        this.minorVersion = 5;
+        this.minorVersion = 6;
     }
 
     @Override

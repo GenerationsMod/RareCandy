@@ -6,7 +6,6 @@ import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingBiFunction;
 import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingConsumer;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
-import gg.generations.rarecandy.renderer.components.DrawRecord;
 import gg.generations.rarecandy.renderer.components.InstanceDetails;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.model.*;
@@ -34,6 +33,7 @@ import static org.lwjgl.opengl.GL43C.*;
 
 public class ModelLoader {
     private static final Vector3f temp = new Vector3f();
+    private static final int TRANSFORM_ENTRY_BYTES = Float.BYTES * 4 + Integer.BYTES * 4;
 
     static int alignUp(int value, int alignment) {
         return (value + alignment - 1) / alignment * alignment;
@@ -78,9 +78,9 @@ public class ModelLoader {
 
 
 
-        var indexBytes = indexCount *= Integer.BYTES;
+        var indexBytes = indexCount * Integer.BYTES;
 
-        int drawBytes = meshes.length * Integer.BYTES * 2;
+        int drawBytes = meshes.length * Integer.BYTES;
 
         int vertexBytes = vertexCount * 96;
 
@@ -102,10 +102,9 @@ public class ModelLoader {
 
         objects.vertex = new SbboOffset(0, vertexBytes);
         objects.index = new SbboOffset(indexOffset, indexBytes);
-        objects.draw = new SbboOffset(drawOffset, drawBytes);
+        objects.meshOffsets = new SbboOffset(drawOffset, drawBytes);
         objects.material = new SbboOffset(materialOffset, materialBytes);
         objects.variant = new SbboOffset(variantOffset, variantBytes);
-        objects.target = new SbboOffset(0, objects.targetVertexStride() * indexCount);
 
         int[] counters = new int[2]; // index Count
 
@@ -136,14 +135,7 @@ public class ModelLoader {
         var buffer = MemoryUtil.memAlloc(totalBytes);
         objects.vertex.put(buffer, vertexBuffer.flip());
         objects.index.put(buffer, indexBuffer.flip());
-        objects.draw.put(buffer, drawBuffer.flip());
-
-
-        System.out.println("objects.materials.length = " + objects.materials.length);
-        System.out.println("materialBytes = " + materialBytes);
-        System.out.println("materialBuffer.position() = " + materialBuffer.position());
-        System.out.println("objects.material.size() = " + objects.material.size());
-
+        objects.meshOffsets.put(buffer, drawBuffer.flip());
 
         objects.material.put(buffer, materialBuffer.flip());
         objects.variant.put(buffer, variantBuffer.flip());
@@ -154,14 +146,9 @@ public class ModelLoader {
         GL43C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
         objects.modelBuffer = bufferId;
 
-        bufferId = GL43.glGenBuffers();
-        GL43.glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
-        glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, objects.target.size(), GL43.GL_DYNAMIC_DRAW);
-        GL43.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-        objects.destBuffer = bufferId;
-
-        objects.uvTransformBuffer = new SSBOBuffer(Float.BYTES * 4 * objects.meshes.length);
+        objects.uvTransformBuffer = new SSBOBuffer(TRANSFORM_ENTRY_BYTES * objects.meshes.length);
         objects.instanceBuffer = new SSBOBuffer(InstanceDetails.size);
+        objects.drawBuffer = new SSBOBuffer(Integer.BYTES * 4 * objects.meshes.length);
 
         MemoryUtil.memFree(buffer);
         MemoryUtil.memFree(vertexBuffer);
@@ -235,70 +222,6 @@ public class ModelLoader {
             }
         }
     }
-
-//    private static void extractAssimpAnimations(AIScene scene, Skeleton skeleton, Map<String, AnimResource> animResources) {
-//        for (int i = 0; i < scene.mNumAnimations(); i++) {
-//            AIAnimation aiAnimation = AIAnimation.create(scene.mAnimations().get(i));
-//            var animName = aiAnimation.mName().dataString();
-//
-//            var fps = aiAnimation.mTicksPerSecond();
-//
-//            var animationNodes = new Animation.AnimationNode[skeleton.jointMap.size()];
-//
-//            for (int channelIndex = 0; channelIndex < aiAnimation.mNumChannels(); channelIndex++) {
-//                var channel = AINodeAnim.create(aiAnimation.mChannels().get(channelIndex));
-//
-//                var boneName = channel.mNodeName().dataString();
-//
-//                if(!skeleton.boneIdMap.containsKey(boneName)) continue;
-//
-//                var node = animationNodes[skeleton.boneIdMap.get(boneName)] = new Animation.AnimationNode();
-//
-//
-//                for (int posIndex = 0; posIndex < channel.mNumPositionKeys(); posIndex++) {
-//                    var posKey = channel.mPositionKeys().get(posIndex);
-//
-//                    var time = posKey.mTime();
-//                    var pos = new Vector3f(posKey.mValue().x(), posKey.mValue().y(), posKey.mValue().z());
-//
-//                    node.positionKeys.add(time, pos);
-//                }
-//
-//                for (int rotIndex = 0; rotIndex < channel.mNumRotationKeys(); rotIndex++) {
-//                    var rotKey = channel.mRotationKeys().get(rotIndex);
-//
-//                    var time = rotKey.mTime();
-//                    var rot = new Quaternionf(rotKey.mValue().x(), rotKey.mValue().y(), rotKey.mValue().z(), rotKey.mValue().w());
-//
-//                    node.rotationKeys.add(time, rot);
-//                }
-//
-//                for (int scaleIndex = 0; scaleIndex < channel.mNumScalingKeys(); scaleIndex++) {
-//                    var scaleKey = channel.mScalingKeys().get(scaleIndex);
-//
-//                    var time = scaleKey.mTime();
-//                    var scale = new Vector3f(scaleKey.mValue().x(), scaleKey.mValue().y(), scaleKey.mValue().z());
-//
-//                    node.scaleKeys.add(time, scale);
-//                }
-//            }
-//
-//            for (int nodeIndex = 0; nodeIndex < animationNodes.length; nodeIndex++) {
-//
-//                if(animationNodes[nodeIndex] == null) {
-//                    var node = new Animation.AnimationNode();
-//                    var joint = skeleton.jointMap.get(skeleton.bones[nodeIndex].name);
-//
-//                    node.rotationKeys.add(0, joint.poseRotation);
-//                    node.rotationKeys.add(0, joint.poseRotation);
-//                    node.scaleKeys.add(0, joint.poseScale);
-//                }
-//            }
-//
-//            animResources.putIfAbsent(animName, new GenericAnimResource((long) fps, false, animationNodes)); //TODO: Figure out if assimp derived anims can actually loop or I'm dumb. -Waterpicker
-//        }
-//    }
-
 
     private static void processVariants(MultiRenderObject object, ModelConfig config, Names names, Map<String, List<String>> aliases) {
         var defaultVariant = new int[names.meshes.size()];
@@ -448,7 +371,7 @@ public class ModelLoader {
     private static final int[] NORMAL_FACE = new int[] { 0,1,2 };
     private static final int[] INVERT_FACE = new int[] { 2,1,0 };
 
-    private static DrawRecord processPrimitiveModel(
+    private static int processPrimitiveModel(
             ByteBuffer vertexBuffer,
             ByteBuffer indexBuffer,
             ByteBuffer drawBuffer,
@@ -465,13 +388,11 @@ public class ModelLoader {
         var vertexOffset = counters[1];
 
         var numFaces = mesh.mNumFaces();
-        var indexAmount = numFaces * 3;
+        var drawRecord = numFaces * 3;
 
-        drawBuffer.putInt(indexOffset).putInt(indexAmount);
+        drawBuffer.putInt(indexOffset);
 
-        var drawRecord = new DrawRecord(indexOffset, indexAmount);
-
-        counters[0] += indexAmount;
+        counters[0] += drawRecord;
 
         for (int j = 0; j < numFaces; j++) {
             var aiFace = aiFaces.get(j).mIndices();

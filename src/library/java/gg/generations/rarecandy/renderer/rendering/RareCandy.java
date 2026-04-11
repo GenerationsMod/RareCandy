@@ -3,6 +3,8 @@ package gg.generations.rarecandy.renderer.rendering;
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
+import gg.generations.rarecandy.renderer.pipeline.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -53,11 +55,13 @@ public class RareCandy {
         }
     }
 
-    public void render(RenderStage stage) {
+    public void render(TraditionalPipeline pipeline, RenderStage stage) {
         for (var object : objects) {
             if (object == null) continue;
 
-            object.render(stage);
+            pipeline.bindModel(object, stage);
+
+            object.render(pipeline, stage);
         }
     }
 

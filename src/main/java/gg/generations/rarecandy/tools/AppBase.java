@@ -1,8 +1,5 @@
 package gg.generations.rarecandy.tools;
 
-import com.google.gson.JsonObject;
-import gg.generations.rarecandy.pokeutils.ModelConfig;
-import gg.generations.rarecandy.pokeutils.PixelAsset;
 import gg.generations.rarecandy.renderer.launch.OpenGL;
 import gg.generations.rarecandy.renderer.textures.BlankTexture;
 import imgui.ImGui;
@@ -11,6 +8,8 @@ import imgui.glfw.ImGuiImplGlfw;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -56,12 +55,15 @@ public abstract class AppBase {
 
     protected void initWindow() {
         if (!glfwInit()) throw new IllegalStateException("Unable to init GLFW");
+
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, data.majorVersion);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, data.minorVersion);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
         window = glfwCreateWindow(getWidth(), getHeight(), title, NULL, NULL);
         glfwMakeContextCurrent(window);
         GL.createCapabilities();
+
         glViewport(0, 0, getWidth(), getHeight());
 
         glfwSetFramebufferSizeCallback(window, (win, w, h) -> {

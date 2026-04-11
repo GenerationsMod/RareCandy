@@ -1,6 +1,6 @@
 {
   "urls": {
-    "openArchiveUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\abra\\abra.pk",
+    "openArchiveUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\arcanine\\arcanine (2).pk",
     "saveAsUrl": "C:\\Users\\water\\Downloads\\abra.pk",
     "createArchiveUrl": "",
     "sequenceUrl": ""
@@ -8,9 +8,9 @@
   "terastalization": {
     "enabled": false,
     "tint": {
-      "x": 1.0,
-      "y": 1.0,
-      "z": 1.0
+      "x": 0.26960784,
+      "y": 0.21277873,
+      "z": 0.21277873
     }
   },
   "features": {

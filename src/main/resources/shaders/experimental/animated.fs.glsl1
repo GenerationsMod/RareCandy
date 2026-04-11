@@ -18,9 +18,9 @@ layout(std140, binding = 0) uniform Fog {
 
 uniform sampler2DArray images;
 
-uniform sampler2D lightmap;
 uniform sampler2D paradoxMask;
 
+uniform sampler2D lightmap;
 uniform ivec2 light;
 
 uniform vec3 tint;
@@ -57,12 +57,15 @@ layout(std140, binding = 2) uniform Material {
 
 };
 
+uniform sampler2D lightmap;
+uniform ivec2 light;
 uniform vec3 Light0_Direction;
 uniform vec3 Light1_Direction;
 
+vec4 minecraft_sample_lightmap(sampler2D lightMap, ivec2 uv) {
+    return texture(lightMap, (vec2(uv) + 0.5) / 16.0);
+}
 
-#define MINECRAFT_LIGHT_POWER   (0.6)
-#define MINECRAFT_AMBIENT_LIGHT (0.4)
 
 vec4 linear_fog(vec4 inColor, float vertexDistance, float fogStart, float fogEnd, vec4 fogColor) {
     if (vertexDistance <= fogStart) {

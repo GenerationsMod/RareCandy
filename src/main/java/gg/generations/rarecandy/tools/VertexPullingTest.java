@@ -1,4 +1,7 @@
-//package gg.generations.rarecandy.tools;// LWJGL 3 - OpenGL 4.3+ Vertex Pulling + glMultiDrawArraysIndirect (Fully Annotated Line-by-Line)
+package gg.generations.rarecandy.tools;// LWJGL 3 - OpenGL 4.3+ Vertex Pulling + glMultiDrawArraysIndirect (Fully Annotated Line-by-Line)
+
+import static gg.generations.rarecandy.renderer.pipeline.Pipelines.builtin;
+
 //
 //import gg.generations.rarecandy.renderer.model.GenericSSBO;
 //import gg.generations.rarecandy.renderer.pipeline.Pipeline;
@@ -13,7 +16,7 @@
 //import static org.lwjgl.glfw.GLFW.*; // GLFW window/input
 //import static org.lwjgl.opengl.GL43.*; // OpenGL 4.3 core API
 //
-//public class VertexPullingTest { // Entry class
+public class VertexPullingTest { // Entry class
 //
 //    static final String VERT = """
 //        // Vertex shader source
@@ -133,4 +136,10 @@
 //        glfwTerminate(); // Clean up GLFW
 //    }
 //
-//}
+
+    public static void main(String[] args) {
+        System.out.println(builtin("true/generic.vs.glsl", "true/libs"));
+    }
+}
+
+

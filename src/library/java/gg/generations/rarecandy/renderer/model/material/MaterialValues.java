@@ -293,5 +293,6 @@ public class MaterialValues {
         pointer.putFloat(emiIntensity3);
         pointer.putFloat(emiIntensity4);
         pointer.putFloat(emiIntensity5);
+        pointer.putInt(useLight ? 1 : 0);
     }
 }

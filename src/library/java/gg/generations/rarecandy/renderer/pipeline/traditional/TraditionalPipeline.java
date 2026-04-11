@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.renderer.pipeline.traditional;
 
-import gg.generations.rarecandy.renderer.components.DrawRecord;
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.pipeline.util.*;

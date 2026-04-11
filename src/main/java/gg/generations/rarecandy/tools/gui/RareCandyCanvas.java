@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
+import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.MaterialReference;
 import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
 import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingBiFunction;
@@ -10,6 +11,7 @@ import gg.generations.rarecandy.renderer.animation.AnimationInstance;
 import gg.generations.rarecandy.renderer.components.DummyVAO;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.textures.FrameBuffer;
@@ -21,6 +23,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
+import org.lwjgl.opengl.GL43C;
+import org.lwjgl.opengl.GL46;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.IOException;
@@ -225,10 +229,6 @@ public class RareCandyCanvas {
 
         renderer.update(time);
 
-        GuiPipelines.PARADOX.useProgram();
-        GuiPipelines.PARADOX.bindGlobal();
-        GuiPipelines.PARADOX.dispatch(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT, 64, 64, 1);
-
         vao.bind();
 
 //        renderToFramebuffer();
@@ -275,8 +275,13 @@ public class RareCandyCanvas {
     }
 
     private void renderToScreen() {
-        renderer.render(RenderStage.SOLID);
-//        renderer.render(RenderStage.TRANSPARENT);
+        TraditionalPipeline pipeline = GuiPipelines.ANIMATED;
+        pipeline.useProgram();
+        pipeline.bindGlobal();
+
+        renderer.render(pipeline, RenderStage.SOLID);
+
+        renderer.render(pipeline, RenderStage.TRANSPARENT);
     }
 
     public AnimationInstance createInstance(Animation animation) {
@@ -385,56 +390,41 @@ public class RareCandyCanvas {
         }
 
         @Override
-        public void render(RenderStage stage, List<ObjectInstance> instances) {
+        public void render(TraditionalPipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
             updateSSBOs();
 
-            for (int i = 0; i < instances.size(); i++) {
-                GuiPipelines.transformVertices(this, i);
+            GL43C.glBindBuffer(GL43C.GL_DRAW_INDIRECT_BUFFER, drawBuffer.getBufferId());
 
-                var instance = instances.get(i);
-                for (int mesh = 0; mesh < meshes.length; mesh++) {
-                    if (shouldRender(mesh, instance)) {
-                        var model = this.meshes[mesh];
-                        var material = this.getMaterial(mesh, instance.variant());
-
-                        if (model == null) {
-                            continue;
-                        }
-
-                        GuiPipelines.processMaterial(instance, this, mesh);
-
-                        var pipeline = RareCandyCanvas.this.handler.settings.terastalization.enabled.getValue() ? GuiPipelines.TERSTAL : GuiPipelines.SOLID;
-
-                        pipeline.useProgram();
-                        pipeline.bindGlobal();
-                        pipeline.bindModel(this);
-                        pipeline.bindInstance(instance, this);
-                        pipeline.bindDraw(instance, this, mesh);
-
-                        pipeline.preDraw(material);
-                        model.render();
-                        pipeline.postDraw(material);
-
-
-
-//                        pipeline.bindInstance(instance, this);
+            GL43C.glMultiDrawArraysIndirect(
+                    GL11C.GL_TRIANGLES,
+                    0L,
+                    meshes.length * instances.size(),
+                    16
+            );
 //
+            pipeline.bindModel(this);
+//
+//            for (ObjectInstance instance : instances) {
+//                pipeline.bindInstance(instance, this);
+//
+//                for (int mesh = 0; mesh < meshes.length; mesh++) {
+//                    if (shouldRender(mesh, instance)) {
+//                        var model = this.meshes[mesh];
+//                        var material = this.getMaterial(mesh, instance.variant());
+//
+//                        if (model == null || (stage == RenderStage.TRANSPARENT && material.blendType() != BlendType.Regular)) {
+//                            continue;
+//                        }
 //
 //                        pipeline.bindDraw(instance, this, mesh);
 //
-//                        var material = getMaterial(mesh, instance.variant());
 //                        pipeline.preDraw(material);
-//                        var transparent = material.blendType() != BlendType.None;
-//
-//                        if (transparent && stage == RenderStage.TRANSPARENT || stage == RenderStage.SOLID) {
-//                            model.render();
-//                        }
-//
+//                        model.render();
 //                        pipeline.postDraw(material);
-                    }
-
-                }
-            }
+//                    }
+//
+//                }
+//            }
         }
 
         @Override
@@ -482,4 +472,5 @@ class FogUploader extends UniformBlockUploader {
 
     }
 }
+
 

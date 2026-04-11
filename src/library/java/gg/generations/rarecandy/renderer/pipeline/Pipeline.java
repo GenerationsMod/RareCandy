@@ -4,6 +4,7 @@ import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.SbboOffset;
 import gg.generations.rarecandy.renderer.pipeline.util.*;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import gg.generations.rarecandy.renderer.textures.ITexture;
 import org.joml.*;
 import org.lwjgl.opengl.*;
@@ -37,19 +38,27 @@ public class Pipeline {
     }
 
     public void bindGlobal() {
-        bindScope(Scope.GLOBAL, new UniformUploadContext(null, null, -1));
+        bindScope(Scope.GLOBAL, new UniformUploadContext(null, null, -1, null));
     }
 
     public void bindInstance(ObjectInstance instance, MultiRenderObject object) {
-        bindScope(Scope.INSTANCE, new UniformUploadContext(instance, object, -1));
+        bindScope(Scope.INSTANCE, new UniformUploadContext(instance, object, -1, null));
     }
 
     public void bindModel(MultiRenderObject object) {
-        bindScope(Scope.MODEL, new UniformUploadContext(null, object, -1));
+        bindModel(object, null);
+    }
+
+    public void bindModel(MultiRenderObject object, RenderStage stage) {
+        bindScope(Scope.MODEL, new UniformUploadContext(null, object, -1, stage));
     }
 
     public void bindDraw(ObjectInstance instance, MultiRenderObject object, int mesh) {
-        bindScope(Scope.DRAW, new UniformUploadContext(instance, object, mesh));
+        bindDraw(instance, object, mesh, null);
+    }
+
+    public void bindDraw(ObjectInstance instance, MultiRenderObject object, int mesh, RenderStage stage) {
+        bindScope(Scope.DRAW, new UniformUploadContext(instance, object, mesh, stage));
     }
 
     private void bindScope(Scope scope, UniformUploadContext ctx) {

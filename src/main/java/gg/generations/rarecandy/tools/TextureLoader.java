@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class TextureLoader extends ITextureLoader {
     private static final Set<String> systemTextures = Set.of(
-            "dark", "neutral", "bright", "paradox_mask", "blank",
+            "dark", "neutral", "bright", "paradox", "blank",
             "burnt_concrete", "concrete", "glass", "metal", "silver",
             "smooth_stone", "stars", "light_map"
     );

@@ -20,8 +20,7 @@ public record Material(
         buffer.putInt(images[3]);
         values.put(buffer);
         buffer.putInt(colorMethod);
-        buffer.putInt(0);
-        buffer.putInt(0);
+        buffer.putInt(blendType() == BlendType.Regular ? 1 : 0);
     }
 
     @Override

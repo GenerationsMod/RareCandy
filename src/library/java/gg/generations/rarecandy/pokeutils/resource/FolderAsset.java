@@ -21,6 +21,15 @@ public class FolderAsset implements ResourceLocator {
     public FolderAsset(Path base, String name) {
         this.base = base;
         this.name = name != null ? name : base.getFileName().toString();
+
+        if(Files.notExists(base)) {
+            try {
+                Files.createDirectories(base);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
     }
 
     @Override

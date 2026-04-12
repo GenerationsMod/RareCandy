@@ -6,3 +6,4 @@ import java.util.function.BiFunction;
 public interface ExceptionThrowingBiFunction<T, U, R> {
     R apply(T t, U u) throws Exception;
 }
+

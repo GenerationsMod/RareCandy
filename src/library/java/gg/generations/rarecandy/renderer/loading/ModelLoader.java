@@ -4,6 +4,7 @@ import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
 import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingBiFunction;
 import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingConsumer;
+import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingTriFunction;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.components.InstanceDetails;
@@ -547,7 +548,7 @@ public class ModelLoader {
         }
     }
 
-    public static MultiRenderObject createObject(Function<Names, MultiRenderObject> objBuilder, @NotNull Supplier<ResourceReader> is, ExceptionThrowingBiFunction<ResourceReader, List<String>, TextureArray> imageConsumer, ExceptionThrowingBiFunction<MaterialReference, List<String>, Material> materialProcess, ExceptionThrowingConsumer<MultiRenderObject> onFinish) throws Exception {
+    public static MultiRenderObject createObject(Function<Names, MultiRenderObject> objBuilder, @NotNull Supplier<ResourceReader> is, ExceptionThrowingTriFunction<ResourceReader, List<String>, Integer, TextureArray> imageConsumer, ExceptionThrowingBiFunction<MaterialReference, List<String>, Material> materialProcess, ExceptionThrowingConsumer<MultiRenderObject> onFinish) throws Exception {
         var asset = is.get();
 
         var config = ModelConfig.read(asset);
@@ -602,7 +603,7 @@ public class ModelLoader {
         });
 
         var obj = objBuilder.apply(names);
-        obj.images = imageConsumer.apply(asset, names.images);
+        obj.images = imageConsumer.apply(asset, names.images, config.resolution != null ? config.resolution : 1024);
 
         for (Map.Entry<String, MaterialReference> entry : config.materials.entrySet()) {
             String name = entry.getKey();
@@ -644,11 +645,11 @@ public class ModelLoader {
 
 
 
-    public static TextureArray readImages(ResourceReader asset, List<String> imageNames) throws IOException {
-        var array = new TextureArray(1024, 1024,imageNames.size(), false);
+    public static TextureArray readImages(ResourceReader asset, List<String> imageNames, int resolution) throws IOException {
+        var array = new TextureArray(resolution, resolution,imageNames.size(), false);
 
         for (int i = 0; i < imageNames.size(); i++) {
-            var image = Texture.getColorBuffer(asset.getFile(imageNames.get(i)), 1024);
+            var image = Texture.getColorBuffer(asset.getFile(imageNames.get(i)), resolution);
 
             array.fillLayer(i, image);
 

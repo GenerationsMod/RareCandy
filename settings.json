@@ -1,15 +1,15 @@
 {
   "urls": {
-    "openArchiveUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 3\\assets\\generations_core\\bedrock\\pokemon\\models\\blaziken\\blaziken.pk",
+    "openArchiveUrl": "C:\\Users\\water\\Downloads\\dialga-necroz\\dialga-necroz.pk",
     "saveAsUrl": "C:\\Users\\water\\Downloads\\abra.pk",
     "createArchiveUrl": "",
     "sequenceUrl": ""
   },
   "terastalization": {
-    "enabled": false,
+    "enabled": true,
     "tint": {
-      "x": 0.0,
-      "y": 0.6176472,
+      "x": 1.0,
+      "y": 1.0,
       "z": 1.0
     }
   },
@@ -31,7 +31,7 @@
   "light": {
     "lightLevel": {
       "data": [
-        15
+        0
       ]
     }
   }

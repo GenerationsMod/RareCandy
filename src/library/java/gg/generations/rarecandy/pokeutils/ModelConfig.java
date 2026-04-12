@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.pokeutils;
 
 import com.google.gson.*;
+import com.google.gson.annotations.SerializedName;
 import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.Transform;
@@ -192,6 +193,8 @@ public class ModelConfig {
     public Map<String, List<String>> aliases;
 
     public boolean excludeMeshNamesFromSkeleton = false;
+
+    public Integer resolution;
 
     public static ModelConfig read(ResourceReader reader) throws IOException {
         return GSON.fromJson(new InputStreamReader(reader.getInputStream("config.json")), ModelConfig.class);

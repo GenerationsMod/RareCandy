@@ -23,9 +23,9 @@ struct Variant {
 
 struct Material {
     int diffuse;
-    int emission;
     int layer;
     int mask;
+    int emission;
     vec3 baseColor1;
     vec3 baseColor2;
     vec3 baseColor3;
@@ -86,6 +86,6 @@ layout(std430, binding = 5) readonly  buffer InstanceBuffer {
     Instance instances[];
 };
 
-layout(std430, binding = 6) readonly  buffer TransformBuffer {
+layout(std140, binding = 6) readonly  buffer TransformBuffer {
     Transform transforms[];
 };

@@ -54,7 +54,7 @@ public class GuiPipelines {
 //                .autoImage2D(Scope.GLOBAL, "outputTexture", 0, ctx -> textures[0])
 //                .build();
 
-        ANIMATED = TraditionalPipeline.builder(builtin("true/generic.vs.glsl", "true/libs/"), builtin("true/generic.fs.glsl", "true/libs/"))
+        ANIMATED = TraditionalPipeline.builder(builtin("true/generic.vs.glsl", "true/libs"), builtin("true/generic.fs.glsl", "true/libs"))
                 .apply(builder -> GuiPipelines.common(builder, canvas,settings))
                 .build();
 
@@ -95,7 +95,7 @@ public class GuiPipelines {
                 .autoSampler2D(Scope.GLOBAL, "paradoxTexture", 1, ctx -> ITextureLoader.instance().getTexture("paradox_mask").id())
 
                 //Light
-                .addUniform(Scope.GLOBAL, "light", (uniform, ctx) -> uniform.upload2i(0, (int) (RareCandyCanvas.getLightLevel() * 15)))
+                .addUniform(Scope.GLOBAL, "light", (uniform, ctx) -> uniform.upload2i(0, settings.light.lightLevel.get()))
                 .autoSampler2D(Scope.GLOBAL, "lightmap", 2, (ctx) -> ITextureLoader.instance().getTexture("light_map").id())
                 .autoVec3(Scope.GLOBAL, "Light0_Direction", (ctx) -> light0)
                 .autoVec3(Scope.GLOBAL, "Light1_Direction", (ctx) -> light1)

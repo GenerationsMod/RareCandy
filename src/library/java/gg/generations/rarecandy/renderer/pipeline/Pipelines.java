@@ -4,6 +4,7 @@ import gg.generations.rarecandy.renderer.pipeline.compute.ComputePipeline;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,9 +28,13 @@ public class Pipelines {
     }
 
     public static String builtin(String name, String libs) {
-        try (var is = Pipelines.class.getResourceAsStream("/shaders/" + name)) {
-            assert is != null;
-            var source = new String(is.readAllBytes());
+        var shaderPath = resourcePath("shaders", name);
+        try (var is = Pipelines.class.getResourceAsStream(shaderPath)) {
+            if (is == null) {
+                throw new IllegalArgumentException("Built in shader not found: " + shaderPath);
+            }
+
+            var source = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             if (libs == null || libs.isBlank()) {
                 return source;
             }
@@ -38,14 +43,13 @@ public class Pipelines {
             var result = new StringBuilder();
             while (matcher.find()) {
                 var libName = matcher.group(1);
-                var libPath = "/shaders/" + libs + "/" + libName + ".lib.glsl";
+                var libPath = resourcePath("shaders", libs, libName + ".lib.glsl");
                 try (var libStream = Pipelines.class.getResourceAsStream(libPath)) {
                     if (libStream == null) {
-                        matcher.appendReplacement(result, Matcher.quoteReplacement(matcher.group()));
-                        continue;
+                        throw new IllegalArgumentException("Built in shader library not found: " + libPath + " referenced from " + shaderPath);
                     }
 
-                    matcher.appendReplacement(result, Matcher.quoteReplacement(new String(libStream.readAllBytes())));
+                    matcher.appendReplacement(result, Matcher.quoteReplacement(new String(libStream.readAllBytes(), StandardCharsets.UTF_8)));
                 }
             }
 
@@ -54,5 +58,33 @@ public class Pipelines {
         } catch (IOException e) {
             throw new RuntimeException("Failed to read built in shader", e);
         }
+    }
+
+    private static String resourcePath(String... parts) {
+        var joined = new StringBuilder();
+        for (var part : parts) {
+            if (part == null || part.isBlank()) {
+                continue;
+            }
+
+            var normalized = part.replace('\\', '/');
+            while (normalized.startsWith("/")) {
+                normalized = normalized.substring(1);
+            }
+            while (normalized.endsWith("/")) {
+                normalized = normalized.substring(0, normalized.length() - 1);
+            }
+
+            if (normalized.isBlank()) {
+                continue;
+            }
+
+            if (!joined.isEmpty()) {
+                joined.append('/');
+            }
+            joined.append(normalized);
+        }
+
+        return "/" + joined;
     }
 }

@@ -122,7 +122,6 @@ public class ModelLoader {
 
         for (int i = 0; i < objects.materials.length; i++) {
             var material = objects.materials[i];
-            System.out.println("material[" + i + "] = " + material);
             if (material != null) {
                 material.put(materialBuffer);
             }
@@ -274,7 +273,7 @@ public class ModelLoader {
 
                     applyVariantDetails(details, map);
 
-                    child = config.variants.get(child.inherits());
+                    child = variantKey.equals(child.inherits()) ? null : config.variants.get(child.inherits());
                 }
 
                 applyVariantDetails(config.defaultVariant, map);

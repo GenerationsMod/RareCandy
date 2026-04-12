@@ -21,6 +21,7 @@ public record Material(
         values.put(buffer);
         buffer.putInt(colorMethod);
         buffer.putInt(blendType() == BlendType.Regular ? 1 : 0);
+        buffer.putInt(0);
     }
 
     @Override

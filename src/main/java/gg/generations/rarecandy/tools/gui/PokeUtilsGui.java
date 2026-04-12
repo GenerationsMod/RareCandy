@@ -15,6 +15,7 @@ import gg.generations.rarecandy.tools.gui.imgui.Serializers;
 import imgui.ImGui;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.type.ImFloat;
+import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector4f;
 import org.lwjgl.glfw.GLFW;
@@ -245,10 +246,12 @@ public class PokeUtilsGui extends AppBase {
         public Terastalization terastalization = new Terastalization();
         public Features features = new Features();
         public Fog fog = new Fog();
+        public Light light = new Light();
 
         public void render() {
             if(features.terastalization.getValue()) terastalization.render();
             if(features.fog.getValue()) fog.render();
+            if(features.light.getValue()) light.render();
             features.render();
         }
 
@@ -271,19 +274,35 @@ public class PokeUtilsGui extends AppBase {
             }
         }
 
+        public static class Light {
+            public ImInt lightLevel = new ImInt(15);
+
+            public void render() {
+                ImGui.begin("Light");
+
+                if(ImGui.sliderInt("Start", lightLevel.getData(), 0, 15)) {
+                }
+
+                ImGui.end();
+
+            }
+        }
+
         public static class Features {
             ImBoolean terastalization = new ImBoolean(true);
             ImBoolean fog = new ImBoolean(true);
+            ImBoolean light = new ImBoolean(true);
 
             public void render() {
                 ImGui.begin("Features");
                 terastalization.render("Terastalization");
                 fog.render("Fog");
+                light.render("Light");
                 ImGui.end();
             }
         }
 
-        public class Fog {
+        public static class Fog {
             public ImVector4f color = new ImVector4f(1, 1, 1, 1);
             public ImFloat start = new ImFloat(0f);
             public ImFloat end = new ImFloat(5f);

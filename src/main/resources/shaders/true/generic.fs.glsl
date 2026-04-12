@@ -39,7 +39,7 @@ void main() {
     if(teraActive) {
         outColor.rgb = calculateTersaalizationEffect(outColor.rgb);
     } else if(material.useLight) {
-        outColor *= applyLight(outColor, getEmission(texCoord0, material));
+        outColor = applyLight(outColor, getEmission(texCoord0, material));
     }
 
     outColor = linear_fog(outColor, vertexDistance, FogStart, FogEnd, FogColor);

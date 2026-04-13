@@ -1,12 +1,12 @@
 {
   "urls": {
-    "openArchiveUrl": "C:\\Users\\water\\Downloads\\dialga-necroz\\dialga-necroz.pk",
+    "openArchiveUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\abra\\abra.pk",
     "saveAsUrl": "C:\\Users\\water\\Downloads\\abra.pk",
     "createArchiveUrl": "",
     "sequenceUrl": ""
   },
   "terastalization": {
-    "enabled": true,
+    "enabled": false,
     "tint": {
       "x": 1.0,
       "y": 1.0,

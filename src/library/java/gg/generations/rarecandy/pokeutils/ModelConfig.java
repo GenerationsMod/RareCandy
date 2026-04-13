@@ -39,9 +39,7 @@ public class ModelConfig {
                 if (variantDetails.material() != null) obj.addProperty("material", variantDetails.material());
                 if (variantDetails.hide() != null) obj.addProperty("hide", variantDetails.hide());
                 if (variantDetails.paradox() != null) obj.addProperty("paradox", variantDetails.paradox());
-                if (variantDetails.offset() != null && variantDetails.offset() != AnimationController.NO_OFFSET)
-                    obj.add("transform", ctx.serialize(variantDetails.offset()));
-
+                if (variantDetails.offset() != null && !variantDetails.offset().isUnit()) obj.add("transform", ctx.serialize(variantDetails.offset()));
                 return obj;
             }, (jsonElement, ctx) -> {
                 var obj = jsonElement.getAsJsonObject();
@@ -49,8 +47,7 @@ public class ModelConfig {
                 var effect = obj.has("effect") ? obj.getAsJsonPrimitive("effect").getAsString() : null;
                 var paradox = obj.has("paradox") ? obj.getAsJsonPrimitive("paradox").getAsBoolean() : null;
                 var hide = obj.has("hide") ? obj.getAsJsonPrimitive("hide").getAsBoolean() : null;
-                Transform offset = obj.has("offset") ? ctx.deserialize(obj.get("offset"), Transform.class) : null;
-                if(offset == null && obj.has("transform")) offset = ctx.deserialize(obj.get("transform"), Transform.class);
+                Transform offset = obj.has("transform") ? ctx.deserialize(obj.get("transform"), Transform.class) : null;
                 return new VariantDetails(material, effect, paradox, hide, offset);
             }))
             .registerTypeAdapter(Transform.class, new GenericJsonThing<>((transform, ctx) -> {
@@ -72,9 +69,9 @@ public class ModelConfig {
                 }
             }))
             .registerTypeAdapter(Vector3f.class, new GenericJsonThing<Vector3f>((json, ctx) -> {
-                int r = Math.min(255, Math.max(0, (int)(json.x * 255)));
-                int g = Math.min(255, Math.max(0, (int)(json.y * 255)));
-                int b = Math.min(255, Math.max(0, (int)(json.z * 255)));
+                int r = Math.clamp((int) (json.x * 255), 0, 255);
+                int g = Math.clamp((int) (json.y * 255), 0, 255);
+                int b = Math.clamp((int) (json.z * 255), 0, 255);
                 var string = String.format("#%02X%02X%02X", r, g, b);
 
                 return new JsonPrimitive(string);

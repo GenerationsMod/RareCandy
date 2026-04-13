@@ -188,7 +188,8 @@ public abstract class MultiRenderObject {
 
                 var variant = getVariant(meshId, instance.variant());
 
-                Transform transform = variant.offset();
+                Transform variantTransform = variant.offset();
+                Transform animationTransform = null;
 
                 var material = variant.material();
 
@@ -199,15 +200,11 @@ public abstract class MultiRenderObject {
                     var t = animatedInstance.getTransform(material);
 
                     if (t != null && !t.isUnit()) {
-                        transform = t;
+                        animationTransform = t;
                     }
                 }
 
-                if (transform == null) {
-                    transform = Transform.DEFAULT;
-                }
-
-                transform.upload(uvTransformBuffer);
+                Transform.combine(variantTransform, animationTransform).upload(uvTransformBuffer);
                 uvTransformBuffer.put(variantRelationships[meshId][instance.variant()]);
                 uvTransformBuffer.put(instanceId);
                 uvTransformBuffer.put(isRendering);

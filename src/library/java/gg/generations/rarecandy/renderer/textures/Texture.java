@@ -191,7 +191,7 @@ public class Texture implements ITexture {
         throw new RuntimeException("Texture needs to resolution " + resolution + "x" + resolution);
     }
 
-    public static ByteBuffer scaleAndProcess(byte[] bytes) {
+    public static ByteBuffer scaleAndProcess(byte[] bytes, int resolution) {
         ByteBuffer imageBuffer = MemoryUtil.memAlloc(bytes.length).put(bytes).flip();
 
         IntBuffer w = MemoryUtil.memAllocInt(1);
@@ -222,7 +222,7 @@ public class Texture implements ITexture {
 
 //        ByteBuffer scaled = MemoryUtil.memAlloc(1024 * 1024 * 4);
 
-        if(srcH == 1024 && srcW == 1024) {
+        if(srcH == resolution && srcW == resolution) {
             MemoryUtil.memFree(w);
             MemoryUtil.memFree(h);
             MemoryUtil.memFree(c);
@@ -233,7 +233,7 @@ public class Texture implements ITexture {
 
         ByteBuffer scaled = STBImageResize.stbir_resize_uint8_srgb(
                 decoded, srcW, srcH, 0,
-                null, 1024, 1024, 0,
+                null, resolution, resolution, 0,
                 channels
         );
 

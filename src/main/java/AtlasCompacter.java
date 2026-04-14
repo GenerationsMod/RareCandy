@@ -1,138 +1,127 @@
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import gg.generations.rarecandy.pokeutils.ModelConfig;
+import gg.generations.rarecandy.pokeutils.resource.ResourceLocator;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
+import java.util.Map;
+import java.util.function.Consumer;
 
 public class AtlasCompacter {
     private static final int ATLAS_SIZE = 1024;
-    private static final String IMAGE_FILTER = "Images;png,jpg,jpeg,bmp,gif,tif,tiff,webp";
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat(
             "0.000000",
             DecimalFormatSymbols.getInstance(Locale.ROOT)
     );
 
     public static void main(String[] args) {
-        try {
-            run();
-        } catch (Exception exception) {
-            System.err.println("Atlas compaction failed: " + exception.getMessage());
-            exception.printStackTrace(System.err);
-            System.exit(1);
-        }
-    }
-
-    private static void run() throws IOException {
-        DialogSelection selection = chooseSelectionWithDialog();
-        if (selection == null) {
-            System.out.println("No images were selected.");
-            return;
-        }
-
-        Files.createDirectories(selection.outputDirectory());
-
-        var loadResult = loadImages(selection.inputFiles());
-        var atlases = packImages(loadResult.packableImages());
-        writeAtlasImages(selection.outputDirectory(), atlases);
-        writeManifest(selection.outputDirectory(), atlases, loadResult.skippedImages());
-        printReport(selection.outputDirectory(), atlases, loadResult.skippedImages());
-    }
-
-    private static DialogSelection chooseSelectionWithDialog() {
         DialogueUtils.init();
-        try {
-            var selectedFilesFuture = new CompletableFuture<List<Path>>();
-            DialogueUtils.chooseMultipleFiles(
-                    "Choose images",
-                    Path.of("").toAbsolutePath().normalize().toString(),
-                    IMAGE_FILTER,
-                    paths -> selectedFilesFuture.complete(paths == null ? List.of() : List.copyOf(paths))
-            );
+        DialogueUtils.chooseFolder("", AtlasCompacter::runThingy);
 
-            List<Path> selectedFiles = selectedFilesFuture.join();
-            if (selectedFiles.isEmpty()) {
-                return null;
-            }
-
-            var outputDirectoryFuture = new CompletableFuture<Path>();
-            DialogueUtils.chooseFolder(Path.of("").toAbsolutePath().normalize().toString(), outputDirectoryFuture::complete);
-
-            Path outputDirectory = outputDirectoryFuture.join();
-            if (outputDirectory == null) {
-                return null;
-            }
-
-            return new DialogSelection(
-                    selectedFiles.stream()
-                            .map(path -> path.toAbsolutePath().normalize())
-                            .distinct()
-                            .toList(),
-                    outputDirectory.toAbsolutePath().normalize()
-            );
-        } finally {
-            DialogueUtils.quit();
-        }
     }
 
-    private static LoadResult loadImages(List<Path> paths) {
+    private static void runThingy(Path path) {
+        if(path == null) {
+            System.exit(0);
+        }
+
+        ResourceLocator locator = null;
+        try {
+            locator = ResourceLocator.of(path);
+            var config = ModelConfig.GSON.fromJson(new InputStreamReader(locator.getInputStream("config.json")), JsonObject.class);
+
+
+            var atlasBuild = AtlasCompacter.run(locator);
+            var materialTransforms = MaterialCompressor.applyAtlasTextures(config, atlasBuild);
+            MaterialCompressor.applyAtlasTransformsToDefaultVariant(config, materialTransforms);
+            MaterialCompressor.applyAtlasTransformsToAllVariants(config, materialTransforms);
+            MaterialCompressor.removeDuplicateMaterialsAfterAtlas(config, atlasBuild);
+            locator.putFile("config.json", ModelConfig.GSON.toJson(config).getBytes(StandardCharsets.UTF_8));
+            locator.save();
+            MaterialCompressor.deleteCompactedImages(locator, atlasBuild);
+        } catch (IOException e) {
+
+        }
+
+        DialogueUtils.chooseFolder("", AtlasCompacter::runThingy);
+    }
+
+    public static AtlasBuild run(ResourceLocator locator) throws IOException {
+
+        var loadResult = loadImages(locator);
+        var atlases = packImages(loadResult.packableImages());
+        writeAtlasImages(locator, atlases);
+        return new AtlasBuild(List.copyOf(atlases), buildPackedTextures(atlases));
+    }
+
+    private static LoadResult loadImages(ResourceLocator locator) {
         var packableImages = new ArrayList<ImageEntry>();
         var skippedImages = new ArrayList<SkippedImage>();
 
-        for (Path path : paths) {
-            BufferedImage image;
-            try {
-                image = ImageIO.read(path.toFile());
-            } catch (IOException exception) {
-                throw new UncheckedIOException("Failed to read image: " + path, exception);
+        try {
+            for (String path : locator.getFileNames()) {
+                BufferedImage image;
+
+                image = ImageIO.read(locator.getInputStream(path));
+                if (image == null) {
+//                    System.err.println("Skipping non-image file: " + path);
+                    continue;
+                }
+
+                int width = image.getWidth();
+                int height = image.getHeight();
+                if (width == ATLAS_SIZE && height == ATLAS_SIZE) {
+                    skippedImages.add(new SkippedImage(path, width, height, "already_1024x1024"));
+                    continue;
+                }
+
+                if (width > ATLAS_SIZE || height > ATLAS_SIZE) {
+
+                    if(width == 2048 && height == 1024) {
+                        packableImages.add(new ImageEntry(path, image, 1024, 512));
+                    } else {
+                            throw new RuntimeException(
+                                    "Image is larger than the atlas size and cannot be packed: "
+                                            + path
+                                            + " ("
+                                            + width
+                                            + "x"
+                                            + height
+                                            + ")"
+                            );
+                        }
+                } else {
+                    packableImages.add(new ImageEntry(path, image, width, height));
+                }
             }
 
-            if (image == null) {
-                System.err.println("Skipping non-image file: " + path);
-                continue;
-            }
+            packableImages.sort(
+                    Comparator.comparingInt(ImageEntry::area).reversed()
+                            .thenComparing(Comparator.comparingInt(ImageEntry::maxDimension).reversed())
+                            .thenComparing(ImageEntry::name)
+            );
 
-            int width = image.getWidth();
-            int height = image.getHeight();
 
-            if (width == ATLAS_SIZE && height == ATLAS_SIZE) {
-                skippedImages.add(new SkippedImage(path, width, height, "already_1024x1024"));
-                continue;
-            }
-
-            if (width > ATLAS_SIZE || height > ATLAS_SIZE) {
-                throw new IllegalArgumentException(
-                        "Image is larger than the atlas size and cannot be packed: "
-                                + path
-                                + " ("
-                                + width
-                                + "x"
-                                + height
-                                + ")"
-                );
-            }
-
-            packableImages.add(new ImageEntry(path, image, width, height));
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to read image: "/* + path*/, exception);
         }
-
-        packableImages.sort(
-                Comparator.comparingInt(ImageEntry::area).reversed()
-                        .thenComparing(Comparator.comparingInt(ImageEntry::maxDimension).reversed())
-                        .thenComparing(image -> image.path().toString())
-        );
 
         return new LoadResult(packableImages, skippedImages);
     }
@@ -143,8 +132,10 @@ public class AtlasCompacter {
         for (ImageEntry image : images) {
             AtlasCandidate bestCandidate = null;
 
+
             for (Atlas atlas : atlases) {
                 AtlasCandidate candidate = atlas.preview(image);
+
                 if (candidate != null && (bestCandidate == null || candidate.isBetterThan(bestCandidate))) {
                     bestCandidate = candidate;
                 }
@@ -154,117 +145,64 @@ public class AtlasCompacter {
                 Atlas atlas = new Atlas(atlases.size());
                 Placement placement = atlas.insert(image);
                 if (placement == null) {
-                    throw new IllegalStateException("Failed to place image in a new atlas: " + image.path());
+                    throw new IllegalStateException("Failed to place image in a new atlas: " + image.name());
                 }
                 atlases.add(atlas);
+
                 continue;
             }
 
             Placement placement = atlases.get(bestCandidate.atlasIndex()).insert(image);
             if (placement == null) {
-                throw new IllegalStateException("Packing state changed unexpectedly for image: " + image.path());
+                throw new IllegalStateException("Packing state changed unexpectedly for image: " + image.name());
             }
         }
 
         return atlases;
     }
 
-    private static void writeAtlasImages(Path outputDirectory, List<Atlas> atlases) throws IOException {
+    private static void  writeAtlasImages(ResourceLocator locator, List<Atlas> atlases) throws IOException {
         for (Atlas atlas : atlases) {
             BufferedImage atlasImage = new BufferedImage(ATLAS_SIZE, ATLAS_SIZE, BufferedImage.TYPE_INT_ARGB);
             Graphics2D graphics = atlasImage.createGraphics();
             graphics.setComposite(AlphaComposite.Src);
 
             for (Placement placement : atlas.placements()) {
-                graphics.drawImage(placement.image().image(), placement.x(), placement.y(), null);
+                graphics.drawImage(placement.image().image(), placement.x(), placement.y(), placement.width(), placement.height(), null);
             }
 
             graphics.dispose();
 
-            Path outputPath = outputDirectory.resolve(atlas.fileName());
-            ImageIO.write(atlasImage, "PNG", outputPath.toFile());
+            var outputStream = new ByteArrayOutputStream();
+
+            ImageIO.write(atlasImage, "PNG", outputStream);
+
+            locator.putFile(atlas.fileName(), outputStream.toByteArray());
         }
     }
 
-    private static void writeManifest(Path outputDirectory, List<Atlas> atlases, List<SkippedImage> skippedImages) throws IOException {
-        Path manifestPath = outputDirectory.resolve("atlas_manifest.csv");
-        var lines = new ArrayList<String>();
-        lines.add("source,status,atlas,x,y,width,height,scale_x,scale_y,offset_x,offset_y");
+    private static Map<String, PackedTexture> buildPackedTextures(List<Atlas> atlases) {
+        var packedTextures = new LinkedHashMap<String, PackedTexture>();
 
         for (Atlas atlas : atlases) {
-            List<Placement> placements = new ArrayList<>(atlas.placements());
-            placements.sort(Comparator.comparingInt(Placement::y).thenComparingInt(Placement::x));
-
-            for (Placement placement : placements) {
-                lines.add(String.join(",",
-                        escapeCsv(displayPath(placement.image().path())),
-                        "packed",
-                        atlas.fileName(),
-                        Integer.toString(placement.x()),
-                        Integer.toString(placement.y()),
-                        Integer.toString(placement.width()),
-                        Integer.toString(placement.height()),
-                        formatDecimal(placement.scaleX()),
-                        formatDecimal(placement.scaleY()),
-                        formatDecimal(placement.offsetX()),
-                        formatDecimal(placement.offsetY())
-                ));
+            for (Placement placement : atlas.placements()) {
+                packedTextures.put(
+                        placement.image().name(),
+                        new PackedTexture(
+                                placement.image().name(),
+                                atlas.fileName(),
+                                placement.x(),
+                                placement.y(),
+                                placement.width(),
+                                placement.height()
+                        )
+                );
             }
         }
 
-        for (SkippedImage skippedImage : skippedImages) {
-            lines.add(String.join(",",
-                    escapeCsv(displayPath(skippedImage.path())),
-                    skippedImage.reason(),
-                    "",
-                    "",
-                    "",
-                    Integer.toString(skippedImage.width()),
-                    Integer.toString(skippedImage.height()),
-                    "",
-                    "",
-                    "",
-                    ""
-            ));
-        }
-
-        Files.write(manifestPath, lines, StandardCharsets.UTF_8);
+        return Map.copyOf(packedTextures);
     }
 
-    private static void printReport(Path outputDirectory, List<Atlas> atlases, List<SkippedImage> skippedImages) {
-        int packedCount = atlases.stream().mapToInt(atlas -> atlas.placements().size()).sum();
-        System.out.println("Packed " + packedCount + " image(s) into " + atlases.size() + " atlas(es).");
-        System.out.println("Output directory: " + outputDirectory.toAbsolutePath().normalize());
-
-        for (Atlas atlas : atlases) {
-            double usagePercent = (atlas.usedArea() * 100.0) / (ATLAS_SIZE * ATLAS_SIZE);
-            System.out.println();
-            System.out.println(atlas.fileName() + " - " + atlas.placements().size() + " image(s), "
-                    + formatDecimal(usagePercent) + "% filled");
-
-            List<Placement> placements = new ArrayList<>(atlas.placements());
-            placements.sort(Comparator.comparingInt(Placement::y).thenComparingInt(Placement::x));
-
-            for (Placement placement : placements) {
-                System.out.println("  " + displayPath(placement.image().path())
-                        + " -> pos=(" + placement.x() + "," + placement.y() + ")"
-                        + " size=(" + placement.width() + "x" + placement.height() + ")"
-                        + " scale=(" + formatDecimal(placement.scaleX()) + "," + formatDecimal(placement.scaleY()) + ")"
-                        + " offset=(" + formatDecimal(placement.offsetX()) + "," + formatDecimal(placement.offsetY()) + ")");
-            }
-        }
-
-        if (!skippedImages.isEmpty()) {
-            System.out.println();
-            System.out.println("Skipped " + skippedImages.size() + " image(s) that were already 1024x1024:");
-            for (SkippedImage skippedImage : skippedImages) {
-                System.out.println("  " + displayPath(skippedImage.path()));
-            }
-        }
-
-        System.out.println();
-        System.out.println("Manifest written to " + outputDirectory.resolve("atlas_manifest.csv").toAbsolutePath().normalize());
-    }
 
     private static String displayPath(Path path) {
         Path absolutePath = path.toAbsolutePath().normalize();
@@ -289,13 +227,34 @@ public class AtlasCompacter {
         return escaped;
     }
 
-    private record DialogSelection(List<Path> inputFiles, Path outputDirectory) {
+    private record DialogSelection(List<String> inputFiles, ResourceLocator outputDirectory) {
+    }
+
+    public record AtlasBuild(List<Atlas> atlases, Map<String, PackedTexture> packedTextures) {
+    }
+
+    public record PackedTexture(String sourceName, String atlasFileName, int x, int y, int width, int height) {
+        public float scaleX() {
+            return width / (float) ATLAS_SIZE;
+        }
+
+        public float scaleY() {
+            return height / (float) ATLAS_SIZE;
+        }
+
+        public float offsetX() {
+            return x / (float) ATLAS_SIZE;
+        }
+
+        public float offsetY() {
+            return y / (float) ATLAS_SIZE;
+        }
     }
 
     private record LoadResult(List<ImageEntry> packableImages, List<SkippedImage> skippedImages) {
     }
 
-    private record ImageEntry(Path path, BufferedImage image, int width, int height) {
+    private record ImageEntry(String name, BufferedImage image, int width, int height) {
         private int area() {
             return width * height;
         }
@@ -305,7 +264,7 @@ public class AtlasCompacter {
         }
     }
 
-    private record SkippedImage(Path path, int width, int height, String reason) {
+    private record SkippedImage(String path, int width, int height, String reason) {
     }
 
     private record Placement(ImageEntry image, int atlasIndex, int x, int y, int width, int height) {
@@ -353,7 +312,7 @@ public class AtlasCompacter {
         }
     }
 
-    private static final class Atlas {
+    public static final class Atlas {
         private final int index;
         private final List<Rect> freeRectangles = new ArrayList<>();
         private final List<Placement> placements = new ArrayList<>();

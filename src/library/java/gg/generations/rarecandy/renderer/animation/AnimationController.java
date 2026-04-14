@@ -41,7 +41,7 @@ public class AnimationController {
             if (playingInstance.startTime == -1) playingInstance.startTime = globalSecondsPassed;
             playingInstance.update(globalSecondsPassed);
             playingInstance.matrixTransforms = playingInstance.animation.getFrameTransform(playingInstance);
-            playingInstance.animation.getFrameOffset(playingInstance);
+//            playingInstance.animation.getFrameOffset(playingInstance); //TODO: rework materialAnimations.
         }
 
         for (AnimationInstance animationInstance : instancesToRemove) {

@@ -7,8 +7,8 @@ mat4 getBoneTransform(Instance instance, uvec4 joints, vec4 weights) {
 }
 
 TargetVertex getVertex() {
-    Transform transform = transforms[gl_DrawID];
-    Instance instance = instances[transform.instance];
+    DrawInfo drawInfo = drawInfos[gl_DrawID];
+    Instance instance = instances[drawInfo.instance];
 
     SourceVertex inV = src[indices[gl_VertexID + meshOffsets[gl_DrawID]]];
     TargetVertex outV;
@@ -23,7 +23,7 @@ TargetVertex getVertex() {
     vec4 worldPos = instance.modelMatrix * skinnedPos;
 
     outV.position = worldPos.xyz;
-    outV.texcoord = inV.texcoord * transform.scale + transform.offset;
+    outV.texCoord = inV.texCoord;
 
     outV.normal = normalize(instance.normalMatrix * skinnedNormal);
     outV.tangent = normalize(instance.normalMatrix * skinnedTangent);

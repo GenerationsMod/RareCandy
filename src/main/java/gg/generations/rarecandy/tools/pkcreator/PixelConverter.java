@@ -76,16 +76,23 @@ public class PixelConverter {
 
 
         Files.walk(inFolder).forEach(path -> {
-            if (path.toString().endsWith("smdx")) {
-                if (!Files.isDirectory(path) && !path.equals(inFolder)) {
-                    var relativePath = inFolder.relativize(path);
-                    var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".smdx", ".smd"));
-                    convertToSmd(path, outputPath);
-                }
-            } else if (path.toString().endsWith(".pk")) {
-                if (!Files.isDirectory(path) && !path.equals(inFolder)) {
-                    var relativePath = inFolder.relativize(path);
-                    var outputPath = outFolder.resolve(relativePath).getParent().resolve(path.getFileName().toString().replace(".pk", ""));
+            var relativePath = inFolder.relativize(path);
+            var outputPath = outFolder.resolve(relativePath).getParent();
+            if(!path.equals(inFolder)) {
+                if (!Files.isDirectory(path)) {
+                    if (path.toString().endsWith("smdx")) {
+
+                        outputPath = outputPath.resolve(path.getFileName().toString().replace(".smdx", ".smd"));
+                        convertToSmd(path, outputPath);
+
+                    } else if (path.toString().endsWith(".pk")) {
+
+                        outputPath = outputPath.resolve(path.getFileName().toString().replace(".pk", ""));
+                        unpackPk(path, outputPath);
+                    }
+                } else {
+                    outputPath = outputPath.resolve(path.getFileName() + ".pk");
+
                     unpackPk(path, outputPath);
                 }
             }
@@ -100,6 +107,8 @@ public class PixelConverter {
             for(var file : input.getFileNames()) {
                 output.putFile(file, input.getFile(file));
             }
+
+            output.save();
         } catch (Exception e) {
             System.out.println("Issue: " + path);
             e.printStackTrace();

@@ -1,6 +1,11 @@
+const int DIFFUSE = 0;
+const int LAYER = 1;
+const int MASK = 2;
+const int EMISSION = 3;
+
 struct TargetVertex {
     vec3 position;
-    vec2 texcoord;
+    vec2 texCoord;
     vec3 normal;
     vec3 tangent;
     vec3 bitangent;
@@ -8,43 +13,31 @@ struct TargetVertex {
 
 struct SourceVertex {
     vec3 position;
-    vec2 texcoord;
+    vec2 texCoord;
     vec3 normals;
     vec4 tangents;
     uvec4 joints;
     vec4 weights;
 };
 
+struct Transform {
+    vec2 scale;
+    vec2 offset;
+};
+
 struct Variant {
+    Transform[4] transforms;
     int material;
     int effect;
     bool paradox;
 };
 
 struct Material {
-    int diffuse;
-    int layer;
-    int mask;
-    int emission;
-    vec3 baseColor1;
-    vec3 baseColor2;
-    vec3 baseColor3;
-    vec3 baseColor4;
-    vec3 baseColor5;
-
-    vec3 emiColor1;
-    vec3 emiColor2;
-    vec3 emiColor3;
-    vec3 emiColor4;
-    vec3 emiColor5;
-
-    float emiIntensity1;
-    float emiIntensity2;
-    float emiIntensity3;
-    float emiIntensity4;
-    float emiIntensity5;
+    int[4] images;
+    vec3[5] baseColor;
+    vec3[5] emiColor;
+    float[5] emiIntensity;
     bool useLight;
-
     int colorMethod;
     bool translucent;
 };
@@ -55,9 +48,7 @@ struct Instance {
     mat4 boneTransforms[220];
 };
 
-struct Transform {
-    vec2 scale;
-    vec2 offset;
+struct DrawInfo {
     int variant;
     int instance;
     bool shouldRender;
@@ -86,6 +77,6 @@ layout(std430, binding = 5) readonly  buffer InstanceBuffer {
     Instance instances[];
 };
 
-layout(std140, binding = 6) readonly  buffer TransformBuffer {
-    Transform transforms[];
+layout(std140, binding = 6) readonly  buffer DrawInfoBuffer {
+    DrawInfo drawInfos[];
 };

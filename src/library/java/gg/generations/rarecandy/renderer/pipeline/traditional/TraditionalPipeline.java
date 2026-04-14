@@ -6,7 +6,11 @@ import gg.generations.rarecandy.renderer.pipeline.util.*;
 import org.joml.*;
 import org.lwjgl.opengl.*;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.util.*;
+import java.util.List;
 import java.util.function.Consumer;
 
 import static gg.generations.rarecandy.renderer.pipeline.Pipeline.Builder.attachShader;
@@ -53,11 +57,21 @@ public final class TraditionalPipeline extends Pipeline {
 
     public static TraditionalPipeline.Builder builder(String vertexSource, String fragmentSource) {
         int programId = GL20C.glCreateProgram();
+
+writeClipboard(fragmentSource);
+
         attachShader(programId, vertexSource, GL20C.GL_VERTEX_SHADER);
         attachShader(programId, fragmentSource, GL20C.GL_FRAGMENT_SHADER);
         linkProgram(programId);
         return new Builder(programId);
     }
+
+
+    public static void writeClipboard(String text) {
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(new StringSelection(text), null);
+    }
+
 
     public static TraditionalPipeline.Builder builder(String vertexSource, String geometrySource, String fragmentSource) {
         int programId = GL20C.glCreateProgram();

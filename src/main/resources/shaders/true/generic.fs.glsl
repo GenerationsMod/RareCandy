@@ -2,7 +2,7 @@
 
 in float vertexDistance;
 in vec4 vertexColor;
-in vec2 texCoord0;
+in vec2 texCoord;
 in vec3 fragViewDir;
 in vec3 worldPos;
 flat in int drawId;
@@ -22,7 +22,7 @@ uniform bool renderTranslucent;
 #lib:terastal
 
 void main() {
-    Transform transform = transforms[drawId];
+    DrawInfo transform = drawInfos[drawId];
 
     if(!transform.shouldRender) {
         discard;
@@ -34,12 +34,12 @@ void main() {
 
     if(renderTranslucent != material.translucent) discard;
 
-    outColor = getMaterialColor(texCoord0, material, variant) * ColorModulator * tint;
+    outColor = getMaterialColor(texCoord, material, variant) * ColorModulator * tint;
 
     if(teraActive) {
         outColor.rgb = calculateTersaalizationEffect(outColor.rgb);
     } else if(material.useLight) {
-        outColor = applyLight(outColor, getEmission(texCoord0, material));
+        outColor = applyLight(outColor, getEmission(texCoord, material, variant));
     }
 
     outColor = linear_fog(outColor, vertexDistance, FogStart, FogEnd, FogColor);

@@ -125,15 +125,17 @@ public class Animation {
     }
 
     public void getFrameOffset(AnimationInstance instance) {
-        assert instance.offsets.length == offsets.length;
+//        TODO: rewrok material animations at a later date.
 
-        for (int i = 0; i < offsets.length; i++) {
-            var offsetInstance = instance.offsets[i];
-            offsetInstance.offset().zero();
-            offsetInstance.scale().set(1, 1);
-
-            if(offsets[i] != null) offsets[i].calcOffset(instance.getCurrentTime(), offsetInstance);
-        }
+//        assert instance.offsets.length == offsets.length;
+//
+//        for (int i = 0; i < offsets.length; i++) {
+//            var offsetInstance = instance.offsets[i];
+//            offsetInstance.offset().zero();
+//            offsetInstance.scale().set(1, 1);
+//
+//            if(offsets[i] != null) offsets[i].calcOffset(instance.getCurrentTime(), offsetInstance);
+//        }
     }
 
     public Matrix4f[] getFrameTransform(double secondsPassed) {

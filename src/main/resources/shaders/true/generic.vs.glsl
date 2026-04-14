@@ -5,7 +5,7 @@
 
 out float vertexDistance;
 out vec4 vertexColor;
-out vec2 texCoord0;
+out vec2 texCoord;
 out vec3 fragViewDir;
 out vec3 worldPos;
 flat out int drawId;
@@ -25,7 +25,7 @@ void main() {
     mat4 worldSpace = projectionMatrix * viewMatrix;
     vec4 worldPosition = vec4(v.position, 1.0);
 
-    texCoord0 = v.texcoord;
+    texCoord = v.texCoord;
     gl_Position = worldSpace * worldPosition;
     vertexDistance = fog_distance(v.position, FogShape);
     vertexColor = getVertexColor(v.normal);

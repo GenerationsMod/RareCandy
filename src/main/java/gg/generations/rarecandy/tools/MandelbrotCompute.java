@@ -114,7 +114,7 @@ public class MandelbrotCompute {
             // Compute shader dispatch
             glUseProgram(computeProgram);
             glUniform1f(glGetUniformLocation(computeProgram, "zoom"), (float) zoom);
-            glUniform2f(glGetUniformLocation(computeProgram, "offset"), (float) offsetX, (float) offsetY);
+            glUniform2f(glGetUniformLocation(computeProgram, "transform"), (float) offsetX, (float) offsetY);
             glUniform2i(glGetUniformLocation(computeProgram, "resolution"), width[0], height[0]);
 
             glDispatchCompute((width[0] + 15) / 16, (height[0] + 15) / 16, 1);
@@ -202,7 +202,7 @@ public class MandelbrotCompute {
         layout(local_size_x = 16, local_size_y = 16) in;
         layout(rgba32f, binding = 0) uniform image2D img;
         uniform float zoom;
-        uniform vec2 offset;
+        uniform vec2 transform;
         uniform ivec2 resolution;
 
         void main() {
@@ -211,8 +211,8 @@ public class MandelbrotCompute {
 
             float aspect = float(resolution.x) / float(resolution.y);
             vec2 uv = (vec2(pixel) / vec2(resolution)) - 0.5;
-            vec2 c = vec2(uv.x * zoom * aspect + offset.x,
-                          uv.y * zoom + offset.y);
+            vec2 c = vec2(uv.x * zoom * aspect + transform.x,
+                          uv.y * zoom + transform.y);
 
             vec2 z = vec2(0.0);
             int i;

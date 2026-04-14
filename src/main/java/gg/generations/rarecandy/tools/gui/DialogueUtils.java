@@ -134,7 +134,7 @@ public class DialogueUtils {
         CompletableFuture.supplyAsync(() -> {
             var outPath = MemoryUtil.memAllocPointer(1);
             try {
-                var result = NativeFileDialog.NFD_PickFolder(outPath, defaultPath);
+                var result = NativeFileDialog.NFD_PickFolderMultiple(outPath, defaultPath);
                 if (result == NFD_OKAY) {
                     var path = Paths.get(outPath.getStringUTF8(0));
                     NFD_FreePath(outPath.get(0));
@@ -146,6 +146,35 @@ public class DialogueUtils {
                 e.printStackTrace();
             } finally {
                 MemoryUtil.memFree(outPath);
+            }
+            return null;
+        }, DIALOG_THREAD).thenAccept(consumer);
+    }
+
+    public static void chooseFolders(String defaultPath, Consumer<List<Path>> consumer) {
+        CompletableFuture.supplyAsync(() -> {
+            var pp = MemoryUtil.memAllocPointer(1);
+            try {
+                var result = NativeFileDialog.NFD_PickFolderMultiple(pp, defaultPath);
+                if (result == NFD_OKAY) {
+                    long pathSet = pp.get(0);
+                    NFDPathSetEnum psEnum = NFDPathSetEnum.calloc();
+                    NFD_PathSet_GetEnum(pathSet, psEnum);
+                    List<Path> paths = new ArrayList<>();
+                    while (NFD_PathSet_EnumNext(psEnum, pp) == NFD_OKAY && pp.get(0) != NULL) {
+                        paths.add(Path.of(pp.getStringUTF8(0)));
+                        NFD_PathSet_FreePath(pp.get(0));
+                    }
+                    NFD_PathSet_FreeEnum(psEnum);
+                    NFD_PathSet_Free(pathSet);
+                    return paths;
+                } else if (result == NFD_ERROR) {
+                    print(NativeFileDialog.NFD_GetError());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                MemoryUtil.memFree(pp);
             }
             return null;
         }, DIALOG_THREAD).thenAccept(consumer);

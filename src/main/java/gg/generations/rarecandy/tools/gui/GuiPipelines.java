@@ -1,27 +1,18 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
-import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.pipeline.compute.ComputePipeline;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.pipeline.util.*;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
-import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
-import gg.generations.rarecandy.renderer.textures.BlankTexture;
 import gg.generations.rarecandy.renderer.textures.ITexture;
-import gg.generations.rarecandy.renderer.textures.TextureArray;
-import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.system.MemoryUtil;
 
 import static gg.generations.rarecandy.renderer.pipeline.Pipelines.builtin;
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.projectionMatrix;
 import static org.lwjgl.opengl.GL15C.glBufferData;
-import static org.lwjgl.opengl.GL42C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
-import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BARRIER_BIT;
 
 public class GuiPipelines {
     public static final Vector3f light0 = new Vector3f(0.5f, 0.5f, -0.5f).normalize();
@@ -82,7 +73,7 @@ public class GuiPipelines {
                 .addSSBORange(Scope.MODEL, "VariantBuffer", 3, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().variant)
                 .addSSBORange(Scope.MODEL, "MaterialBuffer", 4, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().material)
                 .addSSBO(Scope.MODEL, "InstanceBuffer", 5, ctx -> ctx.object().instanceBuffer.getBufferId())
-                .addSSBO(Scope.MODEL, "TransformBuffer", 6, ctx -> ctx.object().uvTransformBuffer.getBufferId())
+                .addSSBO(Scope.MODEL, "DrawInfoBuffer", 6, ctx -> ctx.object().drawInfoBuffer.getBufferId())
 
                 .autoSampler2DArray(Scope.MODEL, "images", 0, ctx -> ctx.object().images)
 

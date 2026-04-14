@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.launch.OpenGL;
 import gg.generations.rarecandy.tools.AppBase;
+import gg.generations.rarecandy.tools.ImGuiImageViewer;
 import gg.generations.rarecandy.tools.TextureLoader;
 import gg.generations.rarecandy.tools.gui.imgui.ImBoolean;
 import gg.generations.rarecandy.tools.gui.imgui.ImVector3f;

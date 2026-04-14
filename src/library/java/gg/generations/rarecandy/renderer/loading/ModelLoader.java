@@ -7,6 +7,7 @@ import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingConsumer;
 import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingTriFunction;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Skeleton;
+import gg.generations.rarecandy.renderer.animation.TransformSet;
 import gg.generations.rarecandy.renderer.components.InstanceDetails;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.model.*;
@@ -17,7 +18,6 @@ import gg.generations.rarecandy.renderer.textures.TextureArray;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.assimp.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
@@ -146,7 +146,7 @@ public class ModelLoader {
         GL43C.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
         objects.modelBuffer = bufferId;
 
-        objects.uvTransformBuffer = new SSBOBuffer(TRANSFORM_ENTRY_BYTES * objects.meshes.length);
+        objects.drawInfoBuffer = new SSBOBuffer(TRANSFORM_ENTRY_BYTES * objects.meshes.length);
         objects.instanceBuffer = new SSBOBuffer(InstanceDetails.size);
         objects.drawBuffer = new SSBOBuffer(Integer.BYTES * 4 * objects.meshes.length);
 
@@ -246,7 +246,7 @@ public class ModelLoader {
             var paradox = v.paradox() != null && v.paradox();
             var hide = v.hide() != null && v.hide();
 
-            var variant = addOrGetIndex(variantList, new Variant(names.materials.indexOf(v.material()), effect, paradox, hide, v.offset()));
+            var variant = addOrGetIndex(variantList, new Variant(names.materials.indexOf(v.material()), effect, paradox, hide, (v.transform() != null ? v.transform() : TransformSet.DEFAULT).array()));
 
             if(!aliases.isEmpty() && aliases.containsKey(k)) {
                 for (String s : aliases.get(k)) {
@@ -327,7 +327,7 @@ public class ModelLoader {
             int mat = names.materials.indexOf(v.material());
             boolean hide = v.hide() != null && v.hide();
             boolean paradox = v.paradox() != null && v.paradox();
-            var offset = v.offset() != null ? v.offset() : null;
+            var transform = v.transform() != null ? v.transform() : TransformSet.DEFAULT;
             int effect = 0;
             if (v.effect() != null) {
                 effect = switch (v.effect()) {
@@ -340,7 +340,7 @@ public class ModelLoader {
                 };
             }
 
-            var variant = addOrGetIndex(variants, new Variant(mat, effect, paradox, hide, offset));
+            var variant = addOrGetIndex(variants, new Variant(mat, effect, paradox, hide, transform.array()));
 
             if(!aliases.isEmpty() && aliases.containsKey(k)) {
                 for (String s : aliases.get(k)) {
@@ -463,12 +463,16 @@ public class ModelLoader {
             var tangent = aiTangents.get(i);
             var bitangent = aiBitangents.get(i);
 
+            if(uv.x() > 1 || uv.y() > 1 || uv.z() > 1) {
+                System.out.println();
+            }
+
             vertexBuffer.putFloat(position.x());
             vertexBuffer.putFloat(position.y());
             vertexBuffer.putFloat(position.z());
             vertexBuffer.putFloat(0);
             vertexBuffer.putFloat(uv.x());
-            vertexBuffer.putFloat(1 - uv.y());
+            vertexBuffer.putFloat(1 - (uv.y() % 1.0f));
             vertexBuffer.putFloat(0);
             vertexBuffer.putFloat(0);
             vertexBuffer.putFloat(normal.x());
@@ -649,7 +653,7 @@ public class ModelLoader {
         var array = new TextureArray(resolution, resolution,imageNames.size(), false);
 
         for (int i = 0; i < imageNames.size(); i++) {
-            var image = Texture.getColorBuffer(asset.getFile(imageNames.get(i)), resolution);
+            var image = Texture.scaleAndProcess(asset.getFile(imageNames.get(i)), resolution);
 
             array.fillLayer(i, image);
 

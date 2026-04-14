@@ -1,6 +1,5 @@
 package gg.generations.rarecandy.renderer.components;
 
-import gg.generations.rarecandy.pokeutils.BlendType;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
@@ -48,7 +47,7 @@ public abstract class MultiRenderObject {
     public SbboOffset variant;
 
     public SSBOBuffer instanceBuffer;
-    public SSBOBuffer uvTransformBuffer;
+    public SSBOBuffer drawInfoBuffer;
     public SSBOBuffer drawBuffer;
 
     public int modelBuffer;
@@ -167,7 +166,7 @@ public abstract class MultiRenderObject {
         }
 
         GL43.glDeleteBuffers(modelBuffer);
-        this.uvTransformBuffer.delete();
+        this.drawInfoBuffer.delete();
         this.instanceBuffer.delete();
         this.drawBuffer.delete();
     }
@@ -186,29 +185,29 @@ public abstract class MultiRenderObject {
 
             for (int meshId = 0; meshId < meshes.length; meshId++) {
 
-                var variant = getVariant(meshId, instance.variant());
+//                var variant = getVariant(meshId, instance.variant());
 
-                Transform variantTransform = variant.offset();
-                Transform animationTransform = null;
+//TODO: Redo material animation
+//                Transform animationTransform = Transform.DEFAULT;
 
-                var material = variant.material();
+//                var material = variant.material();
 
                 var isRendering = shouldRender(meshId, instance);
 
-                if (instance instanceof AnimatedObjectInstance animatedInstance) {
+//                if (instance instanceof AnimatedObjectInstance animatedInstance) {
+//
+//                    var t = animatedInstance.getTransform(material);
+//
+//                    if (t != null && !t.isUnit()) {
+//                        animationTransform = t;
+//                    }
+//                }
 
-                    var t = animatedInstance.getTransform(material);
-
-                    if (t != null && !t.isUnit()) {
-                        animationTransform = t;
-                    }
-                }
-
-                Transform.combine(variantTransform, animationTransform).upload(uvTransformBuffer);
-                uvTransformBuffer.put(variantRelationships[meshId][instance.variant()]);
-                uvTransformBuffer.put(instanceId);
-                uvTransformBuffer.put(isRendering);
-                uvTransformBuffer.put(0);
+//                Transform.combine(animationTransform).upload(drawInfoBuffer);
+                drawInfoBuffer.put(variantRelationships[meshId][instance.variant()]);
+                drawInfoBuffer.put(instanceId);
+                drawInfoBuffer.put(isRendering);
+                drawInfoBuffer.put(0);
 
                 drawBuffer
                         .put(meshes[meshId])
@@ -219,13 +218,13 @@ public abstract class MultiRenderObject {
         }
 
         instanceBuffer.upload();
-        uvTransformBuffer.upload();
+        drawInfoBuffer.upload();
         drawBuffer.upload();
     }
 
     private void resetSSBOs() {
         instanceBuffer.reset();
-        uvTransformBuffer.reset();
+        drawInfoBuffer.reset();
         drawBuffer.reset();
     }
 
@@ -244,7 +243,7 @@ public abstract class MultiRenderObject {
         var size = instances.size();
 
         instanceBuffer.ensureCapacity((long) size * InstanceDetails.size);
-        uvTransformBuffer.ensureCapacity(
+        drawInfoBuffer.ensureCapacity(
                 (long) instances.size()
                         * meshes.length
                         * TRANSFORM_ENTRY_BYTES

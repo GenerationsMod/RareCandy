@@ -3,7 +3,6 @@ package gg.generations.rarecandy.renderer.rendering;
 import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
-import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,10 +40,10 @@ public class RareCandy {
         }
 
         for (var object : objects) {
-            object.update(secondsPassed);
-
             if (object.isEmpty()) {
                 objectsToRemove.add(object);
+            } else {
+                object.update(secondsPassed);
             }
         }
 
@@ -55,14 +54,26 @@ public class RareCandy {
         }
     }
 
-    public void render(TraditionalPipeline pipeline, RenderStage stage) {
+    public void render(TraditionalPipeline pipeline, StateManager manager) {
         for (var object : objects) {
             if (object == null) continue;
 
-            pipeline.bindModel(object, stage);
+            pipeline.bindModel(object, null);
 
-            object.render(pipeline, stage);
+            render(manager, pipeline, object, RenderStage.SOLID_DEPTH_CULL);
+            render(manager, pipeline, object, RenderStage.SOLID_DEPTH_NOCULL);
+            render(manager, pipeline, object, RenderStage.SOLID_NODEPTH_CULL);
+            render(manager, pipeline, object, RenderStage.SOLID_NODEPTH_NOCULL);
+            render(manager, pipeline, object, RenderStage.TRANSPARENT_DEPTH_CULL);
+            render(manager, pipeline, object, RenderStage.TRANSPARENT_DEPTH_NOCULL);
+            render(manager, pipeline, object, RenderStage.TRANSPARENT_NODEPTH_CULL);
+            render(manager, pipeline, object, RenderStage.TRANSPARENT_NODEPTH_NOCULL);
         }
+    }
+
+    private void render(StateManager manager, TraditionalPipeline pipeline, MultiRenderObject object, RenderStage renderStage) {
+        manager.toggle(renderStage);
+        object.render(pipeline, renderStage);
     }
 
     public void clear() {
@@ -85,7 +96,6 @@ public class RareCandy {
         return instance;
     }
 
-
     public void end() {
         if(!objectsToRemove.isEmpty()) {
             for (var renderObject : objectsToRemove) {
@@ -99,6 +109,10 @@ public class RareCandy {
 
             objectsToRemove.clear();
         }
+    }
+
+    public List<MultiRenderObject> getObjects() {
+        return objects;
     }
 
     public void remove(MultiRenderObject loadedModel) {

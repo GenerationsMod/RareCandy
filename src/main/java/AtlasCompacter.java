@@ -96,6 +96,8 @@ public class AtlasCompacter {
 
                     if(width == 2048 && height == 1024) {
                         packableImages.add(new ImageEntry(path, image, 1024, 512));
+                    } else if(width == 2048 && height == 2048) {
+                        packableImages.add(new ImageEntry(path, image, 1024, 1024));
                     } else {
                             throw new RuntimeException(
                                     "Image is larger than the atlas size and cannot be packed: "

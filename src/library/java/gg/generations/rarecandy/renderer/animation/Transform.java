@@ -29,7 +29,7 @@ public record Transform(Vector2f scale, Vector2f offset) {
     }
 
     public void upload(ByteBuffer buffer) {
-        buffer.putFloat(scale.x()).putFloat(scale.y()).putFloat(offset.x()).putFloat(offset.x());
+        buffer.putFloat(scale.x()).putFloat(scale.y()).putFloat(offset.x()).putFloat(offset.y());
     }
 
     public static JsonElement serialize(Transform transform, JsonSerializationContext ctx) {

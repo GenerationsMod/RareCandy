@@ -7,10 +7,11 @@ mat4 getBoneTransform(Instance instance, uvec4 joints, vec4 weights) {
 }
 
 TargetVertex getVertex() {
-    DrawInfo drawInfo = drawInfos[gl_DrawID];
+    DrawInfo drawInfo = drawInfos[gl_BaseInstance];
     Instance instance = instances[drawInfo.instance];
+    Variant variant = variants[drawInfo.variant];
 
-    SourceVertex inV = src[indices[gl_VertexID + meshOffsets[gl_DrawID]]];
+    SourceVertex inV = src[indices[gl_VertexID + meshOffsets[drawInfo.mesh]]];
     TargetVertex outV;
 
     mat4 skin = getBoneTransform(instance, inV.joints, inV.weights);

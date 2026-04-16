@@ -26,6 +26,8 @@ public class SSBOBuffer {
     }
 
     public void ensureCapacity(long newCapacity) {
+        if (newCapacity <= 0) return;
+
         // Resize native buffer if needed
         if (pointer == 0 || currentCapacity < newCapacity) {
             if(pointer > 0) MemoryUtil.nmemFree(pointer);
@@ -43,8 +45,11 @@ public class SSBOBuffer {
     }
 
     public void upload() {
+        long written = pos - pointer;
+        if (pointer == 0 || written <= 0) return;
+
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
-        nglBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, currentCapacity, pointer);
+        nglBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, written, pointer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     }
 
@@ -63,6 +68,7 @@ public class SSBOBuffer {
     }
 
     public SSBOBuffer put(Matrix2f transformationMatrix) {
+        checkWrite(16);
         transformationMatrix.getToAddress(pos);
         pos += 16;
         return this;
@@ -75,12 +81,14 @@ public class SSBOBuffer {
         return this;
     }
     public SSBOBuffer put(Matrix4f transformationMatrix) {
+        checkWrite(64);
         transformationMatrix.getToAddress(pos);
         pos += 64;
         return this;
     }
 
     public SSBOBuffer put(int value) {
+        checkWrite(4);
         MemoryUtil.memPutInt(pos, value);
         pos += 4;
         return this;
@@ -91,30 +99,35 @@ public class SSBOBuffer {
     }
 
     public SSBOBuffer put(short value) {
+        checkWrite(2);
         MemoryUtil.memPutShort(pos, value);
         pos += 2;
         return this;
     }
 
     public SSBOBuffer put(float value) {
+        checkWrite(4);
         MemoryUtil.memPutFloat(pos, value);
         pos += 4;
         return this;
     }
 
     public SSBOBuffer put(Vector2f vec2) {
+        checkWrite(8);
         vec2.getToAddress(pos);
         pos += 8;
         return this;
     }
 
     public SSBOBuffer put(Vector3f vec3) {
+        checkWrite(12);
         vec3.getToAddress(pos);
         pos += 12;
         return this;
     }
 
     public SSBOBuffer put(Vector4f vec4) {
+        checkWrite(16);
         vec4.getToAddress(pos);
         pos += 16;
         return this;
@@ -129,6 +142,21 @@ public class SSBOBuffer {
     }
 
     public void move(int i) {
+        checkWrite(i);
         pos += i;
+    }
+
+    protected void checkWrite(long bytes) {
+        if (pointer == 0) {
+            throw new IllegalStateException("SSBOBuffer has no native storage.");
+        }
+
+        long written = pos - pointer;
+        if (written + bytes > currentCapacity) {
+            throw new IllegalStateException(
+                    "SSBOBuffer overflow: writing " + bytes + " bytes at " + written +
+                            " with capacity " + currentCapacity
+            );
+        }
     }
 }

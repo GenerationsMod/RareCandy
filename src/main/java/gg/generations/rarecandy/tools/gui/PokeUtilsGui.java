@@ -46,6 +46,7 @@ public class PokeUtilsGui extends AppBase {
     public PixelAssetTree fileViewer;
     public RareCandyCanvas canvas;
     protected Settings settings;
+    private boolean closed;
     private static Path settingsPath = Paths.get("settings.json");
 
     public PokeUtilsGui(String title, int width, int height) throws IOException {
@@ -136,10 +137,15 @@ public class PokeUtilsGui extends AppBase {
         open.addItem("PK (*.pk)", () -> DialogueUtils.chooseFile(settings.urls.openArchiveUrl, "PK;pk", this::open));
         open.addItem("Folder", () -> DialogueUtils.chooseFolder(settings.urls.openArchiveUrl, this::open));
 
-//        file.addItem("Open Multiple Archives in sequence (.pk)", () -> DialogueUtils.chooseMultipleFiles( "Open Multiple Archives", settings.urls.sequenceUrl, "PK;pk", files -> {
-//            addRunnable(() -> handler.openAsset(files));
-//            settings.urls.sequenceUrl = files.get(0).toString();
-//        }));
+        file.addItem("Open Multiple Archives in sequence (.pk)", () -> DialogueUtils.chooseMultipleFiles( "Open Multiple Archives", settings.urls.sequenceUrl, "PK;pk", files -> {
+            addRunnable(() -> handler.openAsset(files));
+            settings.urls.sequenceUrl = files.get(0).toString();
+        }));
+
+        file.addItem("Open Multiple Folders in sequence", () -> DialogueUtils.chooseFolders(settings.urls.sequenceUrl, files -> {
+            addRunnable(() -> handler.openAsset(files));
+            settings.urls.sequenceUrl = files.get(0).toString();
+        }));
 
         var saveAs = file.addMenu("Save As");
 
@@ -158,6 +164,17 @@ public class PokeUtilsGui extends AppBase {
         } catch (IOException e) {
 
         }
+
+        DialogueUtils.quit();
+
+        if (window != 0) {
+            GLFW.glfwSetWindowShouldClose(window, true);
+        }
+    }
+
+    @Override
+    protected void cleanupGL() {
+        close();
     }
 
     public void setTitle(String title) {

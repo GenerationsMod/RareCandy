@@ -12,6 +12,8 @@ import gg.generations.rarecandy.renderer.components.InstanceDetails;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.model.*;
 import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.rendering.RenderStage;
+import gg.generations.rarecandy.renderer.storage.DrawBuffer;
 import gg.generations.rarecandy.renderer.storage.SSBOBuffer;
 import gg.generations.rarecandy.renderer.textures.Texture;
 import gg.generations.rarecandy.renderer.textures.TextureArray;
@@ -20,6 +22,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.assimp.*;
 import org.lwjgl.opengl.*;
+import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.IOException;
@@ -148,7 +151,6 @@ public class ModelLoader {
 
         objects.drawInfoBuffer = new SSBOBuffer(TRANSFORM_ENTRY_BYTES * objects.meshes.length);
         objects.instanceBuffer = new SSBOBuffer(InstanceDetails.size);
-        objects.drawBuffer = new SSBOBuffer(Integer.BYTES * 4 * objects.meshes.length);
 
         MemoryUtil.memFree(buffer);
         MemoryUtil.memFree(vertexBuffer);
@@ -259,8 +261,6 @@ public class ModelLoader {
 
         });
 
-        var variants = object.variantRelationships;
-
         if(config.variants != null) {
             config.variants.forEach((variantKey, variantParent) -> {
                 var variantIndex = names.variants.indexOf(variantKey);
@@ -279,14 +279,13 @@ public class ModelLoader {
 
                 applyVariantDetails(config.defaultVariant, map);
 
-                applyVariant(variantIndex, variants, map, aliases, names, variantList);
+                applyVariant(object, variantIndex, map, aliases, names, variantList);
             });
         } else {
             for (int mesh = 0; mesh < defaultVariant.length; mesh++) {
                 var variant = defaultVariant[mesh];
 
-                variants[mesh][0] = variant;
-
+                set(object, mesh, 0, variant, variantList);
             }
         }
 
@@ -315,8 +314,8 @@ public class ModelLoader {
     }
 
     private static void applyVariant(
+            MultiRenderObject object,
             int variantKey,
-            int[][] variantsMap,
             Map<String, VariantDetails> variantMap,
             Map<String, List<String>> aliases,
             Names names,
@@ -345,13 +344,23 @@ public class ModelLoader {
             if(!aliases.isEmpty() && aliases.containsKey(k)) {
                 for (String s : aliases.get(k)) {
                     mesh = names.meshes.indexOf(s);
-                    variantsMap[mesh][variantKey] = variant;
+
+                    set(object, mesh, variantKey, variant, variants);
                 }
             }
             else {
-                variantsMap[mesh][variantKey] = variant;
+                set(object, mesh, variantKey, variant, variants);
             }
         });
+    }
+
+    private static void set(MultiRenderObject object, int mesh, int variantKey, int variant, List<Variant> variants) {
+        var material = object.materials[variants.get(variant).material()];
+        var stage = RenderStage.from(material);
+
+        object.drawBuffer.computeIfAbsent(stage, a -> new DrawBuffer(Integer.BYTES * 4 * object.meshes.length));
+        object.stageRelationships[mesh][variantKey] = stage;
+        object.variantRelationships[mesh][variantKey] = variant;
     }
 
     private static int addOrGetIndex(List<Variant> variants, Variant variant) {
@@ -462,10 +471,6 @@ public class ModelLoader {
             var normal = aiNormals.get(i);
             var tangent = aiTangents.get(i);
             var bitangent = aiBitangents.get(i);
-
-            if(uv.x() > 1 || uv.y() > 1 || uv.z() > 1) {
-                System.out.println();
-            }
 
             vertexBuffer.putFloat(position.x());
             vertexBuffer.putFloat(position.y());
@@ -653,11 +658,11 @@ public class ModelLoader {
         var array = new TextureArray(resolution, resolution,imageNames.size(), false);
 
         for (int i = 0; i < imageNames.size(); i++) {
-            var image = Texture.scaleAndProcess(asset.getFile(imageNames.get(i)), resolution);
+            var image = Texture.getColorBuffer(asset.getFile(imageNames.get(i)), resolution);
 
             array.fillLayer(i, image);
 
-            MemoryUtil.memFree(image);
+            STBImage.stbi_image_free(image);
         }
 
         return array;

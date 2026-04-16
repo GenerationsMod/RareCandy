@@ -59,9 +59,9 @@ public class CommandGUI extends Frame {
         }
 
         public void actionPerformed(ActionEvent event) {
-            String[] args = new String[]{}; // You can replace this with actual command arguments
-            consumer.accept(args);
+            setVisible(false);
             dispose();
+            consumer.accept(args);
         }
     }
 }

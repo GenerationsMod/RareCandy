@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.BlendType;
+import gg.generations.rarecandy.pokeutils.CullType;
 import gg.generations.rarecandy.pokeutils.MaterialReference;
 import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
 import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingBiFunction;
@@ -11,6 +12,7 @@ import gg.generations.rarecandy.renderer.animation.AnimationInstance;
 import gg.generations.rarecandy.renderer.components.DummyVAO;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
@@ -21,10 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.GL43C;
-import org.lwjgl.opengl.GL46;
+import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.IOException;
@@ -68,19 +67,19 @@ public class RareCandyCanvas {
     private ScreenRenderer screenRenderer;
     public static boolean animate = true;
     public static boolean renderingFrame;
-//    private MultiRenderObject<MeshObject> cube;
-//    private ObjectInstance[] cubeInstances;
     private FogUploader fogUploader;
     private boolean initCalled;
     private boolean rendering = false;
 
+    private StateManager manager = new StateManager(
+            BlendType.Regular::enable, BlendType.Regular::disable,
+            CullType.Forward::enable, CullType.Forward::disable,
+            () -> GL11.glEnable(GL11.GL_DEPTH_TEST), () -> GL11.glDisable(GL11.GL_DEPTH_TEST)
+    );
+
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
         RareCandyCanvas.lightLevel = lightLevel;
-    }
-
-     static float getLightLevel() {
-        return lightLevel;
     }
 
     public RareCandyCanvas(PokeUtilsGui handler) {
@@ -116,49 +115,46 @@ public class RareCandyCanvas {
 
         this.fileName = name;
 
-        // Schedule destruction on the GL/context thread at a safe point
-        if (oldModel != null) {
-            RareCandy.runLater(() -> {
-                try {
-                    // Ensure renderer no longer references the object BEFORE deleting its GL resources
-                    renderer.remove(oldModel); // must only detach, not close
+        try {
+            if (oldModel != null) {
+                // Ensure renderer no longer references the object BEFORE deleting its GL resources
+                renderer.remove(oldModel); // must only detach, not close
 
-                    // Close instances first (if they own per-instance GL objects), then the model
-                    for (var inst : oldInstances) {
-                        inst.close();
-                    }
-
-                    oldModel.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                // Close instances first (if they own per-instance GL objects), then the model
+                for (var inst : oldInstances) {
+                    inst.close();
                 }
+
+                oldModel.close();
+            }
+
+            if (pkFile == null) return;
+
+            loadPokemonModel(pkFile, model -> {
+                loadedModel = (ToggleableMultiRenderObject) model;
+
+                scaleModifier = loadedModel.scale;
+                originalScaleModifer = loadedModel.scale;
+
+                handler.fileViewer.scale.reset();
+
+                var variants = model.availableVariants();
+                var variant = !variants.isEmpty() ? variants.iterator().next() : null;
+
+                var instance = new AnimatedObjectInstance(new Matrix4f(), new Matrix3f(), loadedModel.variantNameToId.get(variant));
+                loadedModelInstance = renderer.add(model, instance);
+                loadedModelInstance.use();
+
+                model.updateDimensions();
+                runnable.run();
+
+                if (resetAnimation) setAnimation("idle");
+
+                rendering = true;
             });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        if (pkFile == null) return;
-
-        loadPokemonModel(pkFile, model -> {
-            loadedModel = (ToggleableMultiRenderObject) model;
-
-            scaleModifier = loadedModel.scale;
-            originalScaleModifer = loadedModel.scale;
-
-            handler.fileViewer.scale.reset();
-
-            var variants = model.availableVariants();
-            var variant = !variants.isEmpty() ? variants.iterator().next() : null;
-
-            var instance = new AnimatedObjectInstance(new Matrix4f(), new Matrix3f(), loadedModel.variantNameToId.get(variant));
-            loadedModelInstance = renderer.add(model, instance);
-            loadedModelInstance.use();
-
-            model.updateDimensions();
-            runnable.run();
-
-            if (resetAnimation) setAnimation("idle");
-
-            rendering = true;
-        });
     }
 
     public void initGL() {
@@ -169,11 +165,11 @@ public class RareCandyCanvas {
         projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) handler.getWidth() / handler.getHeight(), 0.1f, 1000.0f);
         GL.createCapabilities(true);
         GuiPipelines.onInitialize(this, handler.settings);
-        this.renderer = new RareCandy();
+        this.renderer = new RareCandy(
+
+        );
 
         fogUploader = new FogUploader(handler.settings.fog);
-
-        GL11C.glEnable(GL11C.GL_DEPTH_TEST);
 
         framebuffer = new FrameBuffer(1024, 1024);
 
@@ -275,13 +271,10 @@ public class RareCandyCanvas {
     }
 
     private void renderToScreen() {
-        TraditionalPipeline pipeline = GuiPipelines.ANIMATED;
-        pipeline.useProgram();
-        pipeline.bindGlobal();
+        GuiPipelines.ANIMATED.useProgram();
+        GuiPipelines.ANIMATED.bindGlobal();
 
-        renderer.render(pipeline, RenderStage.SOLID);
-
-        renderer.render(pipeline, RenderStage.TRANSPARENT);
+        renderer.render(GuiPipelines.ANIMATED, manager);
     }
 
     public AnimationInstance createInstance(Animation animation) {
@@ -383,7 +376,7 @@ public class RareCandyCanvas {
         }
     }
 
-    public class BaseMultiRenderObject extends MultiRenderObject {
+    public static class BaseMultiRenderObject extends MultiRenderObject {
 
         public BaseMultiRenderObject(ModelLoader.Names names) {
             super(names);
@@ -391,40 +384,9 @@ public class RareCandyCanvas {
 
         @Override
         public void render(TraditionalPipeline pipeline, RenderStage stage, List<ObjectInstance> instances) {
-            updateSSBOs();
-
-            GL43C.glBindBuffer(GL43C.GL_DRAW_INDIRECT_BUFFER, drawBuffer.getBufferId());
-
-            GL43C.glMultiDrawArraysIndirect(
-                    GL11C.GL_TRIANGLES,
-                    0L,
-                    meshes.length * instances.size(),
-                    16
-            );
-//
-            pipeline.bindModel(this);
-//
-//            for (ObjectInstance instance : instances) {
-//                pipeline.bindInstance(instance, this);
-//
-//                for (int mesh = 0; mesh < meshes.length; mesh++) {
-//                    if (shouldRender(mesh, instance)) {
-//                        var model = this.meshes[mesh];
-//                        var material = this.getMaterial(mesh, instance.variant());
-//
-//                        if (model == null || (stage == RenderStage.TRANSPARENT && material.blendType() != BlendType.Regular)) {
-//                            continue;
-//                        }
-//
-//                        pipeline.bindDraw(instance, this, mesh);
-//
-//                        pipeline.preDraw(material);
-//                        model.render();
-//                        pipeline.postDraw(material);
-//                    }
-//
-//                }
-//            }
+            var buffer = drawBuffer.get(stage);
+            if(buffer == null) return;
+            buffer.render();
         }
 
         @Override

@@ -12,8 +12,6 @@ out vec4 outColor;
 uniform vec4 ColorModulator;
 uniform vec4 tint;
 
-uniform bool renderTranslucent;
-
 #lib:structs
 #lib:paradox
 #lib:light
@@ -24,15 +22,9 @@ uniform bool renderTranslucent;
 void main() {
     DrawInfo transform = drawInfos[drawId];
 
-    if(!transform.shouldRender) {
-        discard;
-    }
-
     Variant variant = variants[transform.variant];
 
     Material material = materials[variant.material];
-
-    if(renderTranslucent != material.translucent) discard;
 
     outColor = getMaterialColor(texCoord, material, variant) * ColorModulator * tint;
 

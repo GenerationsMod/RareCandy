@@ -286,7 +286,7 @@ public class MaterialValues {
         pointer.putFloat(emiColor2.x).putFloat(emiColor2.y).putFloat(emiColor2.z).putFloat(0f);
         pointer.putFloat(emiColor3.x).putFloat(emiColor3.y).putFloat(emiColor3.z).putFloat(0f);
         pointer.putFloat(emiColor4.x).putFloat(emiColor4.y).putFloat(emiColor4.z).putFloat(0f);
-        pointer.putFloat(emiColor5.x).putFloat(emiColor5.y).putFloat(emiColor5.z);
+        pointer.putFloat(emiColor5.x).putFloat(emiColor5.y).putFloat(emiColor5.z).putFloat(0f);
 
         pointer.putFloat(emiIntensity1);
         pointer.putFloat(emiIntensity2);

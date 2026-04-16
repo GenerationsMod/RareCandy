@@ -2,7 +2,7 @@ package gg.generations.rarecandy.renderer.textures;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
-import org.lwjgl.system.MemoryUtil;
+import org.lwjgl.stb.STBImage;
 
 import java.nio.ByteBuffer;
 
@@ -26,7 +26,7 @@ record TextureDetailsSTB(ByteBuffer buffer, Texture.Type type, int width, int he
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        MemoryUtil.memFree(buffer);
+        STBImage.stbi_image_free(buffer);
 
         return id;
     }

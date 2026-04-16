@@ -64,7 +64,6 @@ public class GuiPipelines {
                 .autoMat4(Scope.GLOBAL, "projectionMatrix", (ctx) -> projectionMatrix)
                 .autoVec4(Scope.GLOBAL, "ColorModulator", (ctx) -> colorMOdulator)
                 .autoVec4(Scope.GLOBAL, "tint", (ctx) -> ONE_V)
-                .autoBool(Scope.MODEL, "renderTranslucent", ctx -> ctx.stage() == RenderStage.TRANSPARENT)
 
                 .addUBO(Scope.GLOBAL, "Fog", 0, (ctx) -> canvas.getFogUploader().id)
                 .addSSBORange(Scope.MODEL, "VertexBuffer", 0, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().vertex)

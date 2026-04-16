@@ -56,7 +56,6 @@ public class ModelTest {
                 }
                 """;
         var obj = (ModelConfig.GSON.fromJson(json, ModelConfig.class));
-        System.out.println();
 
 
     }

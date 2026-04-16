@@ -10,6 +10,7 @@ import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipelin
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
+import gg.generations.rarecandy.renderer.storage.DrawBuffer;
 import gg.generations.rarecandy.renderer.storage.SSBOBuffer;
 import gg.generations.rarecandy.renderer.textures.TextureArray;
 import org.jetbrains.annotations.NotNull;
@@ -34,11 +35,14 @@ public abstract class MultiRenderObject {
     public Map<String, Integer> materialNameToId;
     public Map<String, Integer> variantNameToId;
     public Map<String, Integer> imageNameToId;
+    public Map<Integer, Integer> idToBuffer;
+
     public int[] meshes;
     public Material[] materials;
     public Variant[] variants;
     public TextureArray images;
     public int[][] variantRelationships;
+    public RenderStage[][] stageRelationships;
 
     public SbboOffset vertex;
     public SbboOffset index;
@@ -48,7 +52,8 @@ public abstract class MultiRenderObject {
 
     public SSBOBuffer instanceBuffer;
     public SSBOBuffer drawInfoBuffer;
-    public SSBOBuffer drawBuffer;
+
+    public EnumMap<RenderStage, DrawBuffer> drawBuffer = new EnumMap<>(RenderStage.class);
 
     public int modelBuffer;
 
@@ -76,6 +81,7 @@ public abstract class MultiRenderObject {
         variants = new Variant[names.variants().size()];
         variantNameToId = listToMap(names.variants());
         variantRelationships = new int[meshes.length][variants.length];
+        stageRelationships = new RenderStage[meshes.length][variants.length];
         imageNameToId = listToMap(names.images());
     }
 
@@ -114,11 +120,12 @@ public abstract class MultiRenderObject {
         }
         queue.clear();
 
+        instances.removeIf(a -> !a.isLinked());
         for (ObjectInstance instance : instances) {
             instance.update(absoluteTime);
         }
 
-        instances.removeIf(a -> !a.isLinked());
+        updateSSBOs();
     }
 
     public Set<String> availableVariants() {
@@ -168,7 +175,8 @@ public abstract class MultiRenderObject {
         GL43.glDeleteBuffers(modelBuffer);
         this.drawInfoBuffer.delete();
         this.instanceBuffer.delete();
-        this.drawBuffer.delete();
+
+        drawBuffer.values().forEach(SSBOBuffer::delete);
     }
 
     public boolean isEmpty() {
@@ -179,20 +187,28 @@ public abstract class MultiRenderObject {
         ensureCapacity();
         resetSSBOs();
 
+        var drawId = 0;
+
         for (int instanceId = 0; instanceId < instances.size(); instanceId++) {
             ObjectInstance instance = instances.get(instanceId);
             instance.update(instanceBuffer);
 
             for (int meshId = 0; meshId < meshes.length; meshId++) {
 
-//                var variant = getVariant(meshId, instance.variant());
+                var stage = stageRelationships[meshId][instance.variant()];
+
+                if(!shouldRender(meshId, instance)) continue;
+
+                var buffer = drawBuffer.get(stage);
+
+                if(buffer == null) continue;
 
 //TODO: Redo material animation
+//                var variant = getVariant(meshId, instance.variant());
+//                var material = variant.material();
 //                Transform animationTransform = Transform.DEFAULT;
 
-//                var material = variant.material();
 
-                var isRendering = shouldRender(meshId, instance);
 
 //                if (instance instanceof AnimatedObjectInstance animatedInstance) {
 //
@@ -204,28 +220,29 @@ public abstract class MultiRenderObject {
 //                }
 
 //                Transform.combine(animationTransform).upload(drawInfoBuffer);
+
+
+
                 drawInfoBuffer.put(variantRelationships[meshId][instance.variant()]);
                 drawInfoBuffer.put(instanceId);
-                drawInfoBuffer.put(isRendering);
+                drawInfoBuffer.put(meshId);
                 drawInfoBuffer.put(0);
 
-                drawBuffer
-                        .put(meshes[meshId])
-                        .put(1)
-                        .put(0)
-                        .put(0);
+                buffer.putDraw(meshes[meshId], 1, 0, drawId);
+                drawId++;
             }
         }
 
         instanceBuffer.upload();
         drawInfoBuffer.upload();
-        drawBuffer.upload();
+        drawBuffer.values().forEach(SSBOBuffer::upload);
     }
 
     private void resetSSBOs() {
         instanceBuffer.reset();
         drawInfoBuffer.reset();
-        drawBuffer.reset();
+
+        drawBuffer.values().forEach(DrawBuffer::reset);
     }
 
     public <T extends ObjectInstance> boolean add(@NotNull T instance) {
@@ -248,7 +265,10 @@ public abstract class MultiRenderObject {
                         * meshes.length
                         * TRANSFORM_ENTRY_BYTES
         );
-        drawBuffer.ensureCapacity((long) meshes.length * size * Integer.BYTES * 4);
+
+        var drawSize = (long) meshes.length * size * Integer.BYTES * 4;
+
+        drawBuffer.values().forEach(buffer -> buffer.ensureCapacity(drawSize));
     }
 
     public abstract int targetVertexStride();

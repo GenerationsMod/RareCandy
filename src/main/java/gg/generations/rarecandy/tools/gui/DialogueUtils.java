@@ -5,6 +5,7 @@ import org.lwjgl.util.nfd.NFDFilterItem;
 import org.lwjgl.util.nfd.NFDPathSetEnum;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -24,13 +25,19 @@ public class DialogueUtils {
     private static ExecutorService DIALOG_THREAD;
 
     public static void init() {
+        if (DIALOG_THREAD != null && !DIALOG_THREAD.isShutdown()) return;
+
         DIALOG_THREAD = Executors.newSingleThreadExecutor();
         CompletableFuture.runAsync(NativeFileDialog::NFD_Init, DIALOG_THREAD);
     }
 
     public static void quit() {
-        CompletableFuture.runAsync(NativeFileDialog::NFD_Quit, DIALOG_THREAD)
-                .thenRun(DIALOG_THREAD::shutdown);
+        var dialogThread = DIALOG_THREAD;
+        if (dialogThread == null || dialogThread.isShutdown()) return;
+
+        DIALOG_THREAD = null;
+        CompletableFuture.runAsync(NativeFileDialog::NFD_Quit, dialogThread)
+                .whenComplete((ignored, throwable) -> dialogThread.shutdown());
     }
 
     public static void saveFile(String defaultPath, String filterList, Consumer<Path> consumer) {
@@ -134,7 +141,7 @@ public class DialogueUtils {
         CompletableFuture.supplyAsync(() -> {
             var outPath = MemoryUtil.memAllocPointer(1);
             try {
-                var result = NativeFileDialog.NFD_PickFolderMultiple(outPath, defaultPath);
+                var result = NativeFileDialog.NFD_PickFolder(outPath, defaultPath);
                 if (result == NFD_OKAY) {
                     var path = Paths.get(outPath.getStringUTF8(0));
                     NFD_FreePath(outPath.get(0));
@@ -155,7 +162,8 @@ public class DialogueUtils {
         CompletableFuture.supplyAsync(() -> {
             var pp = MemoryUtil.memAllocPointer(1);
             try {
-                var result = NativeFileDialog.NFD_PickFolderMultiple(pp, defaultPath);
+                var result = NativeFileDialog.NFD_PickFolderMultiple(pp, resolveFolderDefault(defaultPath));
+
                 if (result == NFD_OKAY) {
                     long pathSet = pp.get(0);
                     NFDPathSetEnum psEnum = NFDPathSetEnum.calloc();
@@ -178,5 +186,17 @@ public class DialogueUtils {
             }
             return null;
         }, DIALOG_THREAD).thenAccept(consumer);
+    }
+
+    private static String resolveFolderDefault(String defaultPath) {
+        if (defaultPath == null || defaultPath.isBlank()) return null;
+
+        try {
+            var path = Path.of(defaultPath).toAbsolutePath().normalize();
+            if (Files.isRegularFile(path)) path = path.getParent();
+            return path != null && Files.isDirectory(path) ? path.toString() : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

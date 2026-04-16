@@ -74,6 +74,7 @@ public class GuiHandler implements KeyListener {
 
     public void openAsset(Path filePath) {
         try {
+            if(filePath == null) return;
 
             move(filePath);
 

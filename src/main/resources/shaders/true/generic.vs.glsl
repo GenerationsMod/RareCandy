@@ -20,7 +20,7 @@ uniform mat4 projectionMatrix;
 
 void main() {
     TargetVertex v = getVertex();
-    drawId = gl_DrawID;
+    drawId = gl_BaseInstance;
 
     mat4 worldSpace = projectionMatrix * viewMatrix;
     vec4 worldPosition = vec4(v.position, 1.0);

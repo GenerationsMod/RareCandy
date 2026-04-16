@@ -11,6 +11,7 @@ import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -52,16 +53,41 @@ public class GuiHandler implements KeyListener {
     }
 
     public void save() {
+        if (assetPath == null) return;
         save(assetPath);
     }
 
-    public void save(Path savePath) {
+    public boolean save(Path savePath) {
+        if (savePath == null) return false;
+
         try {
+            savePath = normalizeSavePath(savePath);
+
             PixelmonArchiveBuilder.convertToPk(TEMP, ResourceLocator.of(savePath), getCanvas().scaleModifier);
-        } catch (IOException e) {
+            initializeAsset(savePath);
+            setCleanTitle(savePath);
+            return true;
+        } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
 
+    }
+
+    private Path normalizeSavePath(Path savePath) {
+        if (Files.isDirectory(savePath)) return savePath;
+
+        var fileName = savePath.getFileName();
+        if (fileName != null && !fileName.toString().contains(".")) {
+            return savePath.resolveSibling(fileName + ".pk");
+        }
+
+        return savePath;
+    }
+
+    private void setCleanTitle(Path path) {
+        dirty = false;
+        gui.setTitle(BASE_TITLE + " - " + path.getFileName());
     }
 
     public void markDirty() {

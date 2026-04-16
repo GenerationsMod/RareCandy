@@ -23,14 +23,16 @@ import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
  */
 public class PixelmonArchiveBuilder {
     public static void convertToPk(ResourceReader source, ResourceWriter dest, Float scale) throws IOException {
-        if (scale != null && source.hasFile("config.json")) {
-            var config = ModelConfig.GSON.fromJson(new String(source.getFile("config.json")), JsonObject.class);
-            config.addProperty("scale", scale);
-            dest.putFile("config.json", ModelConfig.GSON.toJson(config).getBytes());
-        }
-
         for (var key : source.getFileNames()) {
-            dest.putFile(key, source.getFile(key));
+            var bytes = source.getFile(key);
+
+            if (scale != null && key.equals("config.json")) {
+                var config = ModelConfig.GSON.fromJson(new String(bytes), JsonObject.class);
+                config.addProperty("scale", scale);
+                bytes = ModelConfig.GSON.toJson(config).getBytes();
+            }
+
+            dest.putFile(key, bytes);
         }
 
         dest.save();

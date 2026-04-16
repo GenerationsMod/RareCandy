@@ -118,14 +118,14 @@ public class PokeUtilsGui extends AppBase {
     }
 
     private void open(Path path) {
+        if(path == null) return;
         addRunnable(() -> handler.openAsset(path));
         settings.urls.openArchiveUrl = path.toString();
     }
 
     private void save(Path path) {
-        handler.markDirty();
-        handler.save(path);
-        settings.urls.saveAsUrl = path.toString();
+        if (path == null) return;
+        if (handler.save(path)) settings.urls.saveAsUrl = handler.assetPath.toString();
     }
 
     private AdvancedMenuBar configureMenu() {

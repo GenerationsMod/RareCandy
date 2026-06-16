@@ -1,9 +1,9 @@
 {
   "urls": {
-    "openArchiveUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\aerodactyl\\aerodactyl.pk",
+    "openArchiveUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\exeggcute",
     "saveAsUrl": "C:\\Users\\water\\Downloads\\abra.pk",
     "createArchiveUrl": "",
-    "sequenceUrl": ""
+    "sequenceUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\gengar_mega"
   },
   "terastalization": {
     "enabled": false,
@@ -16,7 +16,9 @@
   "features": {
     "terastalization": true,
     "fog": true,
-    "light": true
+    "light": true,
+    "grid": true,
+    "gizmos": true
   },
   "fog": {
     "color": {
@@ -25,7 +27,7 @@
       "z": 0.0,
       "w": 1.0
     },
-    "start": 5.0,
+    "start": 0.0,
     "end": 10.0
   },
   "light": {

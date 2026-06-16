@@ -6,6 +6,8 @@ import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipelin
 import gg.generations.rarecandy.renderer.pipeline.util.*;
 import gg.generations.rarecandy.renderer.rendering.RenderStage;
 import gg.generations.rarecandy.renderer.textures.ITexture;
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
@@ -27,6 +29,13 @@ public class GuiPipelines {
 
     public static TraditionalPipeline ANIMATED;
     public static TraditionalPipeline PLANE;
+    public static TraditionalPipeline GRID;
+
+    private static final Matrix4f GRID_INVERSE_PROJECTION = new Matrix4f();
+    private static final Matrix4f GRID_INVERSE_VIEW = new Matrix4f();
+    private static final Matrix4f GRID_VIEW_PROJECTION = new Matrix4f();
+    private static final Vector2f GRID_VIEWPORT_SIZE = new Vector2f(1.0f, 1.0f);
+    private static final Vector3f GRID_CAMERA_POSITION = new Vector3f();
 
 
     public static double pingpong(double time) {
@@ -49,6 +58,17 @@ public class GuiPipelines {
                 .apply(builder -> GuiPipelines.common(builder, canvas,settings))
                 .build();
 
+        GRID = TraditionalPipeline.builder(builtin("screen/grid.vs.glsl"), builtin("screen/grid.fs.glsl"))
+                .autoMat4(Scope.GLOBAL, "inverseProjectionMatrix", ctx -> GRID_INVERSE_PROJECTION.set(projectionMatrix).invert())
+                .autoMat4(Scope.GLOBAL, "inverseViewMatrix", ctx -> GRID_INVERSE_VIEW.set(RareCandyCanvas.viewMatrix).invert())
+                .autoMat4(Scope.GLOBAL, "viewProjectionMatrix", ctx -> GRID_VIEW_PROJECTION.set(projectionMatrix).mul(RareCandyCanvas.viewMatrix))
+                .autoVec2(Scope.GLOBAL, "viewportSize", ctx -> GRID_VIEWPORT_SIZE)
+                .autoVec3(Scope.GLOBAL, "cameraPosition", ctx -> {
+                    GRID_INVERSE_VIEW.set(RareCandyCanvas.viewMatrix).invert();
+                    return GRID_CAMERA_POSITION.set(GRID_INVERSE_VIEW.m30(), GRID_INVERSE_VIEW.m31(), GRID_INVERSE_VIEW.m32());
+                })
+                .build();
+
 //        PLANE = TraditionalPipeline.builder(builtin("original/animated/plane.vs.glsl"), builtin("original/animated/plane.fs.glsl"))
 //                .autoMat4(Scope.GLOBAL, "viewMatrix", (ctx) -> RareCandyCanvas.viewMatrix)
 //                .autoMat4(Scope.GLOBAL, "projectionMatrix", (ctx) -> projectionMatrix)
@@ -57,6 +77,10 @@ public class GuiPipelines {
 //                .autoBool(Scope.GLOBAL, "render", (ctx) -> RareCandyCanvas.renderingFrame)
 //                .prePostDraw(material -> BlendType.Regular.enable(), material -> BlendType.Regular.disable())
 //                .build();
+    }
+
+    public static void setGridViewport(int width, int height) {
+        GRID_VIEWPORT_SIZE.set(width, height);
     }
 
     private static void common(TraditionalPipeline.Builder builder, RareCandyCanvas canvas, PokeUtilsGui.Settings settings) {

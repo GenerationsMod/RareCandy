@@ -49,6 +49,8 @@ public class RareCandyCanvas {
     public static final Matrix4f viewMatrix = new Matrix4f();
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
     public float scaleModifier = 0;
+    public final Vector3f modelTranslation = new Vector3f();
+    public float modelYaw = 0.0f;
     private final PokeUtilsGui handler;
     public double startTime = System.currentTimeMillis();
     public String currentAnimation = null;
@@ -68,6 +70,7 @@ public class RareCandyCanvas {
     public static boolean animate = true;
     public static boolean renderingFrame;
     private FogUploader fogUploader;
+    private ScreenSpaceGridRenderer gridRenderer;
     private boolean initCalled;
     private boolean rendering = false;
 
@@ -132,6 +135,7 @@ public class RareCandyCanvas {
 
             loadPokemonModel(pkFile, model -> {
                 loadedModel = (ToggleableMultiRenderObject) model;
+                resetModelTransform();
 
                 scaleModifier = loadedModel.scale;
                 originalScaleModifer = loadedModel.scale;
@@ -170,6 +174,7 @@ public class RareCandyCanvas {
         );
 
         fogUploader = new FogUploader(handler.settings.fog);
+        gridRenderer = new ScreenSpaceGridRenderer();
 
         framebuffer = new FrameBuffer(1024, 1024);
 
@@ -212,7 +217,11 @@ public class RareCandyCanvas {
 //        if(planeInstance != null) planeInstance.use();
 
         if (loadedModelInstance != null) {
-            loadedModelInstance.modelMatrix().identity().scale(scaleModifier);
+            loadedModelInstance.modelMatrix().identity()
+                    .translate(modelTranslation)
+                    .rotateY(modelYaw)
+                    .scale(scaleModifier);
+            loadedModelInstance.normalMatrix().identity().rotateY(modelYaw);
             loadedModelInstance.use();
             size.set(loadedModel.dimensions).mul(scaleModifier);
 
@@ -230,6 +239,7 @@ public class RareCandyCanvas {
 //        renderToFramebuffer();
 
         renderToScreen();
+        renderGrid();
 
         renderer.end();
 
@@ -275,6 +285,21 @@ public class RareCandyCanvas {
         GuiPipelines.ANIMATED.bindGlobal();
 
         renderer.render(GuiPipelines.ANIMATED, manager);
+    }
+
+    private void renderGrid() {
+        if (gridRenderer != null) {
+            gridRenderer.render(handler.getWidth(), handler.getHeight(), handler.settings, manager);
+        }
+    }
+
+    public void resetModelTransform() {
+        modelTranslation.zero();
+        modelYaw = 0.0f;
+    }
+
+    public void stopRenderingAfterFailure() {
+        rendering = false;
     }
 
     public AnimationInstance createInstance(Animation animation) {

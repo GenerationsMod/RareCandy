@@ -26,6 +26,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
@@ -45,7 +47,9 @@ public class PokeUtilsGui extends AppBase {
     public GuiHandler handler;
     public PixelAssetTree fileViewer;
     public RareCandyCanvas canvas;
+    public ViewportGizmos gizmos;
     protected Settings settings;
+    private final List<String> loadIssues = new ArrayList<>();
     private boolean closed;
     private static Path settingsPath = Paths.get("settings.json");
 
@@ -60,6 +64,7 @@ public class PokeUtilsGui extends AppBase {
 
         this.canvas = new RareCandyCanvas(this);
         this.fileViewer = new PixelAssetTree(this);
+        this.gizmos = new ViewportGizmos(this);
 
         menu = configureMenu();
     }
@@ -110,11 +115,46 @@ public class PokeUtilsGui extends AppBase {
         menu.render();
         fileViewer.render();
         settings.render();
+        renderLoadIssues();
+        gizmos.render(settings.features.gizmos.getValue());
+    }
+
+    public boolean gizmoWantsMouse() {
+        return gizmos != null && gizmos.wantsMouseInput();
     }
 
     @Override
     protected void render() {
-        canvas.render();
+        try {
+            canvas.render();
+        } catch (RuntimeException e) {
+            reportLoadIssue("Render failed for " + handler.getCurrentAssetName() + ": " + e.getMessage());
+            canvas.stopRenderingAfterFailure();
+            e.printStackTrace();
+        }
+    }
+
+    public void clearLoadIssues() {
+        loadIssues.clear();
+    }
+
+    public void reportLoadIssue(String issue) {
+        if (issue != null && !issue.isBlank() && !loadIssues.contains(issue)) {
+            loadIssues.add(issue);
+        }
+    }
+
+    private void renderLoadIssues() {
+        if (loadIssues.isEmpty()) return;
+
+        ImGui.begin("Load Issues");
+        for (String issue : loadIssues) {
+            ImGui.textWrapped(issue);
+        }
+        if (ImGui.button("Clear")) {
+            loadIssues.clear();
+        }
+        ImGui.end();
     }
 
     private void open(Path path) {
@@ -310,12 +350,16 @@ public class PokeUtilsGui extends AppBase {
             ImBoolean terastalization = new ImBoolean(true);
             ImBoolean fog = new ImBoolean(true);
             ImBoolean light = new ImBoolean(true);
+            ImBoolean grid = new ImBoolean(true);
+            ImBoolean gizmos = new ImBoolean(true);
 
             public void render() {
                 ImGui.begin("Features");
                 terastalization.render("Terastalization");
                 fog.render("Fog");
                 light.render("Light");
+                grid.render("Grid");
+                gizmos.render("Gizmos");
                 ImGui.end();
             }
         }

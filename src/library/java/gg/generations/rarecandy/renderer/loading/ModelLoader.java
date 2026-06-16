@@ -114,6 +114,10 @@ public class ModelLoader {
 
         var list = Arrays.stream(meshes).filter(a -> objects.meshNameToId.containsKey(a.mName().dataString())).sorted(Comparator.comparing(aiMesh -> objects.meshNameToId.get(aiMesh.mName().dataString()))).toList();
 
+        if(list.size() < names.meshes.size()) {
+            System.out.println();
+        }
+
         for (int i = 0; i < names.meshes.size(); i++) {
             var mesh = list.get(i);
 

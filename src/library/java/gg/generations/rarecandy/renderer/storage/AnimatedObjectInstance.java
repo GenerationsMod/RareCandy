@@ -26,7 +26,10 @@ public class AnimatedObjectInstance extends ObjectInstance {
 
         var bones = getTransforms();
 
-        Arrays.stream(bones).forEach(instanceBuffer::put);
+        for (int i = 0; i < bones.length; i++) {
+            Matrix4f bone = bones[i];
+            instanceBuffer.put(bone);
+        }
     }
 
 

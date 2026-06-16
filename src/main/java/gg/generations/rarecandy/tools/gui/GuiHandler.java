@@ -48,6 +48,10 @@ public class GuiHandler implements KeyListener {
         return gui.canvas;
     }
 
+    public String getCurrentAssetName() {
+        return assetPath != null ? assetPath.getFileName().toString() : "<none>";
+    }
+
     public void initializeAsset(Path path) {
         this.assetPath = path;
     }
@@ -102,6 +106,14 @@ public class GuiHandler implements KeyListener {
         try {
             if(filePath == null) return;
 
+            gui.clearLoadIssues();
+            var validation = ModelAssetValidator.validate(ResourceLocator.of(filePath));
+            validation.messages().forEach(gui::reportLoadIssue);
+            if (validation.hasErrors()) {
+                gui.setTitle(BASE_TITLE + " - " + filePath.getFileName() + " (load blocked)");
+                return;
+            }
+
             move(filePath);
 
             initializeAsset(filePath);
@@ -110,6 +122,7 @@ public class GuiHandler implements KeyListener {
             getCanvas().openFile(TEMP, FilenameUtils.getBaseName(filePath.getFileName().toString()), () -> gui.fileViewer.initializeAsset(TEMP, assetPath, getCanvas().loadedModel.animationNameToId.keySet()), true);
 
         } catch (Exception e) {
+            gui.reportLoadIssue("Failed to open " + (filePath != null ? filePath.getFileName() : "<null>") + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -188,8 +201,8 @@ public class GuiHandler implements KeyListener {
                     }
                     else {
                         index++;
-                        System.out.println("Selecting: " + (index + 1) + "/" + amount);
                         Path chosenFile = filesToOpen.remove(0);
+                        System.out.println("Selecting: " + (index + 1) + "/" + amount + " - " + chosenFile);
                         if (chosenFile != null) openAsset(chosenFile);
                     }
 
@@ -232,10 +245,16 @@ public class GuiHandler implements KeyListener {
 //    }
 
     public void openAsset(List<Path> chosenFiles) {
+        if (chosenFiles == null || chosenFiles.isEmpty()) {
+            gui.reportLoadIssue("No files selected.");
+            return;
+        }
+
         System.out.println("Loading " + chosenFiles.size() + " into queue.");
         index = 0;
         amount = chosenFiles.size();
 
+        filesToOpen.clear();
         filesToOpen.addAll(chosenFiles);
 
         System.out.println("Selecting: " + (index + 1) + "/" + amount);
@@ -276,6 +295,8 @@ public class GuiHandler implements KeyListener {
 
         @Override
         public void mouseDragged(long window, double x, double y) {
+            if (gui.gizmoWantsMouse()) return;
+
             float dx = (float)((x - lastX) * 0.001f);
             float dy = (float)((y - lastY) * 0.001f);
 
@@ -298,6 +319,7 @@ public class GuiHandler implements KeyListener {
         @Override
         public void mouseWheelMoved(long window, double xoffset, double yoffset) {
             if(ImGui.getIO().getWantCaptureMouse()) return;
+            if (gui.gizmoWantsMouse()) return;
             float scrollAmount = (float) yoffset;
             radius += scrollAmount * 0.1f;
             update();
@@ -308,6 +330,8 @@ public class GuiHandler implements KeyListener {
 
         @Override
         public void mousePressed(long window, int button, int mods, double x, double y) {
+            if (gui.gizmoWantsMouse()) return;
+
             offsetX = 0;
             offsetY = 0;
 
@@ -317,6 +341,8 @@ public class GuiHandler implements KeyListener {
 
         @Override
         public void mouseReleased(long window, int button, int mods, double x, double y) {
+            if (gui.gizmoWantsMouse()) return;
+
             angleX += offsetX;
             angleY += offsetY;
             offsetX = 0;

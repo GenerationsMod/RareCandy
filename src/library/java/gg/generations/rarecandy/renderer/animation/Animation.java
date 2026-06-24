@@ -1,7 +1,8 @@
 package gg.generations.rarecandy.renderer.animation;
 
+import gg.generations.rarecandy.pokeutils.ISkeletalTransform;
+import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.pokeutils.ModelNode;
-import gg.generations.rarecandy.pokeutils.SkeletalTransform;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 import org.joml.Quaternionf;
@@ -36,7 +37,7 @@ public class Animation {
     public final int id;
     public final double animationDuration;
     protected final Skeleton skeleton;
-    private final SkeletalTransform rootOffset;
+    private final ISkeletalTransform rootOffset;
 
     private final Map<String, AnimationNode> animationNodes;
     public Offset[] offsets;
@@ -51,7 +52,7 @@ public class Animation {
 
     private final boolean ignoreScaling;
 
-    public Animation(int id, int ticksPerSecond, boolean loops, Skeleton skeleton, Map<String, AnimationNode> animationNodes, Offset[] offsets, boolean ignoreScaling, SkeletalTransform offset) {
+    public Animation(int id, int ticksPerSecond, boolean loops, Skeleton skeleton, Map<String, AnimationNode> animationNodes, Offset[] offsets, boolean ignoreScaling, ISkeletalTransform offset) {
         this.id = id;
         this.ticksPerSecond = ticksPerSecond;
         this.loops = loops;
@@ -277,7 +278,7 @@ public class Animation {
             return keys.get(0);
         }
 
-        public void calcOffset(float animTime, Transform instance) {
+        public void calcOffset(float animTime, ModelConfig.Transform instance) {
 
             var uOffset = calcInterpolatedFloat(animTime, this.uOffset(), 0f);
             var vOffset = calcInterpolatedFloat(animTime, this.vOffset(), 0f);

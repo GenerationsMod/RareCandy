@@ -1,5 +1,7 @@
 package gg.generations.rarecandy.pokeutils;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
@@ -33,9 +35,16 @@ public enum BlendType {
         }
     }
 
+    public static BlendType fromJson(JsonElement element) {
+        return from(element.getAsJsonPrimitive().getAsString());
+    }
 
     public void disable() {
         if(this != BlendType.Regular) return;
         GL11.glDisable(GL11.GL_BLEND);
+    }
+
+    public JsonElement toJson() {
+        return new JsonPrimitive(name().toLowerCase());
     }
 }

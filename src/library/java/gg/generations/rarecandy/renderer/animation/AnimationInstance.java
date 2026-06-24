@@ -93,10 +93,10 @@ public class AnimationInstance {
         return animation;
     }
 
-    public Transform getOffset(int material) {
+    public ITransform getOffset(int material) {
         //TODO: Might still need thsi correction? .replaceFirst("shiny_", "")/* Correction factor for now converted swsh models. TODO: More elegant solution.*/);
 
-        return Transform.DEFAULT;
+        return ITransform.DEFAULT;
 //        TODO: Come back to material animations.
 //        return offsets[material];
     }

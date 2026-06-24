@@ -1,19 +1,16 @@
 package gg.generations.rarecandy.tools.pkcreator;
 
 import com.google.gson.JsonObject;
-import gg.generations.rarecandy.pokeutils.ModelConfig;
+import gg.generations.rarecandy.pokeutils.IModelConfig;
 import gg.generations.rarecandy.pokeutils.resource.PkResourceLocator;
 import gg.generations.rarecandy.pokeutils.resource.ResourceLocator;
 import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
 import gg.generations.rarecandy.pokeutils.resource.ResourceWriter;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Optional;
 
 import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
@@ -27,9 +24,9 @@ public class PixelmonArchiveBuilder {
             var bytes = source.getFile(key);
 
             if (scale != null && key.equals("config.json")) {
-                var config = ModelConfig.GSON.fromJson(new String(bytes), JsonObject.class);
+                var config = IModelConfig.GSON.fromJson(new String(bytes), JsonObject.class);
                 config.addProperty("scale", scale);
-                bytes = ModelConfig.GSON.toJson(config).getBytes();
+                bytes = IModelConfig.GSON.toJson(config).getBytes();
             }
 
             dest.putFile(key, bytes);

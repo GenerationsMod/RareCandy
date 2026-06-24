@@ -1,6 +1,5 @@
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import gg.generations.rarecandy.pokeutils.ModelConfig;
+import gg.generations.rarecandy.pokeutils.IModelConfig;
 import gg.generations.rarecandy.pokeutils.resource.ResourceLocator;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 
@@ -22,7 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class AtlasCompacter {
     private static final int ATLAS_SIZE = 1024;
@@ -45,7 +43,7 @@ public class AtlasCompacter {
         ResourceLocator locator = null;
         try {
             locator = ResourceLocator.of(path);
-            var config = ModelConfig.GSON.fromJson(new InputStreamReader(locator.getInputStream("config.json")), JsonObject.class);
+            var config = IModelConfig.GSON.fromJson(new InputStreamReader(locator.getInputStream("config.json")), JsonObject.class);
 
 
             var atlasBuild = AtlasCompacter.run(locator);
@@ -53,7 +51,7 @@ public class AtlasCompacter {
             MaterialCompressor.applyAtlasTransformsToDefaultVariant(config, materialTransforms);
             MaterialCompressor.applyAtlasTransformsToAllVariants(config, materialTransforms);
             MaterialCompressor.removeDuplicateMaterialsAfterAtlas(config, atlasBuild);
-            locator.putFile("config.json", ModelConfig.GSON.toJson(config).getBytes(StandardCharsets.UTF_8));
+            locator.putFile("config.json", IModelConfig.GSON.toJson(config).getBytes(StandardCharsets.UTF_8));
             locator.save();
             MaterialCompressor.deleteCompactedImages(locator, atlasBuild);
         } catch (IOException e) {

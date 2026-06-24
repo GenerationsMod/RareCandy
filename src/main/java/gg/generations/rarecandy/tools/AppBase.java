@@ -33,6 +33,8 @@ public abstract class AppBase {
     private ImGuiImplGl3 imguiGl3;
     private BlankTexture target;
     private Queue<Runnable> runnables = new ArrayDeque<>();
+    private float uiScale = 1.0f;
+    private float appliedUiScale = 1.0f;
 
     public static void main(String[] args) throws IOException {
         new ComputeShaderDemo().run();
@@ -114,6 +116,7 @@ public abstract class AppBase {
             imguiGlfw.newFrame();
             imguiGl3.newFrame();
             ImGui.newFrame();
+            applyUiScale();
             renderGui();
 
             ImGui.render();
@@ -131,6 +134,19 @@ public abstract class AppBase {
     protected abstract void renderGui();
 
     protected abstract void render();
+
+    protected void setUiScale(float uiScale) {
+        this.uiScale = uiScale;
+    }
+
+    private void applyUiScale() {
+        ImGui.getIO().setFontGlobalScale(uiScale);
+
+        if (uiScale != appliedUiScale) {
+            ImGui.getStyle().scaleAllSizes(uiScale / appliedUiScale);
+            appliedUiScale = uiScale;
+        }
+    }
 
     private static final float[] colorArray = new float[3];
 

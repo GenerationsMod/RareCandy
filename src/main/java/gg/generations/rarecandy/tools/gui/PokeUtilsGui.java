@@ -4,10 +4,14 @@ import com.bedrockk.molang.MoLang;
 import com.bedrockk.molang.runtime.value.DoubleValue;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import gg.generations.rarecandy.pokeutils.IMaterialReference;
+import gg.generations.rarecandy.pokeutils.IModelConfig;
+import gg.generations.rarecandy.pokeutils.ImModelConfig;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.launch.OpenGL;
+import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.tools.AppBase;
-import gg.generations.rarecandy.tools.ImGuiImageViewer;
 import gg.generations.rarecandy.tools.TextureLoader;
 import gg.generations.rarecandy.tools.gui.imgui.ImBoolean;
 import gg.generations.rarecandy.tools.gui.imgui.ImVector3f;
@@ -20,6 +24,7 @@ import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector4f;
 import org.lwjgl.glfw.GLFW;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,15 +52,17 @@ public class PokeUtilsGui extends AppBase {
     public GuiHandler handler;
     public PixelAssetTree fileViewer;
     public RareCandyCanvas canvas;
+    private final AnimationPlaybackPanel animationPlayback;
     public ViewportGizmos gizmos;
     protected Settings settings;
     private final List<String> loadIssues = new ArrayList<>();
     private boolean closed;
     private static Path settingsPath = Paths.get("settings.json");
+    public boolean materialsDirty;
 
     public PokeUtilsGui(String title, int width, int height) throws IOException {
         super(title, width, height, new OpenGL());
-
+        IModelConfig.Factory.ACTIVE_FACTORY = ImModelConfig.FACTORY;
         setupSettings();
 
         handler = new GuiHandler(this);
@@ -63,6 +70,7 @@ public class PokeUtilsGui extends AppBase {
         ITextureLoader.setInstance(new TextureLoader());
 
         this.canvas = new RareCandyCanvas(this);
+        this.animationPlayback = new AnimationPlaybackPanel(canvas);
         this.fileViewer = new PixelAssetTree(this);
         this.gizmos = new ViewportGizmos(this);
 
@@ -112,11 +120,37 @@ public class PokeUtilsGui extends AppBase {
 
     @Override
     protected void renderGui() {
+        setUiScale(settings.features.largeUi.getValue() ? 1.75f : 1.0f);
         menu.render();
         fileViewer.render();
+        animationPlayback.render();
         settings.render();
         renderLoadIssues();
         gizmos.render(settings.features.gizmos.getValue());
+        var config = canvas.config;
+
+        if(config instanceof ImModelConfig imConfig) {
+            var flags = imConfig.render();
+            if (flags != 0) {
+                if ((flags & 1) != 0) {
+                    canvas.scaleModifier = imConfig.scale();
+                }
+
+                if((flags & 2) != 0) {
+                    canvas.loadedModel.onUpdate(model -> {
+                        ModelLoader.rebuildMaterials(model, canvas.config, IMaterialReference::process);
+                    });
+                }
+
+                if((flags & 4) != 0) {
+                    canvas.loadedModel.onUpdate(model -> {
+                        ModelLoader.rebuildVariants(model, canvas.config);
+                    });
+                }
+
+                handler.markDirty();
+            }
+        }
     }
 
     public boolean gizmoWantsMouse() {
@@ -352,6 +386,7 @@ public class PokeUtilsGui extends AppBase {
             ImBoolean light = new ImBoolean(true);
             ImBoolean grid = new ImBoolean(true);
             ImBoolean gizmos = new ImBoolean(true);
+            ImBoolean largeUi = new ImBoolean(false);
 
             public void render() {
                 ImGui.begin("Features");
@@ -360,6 +395,7 @@ public class PokeUtilsGui extends AppBase {
                 light.render("Light");
                 grid.render("Grid");
                 gizmos.render("Gizmos");
+                largeUi.render("Large UI");
                 ImGui.end();
             }
         }

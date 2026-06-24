@@ -1,16 +1,5 @@
 package gg.generations.rarecandy.renderer.loading;
 
-import gg.generations.rarecandy.pokeutils.BlendType;
-import gg.generations.rarecandy.pokeutils.CullType;
-import gg.generations.rarecandy.renderer.animation.Transform;
-import gg.generations.rarecandy.renderer.components.MultiRenderObject;
-import gg.generations.rarecandy.renderer.model.Variant;
-import gg.generations.rarecandy.renderer.model.material.Material;
-import gg.generations.rarecandy.renderer.model.material.MaterialValues;
-import org.lwjgl.system.MemoryUtil;
-
-import java.util.function.Function;
-
 public class PlaneGenerator {
 //    public static MultiRenderObject generatePlane(Function<ModelLoader.Names, MultiRenderObject> function, float width, float length) {
 //        var names = new ModelLoader.Names();

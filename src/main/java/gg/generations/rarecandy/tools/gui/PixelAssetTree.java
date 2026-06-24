@@ -1,25 +1,18 @@
 package gg.generations.rarecandy.tools.gui;
 
+import gg.generations.rarecandy.pokeutils.IModelConfig;
 import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.pokeutils.resource.ResourceLocator;
-import gg.generations.rarecandy.renderer.animation.Animation;
+import gg.generations.rarecandy.renderer.pipeline.Pipelines;
 import imgui.ImGui;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
 
 public class PixelAssetTree {
 
@@ -40,7 +33,6 @@ public class PixelAssetTree {
         tree.render();
         ImGui.separator();
 
-        // --- Scale input integrated here ---
         scale.render();
 
         ImGui.end();
@@ -50,30 +42,32 @@ public class PixelAssetTree {
         return list != null ? list : List.of();
     }
 
-    public void initializeAsset(ResourceLocator asset, Path assetPath, Set<String> animations) throws IOException {
+    public void initializeAsset(ResourceLocator asset, Path assetPath, RareCandyCanvas.ToggleableMultiRenderObject model) throws IOException {
         tree = new CompositeNode(assetPath.getFileName().toString());
         var animationsNode = new RadioListNode("animations", animation -> gui.canvas.setAnimation(animation));
         var imagesNode = new CompositeNode("images");
 
-        var config = ModelConfig.read(asset);
+        var config = gui.canvas.config;
 
-        List<String> variants = config.variants != null ? List.copyOf(config.variants.keySet()) : new ArrayList<>();
+        List<String> variants = config.variants() != null ? List.copyOf(config.variants().keySet()) : new ArrayList<>();
 
-        var objs = config.defaultVariant.keySet();
+        var objs = config.defaultVariant().keySet();
 
         for (var s : asset.getFileNames()) {
-            if(s.endsWith("tranm") || s.endsWith("tracm") || s.endsWith("gfbanm") || s.endsWith("smd")) {
+//            if(s.endsWith("tranm") || s.endsWith("tracm") || s.endsWith("gfbanm") || s.endsWith("smd")) {
 //                if(!animations.contains(s)) {
 //                    animationsNode.add(s.replace(".tracm", "").replace(".tranm", "").replace(".gfbanm", "").replace(".smd", ""));
 //                }
-            } else if (s.endsWith("png")) {
-                imagesNode.add(new TextNode(s));
-            }/* else if(s.equals("config.json")) {
-                tree.add(new ModConfigTreeNode(asset.getConfig()));
-            }*/ else tree.add(new TextNode(s));
+//            } else if (s.endsWith("png")) {
+//                imagesNode.add(new ImageNode(asset, s));
+//            }else if(s.equals("config.json")) {
+//                tree.add(new ModConfigTreeNode(asset.getConfig()));
+//            } else*/
+//            tree.add(new TextNode(s));
         }
 
-        animations.stream().sorted().forEach(animationsNode::add);
+        model.animationNameToId.keySet().stream().sorted().forEach(animationsNode::add);
+        model.imageNameToId.keySet().stream().sorted().map(s -> new ImageNode(model, s)).forEach(imagesNode::add);
 
         if (animationsNode.size() > 0) {
             gui.canvas.setAnimation(animationsNode.getSelectedOption());
@@ -83,14 +77,14 @@ public class PixelAssetTree {
         if (imagesNode.size() > 0) tree.add(imagesNode);
 
         if (!variants.isEmpty()) {
-            var variantsNode = new RadioListNode("variants", variant -> gui.canvas.setVariant(variant));
+            var variantsNode = new RadioListNode("variants", variant -> gui.canvas.selected.setVariant(variant));
             for (var name : variants) variantsNode.add(name);
-            gui.canvas.setVariant(variantsNode.getSelectedOption());
+            gui.canvas.selected.setVariant(variantsNode.getSelectedOption());
             tree.add(variantsNode);
         }
 
-        var objectsNode = new CheckboxListNode("objects", (item) -> gui.canvas.toggleObject(item.checked, item.text));
-        for (var name : objs) objectsNode.add(name, true);
+        var objectsNode = new RadioListNode("objects", (item) -> gui.canvas.selected.setMesh(item));
+        for (var name : objs) objectsNode.add(name);
         tree.add(objectsNode);
     }
 

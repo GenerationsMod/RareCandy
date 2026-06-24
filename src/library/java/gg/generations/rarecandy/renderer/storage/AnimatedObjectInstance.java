@@ -2,13 +2,11 @@ package gg.generations.rarecandy.renderer.storage;
 
 import gg.generations.rarecandy.renderer.animation.AnimationController;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
-import gg.generations.rarecandy.renderer.animation.Transform;
+import gg.generations.rarecandy.renderer.animation.ITransform;
 import gg.generations.rarecandy.renderer.rendering.ObjectInstance;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
-
-import java.util.Arrays;
 
 public class AnimatedObjectInstance extends ObjectInstance {
     public static final int ANIMATED_SIZE = MAT4_SIZE * 222;
@@ -44,7 +42,7 @@ public class AnimatedObjectInstance extends ObjectInstance {
         this.currentAnimation = newAnimation;
     }
 
-    public Transform getTransform(int material) {
+    public ITransform getTransform(int material) {
         return currentAnimation != null ? currentAnimation.getOffset(material) : null;
     }
 

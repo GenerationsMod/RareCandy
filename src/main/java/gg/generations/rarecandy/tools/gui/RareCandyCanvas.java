@@ -1,28 +1,27 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.pokeutils.BlendType;
-import gg.generations.rarecandy.pokeutils.CullType;
-import gg.generations.rarecandy.pokeutils.MaterialReference;
+import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
-import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingBiFunction;
 import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingConsumer;
 import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingRunnable;
+import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingTriFunction;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
 import gg.generations.rarecandy.renderer.components.DummyVAO;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
-import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.textures.FrameBuffer;
+import gg.generations.rarecandy.renderer.textures.ITexture;
 import gg.generations.rarecandy.renderer.textures.TextureArray;
 import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
@@ -30,14 +29,16 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import static gg.generations.rarecandy.renderer.loading.ModelLoader.createObject;
-import static org.lwjgl.opengl.GL42C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
 
 
 public class RareCandyCanvas {
+    private static final int DEFERRED_COLOR = 0;
+    private static final int DEFERRED_NORMAL = 1;
+    private static final int DEFERRED_OBJECT = 2;
+
     private static CycleVariants runnable;
     public static Matrix4f projectionMatrix;
     public static float radius = 2.0f;
@@ -51,13 +52,16 @@ public class RareCandyCanvas {
     public float scaleModifier = 0;
     public final Vector3f modelTranslation = new Vector3f();
     public float modelYaw = 0.0f;
+    public final Vector4f outlineColor = new Vector4f(1, 1, 1, 1);
+    public float outlineThickness = 3.25f;
+    public float outlineDepthThreshold = 0.0025f;
+    public float outlineNormalThreshold = 0.35f;
     private final PokeUtilsGui handler;
     public double startTime = System.currentTimeMillis();
     public String currentAnimation = null;
     public double originalScaleModifer;
+    public IModelConfig config;
     private RareCandy renderer;
-//    private MultiRenderObject<MeshObject> plane;
-//    private ObjectInstance planeInstance;
 
     private DummyVAO vao;
 
@@ -74,11 +78,12 @@ public class RareCandyCanvas {
     private boolean initCalled;
     private boolean rendering = false;
 
-    private StateManager manager = new StateManager(
+    private final StateManager manager = new StateManager(
             BlendType.Regular::enable, BlendType.Regular::disable,
             CullType.Forward::enable, CullType.Forward::disable,
             () -> GL11.glEnable(GL11.GL_DEPTH_TEST), () -> GL11.glDisable(GL11.GL_DEPTH_TEST)
     );
+    public Selected selected;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
@@ -87,11 +92,19 @@ public class RareCandyCanvas {
 
     public RareCandyCanvas(PokeUtilsGui handler) {
         this.handler = handler;
+        this.selected = new Selected(this);
         resize(handler.getWidth(), handler.getHeight());
     }
 
     public void resize(int width, int height) {
-        projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) width / height, 0.1f, 1000.0f);
+        int safeWidth = Math.max(1, width);
+        int safeHeight = Math.max(1, height);
+
+        projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(90), (float) safeWidth / safeHeight, 0.1f, 1000.0f);
+
+        if (framebuffer != null) {
+            framebuffer.resize(safeWidth, safeHeight);
+        }
     }
 
 
@@ -133,6 +146,8 @@ public class RareCandyCanvas {
 
             if (pkFile == null) return;
 
+            config = IModelConfig.from(pkFile);
+
             loadPokemonModel(pkFile, model -> {
                 loadedModel = (ToggleableMultiRenderObject) model;
                 resetModelTransform();
@@ -149,7 +164,6 @@ public class RareCandyCanvas {
                 loadedModelInstance = renderer.add(model, instance);
                 loadedModelInstance.use();
 
-                model.updateDimensions();
                 runnable.run();
 
                 if (resetAnimation) setAnimation("idle");
@@ -162,9 +176,6 @@ public class RareCandyCanvas {
     }
 
     public void initGL() {
-//        if (!GL.getCapabilities().GL_ARB_bindless_texture) {
-//            throw new RuntimeException("Bindless textures not supported!");
-//        }
 
         projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) handler.getWidth() / handler.getHeight(), 0.1f, 1000.0f);
         GL.createCapabilities(true);
@@ -176,35 +187,10 @@ public class RareCandyCanvas {
         fogUploader = new FogUploader(handler.settings.fog);
         gridRenderer = new ScreenSpaceGridRenderer();
 
-        framebuffer = new FrameBuffer(1024, 1024);
-
-//        screenRenderer = new ScreenRenderer(framebuffer);
-
-
-//        loadPlane(100, 100, model -> {
-//            plane = model;
-//            planeInstance = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0f, -0.001f, 0f), "plane"));
-//        });
-
-//        loadCube(1, 1, 1, model -> {
-//            cube = model;
-//            cubeInstances = new ObjectInstance[4];
-//            cubeInstances[0] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, -0.5f, 0), viewMatrix, null));
-//            cubeInstances[1] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 0.5f, -1), viewMatrix, null));
-//            cubeInstances[2] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 1.5f, -1), viewMatrix, null));
-//            cubeInstances[3] = renderer.objectManager.add(model, new ObjectInstance(new Matrix4f().translation(0, 02.5f, -1), viewMatrix, null));
-//        });
+        framebuffer = createDeferredFramebuffer(handler.getWidth(), handler.getHeight());
 
         vao = new DummyVAO();
     }
-
-//    private MultiRenderObject loadPlane(int width, int length, Consumer<MultiRenderObject> onFinish) {
-//        return loader.generatePlane(width, length, onFinish);
-//    }
-
-//    private MultiRenderObject loadCube(int width, int length, int height, Consumer<MultiRenderObject> onFinish) {
-//        return loader.generateCube(width, length, height, "smooth_stone", onFinish);
-//    }
 
 
     private final Vector3f size = new Vector3f();
@@ -213,8 +199,6 @@ public class RareCandyCanvas {
 //    @Override
     public void render() {
         if(!rendering) return;
-
-//        if(planeInstance != null) planeInstance.use();
 
         if (loadedModelInstance != null) {
             loadedModelInstance.modelMatrix().identity()
@@ -236,9 +220,7 @@ public class RareCandyCanvas {
 
         vao.bind();
 
-//        renderToFramebuffer();
-
-        renderToScreen();
+        renderDeferred();
         renderGrid();
 
         renderer.end();
@@ -263,28 +245,67 @@ public class RareCandyCanvas {
 
     private final int[] originalViewport = new int[4]; // Array to store x, y, width, height
 
-    private void renderToFramebuffer() {
-//        renderingFrame = true;
-//        framebuffer.bindFramebuffer();
-//
-//        glGetIntegerv(GL_VIEWPORT, originalViewport);
-//
-//        GL11C.glViewport(0, 0, 1024, 1024);
-//
-//        renderer.render(RenderStage.SOLID, false, time);
-//        renderer.render(RenderStage.TRANSPARENT, false, time);
-//
-//        framebuffer.unbindFramebuffer();
-//
-//        glViewport(originalViewport[0], originalViewport[1], originalViewport[2], originalViewport[3]);
-//        renderingFrame = false;
+    private static FrameBuffer createDeferredFramebuffer(int width, int height) {
+        int safeWidth = Math.max(1, width);
+        int safeHeight = Math.max(1, height);
+
+        return FrameBuffer.builder(safeWidth, safeHeight)
+                .color(FrameBuffer.TextureSpec.texture2D(ITexture.Type.RGBA8).withFilters(GL11C.GL_NEAREST, GL11C.GL_NEAREST))
+                .color(FrameBuffer.TextureSpec.texture2D(ITexture.Type.RGBA16F).withFilters(GL11C.GL_NEAREST, GL11C.GL_NEAREST))
+                .color(FrameBuffer.TextureSpec.texture2D(ITexture.Type.R32F).withFilters(GL11C.GL_NEAREST, GL11C.GL_NEAREST))
+                .depthTexture(FrameBuffer.TextureSpec.depth2D(ITexture.Type.DEPTH24, false))
+                .build();
     }
 
-    private void renderToScreen() {
-        GuiPipelines.ANIMATED.useProgram();
-        GuiPipelines.ANIMATED.bindGlobal();
+    private void renderDeferred() {
+        renderingFrame = true;
+        GL11C.glGetIntegerv(GL11C.GL_VIEWPORT, originalViewport);
 
-        renderer.render(GuiPipelines.ANIMATED, manager);
+        try {
+            framebuffer.bindAndSetViewport();
+            framebuffer.setDrawAll();
+            clearDeferredFramebuffer();
+
+            GuiPipelines.DEFERRED.useProgram();
+            GuiPipelines.DEFERRED.bindGlobal();
+            renderer.render(GuiPipelines.DEFERRED, manager);
+        } finally {
+            FrameBuffer.unbindFramebuffer();
+            GL11C.glViewport(originalViewport[0], originalViewport[1], originalViewport[2], originalViewport[3]);
+            renderingFrame = false;
+        }
+
+        renderDeferredToScreen();
+        copyDeferredDepthToScreen();
+    }
+
+    private void clearDeferredFramebuffer() {
+        var clear = handler.settings.fog.color.getValue();
+        framebuffer.clearColor(DEFERRED_COLOR, clear.x, clear.y, clear.z, clear.w);
+        framebuffer.clearColor(DEFERRED_NORMAL, 0.5f, 0.5f, 0.5f, 0.0f);
+        framebuffer.clearColor(DEFERRED_OBJECT, 0.0f, 0.0f, 0.0f, 0.0f);
+        framebuffer.clearDepth(1.0f);
+    }
+
+    private void renderDeferredToScreen() {
+        manager.reset();
+        GuiPipelines.DEFERRED_COMPOSITE.useProgram();
+        GuiPipelines.DEFERRED_COMPOSITE.bindGlobal();
+
+        vao.bind();
+        GL11C.glDrawArrays(GL11C.GL_TRIANGLES, 0, 3);
+        vao.unbind();
+    }
+
+    private void copyDeferredDepthToScreen() {
+        GL45C.glBlitNamedFramebuffer(
+                framebuffer.getFramebufferId(),
+                0,
+                0, 0, framebuffer.width(), framebuffer.height(),
+                0, 0, handler.getWidth(), handler.getHeight(),
+                GL11C.GL_DEPTH_BUFFER_BIT,
+                GL11C.GL_NEAREST
+        );
     }
 
     private void renderGrid() {
@@ -309,7 +330,8 @@ public class RareCandyCanvas {
     protected void loadPokemonModel(ResourceReader is, ExceptionThrowingConsumer<MultiRenderObject> onFinish) throws Exception {
         createObject(
                 ToggleableMultiRenderObject::new,
-                () -> is, ModelLoader::readImages, MaterialReference::process, onFinish);
+                () -> config,
+                () -> is, (ExceptionThrowingTriFunction<ResourceReader, List<String>, Integer, TextureArray>) (reader, images, layer) -> ModelLoader.readImages(reader, images, layer, true), IMaterialReference::process, onFinish);
     }
 
     public void setAnimation(@NotNull String animation) {
@@ -322,22 +344,6 @@ public class RareCandyCanvas {
 
     public void updateLoadedModel(Consumer<MultiRenderObject> consumer) {
         loadedModel.onUpdate(consumer);
-    }
-
-    public void setVariant(String variant) {
-        loadedModelInstance.setVariant(loadedModel.variantNameToId.get(variant));
-    }
-
-    public void toggleObject(boolean add, String object) {
-        var mesh = loadedModel.meshNameToId.get(object);
-
-        if(loadedModel.overrides[mesh]) {
-            if(add) {
-                loadedModel.overrides[mesh] = false;
-            }
-        } else if(!add) {
-            loadedModel.overrides[mesh] = true;
-        }
     }
 
     public static final Path images = Path.of("assets", "generations_core", "textures", "pokemon");

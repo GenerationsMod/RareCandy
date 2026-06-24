@@ -11,6 +11,7 @@ out vec4 outColor;
 
 uniform vec4 ColorModulator;
 uniform vec4 tint;
+uniform bool debug;
 
 #lib:structs
 #lib:paradox
@@ -35,4 +36,8 @@ void main() {
     }
 
     outColor = linear_fog(outColor, vertexDistance, FogStart, FogEnd, FogColor);
+
+    if(debug) {
+        outColor = vec4(1.0);
+    }
 }

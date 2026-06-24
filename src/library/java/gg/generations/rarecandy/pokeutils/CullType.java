@@ -1,5 +1,7 @@
 package gg.generations.rarecandy.pokeutils;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import org.lwjgl.opengl.GL11;
 
 public enum CullType {
@@ -55,5 +57,13 @@ public enum CullType {
         } else {
             GL11.glDisable(GL11.GL_CULL_FACE);
         }
+    }
+
+    public static CullType fromJson(JsonElement element) {
+        return CullType.from(element.getAsJsonPrimitive().getAsString());
+    }
+
+    public JsonElement toJson() {
+        return new JsonPrimitive(name().toLowerCase());
     }
 }

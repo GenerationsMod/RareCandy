@@ -2,9 +2,7 @@ package gg.generations.rarecandy.tools;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import gg.generations.rarecandy.pokeutils.ModelConfig;
-import gg.generations.rarecandy.tools.gui.DialogueUtils;
-import org.lwjgl.util.nfd.NativeFileDialog;
+import gg.generations.rarecandy.pokeutils.IModelConfig;
 
 import java.awt.*;
 import java.io.IOException;
@@ -28,7 +26,7 @@ public class JsonConfigConvert {
 
     public static String convert(String bytes) throws IOException {
 
-        var config = ModelConfig.GSON.fromJson(bytes, JsonObject.class);
+        var config = IModelConfig.GSON.fromJson(bytes, JsonObject.class);
 
         var materials = config.getAsJsonObject("materials");
 
@@ -103,7 +101,7 @@ public class JsonConfigConvert {
 
         if (config.has("offsets") && config.getAsJsonObject("offsets").isEmpty()) config.remove("offsets");
 
-        return ModelConfig.GSON.toJson(config);
+        return IModelConfig.GSON.toJson(config);
 
 //        Files.writeString(path, gson.toJson(config));
     }

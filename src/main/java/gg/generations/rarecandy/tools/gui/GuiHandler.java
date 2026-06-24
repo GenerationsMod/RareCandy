@@ -1,8 +1,10 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.resource.FolderAsset;
-import gg.generations.rarecandy.pokeutils.resource.PkResourceLocator;
+import gg.generations.rarecandy.pokeutils.IModelConfig;
 import gg.generations.rarecandy.pokeutils.resource.ResourceLocator;
+import gg.generations.rarecandy.renderer.components.MultiRenderObject;
+import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 import imgui.ImGui;
 import org.apache.commons.io.FilenameUtils;
@@ -11,9 +13,11 @@ import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.lightLevel;
 
@@ -67,6 +71,7 @@ public class GuiHandler implements KeyListener {
         try {
             savePath = normalizeSavePath(savePath);
 
+            writeConfigToTemp();
             PixelmonArchiveBuilder.convertToPk(TEMP, ResourceLocator.of(savePath), getCanvas().scaleModifier);
             initializeAsset(savePath);
             setCleanTitle(savePath);
@@ -76,6 +81,13 @@ public class GuiHandler implements KeyListener {
             return false;
         }
 
+    }
+
+    private void writeConfigToTemp() throws IOException {
+        if (getCanvas().config == null) return;
+
+        var json = IModelConfig.GSON.toJson(IModelConfig.serialize(getCanvas().config));
+        TEMP.putFile("config.json", json.getBytes(StandardCharsets.UTF_8));
     }
 
     private Path normalizeSavePath(Path savePath) {
@@ -107,19 +119,19 @@ public class GuiHandler implements KeyListener {
             if(filePath == null) return;
 
             gui.clearLoadIssues();
-            var validation = ModelAssetValidator.validate(ResourceLocator.of(filePath));
-            validation.messages().forEach(gui::reportLoadIssue);
-            if (validation.hasErrors()) {
-                gui.setTitle(BASE_TITLE + " - " + filePath.getFileName() + " (load blocked)");
-                return;
-            }
+//            var validation = ModelAssetValidator.validate(ResourceLocator.of(filePath));
+//            validation.messages().forEach(gui::reportLoadIssue);
+//            if (validation.hasErrors()) {
+//                gui.setTitle(BASE_TITLE + " - " + filePath.getFileName() + " (load blocked)");
+//                return;
+//            }
 
             move(filePath);
 
             initializeAsset(filePath);
             var title = BASE_TITLE + " - " + filePath.getFileName().toString();
             gui.setTitle(title);
-            getCanvas().openFile(TEMP, FilenameUtils.getBaseName(filePath.getFileName().toString()), () -> gui.fileViewer.initializeAsset(TEMP, assetPath, getCanvas().loadedModel.animationNameToId.keySet()), true);
+            getCanvas().openFile(TEMP, FilenameUtils.getBaseName(filePath.getFileName().toString()), () -> gui.fileViewer.initializeAsset(TEMP, assetPath, getCanvas().loadedModel), true);
 
         } catch (Exception e) {
             gui.reportLoadIssue("Failed to open " + (filePath != null ? filePath.getFileName() : "<null>") + ": " + e.getMessage());

@@ -22,13 +22,9 @@ public class GuiPipelines {
 
     public static final Vector4f colorMOdulator = new Vector4f(1f, 1f, 1f, 1f);
 
-    private static final Vector3f ONE = new Vector3f(1,1, 1);
     private static final Vector4f ONE_V = new Vector4f(1,1, 1, 1);
-
-    public static ComputePipeline PARADOX;
-
-    public static TraditionalPipeline ANIMATED;
-    public static TraditionalPipeline PLANE;
+    public static TraditionalPipeline DEFERRED;
+    public static TraditionalPipeline DEFERRED_COMPOSITE;
     public static TraditionalPipeline GRID;
 
     private static final Matrix4f GRID_INVERSE_PROJECTION = new Matrix4f();
@@ -41,21 +37,16 @@ public class GuiPipelines {
     public static double pingpong(double time) {
         return (int) (Math.sin(time * Math.PI * 2) * 7 + 7);
     }
-
-    public static int instanceId;
-
-    private static final ITexture[] textures = new ITexture[3];
-
     public static void onInitialize(RareCandyCanvas canvas, PokeUtilsGui.Settings settings) {
-
-//        PARADOX = ComputePipeline.builder(builtin("rewrite/paradox.cs.glsl"))
-//                .autoInt(Scope.GLOBAL, "frame", (ctx) -> (int) pingpong(RareCandyCanvas.getTime() % 1d))
-//                .autoSampler2D(Scope.GLOBAL, "sampler", 0, (ctx) -> ITextureLoader.instance().getTexture("paradox_mask").id())
-//                .autoImage2D(Scope.GLOBAL, "outputTexture", 0, ctx -> textures[0])
-//                .build();
-
-        ANIMATED = TraditionalPipeline.builder(builtin("true/generic.vs.glsl", "true/libs"), builtin("true/generic.fs.glsl", "true/libs"))
+        DEFERRED = TraditionalPipeline.builder(builtin("deferred/model.vs.glsl", "true/libs"), builtin("deferred/model.fs.glsl", "true/libs"))
                 .apply(builder -> GuiPipelines.common(builder, canvas,settings))
+                .build();
+
+        DEFERRED_COMPOSITE = TraditionalPipeline.builder(builtin("deferred/fullscreen.vs.glsl"), builtin("deferred/outline.fs.glsl"))
+                .autoSampler2D(Scope.GLOBAL, "sceneTexture", 0, ctx -> RareCandyCanvas.framebuffer.getColorAttachment(0).id())
+                .autoSampler2D(Scope.GLOBAL, "objectTexture", 2, ctx -> RareCandyCanvas.framebuffer.getColorAttachment(2).id())
+                .autoVec4(Scope.GLOBAL, "outlineColor", ctx -> canvas.outlineColor)
+                .autoFloat(Scope.GLOBAL, "outlineThickness", ctx -> canvas.outlineThickness)
                 .build();
 
         GRID = TraditionalPipeline.builder(builtin("screen/grid.vs.glsl"), builtin("screen/grid.fs.glsl"))
@@ -68,15 +59,6 @@ public class GuiPipelines {
                     return GRID_CAMERA_POSITION.set(GRID_INVERSE_VIEW.m30(), GRID_INVERSE_VIEW.m31(), GRID_INVERSE_VIEW.m32());
                 })
                 .build();
-
-//        PLANE = TraditionalPipeline.builder(builtin("original/animated/plane.vs.glsl"), builtin("original/animated/plane.fs.glsl"))
-//                .autoMat4(Scope.GLOBAL, "viewMatrix", (ctx) -> RareCandyCanvas.viewMatrix)
-//                .autoMat4(Scope.GLOBAL, "projectionMatrix", (ctx) -> projectionMatrix)
-//                .autoFloat(Scope.GLOBAL, "lightLevel", (ctx) -> RareCandyCanvas.getLightLevel())
-//                .autoFloat(Scope.GLOBAL, "radius", (ctx) -> RareCandyCanvas.radius)
-//                .autoBool(Scope.GLOBAL, "render", (ctx) -> RareCandyCanvas.renderingFrame)
-//                .prePostDraw(material -> BlendType.Regular.enable(), material -> BlendType.Regular.disable())
-//                .build();
     }
 
     public static void setGridViewport(int width, int height) {
@@ -93,10 +75,11 @@ public class GuiPipelines {
                 .addSSBORange(Scope.MODEL, "VertexBuffer", 0, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().vertex)
                 .addSSBORange(Scope.MODEL, "IndexBuffer", 1, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().index)
                 .addSSBORange(Scope.MODEL, "MeshOffsetBuffer", 2, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().meshOffsets)
-                .addSSBORange(Scope.MODEL, "VariantBuffer", 3, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().variant)
-                .addSSBORange(Scope.MODEL, "MaterialBuffer", 4, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().material)
-                .addSSBO(Scope.MODEL, "InstanceBuffer", 5, ctx -> ctx.object().instanceBuffer.getBufferId())
-                .addSSBO(Scope.MODEL, "DrawInfoBuffer", 6, ctx -> ctx.object().drawInfoBuffer.getBufferId())
+                .addSSBO(Scope.MODEL, "VariantBuffer", 3, ctx -> ctx.object().variant.getBufferId())
+                .addSSBO(Scope.MODEL, "MaterialBuffer", 4, ctx -> ctx.object().material.getBufferId())
+                .addSSBO(Scope.MODEL, "InstanceBuffer", 5, ctx -> ctx.object().instance.getBufferId())
+                .addSSBO(Scope.MODEL, "DrawInfoBuffer", 6, ctx -> ctx.object().drawInfo.getBufferId())
+                .autoInt(Scope.MODEL, "Selected", ctx -> canvas.selected.getMeshId())
 
                 .autoSampler2DArray(Scope.MODEL, "images", 0, ctx -> ctx.object().images)
 

@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.renderer.animation.Animation;
-import gg.generations.rarecandy.renderer.animation.Transform;
 import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.renderer.loading.SbboOffset;
 import gg.generations.rarecandy.renderer.model.Variant;
@@ -31,11 +30,12 @@ import java.util.stream.IntStream;
 public abstract class MultiRenderObject {
     private static final int TRANSFORM_ENTRY_BYTES = Float.BYTES * 4 + Integer.BYTES * 4;
 
+    public final ModelLoader.Names names;
+
     public Map<String, Integer> meshNameToId;
     public Map<String, Integer> materialNameToId;
     public Map<String, Integer> variantNameToId;
     public Map<String, Integer> imageNameToId;
-    public Map<Integer, Integer> idToBuffer;
 
     public int[] meshes;
     public Material[] materials;
@@ -47,11 +47,12 @@ public abstract class MultiRenderObject {
     public SbboOffset vertex;
     public SbboOffset index;
     public SbboOffset meshOffsets;
-    public SbboOffset material;
-    public SbboOffset variant;
 
-    public SSBOBuffer instanceBuffer;
-    public SSBOBuffer drawInfoBuffer;
+    public SSBOBuffer material;
+    public SSBOBuffer variant;
+
+    public SSBOBuffer instance;
+    public SSBOBuffer drawInfo;
 
     public EnumMap<RenderStage, DrawBuffer> drawBuffer = new EnumMap<>(RenderStage.class);
 
@@ -74,6 +75,8 @@ public abstract class MultiRenderObject {
     protected final List<ObjectInstance> instances = new ArrayList<>();
 
     public MultiRenderObject(ModelLoader.Names names) {
+        this.names = names;
+
         meshes = new int[names.meshes().size()];
         meshNameToId = listToMap(names.meshes());
         materials = new Material[names.materials().size()];
@@ -116,7 +119,7 @@ public abstract class MultiRenderObject {
 
     public void update(double absoluteTime) {
         for (var consumer : queue) {
-                consumer.accept(this);
+            consumer.accept(this);
         }
         queue.clear();
 
@@ -161,20 +164,16 @@ public abstract class MultiRenderObject {
         return variants[variantRelationships[mesh][variant]];
     }
 
-    public void updateDimensions() {
-//        for (var mesh : meshes) {
-//            dimensions.max(mesh.getDimensions());
-//        }
-    }
-
     public void close() throws IOException {
         for (Material material : this.materials) {
             material.close();
         }
 
         GL43.glDeleteBuffers(modelBuffer);
-        this.drawInfoBuffer.delete();
-        this.instanceBuffer.delete();
+        this.drawInfo.delete();
+        this.instance.delete();
+        this.variant.delete();
+        this.material.delete();
 
         drawBuffer.values().forEach(SSBOBuffer::delete);
     }
@@ -191,7 +190,7 @@ public abstract class MultiRenderObject {
 
         for (int instanceId = 0; instanceId < instances.size(); instanceId++) {
             ObjectInstance instance = instances.get(instanceId);
-            instance.update(instanceBuffer);
+            instance.update(this.instance);
 
             for (int meshId = 0; meshId < meshes.length; meshId++) {
 
@@ -223,24 +222,24 @@ public abstract class MultiRenderObject {
 
 
 
-                drawInfoBuffer.put(variantRelationships[meshId][instance.variant()]);
-                drawInfoBuffer.put(instanceId);
-                drawInfoBuffer.put(meshId);
-                drawInfoBuffer.put(0);
+                drawInfo.put(variantRelationships[meshId][instance.variant()]);
+                drawInfo.put(instanceId);
+                drawInfo.put(meshId);
+                drawInfo.put(0);
 
                 buffer.putDraw(meshes[meshId], 1, 0, drawId);
                 drawId++;
             }
         }
 
-        instanceBuffer.upload();
-        drawInfoBuffer.upload();
+        instance.upload();
+        drawInfo.upload();
         drawBuffer.values().forEach(SSBOBuffer::upload);
     }
 
     private void resetSSBOs() {
-        instanceBuffer.reset();
-        drawInfoBuffer.reset();
+        instance.reset();
+        drawInfo.reset();
 
         drawBuffer.values().forEach(DrawBuffer::reset);
     }
@@ -259,8 +258,8 @@ public abstract class MultiRenderObject {
     private void ensureCapacity() {
         var size = instances.size();
 
-        instanceBuffer.ensureCapacity((long) size * InstanceDetails.size);
-        drawInfoBuffer.ensureCapacity(
+        instance.ensureCapacity((long) size * InstanceDetails.size);
+        drawInfo.ensureCapacity(
                 (long) instances.size()
                         * meshes.length
                         * TRANSFORM_ENTRY_BYTES

@@ -40,10 +40,10 @@ public final class TextureArray implements AutoCloseable {
         textureId = glGenTextures();
         glBindTexture(GL_TEXTURE_2D_ARRAY, textureId);
         glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, type.internalFormat, width, height, layers);
-        GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_S, GL11C.GL_REPEAT);
-        GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_WRAP_T, GL11C.GL_REPEAT);
-        GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_NEAREST);
-        GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_NEAREST);
+        GL11C.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL11C.GL_TEXTURE_WRAP_S, GL11C.GL_REPEAT);
+        GL11C.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL11C.GL_TEXTURE_WRAP_T, GL11C.GL_REPEAT);
+        GL11C.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_NEAREST);
+        GL11C.glTexParameteri(GL_TEXTURE_2D_ARRAY, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
         // create views for each layer

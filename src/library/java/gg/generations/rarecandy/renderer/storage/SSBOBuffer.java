@@ -3,6 +3,8 @@ package gg.generations.rarecandy.renderer.storage;
 import org.joml.*;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.ByteBuffer;
+
 import static org.lwjgl.opengl.GL43.*;
 
 /**
@@ -24,6 +26,12 @@ public class SSBOBuffer {
         this();
         ensureCapacity(capacity);
     }
+
+    public SSBOBuffer(ByteBuffer buffer, int usage) {
+        this();
+        replaceStorage(buffer, usage);
+    }
+
 
     public void ensureCapacity(long newCapacity) {
         if (newCapacity <= 0) return;
@@ -50,6 +58,25 @@ public class SSBOBuffer {
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
         nglBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, written, pointer);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    }
+
+    public void replaceStorage(ByteBuffer data, int usage) {
+        if (pointer != 0) {
+            MemoryUtil.nmemFree(pointer);
+            pointer = 0;
+            pos = 0;
+        }
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, data, usage);
+        currentCapacity = data.remaining();
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    }
+
+    public void upload(long byteOffset, ByteBuffer data) {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, bufferId);
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, byteOffset, data);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     }
 
@@ -135,6 +162,10 @@ public class SSBOBuffer {
 
     public int getBufferId() {
         return bufferId;
+    }
+
+    public long capacity() {
+        return currentCapacity;
     }
 
     public void reset() {

@@ -140,7 +140,7 @@ public class ImModelConfig implements IModelConfig {
         var dirty = 0;
         ImGui.begin("Config");
 
-        if(ImGui.inputFloat("Scale", scale)) {
+        if (ImGui.inputFloat("Scale", scale)) {
             dirty |= 1;
         }
 //        dirty |= ImGui.checkbox("Exclude mesh names from skeleton", excludeMeshNamesFromSkeleton);
@@ -149,18 +149,20 @@ public class ImModelConfig implements IModelConfig {
 
         ImGui.separator();
 
-        if(editor.renderMap("Materials", "materials", materials, ImMaterialReference::empty, ImMaterialReference.class)) {
+        if (editor.renderMap("Materials", "materials", materials, ImMaterialReference::empty, ImMaterialReference.class)) {
             dirty |= 2;
         }
-        if(editor.renderMap("Default Variant", "defaultVariant", defaultVariant, ImVariantDetails::empty, value -> ((ImVariantDetails) value).render(materials.keySet()), false)) {
+        if (editor.renderMap("Default Variant", "defaultVariant", defaultVariant, ImVariantDetails::empty, value -> ((ImVariantDetails) value).render(materials.keySet()), false)) {
             dirty |= 4;
         }
 
-        if(editor.renderMap("Variants", "variants", variants, ImVariantParent::empty, value -> ((ImVariantParent) value).render(materials.keySet()))) {
+        if (editor.renderMap("Variants", "variants", variants, ImVariantParent::empty, value -> ((ImVariantParent) value).render(materials.keySet()))) {
             dirty |= 4;
         }
 
-//        dirty |= editor.renderMap("Hide During Animation", "hideDuringAnimation", hideDuringAnimation, ImHideDuringAnimation::empty, ImHideDuringAnimation.class, false);
+        if(editor.renderMap("Hide During Animation", "hideDuringAnimation", hideDuringAnimation, ImHideDuringAnimation::empty, ImHideDuringAnimation.class, false)) {
+            dirty |= 8;
+        }
 //        dirty |= editor.renderIntegerMap("Animation FPS Override", "animationFpsOverride", animationFpsOverride);
 //        dirty |= editor.renderBooleanMap("Animation Loops Override", "animationLoopsOverride", animationLoopsOverride);
 //        dirty |= editor.renderMap("Offsets", "offsets", offsets, ImSkeletalTransform::empty, ImSkeletalTransform.class);

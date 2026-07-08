@@ -14,14 +14,23 @@ public class Selected {
 
     public void setVariant(String variant) {
         this.variant = variant;
-        this.variantId = canvas.loadedModel.variantNameToId.get(variant);
-        canvas.loadedModelInstance.setVariant(variantId);
+        this.variantId = -1;
+
+        if (variant == null || canvas.loadedModel == null) return;
+
+        this.variantId = canvas.loadedModel.variantNameToId.getOrDefault(variant, -1);
+        if (variantId != -1 && canvas.loadedModelInstance != null) {
+            canvas.loadedModelInstance.setVariant(variantId);
+        }
     }
 
     public void setMesh(String mesh) {
         this.mesh = mesh;
+        this.meshId = -1;
 
-        this.meshId = canvas.loadedModel.meshNameToId.get(mesh);
+        if (mesh == null || canvas.loadedModel == null) return;
+
+        this.meshId = canvas.loadedModel.meshNameToId.getOrDefault(mesh, -1);
     }
 
     public String getVariant() {

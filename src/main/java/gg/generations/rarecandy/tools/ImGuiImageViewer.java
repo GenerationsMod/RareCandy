@@ -1,11 +1,16 @@
 package gg.generations.rarecandy.tools;// imgui-java (SpaiR) — minimal “image viewer with mouse coords” demo.
 // Draws an image, and when hovered shows UV (0..1) and pixel coords in a tooltip.
 // Library: io.github.spair:imgui-java (plus your backend, e.g., imgui-lwjgl3)
+import gg.generations.rarecandy.renderer.textures.ITexture;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.ImVec2;
+import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiHoveredFlags;
 public final class ImGuiImageViewer {
+    private static final int DEFAULT_MISSING_TEXTURE_SIZE = 256;
+    private static final String MISSING_TEXTURE_LABEL = "No texture";
+
     private ImGuiImageViewer() {}
 
     /**
@@ -92,4 +97,36 @@ public final class ImGuiImageViewer {
         }
         ImGui.end();
     }
+
+    public static void drawTexture(ITexture texture, int drawW, int drawH) {
+        if (texture == null) {
+            drawMissingTexture(drawW, drawH);
+            return;
+        }
+
+        if (drawW <= 0) drawW = texture.width();
+        if (drawH <= 0) drawH = texture.height();
+
+        ImGui.image(
+                texture.id(),
+                drawW, drawH,
+                0f, 0f,
+                1f, 1f);
+    }
+
+    private static void drawMissingTexture(int drawW, int drawH) {
+        if (drawW <= 0) drawW = DEFAULT_MISSING_TEXTURE_SIZE;
+        if (drawH <= 0) drawH = DEFAULT_MISSING_TEXTURE_SIZE;
+
+        ImVec2 pos = ImGui.getCursorScreenPos();
+        float maxX = pos.x + drawW;
+        float maxY = pos.y + drawH;
+
+        var drawList = ImGui.getWindowDrawList();
+        drawList.addRectFilled(pos.x, pos.y, maxX, maxY, ImGui.getColorU32(ImGuiCol.FrameBg));
+        drawList.addRect(pos.x, pos.y, maxX, maxY, ImGui.getColorU32(ImGuiCol.Border));
+
+        ImGui.dummy(drawW, drawH);
+    }
+
 }

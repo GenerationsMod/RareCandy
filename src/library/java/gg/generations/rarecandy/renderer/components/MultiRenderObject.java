@@ -1,7 +1,7 @@
 package gg.generations.rarecandy.renderer.components;
 
 import gg.generations.rarecandy.renderer.animation.Animation;
-import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.loading.Names;
 import gg.generations.rarecandy.renderer.loading.SbboOffset;
 import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.renderer.model.material.Material;
@@ -30,7 +30,7 @@ import java.util.stream.IntStream;
 public abstract class MultiRenderObject {
     private static final int TRANSFORM_ENTRY_BYTES = Float.BYTES * 4 + Integer.BYTES * 4;
 
-    public final ModelLoader.Names names;
+    public final Names names;
 
     public Map<String, Integer> meshNameToId;
     public Map<String, Integer> materialNameToId;
@@ -74,7 +74,7 @@ public abstract class MultiRenderObject {
 
     protected final List<ObjectInstance> instances = new ArrayList<>();
 
-    public MultiRenderObject(ModelLoader.Names names) {
+    public MultiRenderObject(Names names) {
         this.names = names;
 
         meshes = new int[names.meshes().size()];

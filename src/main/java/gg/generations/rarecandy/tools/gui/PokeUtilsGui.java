@@ -4,13 +4,14 @@ import com.bedrockk.molang.MoLang;
 import com.bedrockk.molang.runtime.value.DoubleValue;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import gg.generations.rarecandy.pokeutils.Change;
 import gg.generations.rarecandy.pokeutils.IMaterialReference;
 import gg.generations.rarecandy.pokeutils.IModelConfig;
 import gg.generations.rarecandy.pokeutils.ImModelConfig;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.launch.OpenGL;
-import gg.generations.rarecandy.renderer.loading.ModelLoader;
-import gg.generations.rarecandy.renderer.model.material.Material;
+import gg.generations.rarecandy.renderer.loading.ModelObjectCompiler;
+import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.tools.AppBase;
 import gg.generations.rarecandy.tools.TextureLoader;
 import gg.generations.rarecandy.tools.gui.imgui.ImBoolean;
@@ -59,6 +60,7 @@ public class PokeUtilsGui extends AppBase {
     private boolean closed;
     private static Path settingsPath = Paths.get("settings.json");
     public boolean materialsDirty;
+    private VariantView variantMenu;
 
     public PokeUtilsGui(String title, int width, int height) throws IOException {
         super(title, width, height, new OpenGL());
@@ -73,6 +75,7 @@ public class PokeUtilsGui extends AppBase {
         this.animationPlayback = new AnimationPlaybackPanel(canvas);
         this.fileViewer = new PixelAssetTree(this);
         this.gizmos = new ViewportGizmos(this);
+        this.variantMenu = new VariantView(this);
 
         menu = configureMenu();
     }
@@ -127,6 +130,9 @@ public class PokeUtilsGui extends AppBase {
         settings.render();
         renderLoadIssues();
         gizmos.render(settings.features.gizmos.getValue());
+
+        variantMenu.render();
+
         var config = canvas.config;
 
         if(config instanceof ImModelConfig imConfig) {
@@ -138,13 +144,19 @@ public class PokeUtilsGui extends AppBase {
 
                 if((flags & 2) != 0) {
                     canvas.loadedModel.onUpdate(model -> {
-                        ModelLoader.rebuildMaterials(model, canvas.config, IMaterialReference::process);
+                        ModelObjectCompiler.rebuildMaterials(model, canvas.config, IMaterialReference::process);
                     });
                 }
 
                 if((flags & 4) != 0) {
                     canvas.loadedModel.onUpdate(model -> {
-                        ModelLoader.rebuildVariants(model, canvas.config);
+                        ModelObjectCompiler.rebuildVariants(model, canvas.config);
+                    });
+                }
+
+                if((flags & 8) != 0) {
+                    canvas.loadedModel.onUpdate(model -> {
+                        ModelObjectCompiler.rebuildAnimationVisibility(model, canvas.config);
                     });
                 }
 

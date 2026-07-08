@@ -53,12 +53,15 @@ public class PkResourceLocator implements ResourceLocator {
 
     @Override
     public boolean deleteFile(String key) {
-        return false;
+        return entries.remove(key) != null;
     }
 
     @Override
     public void renameFile(String key, String newKey) {
-
+        byte[] value = entries.remove(key);
+        if (value != null) {
+            entries.put(newKey, value);
+        }
     }
 
     @Override

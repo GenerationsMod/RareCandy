@@ -2,20 +2,21 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.*;
 import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
-import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingConsumer;
 import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingRunnable;
-import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingTriFunction;
+import gg.generations.rarecandy.pokeutils.util.ExceptionThrowingTriConsumer;
 import gg.generations.rarecandy.renderer.animation.Animation;
 import gg.generations.rarecandy.renderer.animation.AnimationInstance;
+import gg.generations.rarecandy.renderer.animation.Skeleton;
 import gg.generations.rarecandy.renderer.components.DummyVAO;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
-import gg.generations.rarecandy.renderer.loading.ModelLoader;
+import gg.generations.rarecandy.renderer.loading.AnimResource;
+import gg.generations.rarecandy.renderer.loading.ModelObjectCompiler;
+import gg.generations.rarecandy.renderer.loading.Names;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.rendering.*;
 import gg.generations.rarecandy.renderer.storage.AnimatedObjectInstance;
 import gg.generations.rarecandy.renderer.textures.FrameBuffer;
 import gg.generations.rarecandy.renderer.textures.ITexture;
-import gg.generations.rarecandy.renderer.textures.TextureArray;
 import gg.generations.rarecandy.renderer.ubo.UniformBlockUploader;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
@@ -29,9 +30,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
-
-import static gg.generations.rarecandy.renderer.loading.ModelLoader.createObject;
 
 
 public class RareCandyCanvas {
@@ -65,7 +65,7 @@ public class RareCandyCanvas {
 
     private DummyVAO vao;
 
-    public ToggleableMultiRenderObject loadedModel;
+    public BaseMultiRenderObject loadedModel;
     public AnimatedObjectInstance loadedModelInstance;
     private static float previousLightLevel;
     private String fileName;
@@ -84,6 +84,8 @@ public class RareCandyCanvas {
             () -> GL11.glEnable(GL11.GL_DEPTH_TEST), () -> GL11.glDisable(GL11.GL_DEPTH_TEST)
     );
     public Selected selected;
+    private Skeleton loadedSkeleton;
+    private Map<String, AnimResource> loadedAnimationSources;
 
     public static void setLightLevel(float lightLevel) {
         previousLightLevel = RareCandyCanvas.lightLevel;
@@ -121,7 +123,7 @@ public class RareCandyCanvas {
         rendering = false;
 
         // Detach references immediately so render() will not touch freed objects
-        final ToggleableMultiRenderObject oldModel = loadedModel;
+        final BaseMultiRenderObject oldModel = loadedModel;
         final AnimatedObjectInstance oldInstance = loadedModelInstance;
         final List<AnimatedObjectInstance> oldInstances = new ArrayList<>(instances);
 
@@ -148,8 +150,10 @@ public class RareCandyCanvas {
 
             config = IModelConfig.from(pkFile);
 
-            loadPokemonModel(pkFile, model -> {
-                loadedModel = (ToggleableMultiRenderObject) model;
+            loadPokemonModel(pkFile, (model, skeleton, names) -> {
+                loadedModel = (BaseMultiRenderObject) model;
+                loadedSkeleton = skeleton;
+
                 resetModelTransform();
 
                 scaleModifier = loadedModel.scale;
@@ -327,11 +331,15 @@ public class RareCandyCanvas {
         return new AnimationInstance(animation);
     }
 
-    protected void loadPokemonModel(ResourceReader is, ExceptionThrowingConsumer<MultiRenderObject> onFinish) throws Exception {
-        createObject(
-                ToggleableMultiRenderObject::new,
+    protected void loadPokemonModel(ResourceReader is, ExceptionThrowingTriConsumer<MultiRenderObject, Skeleton, Map<String, AnimResource>> onFinish) throws Exception {
+        ModelObjectCompiler.buildObject(
+                BaseMultiRenderObject::new,
                 () -> config,
-                () -> is, (ExceptionThrowingTriFunction<ResourceReader, List<String>, Integer, TextureArray>) (reader, images, layer) -> ModelLoader.readImages(reader, images, layer, true), IMaterialReference::process, onFinish);
+                () -> is,
+                (reader, images, layer) -> ModelObjectCompiler.readImages(reader, images, layer, true),
+                IMaterialReference::process,
+                onFinish
+        );
     }
 
     public void setAnimation(@NotNull String animation) {
@@ -409,7 +417,7 @@ public class RareCandyCanvas {
 
     public static class BaseMultiRenderObject extends MultiRenderObject {
 
-        public BaseMultiRenderObject(ModelLoader.Names names) {
+        public BaseMultiRenderObject(Names names) {
             super(names);
         }
 
@@ -426,21 +434,6 @@ public class RareCandyCanvas {
         }
     }
 
-    public class ToggleableMultiRenderObject extends BaseMultiRenderObject {
-        public boolean[] overrides;
-        public String[] meshNames;
-
-        public ToggleableMultiRenderObject(ModelLoader.Names names) {
-            super(names);
-            overrides = new boolean[names.meshes().size()];
-            meshNames = names.meshes().toArray(String[]::new);
-        }
-
-        @Override
-        public boolean shouldRender(int mesh, ObjectInstance instance) {
-            return super.shouldRender(mesh, instance) || overrides[mesh];
-        }
-    }
 }
 
 class FogUploader extends UniformBlockUploader {

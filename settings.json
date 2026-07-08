@@ -1,7 +1,7 @@
 {
   "urls": {
-    "openArchiveUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\eevee",
-    "saveAsUrl": "C:\\Users\\water\\Downloads\\abra.pk",
+    "openArchiveUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\articuno",
+    "saveAsUrl": "D:\\Git Repos\\Models",
     "createArchiveUrl": "",
     "sequenceUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\gengar_mega"
   },
@@ -14,9 +14,9 @@
     }
   },
   "features": {
-    "terastalization": true,
+    "terastalization": false,
     "fog": true,
-    "light": true,
+    "light": false,
     "grid": true,
     "gizmos": false,
     "largeUi": true

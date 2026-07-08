@@ -3,8 +3,6 @@ package gg.generations.rarecandy.tools.gui;
 import gg.generations.rarecandy.pokeutils.resource.FolderAsset;
 import gg.generations.rarecandy.pokeutils.IModelConfig;
 import gg.generations.rarecandy.pokeutils.resource.ResourceLocator;
-import gg.generations.rarecandy.renderer.components.MultiRenderObject;
-import gg.generations.rarecandy.renderer.loading.ModelLoader;
 import gg.generations.rarecandy.tools.pkcreator.PixelmonArchiveBuilder;
 import imgui.ImGui;
 import org.apache.commons.io.FilenameUtils;

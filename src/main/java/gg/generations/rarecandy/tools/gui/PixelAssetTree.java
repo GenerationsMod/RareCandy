@@ -42,7 +42,7 @@ public class PixelAssetTree {
         return list != null ? list : List.of();
     }
 
-    public void initializeAsset(ResourceLocator asset, Path assetPath, RareCandyCanvas.ToggleableMultiRenderObject model) throws IOException {
+    public void initializeAsset(ResourceLocator asset, Path assetPath, RareCandyCanvas.BaseMultiRenderObject model) throws IOException {
         tree = new CompositeNode(assetPath.getFileName().toString());
         var animationsNode = new RadioListNode("animations", animation -> gui.canvas.setAnimation(animation));
         var imagesNode = new CompositeNode("images");
@@ -52,19 +52,6 @@ public class PixelAssetTree {
         List<String> variants = config.variants() != null ? List.copyOf(config.variants().keySet()) : new ArrayList<>();
 
         var objs = config.defaultVariant().keySet();
-
-        for (var s : asset.getFileNames()) {
-//            if(s.endsWith("tranm") || s.endsWith("tracm") || s.endsWith("gfbanm") || s.endsWith("smd")) {
-//                if(!animations.contains(s)) {
-//                    animationsNode.add(s.replace(".tracm", "").replace(".tranm", "").replace(".gfbanm", "").replace(".smd", ""));
-//                }
-//            } else if (s.endsWith("png")) {
-//                imagesNode.add(new ImageNode(asset, s));
-//            }else if(s.equals("config.json")) {
-//                tree.add(new ModConfigTreeNode(asset.getConfig()));
-//            } else*/
-//            tree.add(new TextNode(s));
-        }
 
         model.animationNameToId.keySet().stream().sorted().forEach(animationsNode::add);
         model.imageNameToId.keySet().stream().sorted().map(s -> new ImageNode(model, s)).forEach(imagesNode::add);
@@ -85,6 +72,7 @@ public class PixelAssetTree {
 
         var objectsNode = new RadioListNode("objects", (item) -> gui.canvas.selected.setMesh(item));
         for (var name : objs) objectsNode.add(name);
+        gui.canvas.selected.setMesh(objectsNode.getSelectedOption());
         tree.add(objectsNode);
     }
 

@@ -25,7 +25,6 @@ import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector4f;
 import org.lwjgl.glfw.GLFW;
-import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,12 +53,9 @@ public class PokeUtilsGui extends AppBase {
     public PixelAssetTree fileViewer;
     public RareCandyCanvas canvas;
     private final AnimationPlaybackPanel animationPlayback;
-    public ViewportGizmos gizmos;
     protected Settings settings;
     private final List<String> loadIssues = new ArrayList<>();
-    private boolean closed;
     private static Path settingsPath = Paths.get("settings.json");
-    public boolean materialsDirty;
     private VariantView variantMenu;
 
     public PokeUtilsGui(String title, int width, int height) throws IOException {
@@ -74,7 +70,6 @@ public class PokeUtilsGui extends AppBase {
         this.canvas = new RareCandyCanvas(this);
         this.animationPlayback = new AnimationPlaybackPanel(canvas);
         this.fileViewer = new PixelAssetTree(this);
-        this.gizmos = new ViewportGizmos(this);
         this.variantMenu = new VariantView(this);
 
         menu = configureMenu();
@@ -121,6 +116,8 @@ public class PokeUtilsGui extends AppBase {
         canvas.initGL();
     }
 
+
+
     @Override
     protected void renderGui() {
         setUiScale(settings.features.largeUi.getValue() ? 1.75f : 1.0f);
@@ -129,7 +126,6 @@ public class PokeUtilsGui extends AppBase {
         animationPlayback.render();
         settings.render();
         renderLoadIssues();
-        gizmos.render(settings.features.gizmos.getValue());
 
         variantMenu.render();
 
@@ -163,10 +159,6 @@ public class PokeUtilsGui extends AppBase {
                 handler.markDirty();
             }
         }
-    }
-
-    public boolean gizmoWantsMouse() {
-        return gizmos != null && gizmos.wantsMouseInput();
     }
 
     @Override
@@ -261,6 +253,7 @@ public class PokeUtilsGui extends AppBase {
     @Override
     protected void cleanupGL() {
         close();
+        canvas.close();
     }
 
     public void setTitle(String title) {

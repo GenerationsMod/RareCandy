@@ -305,7 +305,6 @@ public class GuiHandler implements KeyListener {
 
         @Override
         public void mouseDragged(long window, double x, double y) {
-            if (gui.gizmoWantsMouse()) return;
 
             float dx = (float)((x - lastX) * 0.001f);
             float dy = (float)((y - lastY) * 0.001f);
@@ -329,7 +328,6 @@ public class GuiHandler implements KeyListener {
         @Override
         public void mouseWheelMoved(long window, double xoffset, double yoffset) {
             if(ImGui.getIO().getWantCaptureMouse()) return;
-            if (gui.gizmoWantsMouse()) return;
             float scrollAmount = (float) yoffset;
             radius += scrollAmount * 0.1f;
             update();
@@ -340,7 +338,6 @@ public class GuiHandler implements KeyListener {
 
         @Override
         public void mousePressed(long window, int button, int mods, double x, double y) {
-            if (gui.gizmoWantsMouse()) return;
 
             offsetX = 0;
             offsetY = 0;
@@ -351,7 +348,6 @@ public class GuiHandler implements KeyListener {
 
         @Override
         public void mouseReleased(long window, int button, int mods, double x, double y) {
-            if (gui.gizmoWantsMouse()) return;
 
             angleX += offsetX;
             angleY += offsetY;

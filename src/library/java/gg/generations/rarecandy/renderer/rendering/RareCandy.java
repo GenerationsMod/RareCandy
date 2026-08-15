@@ -1,28 +1,20 @@
 package gg.generations.rarecandy.renderer.rendering;
 
-import gg.generations.rarecandy.renderer.LoggerUtil;
-import gg.generations.rarecandy.renderer.ThreadSafety;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RareCandy {
     private static final Queue<Runnable> TASKS = new ConcurrentLinkedQueue<>();
 
     private final List<MultiRenderObject> objects = new ArrayList<>();
-    private final java.util.Set<MultiRenderObject> objectsToRemove = new java.util.HashSet<>();
+    private final Set<MultiRenderObject> objectsToRemove = new HashSet<>();
 
-    public RareCandy() {
-        ThreadSafety.initContextThread();
-        var startLoad = System.currentTimeMillis();
-        LoggerUtil.print("RareCandy Startup took " + (System.currentTimeMillis() - startLoad) + "ms");
-    }
+    public RareCandy() {}
 
     public static void fatal(String message) {
         throw new RuntimeException("Fatal RareCandy Error! '" + message + "'");

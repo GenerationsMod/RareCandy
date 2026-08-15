@@ -9,8 +9,8 @@ import org.lwjgl.opengl.GL43C;
 import java.util.List;
 import java.util.Map;
 
-import static gg.generations.rarecandy.renderer.pipeline.Pipeline.Builder.attachShader;
 import static gg.generations.rarecandy.renderer.pipeline.Pipeline.Builder.linkProgram;
+
 import static org.lwjgl.opengl.GL42.glMemoryBarrier;
 
 public class ComputePipeline extends Pipeline {

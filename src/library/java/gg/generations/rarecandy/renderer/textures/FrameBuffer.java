@@ -200,7 +200,7 @@ public final class FrameBuffer implements AutoCloseable {
         GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, framebufferId);
     }
 
-    public static void unbindFramebuffer() {
+    public void unbind() {
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
     }
 
@@ -268,27 +268,44 @@ public final class FrameBuffer implements AutoCloseable {
         GL45C.glNamedFramebufferReadBuffer(framebufferId, GL11.GL_NONE);
     }
 
-    public void clearColor(int attachment, float r, float g, float b, float a) {
-        checkColorIndex(attachment);
-        GL45C.glClearNamedFramebufferfv(framebufferId, GL11.GL_COLOR, attachment, new float[]{r, g, b, a});
+    private final float[] colorFloat = new float[4];
+    private final int[] colorInt = new int[4];
+    private final int[] stencil = new int[1];
+    private final float[] depth = new float[1];
+
+    private void fill(float r, float g, float b, float a) {
+        colorFloat[0] = r;
+        colorFloat[1] = g;
+        colorFloat[2] = b;
+        colorFloat[3] = a;
     }
 
-    public void clearColorInt(int attachment, int x, int y, int z, int w) {
-        checkColorIndex(attachment);
-        GL45C.glClearNamedFramebufferiv(framebufferId, GL11.GL_COLOR, attachment, new int[]{x, y, z, w});
+    private void fill(int r, int g, int b, int a) {
+        colorInt[0] = r;
+        colorInt[1] = g;
+        colorInt[2] = b;
+        colorInt[3] = a;
     }
 
-    public void clearColorUInt(int attachment, int x, int y, int z, int w) {
-        checkColorIndex(attachment);
-        GL45C.glClearNamedFramebufferuiv(framebufferId, GL11.GL_COLOR, attachment, new int[]{x, y, z, w});
+
+    public void clearColor(int drawBuffer, float r, float g, float b, float a) {
+        fill(r, g, b, a);
+        GL45C.glClearNamedFramebufferfv(framebufferId, GL11.GL_COLOR, drawBuffer, colorFloat);
+    }
+
+    public void clearColorInt(int drawBuffer, int x, int y, int z, int w) {
+        fill(x, y, z, w);
+        GL45C.glClearNamedFramebufferiv(framebufferId, GL11.GL_COLOR, drawBuffer, colorInt);
     }
 
     public void clearDepth(float depth) {
-        GL45C.glClearNamedFramebufferfv(framebufferId, GL11.GL_DEPTH, 0, new float[]{depth});
+        this.depth[0] = depth;
+        GL45C.glClearNamedFramebufferfv(framebufferId, GL11.GL_DEPTH, 0, this.depth);
     }
 
     public void clearStencil(int stencil) {
-        GL45C.glClearNamedFramebufferiv(framebufferId, GL11.GL_STENCIL, 0, new int[]{stencil});
+        this.stencil[0] = stencil;
+        GL45C.glClearNamedFramebufferiv(framebufferId, GL11.GL_STENCIL, 0, this.stencil);
     }
 
     public void clearDepthStencil(float depth, int stencil) {

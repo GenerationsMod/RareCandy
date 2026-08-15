@@ -139,16 +139,7 @@ public class Pipeline {
             this.program = program;
         }
 
-        public static void attachShader(int programId, String source, int type) {
-            int shader = GL20C.glCreateShader(type);
-            GL20C.glShaderSource(shader, source);
-            GL20C.glCompileShader(shader);
-            if (GL20C.glGetShaderi(shader, GL20C.GL_COMPILE_STATUS) == GL11C.GL_FALSE) {
-                String log = GL20C.glGetShaderInfoLog(shader, 8192);
-                throw new IllegalStateException("Shader compilation failed for type " + type + ":\n" + log);
-            }
-            GL20C.glAttachShader(programId, shader);
-        }
+
 
         public static void linkProgram(int programId) {
             GL20C.glLinkProgram(programId);
@@ -301,6 +292,12 @@ public class Pipeline {
             return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadVec2f(supplier.apply(ctx)));
         }
 
+        public V autoVec2i(Scope scope, String uniformName, Function<UniformUploadContext, Vector2i> supplier) {
+            getAndCheckUniform(uniformName, GL20C.GL_INT_VEC2);
+            return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadVec2i(supplier.apply(ctx)));
+        }
+
+
         public V autoFloat(Scope scope, String uniformName, Function<UniformUploadContext, Float> supplier) {
             getAndCheckUniform(uniformName, GL20C.GL_FLOAT);
             return addUniform(scope, uniformName, (uniform, ctx) -> uniform.uploadFloat(supplier.apply(ctx)));
@@ -356,5 +353,16 @@ public class Pipeline {
 
     public void destroy() {
         GL32.glDeleteProgram(program);
+    }
+
+    public static void attachShader(int programId, String source, int type) {
+        int shader = GL20C.glCreateShader(type);
+        GL20C.glShaderSource(shader, source);
+        GL20C.glCompileShader(shader);
+        if (GL20C.glGetShaderi(shader, GL20C.GL_COMPILE_STATUS) == GL11C.GL_FALSE) {
+            String log = GL20C.glGetShaderInfoLog(shader, 8192);
+            throw new IllegalStateException("Shader compilation failed for type " + type + ":\n" + log);
+        }
+        GL20C.glAttachShader(programId, shader);
     }
 }

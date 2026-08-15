@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.tools;
 
+import gg.generations.rarecandy.renderer.launch.OpenGL;
 import gg.generations.rarecandy.renderer.pipeline.util.UniformUploadContext;
 import gg.generations.rarecandy.renderer.textures.BlankTexture;
 import gg.generations.rarecandy.renderer.textures.ITexture;
@@ -20,7 +21,7 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL42.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class ComputeShaderDemo {
+public class ComputeShaderDemo extends AppBase {
     private long window;
     private int width = 1024, height = 1024;
 
@@ -29,45 +30,21 @@ public class ComputeShaderDemo {
 
     // Example control uniforms
     private float time = 0f;
-    private float[] intensity = new float[]{1f};
-    private ImVector3f color = new ImVector3f(1f, 0f, 0f);
-    private ImVector3f color2 = new ImVector3f(0, 1f, 0f);
+    private final float[] intensity = new float[]{1f};
+    private final ImVector3f color = new ImVector3f(1f, 0f, 0f);
+    private final ImVector3f color2 = new ImVector3f(0, 1f, 0f);
 
-    private ImGuiImplGlfw imguiGlfw;
-    private ImGuiImplGl3 imguiGl3;
     private BlankTexture target;
+
+    public ComputeShaderDemo() {
+        super("Compute Shader Test", 1024, 1024, new OpenGL());
+    }
 
     public static void main(String[] args) {
         new ComputeShaderDemo().run();
     }
 
-    public void run() {
-        initWindow();
-        initImGui();
-        initGL();
-        loop();
-        cleanup();
-    }
-
-    private void initWindow() {
-        if (!glfwInit()) throw new IllegalStateException("Unable to init GLFW");
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        window = glfwCreateWindow(1024, 1024, "Compute Shader Demo", NULL, NULL);
-        glfwMakeContextCurrent(window);
-        GL.createCapabilities();
-    }
-
-    private void initImGui() {
-        ImGui.createContext();
-        imguiGlfw = new ImGuiImplGlfw();
-        imguiGl3 = new ImGuiImplGl3();
-        imguiGlfw.init(window, true);
-        imguiGl3.init("#version 430");
-    }
-
-    private void initGL() {
+    public void initGL() {
         // --- Texture ---
         target = new BlankTexture(ITexture.Type.RGBA8, 1024, 1024, ITexture.ComputeAccess.WRITE_ONLY);
 
@@ -127,84 +104,40 @@ public class ComputeShaderDemo {
                 }).build();
     }
 
-    private void loop() {
-        while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-            time += 0.016f;
+    @Override
+    protected void renderGui() {
+        color.render("Color 1");
+        color2.render("Color 2");
 
-            computeProgram.useProgram();
-            computeProgram.bindGlobal();
+        if(ImGui.sliderFloat("Intensity", intensity, 0f, 1f)) {
 
-            // --- Run compute ---
-            computeProgram.dispatch(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT, (width + 15) / 16, (height + 15) / 16, 1);
-
-            // --- Draw quad ---
-            glClear(GL_COLOR_BUFFER_BIT);
-            quadProgram.useProgram();
-            quadProgram.bindGlobal();
-
-            glBindTexture(GL_TEXTURE_2D, target.id());
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-
-            // --- UI ---
-            imguiGlfw.newFrame();
-            imguiGl3.newFrame();
-            ImGui.newFrame();
-
-            color.render("Color 1");
-            color2.render("Color 2");
-
-            if(ImGui.sliderFloat("Intensity", intensity, 0f, 1f)) {
-
-            }
-
-
-            ImGui.setNextWindowPos(200, 300, ImGuiCond.Always);
-            ImGui.setNextWindowSize(512, 512, ImGuiCond.Always);
-            ImGui.begin("derp");
-            ImGui.image(target.id(), 512, 512); // show the 1024x1024 image
-
-            ImGui.end();
-
-            ImGui.render();
-            imguiGl3.renderDrawData(ImGui.getDrawData());
-
-            glfwSwapBuffers(window);
         }
+
+
+//        ImGui.setNextWindowPos(200, 300, ImGuiCond.Always);
+//        ImGui.setNextWindowSize(512, 512, ImGuiCond.Always);
+        ImGui.begin("derp");
+        ImGui.image(target.id(), 512, 512); // show the 1024x1024 image
+
+        ImGui.end();
     }
 
-    private static final float[] colorArray = new float[3];
+    @Override
+    protected void render() {
+        time += 0.016f;
 
-    private int compileProgram(String vert, String frag) {
-        int vs = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vs, vert);
-        glCompileShader(vs);
-        if (glGetShaderi(vs, GL_COMPILE_STATUS) == 0)
-            throw new RuntimeException(glGetShaderInfoLog(vs));
+        computeProgram.useProgram();
+        computeProgram.bindGlobal();
 
-        int fs = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fs, frag);
-        glCompileShader(fs);
-        if (glGetShaderi(fs, GL_COMPILE_STATUS) == 0)
-            throw new RuntimeException(glGetShaderInfoLog(fs));
+        // --- Run compute ---
+        computeProgram.dispatch(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT, (width + 15) / 16, (height + 15) / 16, 1);
 
-        int prog = glCreateProgram();
-        glAttachShader(prog, vs);
-        glAttachShader(prog, fs);
-        glLinkProgram(prog);
-        if (glGetProgrami(prog, GL_LINK_STATUS) == 0)
-            throw new RuntimeException(glGetProgramInfoLog(prog));
+        // --- Draw quad ---
+        glClear(GL_COLOR_BUFFER_BIT);
+        quadProgram.useProgram();
+        quadProgram.bindGlobal();
 
-        glDeleteShader(vs);
-        glDeleteShader(fs);
-        return prog;
-    }
-
-    private void cleanup() {
-        imguiGl3.shutdown();
-        imguiGlfw.shutdown();
-        ImGui.destroyContext();
-        glfwDestroyWindow(window);
-        glfwTerminate();
+        glBindTexture(GL_TEXTURE_2D, target.id());
+        glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 }

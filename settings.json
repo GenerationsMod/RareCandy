@@ -16,9 +16,9 @@
   "features": {
     "terastalization": false,
     "fog": true,
-    "light": false,
+    "light": true,
     "grid": true,
-    "gizmos": false,
+    "gizmos": true,
     "largeUi": true
   },
   "fog": {
@@ -34,7 +34,7 @@
   "light": {
     "lightLevel": {
       "data": [
-        15
+        2
       ]
     }
   }

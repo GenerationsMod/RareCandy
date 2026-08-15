@@ -204,16 +204,6 @@ public final class ModelObjectCompiler {
         }
     }
 
-    /**
-     * Rebuilds every material and the complete material SSBO.
-     *
-     * <p>Material inheritance is resolved fresh from the supplied configuration. No
-     * completed-material cache is retained, so editing a parent material cannot reuse a
-     * stale inherited value.</p>
-     *
-     * <p>This method does not rebuild variants. Call {@link #refreshRenderStages} after
-     * this method only when the edit can change {@link RenderStage#from(Material)}.</p>
-     */
     public static void rebuildMaterials(
             MultiRenderObject object,
             IModelConfig config,

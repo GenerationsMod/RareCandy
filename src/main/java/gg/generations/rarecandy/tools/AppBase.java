@@ -1,19 +1,13 @@
 package gg.generations.rarecandy.tools;
 
 import gg.generations.rarecandy.renderer.launch.OpenGL;
-import gg.generations.rarecandy.renderer.textures.BlankTexture;
 import imgui.ImGui;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
-import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
@@ -31,14 +25,9 @@ public abstract class AppBase {
 
     private ImGuiImplGlfw imguiGlfw;
     private ImGuiImplGl3 imguiGl3;
-    private BlankTexture target;
     private Queue<Runnable> runnables = new ArrayDeque<>();
     private float uiScale = 1.0f;
     private float appliedUiScale = 1.0f;
-
-    public static void main(String[] args) throws IOException {
-        new ComputeShaderDemo().run();
-    }
 
     public AppBase(String title, int width, int height, OpenGL data) {
         this.title = title;
@@ -148,23 +137,6 @@ public abstract class AppBase {
         }
     }
 
-    private static final float[] colorArray = new float[3];
-
-    private boolean colorEdit3(String name, Vector3f color) {
-        colorArray[0] = color.x();
-        colorArray[1] = color.y();
-        colorArray[2] = color.z();
-
-
-        var succeeded = ImGui.colorEdit3(name, colorArray);
-
-        if(succeeded) {
-            color.set(colorArray[0], colorArray[1], colorArray[2]);
-        }
-
-        return succeeded;
-    }
-
     private void cleanup() {
         cleanupGL();
         imguiGl3.shutdown();
@@ -174,9 +146,7 @@ public abstract class AppBase {
         glfwTerminate();
     }
 
-    protected void cleanupGL() {
-
-    }
+    protected void cleanupGL() {}
 
     public int getWidth() {
         return width;

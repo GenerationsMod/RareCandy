@@ -29,19 +29,17 @@ public class Texture implements ITexture {
     }
 
     public void bind(int slot) {
+        init();
+
+        ITexture.super.bind(slot);
+    }
+
+    public void init() {
         if(details != null) {
             this.type = details.type();
             this.id = details.init();
-//            try {
-//                details.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            } finally {
-                details = null;
-//            }
+            details = null;
         }
-
-        ITexture.super.bind(slot);
     }
 
     @Override
@@ -118,6 +116,10 @@ public class Texture implements ITexture {
     }
 
     public static TextureDetails read(byte[] bytes) {
+        return read(bytes, 0);
+    }
+
+    public static TextureDetails read(byte[] bytes, int desiredChannels) {
         ByteBuffer imageBuffer = MemoryUtil.memAlloc(bytes.length).put(bytes).flip();
 
         IntBuffer wBuffer = MemoryUtil.memAllocInt(1);
@@ -131,14 +133,14 @@ public class Texture implements ITexture {
         }
 
         // Decode the image
-        var image = stbi_load_from_memory(imageBuffer, wBuffer, hBuffer, compBuffer, 0);
+        var image = stbi_load_from_memory(imageBuffer, wBuffer, hBuffer, compBuffer, desiredChannels);
         if (image == null) {
             return null;
         }
 
         var w = wBuffer.get(0);
         var h = hBuffer.get(0);
-        var comp = compBuffer.get(0);
+        var comp = desiredChannels == 0 ? compBuffer.get(0) : 4;
 
         MemoryUtil.memFree(wBuffer);
         MemoryUtil.memFree(hBuffer);

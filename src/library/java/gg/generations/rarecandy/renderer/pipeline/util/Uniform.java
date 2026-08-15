@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.GL42.glBindImageTexture;
 
@@ -15,6 +16,7 @@ public class Uniform {
     private static final FloatBuffer MAT4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(16);
     private static final FloatBuffer MAT3_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(9);
     private static final FloatBuffer VEC2_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(2);
+    private static final IntBuffer   VEC2I_TRANSFER_BUFFER = MemoryUtil.memAllocInt(2);
     private static final FloatBuffer VEC3_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(3);
     private static final FloatBuffer VEC4_TRANSFER_BUFFER = MemoryUtil.memAllocFloat(4);
     protected final String name;
@@ -61,6 +63,11 @@ public class Uniform {
 
     public void upload2i(int x, int y) {
         GL20C.glUniform2i(getLocation(), x, y);
+    }
+
+    public void uploadVec2i(Vector2i value) {
+        value.get(VEC2I_TRANSFER_BUFFER);
+        GL20C.glUniform2iv(getLocation(), VEC2I_TRANSFER_BUFFER);
     }
 
     public void upload2f(float x, float y) {

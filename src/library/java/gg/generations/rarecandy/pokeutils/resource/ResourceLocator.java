@@ -15,6 +15,7 @@ public interface ResourceLocator extends ResourceReader, ResourceWriter {
 
         if(file.endsWith(".zip")) return new ZipResourceLocator(path);
         else if(file.endsWith(".pk")) return new PkResourceLocator(path);
+
         else throw new IllegalStateException("Not a supported format.");
     }
 }

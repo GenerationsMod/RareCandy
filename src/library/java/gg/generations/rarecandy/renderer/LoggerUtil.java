@@ -50,11 +50,6 @@ public class LoggerUtil {
             // Get the root logger
             Logger rootLogger = Logger.getLogger("");
 
-            // Remove existing handlers (optional, if you want to start with a clean slate)
-            for (java.util.logging.Handler handler : rootLogger.getHandlers()) {
-                rootLogger.removeHandler(handler);
-            }
-
             // Create a ConsoleHandler and set its level and formatter
             java.util.logging.ConsoleHandler consoleHandler = new java.util.logging.ConsoleHandler();
             consoleHandler.setLevel(Level.INFO);

@@ -10,4 +10,42 @@ public interface ResourceReader {
     Set<String> getFileNames() throws IOException;
     boolean hasFile(String key);
     InputStream getInputStream(String key) throws IOException;
+
+    default String readAsString(String value) throws IOException {
+        return new String(getFile(value));
+    }
+
+    enum DummyReader implements ResourceReader {
+        INSTANCE;
+
+        @Override
+        public String getName() {
+            return "dummy";
+        }
+
+        @Override
+        public byte[] getFile(String key) throws IOException {
+            throw new IOException("This is a dummy reader");
+        }
+
+        @Override
+        public Set<String> getFileNames() throws IOException {
+            throw new IOException("This is a dummy reader");
+        }
+
+        @Override
+        public boolean hasFile(String key) {
+            return true;
+        }
+
+        @Override
+        public InputStream getInputStream(String key) throws IOException {
+            throw new IOException("This is a dummy reader");
+        }
+
+        @Override
+        public String readAsString(String value) throws IOException {
+            return value;
+        }
+    }
 }

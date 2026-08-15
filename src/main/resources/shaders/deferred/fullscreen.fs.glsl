@@ -21,20 +21,11 @@ void main() {
 
     ivec2 size = textureSize(objectTexture, 0);
 
-    ivec2 pixel = clamp(
-    ivec2(uv * vec2(size)),
-    ivec2(0),
-    size - 1
-    );
+    ivec2 pixel = clamp(ivec2(uv * vec2(size)), ivec2(0), size - 1);
 
-    bool centerIsObject =
-    texelFetch(objectTexture, pixel, 0).r > 0.5;
+    bool centerIsObject = texelFetch(objectTexture, pixel, 0).r > 0.5;
 
-    float radius = clamp(
-    outlineThickness,
-    1.0,
-    float(MAX_RADIUS)
-    );
+    float radius = clamp(outlineThickness, 1.0, float(MAX_RADIUS));
 
     float edge = 0.0;
 
@@ -53,11 +44,7 @@ void main() {
                     continue;
                 }
 
-                ivec2 samplePixel = clamp(
-                pixel + ivec2(x, y),
-                ivec2(0),
-                size - 1
-                );
+                ivec2 samplePixel = clamp(pixel + ivec2(x, y), ivec2(0), size - 1);
 
                 bool sampleIsObject =
                 texelFetch(objectTexture, samplePixel, 0).r > 0.5;
@@ -76,8 +63,5 @@ void main() {
 
     float alpha = edge * outlineColor.a;
 
-    outColor = vec4(
-    mix(scene.rgb, outlineColor.rgb, alpha),
-    scene.a
-    );
+    outColor = vec4(mix(scene.rgb, outlineColor.rgb, alpha), scene.a);
 }

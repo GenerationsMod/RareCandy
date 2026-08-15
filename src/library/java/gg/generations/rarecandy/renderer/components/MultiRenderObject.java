@@ -169,6 +169,7 @@ public abstract class MultiRenderObject {
             material.close();
         }
 
+        this.images.close();
         GL43.glDeleteBuffers(modelBuffer);
         this.drawInfo.delete();
         this.instance.delete();
@@ -176,6 +177,7 @@ public abstract class MultiRenderObject {
         this.material.delete();
 
         drawBuffer.values().forEach(SSBOBuffer::delete);
+
     }
 
     public boolean isEmpty() {

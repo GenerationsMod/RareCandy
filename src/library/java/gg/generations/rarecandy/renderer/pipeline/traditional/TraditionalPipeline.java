@@ -2,6 +2,7 @@ package gg.generations.rarecandy.renderer.pipeline.traditional;
 
 import gg.generations.rarecandy.renderer.model.material.Material;
 import gg.generations.rarecandy.renderer.pipeline.Pipeline;
+import gg.generations.rarecandy.renderer.pipeline.ProgramSet;
 import gg.generations.rarecandy.renderer.pipeline.util.*;
 import org.joml.*;
 import org.lwjgl.opengl.*;
@@ -13,7 +14,6 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static gg.generations.rarecandy.renderer.pipeline.Pipeline.Builder.attachShader;
 import static gg.generations.rarecandy.renderer.pipeline.Pipeline.Builder.linkProgram;
 
 /**
@@ -55,23 +55,21 @@ public final class TraditionalPipeline extends Pipeline {
         return postDraw;
     }
 
+    public static TraditionalPipeline.Builder builder(ProgramSet set) {
+        int programId = GL20C.glCreateProgram();
+        set.attachTraditional(programId);
+        linkProgram(programId);
+        return new Builder(programId);
+    }
+
     public static TraditionalPipeline.Builder builder(String vertexSource, String fragmentSource) {
         int programId = GL20C.glCreateProgram();
-
-writeClipboard(fragmentSource);
 
         attachShader(programId, vertexSource, GL20C.GL_VERTEX_SHADER);
         attachShader(programId, fragmentSource, GL20C.GL_FRAGMENT_SHADER);
         linkProgram(programId);
         return new Builder(programId);
     }
-
-
-    public static void writeClipboard(String text) {
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(new StringSelection(text), null);
-    }
-
 
     public static TraditionalPipeline.Builder builder(String vertexSource, String geometrySource, String fragmentSource) {
         int programId = GL20C.glCreateProgram();

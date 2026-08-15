@@ -5,7 +5,6 @@ import gg.generations.rarecandy.renderer.rendering.StateManager;
 import gg.generations.rarecandy.renderer.storage.DrawBuffer;
 
 public final class ScreenSpaceGridRenderer implements AutoCloseable {
-    private final DummyVAO vao = new DummyVAO();
     private final DrawBuffer drawBuffer = new DrawBuffer(16);
 
     public ScreenSpaceGridRenderer() {
@@ -23,13 +22,11 @@ public final class ScreenSpaceGridRenderer implements AutoCloseable {
         GuiPipelines.GRID.bindGlobal();
 
         stateManager.toggle(true, false, true);
-        vao.bind();
         drawBuffer.render();
     }
 
     @Override
     public void close() {
-        vao.delete();
         drawBuffer.delete();
     }
 }

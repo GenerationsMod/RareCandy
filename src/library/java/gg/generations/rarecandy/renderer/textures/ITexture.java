@@ -2,10 +2,7 @@ package gg.generations.rarecandy.renderer.textures;
 
 import org.apache.commons.lang3.function.TriConsumer;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL42;
+import org.lwjgl.opengl.*;
 import org.lwjgl.stb.STBImageWrite;
 import org.lwjgl.system.MemoryUtil;
 
@@ -16,8 +13,7 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 
 public interface ITexture extends Closeable {
     default void bind(int slot) {
-        GL13.glActiveTexture(GL13.GL_TEXTURE0 + slot);
-        GL11.glBindTexture(target(), id());
+        GL45C.glBindTextureUnit(slot, id());
     }
 
     int width();

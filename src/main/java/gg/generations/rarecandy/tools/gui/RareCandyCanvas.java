@@ -31,31 +31,30 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 
 public class RareCandyCanvas {
 
     private static CycleVariants runnable;
-    public static Matrix4f projectionMatrix;
-    public static float radius = 2.0f;
 
     public static float lightLevel = 1;
     private double time;
 
-    public static final Matrix4f viewMatrix = new Matrix4f();
+    public final Camera camera = new Camera();
+
+
     public final List<AnimatedObjectInstance> instances = new ArrayList<>();
-    public float scaleModifier = 0;
+    private float scaleModifier = 1.0f;
     public final Vector3f modelTranslation = new Vector3f();
     public float modelYaw = 0.0f;
-    public final Vector4f outlineColor = new Vector4f(1, 1, 1, 1);
-    public float outlineThickness = 3.25f;
     private final PokeUtilsGui handler;
     public double startTime = System.currentTimeMillis();
     public String currentAnimation = null;
     public double originalScaleModifer;
     public IModelConfig config;
     private RareCandy renderer;
+
+    private ScreenSpaceGridRenderer gridRenderer;
 
     private DummyVAO vao;
 
@@ -64,10 +63,7 @@ public class RareCandyCanvas {
     public static boolean cycling;
     public static boolean animate = true;
     private FogUploader fogUploader;
-    private ScreenSpaceGridRenderer gridRenderer;
     private boolean rendering = false;
-
-    private DefferedPass defferedPass;
 
     private final StateManager manager = new StateManager(
             BlendType.Regular::enable, BlendType.Regular::disable,
@@ -78,11 +74,8 @@ public class RareCandyCanvas {
 
     public Selected selected;
     private Map<String, AnimResource> loadedAnimationSources;
-    private FrameBuffer framebuffer;
-
-    public static void setLightLevel(float lightLevel) {
-        RareCandyCanvas.lightLevel = lightLevel;
-    }
+    public FrameBuffer gbuffer;
+    public FrameBuffer composite;
 
     public RareCandyCanvas(PokeUtilsGui handler) {
         this.handler = handler;
@@ -91,14 +84,17 @@ public class RareCandyCanvas {
     }
 
     public void resize(int width, int height) {
-        int safeWidth = Math.max(1, width);
-        int safeHeight = Math.max(1, height);
+        width = Math.max(1, width);
+        height = Math.max(1, height);
 
-        projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) safeWidth / safeHeight, 0.1f, 1000.0f);
+        var aspect = (float) width / height;
 
-        if (framebuffer != null) {
-            framebuffer.resize(safeWidth, safeHeight);
-        }
+        camera.setProjectionMatrix(matrix -> {
+            matrix.perspective((float) Math.toRadians(100), aspect, 0.1f, 1000.0f);
+        });
+
+        if(gbuffer != null) gbuffer.resize(width, height);
+        if(RenderPasses.chain != null) RenderPasses.chain.resize(width, height);
     }
 
     public void openFile(ResourceReader pkFile, String name) throws Exception {
@@ -136,7 +132,13 @@ public class RareCandyCanvas {
 
                 resetModelTransform();
 
-                scaleModifier = loadedModel.scale;
+                float configScale = config != null ? config.scale() : loadedModel.scale;
+
+                if (configScale > 0.0f) {
+                    loadedModel.scale = configScale;
+                }
+
+                setScaleModifier(loadedModel.scale);
                 originalScaleModifer = loadedModel.scale;
 
                 handler.fileViewer.scale.reset();
@@ -163,22 +165,21 @@ public class RareCandyCanvas {
 
     public void initGL() {
 
-        projectionMatrix = new Matrix4f().perspective((float) Math.toRadians(100), (float) handler.getWidth() / handler.getHeight(), 0.1f, 1000.0f);
+        camera.setProjectionMatrix(projection -> projection.perspective((float) Math.toRadians(100), (float) handler.getWidth() / handler.getHeight(), 0.1f, 1000.0f));
         GL.createCapabilities(true);
         GuiPipelines.onInitialize(this, handler.settings);
+
         this.renderer = new RareCandy();
 
         fogUploader = new FogUploader(handler.settings.fog);
         gridRenderer = new ScreenSpaceGridRenderer();
-        framebuffer = FrameBuffer.builder(handler.getWidth(), handler.getHeight())
+        gbuffer = FrameBuffer.builder(handler.getWidth(), handler.getHeight())
                 .color(FrameBuffer.TextureSpec.texture2D(ITexture.Type.RGBA8).withFilters(GL11C.GL_NEAREST, GL11C.GL_NEAREST))
                 .color(FrameBuffer.TextureSpec.texture2D(ITexture.Type.RGBA16F).withFilters(GL11C.GL_NEAREST, GL11C.GL_NEAREST))
                 .color(FrameBuffer.TextureSpec.texture2D(ITexture.Type.RGBA16F).withFilters(GL11C.GL_NEAREST, GL11C.GL_NEAREST))
-                .stencilTexture(FrameBuffer.TextureSpec.texture2D(ITexture.Type.STENCIL8).withFilters(GL11C.GL_NEAREST, GL11C.GL_NEAREST))
+                .color(FrameBuffer.TextureSpec.texture2D(ITexture.Type.R8).withFilters(GL11C.GL_NEAREST, GL11C.GL_NEAREST))
                 .depthTexture(FrameBuffer.TextureSpec.depth2D(ITexture.Type.DEPTH24, false))
                 .build();
-
-        defferedPass = new DefferedPass(framebuffer);
 
         vao = new DummyVAO();
     }
@@ -187,31 +188,41 @@ public class RareCandyCanvas {
     private final Vector3f size = new Vector3f();
 
 
+    /** 0 albedo, 1 normal, 2 emission, 3 selection. */
+    public int gbufferDebugIndex = 1;
+
     public void render() {
-        if(!rendering) return;
+
 
         if (loadedModelInstance != null) {
             loadedModelInstance.modelMatrix().identity()
                     .translate(modelTranslation)
                     .rotateY(modelYaw)
-                    .scale(scaleModifier);
+                    .scale(getScaleModifier());
             loadedModelInstance.normalMatrix().identity().rotateY(modelYaw);
             loadedModelInstance.use();
-            size.set(loadedModel.dimensions).mul(scaleModifier);
-
+            size.set(loadedModel.dimensions).mul(getScaleModifier());
         }
 
-        if(animate) time = (System.currentTimeMillis() - startTime) / 1000f;
+        if (animate) time = (System.currentTimeMillis() - startTime) / 1000f;
 
         if (runnable != null) runnable.pre();
 
         renderer.update(time);
 
         vao.bind();
-        defferedPass.start();
 
-        renderDeferred();
-        renderGrid();
+        DefferedPass.start(gbuffer, handler.clearColor());
+
+        GuiPipelines.G_BUFFER.useProgram();
+        GuiPipelines.G_BUFFER.bindGlobal();
+        renderer.render(GuiPipelines.G_BUFFER, manager);
+        gridRenderer.render(handler.settings, manager);
+
+        gbuffer.unbind();
+        manager.reset();
+
+        RenderPasses.chain.render(gbuffer, handler.getWidth(), handler.getWidth());
 
         renderer.end();
 
@@ -221,10 +232,10 @@ public class RareCandyCanvas {
 
             (instances.get(0).object()).onUpdate(a -> {
                 for (var instance : instances) {
-                    if(a.animations != null) {
+                    if (a.animations != null) {
                         var newAnimation = a.animationNameToId.getOrDefault(currentAnimation, -1);
 
-                        if(newAnimation > -1) {
+                        if (newAnimation > -1) {
                             instance.changeAnimation(createInstance(a.animations[newAnimation]));
                         }
                     }
@@ -232,6 +243,8 @@ public class RareCandyCanvas {
             });
         }
     }
+
+
 
 
 //    private void renderGrid() {
@@ -294,6 +307,22 @@ public class RareCandyCanvas {
 
     public void close() {
         fogUploader.close();
+    }
+
+    public float getScaleModifier() {
+        return scaleModifier;
+    }
+
+    public void setScaleModifier(float scaleModifier) {
+        this.scaleModifier = scaleModifier;
+    }
+
+    public int getWidth() {
+        return handler.getWidth();
+    }
+
+    public int getHeight() {
+        return handler.getHeight();
     }
 
     public static class CycleVariants  {

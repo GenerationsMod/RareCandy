@@ -1,7 +1,7 @@
 {
   "urls": {
     "openArchiveUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\articuno",
-    "saveAsUrl": "D:\\Git Repos\\Models",
+    "saveAsUrl": "D:\\Git Repos\\Models.pk",
     "createArchiveUrl": "",
     "sequenceUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\gengar_mega"
   },
@@ -15,27 +15,52 @@
   },
   "features": {
     "terastalization": false,
-    "fog": true,
-    "light": true,
+    "fog": false,
+    "values": true,
     "grid": true,
     "gizmos": true,
     "largeUi": true
   },
   "fog": {
     "color": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0,
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0,
       "w": 1.0
     },
     "start": 0.0,
     "end": 10.0
   },
-  "light": {
-    "lightLevel": {
-      "data": [
-        2
-      ]
+  "values": {
+    "skyLight": {
+      "value": {
+        "data": [
+          0
+        ]
+      },
+      "min": 0,
+      "max": 15,
+      "name": "Sky"
+    },
+    "blockLight": {
+      "value": {
+        "data": [
+          0
+        ]
+      },
+      "min": 0,
+      "max": 15,
+      "name": "Block"
+    },
+    "gBufferDebug": {
+      "value": {
+        "data": [
+          0
+        ]
+      },
+      "min": 0,
+      "max": 3,
+      "name": "G-Buffer Debug"
     }
   }
 }

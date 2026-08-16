@@ -1,17 +1,12 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.pokeutils.IModelConfig;
-import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.pokeutils.resource.ResourceLocator;
-import gg.generations.rarecandy.renderer.pipeline.Pipelines;
 import imgui.ImGui;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public class PixelAssetTree {
@@ -24,7 +19,7 @@ public class PixelAssetTree {
     public PixelAssetTree(PokeUtilsGui gui) {
         super();
         this.gui = gui;
-        scale = new PokeUtilsGui.FloatInputComponent("Scale", () -> gui.canvas.originalScaleModifer, scale -> gui.canvas.scaleModifier = (float) scale);
+        scale = new PokeUtilsGui.FloatInputComponent("Scale", () -> gui.canvas.originalScaleModifer, scale -> gui.canvas.setScaleModifier((float) scale));
     }
 
     public void render() {

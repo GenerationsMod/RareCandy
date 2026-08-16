@@ -4,24 +4,18 @@ import com.bedrockk.molang.MoLang;
 import com.bedrockk.molang.runtime.value.DoubleValue;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gg.generations.rarecandy.pokeutils.Change;
 import gg.generations.rarecandy.pokeutils.IMaterialReference;
 import gg.generations.rarecandy.pokeutils.IModelConfig;
 import gg.generations.rarecandy.pokeutils.ImModelConfig;
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.renderer.launch.OpenGL;
 import gg.generations.rarecandy.renderer.loading.ModelObjectCompiler;
-import gg.generations.rarecandy.renderer.model.Variant;
 import gg.generations.rarecandy.tools.AppBase;
 import gg.generations.rarecandy.tools.TextureLoader;
-import gg.generations.rarecandy.tools.gui.imgui.ImBoolean;
-import gg.generations.rarecandy.tools.gui.imgui.ImVector3f;
-import gg.generations.rarecandy.tools.gui.imgui.ImVector4f;
-import gg.generations.rarecandy.tools.gui.imgui.Serializers;
+import gg.generations.rarecandy.tools.gui.imgui.*;
 import imgui.ImGui;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.type.ImFloat;
-import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector4f;
 import org.lwjgl.glfw.GLFW;
@@ -135,7 +129,7 @@ public class PokeUtilsGui extends AppBase {
             var flags = imConfig.render();
             if (flags != 0) {
                 if ((flags & 1) != 0) {
-                    canvas.scaleModifier = imConfig.scale();
+                    canvas.setScaleModifier(imConfig.scale());
                 }
 
                 if((flags & 2) != 0) {
@@ -343,12 +337,12 @@ public class PokeUtilsGui extends AppBase {
         public Terastalization terastalization = new Terastalization();
         public Features features = new Features();
         public Fog fog = new Fog();
-        public Light light = new Light();
+        public Values values = new Values();
 
         public void render() {
             if(features.terastalization.getValue()) terastalization.render();
             if(features.fog.getValue()) fog.render();
-            if(features.light.getValue()) light.render();
+            if(features.values.getValue()) values.render();
             features.render();
         }
 
@@ -371,14 +365,22 @@ public class PokeUtilsGui extends AppBase {
             }
         }
 
-        public static class Light {
-            public ImInt lightLevel = new ImInt(15);
+        public static class Values {
+            public ImInt skyLight = new ImInt("Sky", 15, 0, 15);
+            public ImInt blockLight = new ImInt("Block", 15, 0, 15);
+            public ImInt gBufferDebug = new ImInt("G-Buffer Debug", 0, 0, 3);
 
             public void render() {
-                ImGui.begin("Light");
 
-                if(ImGui.sliderInt("Start", lightLevel.getData(), 0, 15)) {
-                }
+                ImGui.begin("Values");
+
+
+
+                ImGui.begin("Light");
+                skyLight.render();
+                blockLight.render();
+                ImGui.end();
+                gBufferDebug.render();
 
                 ImGui.end();
 
@@ -388,7 +390,7 @@ public class PokeUtilsGui extends AppBase {
         public static class Features {
             ImBoolean terastalization = new ImBoolean(true);
             ImBoolean fog = new ImBoolean(true);
-            ImBoolean light = new ImBoolean(true);
+            ImBoolean values = new ImBoolean(true);
             ImBoolean grid = new ImBoolean(true);
             ImBoolean gizmos = new ImBoolean(true);
             ImBoolean largeUi = new ImBoolean(false);
@@ -397,7 +399,7 @@ public class PokeUtilsGui extends AppBase {
                 ImGui.begin("Features");
                 terastalization.render("Terastalization");
                 fog.render("Fog");
-                light.render("Light");
+                values.render("Values");
                 grid.render("Grid");
                 gizmos.render("Gizmos");
                 largeUi.render("Large UI");
@@ -419,11 +421,7 @@ public class PokeUtilsGui extends AppBase {
             public void render() {
                 ImGui.begin("Fog");
 
-                var dirty = false;
-
-                if(color.render("Color")) {
-                    dirty = true;
-                }
+                var dirty = color.render("Color");
 
                 if(ImGui.sliderFloat("Start", start.getData(), 0, end.floatValue())) {
                     dirty = true;

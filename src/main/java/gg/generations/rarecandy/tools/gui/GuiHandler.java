@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static gg.generations.rarecandy.tools.gui.RareCandyCanvas.lightLevel;
 
@@ -35,7 +35,7 @@ public class GuiHandler implements KeyListener {
 
     public GuiHandler(PokeUtilsGui gui) {
         this.gui = gui;
-        arcBall = new ArcballOrbit(getCanvas(), 3f, 0.125f, 0f);
+        arcBall = new ArcballOrbit(() -> getCanvas(), 3f, 0.125f, 0f);
     }
 
     public void attach(long window) {
@@ -70,7 +70,7 @@ public class GuiHandler implements KeyListener {
             savePath = normalizeSavePath(savePath);
 
             writeConfigToTemp();
-            PixelmonArchiveBuilder.convertToPk(TEMP, ResourceLocator.of(savePath), getCanvas().scaleModifier);
+            PixelmonArchiveBuilder.convertToPk(TEMP, ResourceLocator.of(savePath), getCanvas().getScaleModifier());
             initializeAsset(savePath);
             setCleanTitle(savePath);
             return true;
@@ -217,8 +217,16 @@ public class GuiHandler implements KeyListener {
                     }
 
                 }
-                case GLFW.GLFW_KEY_LEFT_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.max(lightLevel - 0.01, 0));
-                case GLFW.GLFW_KEY_RIGHT_BRACKET -> RareCandyCanvas.setLightLevel((float) Math.min(lightLevel + 0.01, 1));
+                case GLFW.GLFW_KEY_LEFT_BRACKET -> {
+                    var light = gui.settings.values.skyLight;
+                    var value = light.getValue() - 1;
+                    light.setValue(value);
+                }
+                case GLFW.GLFW_KEY_RIGHT_BRACKET -> {
+                    var light = gui.settings.values.skyLight;
+                    var value = light.getValue() + 1;
+                    light.setValue(value);
+                }
 
                 case GLFW.GLFW_KEY_SPACE -> RareCandyCanvas.animate = !RareCandyCanvas.animate;
                 default -> arcBall.keyPressed(key);
@@ -272,8 +280,8 @@ public class GuiHandler implements KeyListener {
     }
 
     public class ArcballOrbit implements MouseMotionListener, MouseWheelListener, MouseListener {
-        private final Matrix4f viewMatrix;
-        private final RareCandyCanvas canvas;
+
+        private final Supplier<RareCandyCanvas> canvas;
         private float radius;
         private float angleX;
         private float angleY;
@@ -283,8 +291,7 @@ public class GuiHandler implements KeyListener {
         private final Vector3f forward = new Vector3f(0, 0, -1);
         private final Vector3f right   = new Vector3f(1, 0, 0);
 
-        public ArcballOrbit(RareCandyCanvas canvas, float radius, float angleX, float angleY) {
-            this.viewMatrix = canvas.viewMatrix;
+        public ArcballOrbit(Supplier<RareCandyCanvas> canvas, float radius, float angleX, float angleY) {
             this.canvas = canvas;
             this.radius = radius;
             this.angleX = angleX;
@@ -293,7 +300,6 @@ public class GuiHandler implements KeyListener {
         }
 
         public void update() {
-            viewMatrix.identity().arcball(radius, centerOffset.x, centerOffset.y, centerOffset.z, (angleY + offsetY) * (float) Math.PI * 2f, (angleX + offsetX) * (float) Math.PI * 2f);
 
             float yaw = (angleX + offsetX) * (float)Math.PI * 2f;
             float cos = (float) Math.cos(yaw);
@@ -301,6 +307,10 @@ public class GuiHandler implements KeyListener {
 
             forward.set(sin, 0f, -cos);
             right.set(cos, 0f, sin);
+
+            var can = canvas.get();
+
+            if(can != null) can.camera.setViewMatrix(matrix -> matrix.identity().arcball(radius, centerOffset.x, centerOffset.y, centerOffset.z, (angleY + offsetY) * (float) Math.PI * 2f, (angleX + offsetX) * (float) Math.PI * 2f));
         }
 
         @Override
@@ -378,11 +388,13 @@ public class GuiHandler implements KeyListener {
         }
 
         public void reset() {
-            if(canvas.loadedModel == null) {
+            var loadedModel = canvas.get().loadedModel;
+
+            if(loadedModel == null) {
                 radius = 2f;
                 centerOffset.set(0, 0, 0);
             } else {
-                radius = ((canvas.loadedModel.dimensions.get(canvas.loadedModel.dimensions.maxComponent())) * canvas.loadedModel.scale)/2f;
+                radius = ((loadedModel.dimensions.get(loadedModel.dimensions.maxComponent())) * loadedModel.scale)/2f;
                 centerOffset.set(0, radius, 0);
             }
 

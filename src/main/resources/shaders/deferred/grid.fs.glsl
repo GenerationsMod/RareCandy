@@ -1,11 +1,16 @@
 #version 460 core
 
-out vec4 outColor;
+in vec2 uv;
+
+layout(location = 0) out vec4 outColor;
+layout(location = 1) out vec4 outNormal;
+layout(location = 2) out vec4 outEmission;
+layout(location = 3) out float outObject;
 
 uniform mat4 inverseProjectionMatrix;
 uniform mat4 inverseViewMatrix;
-uniform mat4 viewProjectionMatrix;
-uniform vec2 viewportSize;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 uniform vec3 cameraPosition;
 
 const float MAJOR_SPACING = 1.0;
@@ -16,45 +21,42 @@ const float AXIS_WIDTH = 1.15;
 const float FADE_START = 8.0;
 const float FADE_END = 64.0;
 
+const vec3 GROUND_COLOR = vec3(1.0);
+
 const vec4 MINOR_COLOR = vec4(0.18, 0.24, 0.28, 0.18);
 const vec4 MAJOR_COLOR = vec4(0.30, 0.38, 0.44, 0.28);
 const vec4 X_AXIS_COLOR = vec4(0.85, 0.24, 0.20, 0.55);
 const vec4 Z_AXIS_COLOR = vec4(0.24, 0.48, 0.90, 0.55);
 
-vec3 unproject(float clipDepth) {
-    vec2 ndc = (gl_FragCoord.xy / viewportSize) * 2.0 - 1.0;
-    vec4 view = inverseProjectionMatrix * vec4(ndc, clipDepth, 1.0);
-    view /= view.w;
+#lib:utils
 
-    vec4 world = inverseViewMatrix * view;
-    return world.xyz;
+float lineMask(float pixelDistance, float width) {
+    return 1.0 - smoothstep(width, width + 1.0, pixelDistance);
 }
 
 float gridLine(vec2 worldPosition, float scale, float width) {
-    if (width <= 0.0) {
-        return 0.0;
-    }
-
     vec2 coord = (worldPosition - vec2(GRID_OFFSET)) / scale;
     vec2 derivative = max(fwidth(coord), vec2(0.0001));
     vec2 grid = abs(fract(coord - 0.5) - 0.5) / derivative;
-    float closestLine = min(grid.x, grid.y);
-    return 1.0 - smoothstep(width, width + 1.0, closestLine);
+    return lineMask(min(grid.x, grid.y), width);
 }
 
 float axisLine(float distanceToAxis, float width) {
-    if (width <= 0.0) {
-        return 0.0;
-    }
-
     float derivative = max(fwidth(distanceToAxis), 0.0001);
-    float line = abs(distanceToAxis) / derivative;
-    return 1.0 - smoothstep(width, width + 1.0, line);
+    return lineMask(abs(distanceToAxis) / derivative, width);
+}
+
+vec4 weighted(vec4 color, float mask) {
+    return vec4(color.rgb, color.a * mask);
+}
+
+vec4 strongest(vec4 a, vec4 b) {
+    return b.a > a.a ? b : a;
 }
 
 void main() {
-    vec3 nearPoint = unproject(-1.0);
-    vec3 farPoint = unproject(1.0);
+    vec3 nearPoint = worldPosFromDepth(uv, 0.0, inverseProjectionMatrix, inverseViewMatrix);
+    vec3 farPoint = worldPosFromDepth(uv, 1.0, inverseProjectionMatrix, inverseViewMatrix);
     vec3 ray = farPoint - nearPoint;
 
     if (abs(ray.y) < 0.000001) {
@@ -67,45 +69,22 @@ void main() {
     }
 
     vec3 worldPosition = nearPoint + ray * t;
-    vec4 clipPosition = viewProjectionMatrix * vec4(worldPosition, 1.0);
+    vec4 clipPosition = projectionMatrix * viewMatrix * vec4(worldPosition, 1.0);
     float ndcDepth = clipPosition.z / clipPosition.w;
-    if (ndcDepth < -1.0 || ndcDepth > 1.0) {
+    if (abs(ndcDepth) > 1.0) {
         discard;
     }
     gl_FragDepth = ndcDepth * 0.5 + 0.5;
 
-    float minorMask = gridLine(worldPosition.xz, MINOR_SPACING, LINE_WIDTH);
-    float majorMask = gridLine(worldPosition.xz, MAJOR_SPACING, LINE_WIDTH);
-    float xAxisMask = axisLine(worldPosition.z, AXIS_WIDTH);
-    float zAxisMask = axisLine(worldPosition.x, AXIS_WIDTH);
+    vec4 line = weighted(MINOR_COLOR, gridLine(worldPosition.xz, MINOR_SPACING, LINE_WIDTH));
+    line = strongest(line, weighted(MAJOR_COLOR, gridLine(worldPosition.xz, MAJOR_SPACING, LINE_WIDTH)));
+    line = strongest(line, weighted(X_AXIS_COLOR, axisLine(worldPosition.z, AXIS_WIDTH)));
+    line = strongest(line, weighted(Z_AXIS_COLOR, axisLine(worldPosition.x, AXIS_WIDTH)));
 
-    vec3 color = MINOR_COLOR.rgb;
-    float alpha = minorMask * MINOR_COLOR.a;
+    line.a *= 1.0 - smoothstep(FADE_START, FADE_END, distance(cameraPosition, worldPosition));
 
-    float majorAlpha = majorMask * MAJOR_COLOR.a;
-    if (majorAlpha > alpha) {
-        color = MAJOR_COLOR.rgb;
-        alpha = majorAlpha;
-    }
-
-    float xAxisAlpha = xAxisMask * X_AXIS_COLOR.a;
-    if (xAxisAlpha > alpha) {
-        color = X_AXIS_COLOR.rgb;
-        alpha = xAxisAlpha;
-    }
-
-    float zAxisAlpha = zAxisMask * Z_AXIS_COLOR.a;
-    if (zAxisAlpha > alpha) {
-        color = Z_AXIS_COLOR.rgb;
-        alpha = zAxisAlpha;
-    }
-
-    float fade = 1.0 - smoothstep(FADE_START, FADE_END, distance(cameraPosition, worldPosition));
-    alpha *= fade;
-
-    if (alpha <= 0.001) {
-        discard;
-    }
-
-    outColor = vec4(color, alpha);
+    outColor = vec4(mix(GROUND_COLOR, line.rgb, line.a), 1.0);
+    outNormal = vec4(vec3(0.0, 1.0, 0.0) * 0.5 + 0.5, 1.0);
+    outEmission = vec4(line.a, 0.0, 0.0, 0.0);
+    outObject = 0.0;
 }

@@ -20,12 +20,15 @@ vec4 getVertexColor(vec3 normal) {
     return vec4(lightAccum, lightAccum, lightAccum, 1);
 }
 
-vec4 applyLight(vec4 outColor, float emission) {
-    outColor *= vertexColor;
+vec4 applyLight(vec4 outColor, int emission) {
     // Sample Minecraft's light level from the lightmap texture
-    vec4 minecraftLight = minecraft_sample_lightmap(lightmap, light);
 
-    outColor *= mix(minecraftLight, FULL_BRIGHT, emission);
+    ivec2 localLight = ivec2(light);
+    localLight.g = max(localLight.g, emission);
+
+    vec4 minecraftLight = minecraft_sample_lightmap(lightmap, localLight);
+
+    outColor *= minecraftLight;
 
     return outColor;
 }

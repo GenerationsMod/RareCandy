@@ -12,16 +12,15 @@ public final class ScreenSpaceGridRenderer implements AutoCloseable {
         drawBuffer.upload();
     }
 
-    public void render(int width, int height, PokeUtilsGui.Settings settings, StateManager stateManager) {
-        if (GuiPipelines.GRID == null || settings == null || !settings.features.grid.getValue() || width <= 0 || height <= 0) {
+    public void render(PokeUtilsGui.Settings settings, StateManager stateManager) {
+        if (!settings.features.grid.getValue()) {
             return;
         }
 
-        GuiPipelines.setGridViewport(width, height);
         GuiPipelines.GRID.useProgram();
         GuiPipelines.GRID.bindGlobal();
 
-        stateManager.toggle(true, false, true);
+        stateManager.toggle(false, false, true);
         drawBuffer.render();
     }
 

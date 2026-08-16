@@ -240,8 +240,7 @@ public class Pipeline {
             Uniform u = getAndCheckUniform(uniformName, GL20C.GL_SAMPLER_2D);
             return addUniform(scope, uniformName, (uniform, ctx) -> {
                 int textureId = tex.get(ctx);
-                GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + textureUnit);
-                GL11C.glBindTexture(GL11C.GL_TEXTURE_2D, textureId);
+                GL45C.glBindTextureUnit(textureUnit, textureId);
                 uniform.uploadInt(textureUnit);
             });
         }
@@ -250,8 +249,7 @@ public class Pipeline {
             Uniform u = getAndCheckUniform(uniformName, GL30C.GL_SAMPLER_2D_ARRAY);
             return addUniform(scope, uniformName, (uniform, ctx) -> {
                 int textureId = tex.getTextureArray(ctx).getId();
-                GL13C.glActiveTexture(GL13C.GL_TEXTURE0 + textureUnit);
-                GL11C.glBindTexture(GL30C.GL_TEXTURE_2D_ARRAY, textureId);
+                GL45C.glBindTextureUnit(textureUnit, textureId);
                 uniform.uploadInt(textureUnit);
             });
         }

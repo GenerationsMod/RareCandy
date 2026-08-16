@@ -4,6 +4,9 @@ import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
 import gg.generations.rarecandy.renderer.pipeline.ShaderSource;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.pipeline.util.Scope;
+import gg.generations.rarecandy.renderer.pipeline.util.Uniform;
+import gg.generations.rarecandy.renderer.pipeline.util.UniformCallback;
+import gg.generations.rarecandy.renderer.pipeline.util.UniformUploadContext;
 import org.joml.Vector3f;
 
 public class RenderPasses {
@@ -35,6 +38,14 @@ public class RenderPasses {
                                 ctx -> canvas.camera.getInverseProjectionMatrix())
                         .addUBO(Scope.GLOBAL, "Fog", 0, ctx -> canvas.getFogUploader().id))
                 .enabledWhen(() -> settings.features.fog.getValue())
+                .build());
+        chain.add(FullscreenPass.of(() -> TraditionalPipeline.builder(source.compileSet(reader, "outline")))
+                .reads("inAlbedo", Source.previous())
+                .reads("inObject", Source.attachment(3))
+                .uniforms(ctx -> {
+                    ctx.addUniform(Scope.GLOBAL, "size", (uniform, ctx1) -> uniform.upload2f(canvas.getWidth(), canvas.getHeight()));
+                    ctx.autoFloat(Scope.GLOBAL, "lineWidth", contex -> 3.0f);
+                }).enabledWhen(() -> true)
                 .build());
     }
 }

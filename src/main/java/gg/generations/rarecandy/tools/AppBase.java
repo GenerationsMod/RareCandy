@@ -99,7 +99,6 @@ public abstract class AppBase {
             glClearColor(clear.x, clear.y, clear.z, clear.w);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            glEnable(GL_DEPTH_TEST);
             render();
 
             imguiGlfw.newFrame();

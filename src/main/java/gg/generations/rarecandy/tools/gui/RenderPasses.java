@@ -1,6 +1,7 @@
 package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.resource.ResourceReader;
+import gg.generations.rarecandy.renderer.pipeline.Pipeline;
 import gg.generations.rarecandy.renderer.pipeline.ShaderSource;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
 import gg.generations.rarecandy.renderer.pipeline.util.Scope;
@@ -8,6 +9,8 @@ import gg.generations.rarecandy.renderer.pipeline.util.Uniform;
 import gg.generations.rarecandy.renderer.pipeline.util.UniformCallback;
 import gg.generations.rarecandy.renderer.pipeline.util.UniformUploadContext;
 import org.joml.Vector3f;
+
+import java.util.function.Function;
 
 public class RenderPasses {
     public static PassChain chain;
@@ -17,7 +20,9 @@ public class RenderPasses {
 
         chain = new PassChain(canvas.getWidth(), canvas.getHeight());
 
-        chain.add(FullscreenPass.of(() -> TraditionalPipeline.builder(source.compileSet(reader, "light")))
+        Function<String, FullscreenPass.Builder> generate = name -> FullscreenPass.of(() -> TraditionalPipeline.builder(source.compileSet(reader, "fullscreen", null, name, null))).writesTo(name);
+
+        chain.add(generate.apply("light")
                 .reads("inAlbedo", Source.attachment(0))
                 .reads("inNormal", Source.attachment(1))
                 .reads("inEmissive", Source.attachment(2))
@@ -30,22 +35,34 @@ public class RenderPasses {
                         .autoVec3(Scope.GLOBAL, "Light1_Direction", ctx -> light1))
                 .build());
 
-        chain.add(FullscreenPass.of(() -> TraditionalPipeline.builder(source.compileSet(reader, "fog")))
-                .reads("inAlbedo", Source.previous())
-                .reads("inDepth", Source.depth())
-                .uniforms(builder -> builder
-                        .autoMat4(Scope.GLOBAL, "inverseProjectionMatrix",
-                                ctx -> canvas.camera.getInverseProjectionMatrix())
-                        .addUBO(Scope.GLOBAL, "Fog", 0, ctx -> canvas.getFogUploader().id))
-                .enabledWhen(() -> settings.features.fog.getValue())
-                .build());
-        chain.add(FullscreenPass.of(() -> TraditionalPipeline.builder(source.compileSet(reader, "outline")))
+        chain.add(generate.apply("mask_albedo")
                 .reads("inAlbedo", Source.previous())
                 .reads("inObject", Source.attachment(3))
-                .uniforms(ctx -> {
-                    ctx.addUniform(Scope.GLOBAL, "size", (uniform, ctx1) -> uniform.upload2f(canvas.getWidth(), canvas.getHeight()));
-                    ctx.autoFloat(Scope.GLOBAL, "lineWidth", contex -> 3.0f);
-                }).enabledWhen(() -> true)
                 .build());
+
+        chain.add(generate.apply("h_guassian").reads("inAlbedo", Source.previous()).build());
+        chain.add(generate.apply("v_guassian").reads("inAlbedo", Source.previous()).build());
+        chain.add(generate.apply("merge")
+                .reads("blurred", Source.previous())
+                .reads("inAlbedo", Source.pass("light"))
+                .build());
+
+//        chain.add(generate.apply("fog")
+//                .reads("inAlbedo", Source.previous())
+//                .reads("inDepth", Source.depth())
+//                .uniforms(builder -> builder
+//                        .autoMat4(Scope.GLOBAL, "inverseProjectionMatrix",
+//                                ctx -> canvas.camera.getInverseProjectionMatrix())
+//                        .addUBO(Scope.GLOBAL, "Fog", 0, ctx -> canvas.getFogUploader().id))
+//                .enabledWhen(() -> settings.features.fog.getValue())
+//                .build());
+//        chain.add(generate.apply("outline")
+//                .reads("inAlbedo", Source.previous())
+//                .reads("inObject", Source.attachment(3))
+//                .uniforms(ctx -> {
+//                    ctx.addUniform(Scope.GLOBAL, "size", (uniform, ctx1) -> uniform.upload2f(canvas.getWidth(), canvas.getHeight()));
+//                    ctx.autoFloat(Scope.GLOBAL, "lineWidth", contex -> 3.0f);
+//                }).enabledWhen(() -> true)
+//                .build());
     }
 }

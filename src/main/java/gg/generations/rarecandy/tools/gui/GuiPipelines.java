@@ -27,12 +27,11 @@ public class GuiPipelines {
             .addSnippet("lib", "structs")
             .addSnippet("lib", "terastal")
             .addSnippet("lib", "utils")
-            .addSnippet("lib", "vertex");
+            .addSnippet("lib", "vertex")
+            .addSnippet("lib", "guassian");
 
     public static TraditionalPipeline G_BUFFER;
-    public static TraditionalPipeline LIGHT;
     public static TraditionalPipeline GRID;
-    public static TraditionalPipeline FOG;
 
     public static double pingpong(double time) {
         return (int) (Math.sin(time * Math.PI * 2) * 7 + 7);

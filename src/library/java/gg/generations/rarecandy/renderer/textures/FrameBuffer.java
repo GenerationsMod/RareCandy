@@ -1119,6 +1119,12 @@ public final class FrameBuffer implements AutoCloseable {
         };
     }
 
+    public static FrameBuffer soloAlbedo(int width, int height) {
+        return FrameBuffer.builder(width, height)
+                .color(FrameBuffer.TextureSpec.texture2D(ITexture.Type.RGBA16F))
+                .build();
+    }
+
     // ------------------------------------------------------------------------
     // Nested types
     // ------------------------------------------------------------------------

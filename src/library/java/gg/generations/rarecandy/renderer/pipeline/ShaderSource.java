@@ -46,11 +46,15 @@ public class ShaderSource {
         }
     }
 
-    public ProgramSet compileSet(ResourceReader reader, String name) {
-        var vertex = compile(reader, name + ".vs.glsl");
-        var geometry = compile(reader, name + ".gs.glsl");
-        var fragment = compile(reader, name + ".fs.glsl");
-        var compute = compile(reader, name + ".cs.glsl");
+    public ProgramSet compileSet(ResourceReader reader, String vertexName, String geometryName, String fragmentName, String computeName) {
+        var vertex = vertexName != null ? compile(reader, vertexName + ".vs.glsl") : null;
+        var geometry = geometryName != null ? compile(reader, geometryName + ".gs.glsl") : null;
+        var fragment = fragmentName != null ? compile(reader, fragmentName + ".fs.glsl") : null;
+        var compute = computeName != null ? compile(reader, computeName + ".cs.glsl") : null;
         return new ProgramSet(vertex, geometry, fragment, compute);
+    }
+
+    public ProgramSet compileSet(ResourceReader reader, String name) {
+        return compileSet(reader, name, name, name, name);
     }
 }

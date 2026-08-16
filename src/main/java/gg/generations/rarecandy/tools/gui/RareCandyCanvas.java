@@ -222,7 +222,7 @@ public class RareCandyCanvas {
         gbuffer.unbind();
         manager.reset();
 
-        RenderPasses.chain.render(gbuffer, handler.getWidth(), handler.getWidth());
+        RenderPasses.chain.render(gbuffer, handler.getWidth(), handler.getHeight());
 
         renderer.end();
 

@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GL11C;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -24,6 +25,11 @@ public final class FullscreenPass {
     private FrameBuffer gbuffer;
     private FrameBuffer previous;
 
+    private final String output;
+    private final float scale;
+
+    private Map<String, FrameBuffer> namedTargets = Map.of();
+
     private TraditionalPipeline pipeline;
 
     private FullscreenPass(Builder builder) {
@@ -31,7 +37,17 @@ public final class FullscreenPass {
         this.inputs = List.copyOf(builder.inputs);
         this.extraUniforms = builder.extraUniforms;
         this.enabled = builder.enabled;
+        this.output = builder.output;
+        this.scale = builder.scale;
         this.pipeline = compile();
+    }
+
+    public String getOutput() {
+        return output;
+    }
+
+    public float getScale() {
+        return scale;
     }
 
     public static Builder of(Supplier<TraditionalPipeline.Builder> base) {
@@ -43,7 +59,16 @@ public final class FullscreenPass {
     }
 
     public void reload() {
-        pipeline = compile();
+        var compiled = compile();
+        if(pipeline != null) pipeline.destroy();
+        pipeline = compiled;
+    }
+
+    void destroy() {
+        if (pipeline != null) {
+            pipeline.destroy();
+            pipeline = null;
+        }
     }
 
     private TraditionalPipeline compile() {
@@ -65,21 +90,28 @@ public final class FullscreenPass {
             case Source.Depth d -> gbuffer.getDepthTexture().id();
             case Source.Previous p -> previous.getColorAttachment(0).id();
             case Source.Named n -> ITextureLoader.instance().getTexture(n.key()).id();
+            case Source.Pass p -> {
+                FrameBuffer buffer = namedTargets.get(p.key());
+                if(buffer == null) throw new IllegalStateException("Pass reads '" + p.key() + "' but no earlier enabled pass writes it");
+                yield buffer.getColorAttachment(0).id();
+            }
         };
     }
 
-    void render(FrameBuffer gbuffer, FrameBuffer previous, FrameBuffer target) {
+    void render(FrameBuffer gbuffer, FrameBuffer previous, Map<String, FrameBuffer> named, FrameBuffer target) {
         this.gbuffer = gbuffer;
         this.previous = previous;
+        this.namedTargets = named;
 
         target.bindAndSetViewport();
         target.setDrawAll();
         draw();
     }
 
-    void renderToScreen(FrameBuffer gbuffer, FrameBuffer previous, int width, int height) {
+    void renderToScreen(FrameBuffer gbuffer, FrameBuffer previous, Map<String, FrameBuffer> named, int width, int height) {
         this.gbuffer = gbuffer;
         this.previous = previous;
+        this.namedTargets = named;
 
         FrameBuffer.unbindDraw();
         GL11C.glViewport(0, 0, width, height);
@@ -87,6 +119,10 @@ public final class FullscreenPass {
     }
 
     private void draw() {
+
+        GL11C.glDisable(GL11C.GL_DEPTH_TEST);
+        GL11C.glDisable(GL11C.GL_BLEND);
+
         pipeline.useProgram();
         pipeline.bindGlobal();
         GL11C.glDrawArrays(GL11C.GL_TRIANGLES, 0, 3);
@@ -97,6 +133,8 @@ public final class FullscreenPass {
         private final List<Input> inputs = new ArrayList<>();
         private Consumer<TraditionalPipeline.Builder> extraUniforms = b -> {};
         private BooleanSupplier enabled = () -> true;
+        private String output = null;
+        private float scale = 1.0f;
 
         private Builder(Supplier<TraditionalPipeline.Builder> base) {
             this.base = base;
@@ -114,6 +152,17 @@ public final class FullscreenPass {
 
         public Builder enabledWhen(BooleanSupplier enabled) {
             this.enabled = enabled;
+            return this;
+        }
+
+        public Builder writesTo(String key) {
+            this.output = key;
+            return this;
+        }
+
+        public Builder scale(float scale) {
+            if (scale < 0.0f) throw new IllegalArgumentException("Scale can't be less than 0, it was " + scale + "instead");
+            this.scale = scale;
             return this;
         }
 

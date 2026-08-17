@@ -117,12 +117,6 @@ public class GuiHandler implements KeyListener {
             if(filePath == null) return;
 
             gui.clearLoadIssues();
-//            var validation = ModelAssetValidator.validate(ResourceLocator.of(filePath));
-//            validation.messages().forEach(gui::reportLoadIssue);
-//            if (validation.hasErrors()) {
-//                gui.setTitle(BASE_TITLE + " - " + filePath.getFileName() + " (load blocked)");
-//                return;
-//            }
 
             move(filePath);
 
@@ -218,12 +212,12 @@ public class GuiHandler implements KeyListener {
 
                 }
                 case GLFW.GLFW_KEY_LEFT_BRACKET -> {
-                    var light = gui.settings.values.skyLight;
+                    var light = gui.settings.light.minecraft.sky;
                     var value = light.getValue() - 1;
                     light.setValue(value);
                 }
                 case GLFW.GLFW_KEY_RIGHT_BRACKET -> {
-                    var light = gui.settings.values.skyLight;
+                    var light = gui.settings.light.minecraft.sky;
                     var value = light.getValue() + 1;
                     light.setValue(value);
                 }
@@ -232,8 +226,6 @@ public class GuiHandler implements KeyListener {
                 default -> arcBall.keyPressed(key);
             }
         }
-
-//        System.out.println(pressedKeys);
     }
 
     @Override
@@ -247,20 +239,6 @@ public class GuiHandler implements KeyListener {
     public void keyHeld(int key, int scancode, int mods) {
         handleKey(key, scancode, mods, true);
     }
-
-//    public void convertGlb(Path chosenFile) {
-//        try {
-//            var is = Files.newInputStream(chosenFile);
-//            var filePath = Path.of(chosenFile.toString().replace(".glb", ".pk"));
-//            initializeAsset(new PixelAsset(chosenFile.getFileName().toString(), is.readAllBytes()), filePath);
-//            var title = BASE_TITLE + " - " + filePath.getFileName().toString();
-//            gui.setTitle(title);
-//            gui.canvas.openFile(asset, "");
-//
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 
     public void openAsset(List<Path> chosenFiles) {
         if (chosenFiles == null || chosenFiles.isEmpty()) {

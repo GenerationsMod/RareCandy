@@ -46,6 +46,10 @@ public class ShaderSource {
         }
     }
 
+    public ProgramSet compileSet(ResourceReader reader, String vertexName, String fragmentName) {
+        return compileSet(reader, vertexName, null, fragmentName, null);
+    }
+
     public ProgramSet compileSet(ResourceReader reader, String vertexName, String geometryName, String fragmentName, String computeName) {
         var vertex = vertexName != null ? compile(reader, vertexName + ".vs.glsl") : null;
         var geometry = geometryName != null ? compile(reader, geometryName + ".gs.glsl") : null;

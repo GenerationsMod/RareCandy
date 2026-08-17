@@ -61,7 +61,7 @@ public final class FramebufferMrtDemo extends AppBase {
     }
 
     @Override
-    protected Vector4f clearColor() {
+    public Vector4f clearColor() {
         return new Vector4f(0.02f, 0.02f, 0.02f, 1.0f);
     }
 

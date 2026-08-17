@@ -202,9 +202,10 @@ public class PixelAssetTree {
         @Override
         public void render() {
             if (ImGui.treeNode(label)) {
-                for (Item item : items) {
-                    item.render();
 
+                for (int i = 0; i < items.size(); i++) {
+                    Item item = items.get(i);
+                    item.render();
                 }
                 ImGui.treePop();
             }

@@ -102,7 +102,7 @@ public final class AtlasBuilderGui extends AppBase {
     }
 
     @Override
-    protected Vector4f clearColor() {
+    public Vector4f clearColor() {
         return CLEAR_COLOR;
     }
 

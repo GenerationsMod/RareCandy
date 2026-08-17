@@ -17,6 +17,7 @@
     "terastalization": false,
     "fog": true,
     "values": true,
+    "light": true,
     "grid": true,
     "gizmos": true,
     "largeUi": true
@@ -32,35 +33,52 @@
     "end": 10.0
   },
   "values": {
-    "skyLight": {
-      "value": {
-        "data": [
-          5
-        ]
-      },
-      "min": 0,
-      "max": 15,
-      "name": "Sky"
-    },
-    "blockLight": {
-      "value": {
-        "data": [
-          0
-        ]
-      },
-      "min": 0,
-      "max": 15,
-      "name": "Block"
-    },
     "gBufferDebug": {
       "value": {
         "data": [
-          0
+          3
         ]
       },
       "min": 0,
       "max": 3,
       "name": "G-Buffer Debug"
+    }
+  },
+  "light": {
+    "selected": {
+      "data": [
+        3
+      ]
+    },
+    "ambient": {
+      "color": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "intensity": 0.0
+    },
+    "minecraft": {
+      "sky": {
+        "value": {
+          "data": [
+            15
+          ]
+        },
+        "min": 0,
+        "max": 15,
+        "name": "Sky"
+      },
+      "block": {
+        "value": {
+          "data": [
+            15
+          ]
+        },
+        "min": 0,
+        "max": 15,
+        "name": "block"
+      }
     }
   }
 }

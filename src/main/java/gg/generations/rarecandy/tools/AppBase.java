@@ -115,7 +115,7 @@ public abstract class AppBase {
         }
     }
 
-    protected Vector4f clearColor() {
+    public Vector4f clearColor() {
         return DEFAULT_CLEAR_COLOR;
     }
 

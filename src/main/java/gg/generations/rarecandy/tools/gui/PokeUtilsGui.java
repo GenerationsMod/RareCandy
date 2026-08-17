@@ -17,7 +17,6 @@ import imgui.ImGui;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.type.ImFloat;
 import imgui.type.ImString;
-import org.joml.Vector4f;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
@@ -327,10 +326,10 @@ public class PokeUtilsGui extends AppBase {
         }
     }
 
-    @Override
-    protected Vector4f clearColor() {
-        return settings.fog.color.getValue();
-    }
+//    @Override
+//    protected Vector4f clearColor() {
+//        return settings.fog.color.getValue();
+//    }
 
     public static class Settings {
         public Urls urls = new Urls();
@@ -338,11 +337,13 @@ public class PokeUtilsGui extends AppBase {
         public Features features = new Features();
         public Fog fog = new Fog();
         public Values values = new Values();
+        public Light light = new Light();
 
         public void render() {
             if(features.terastalization.getValue()) terastalization.render();
             if(features.fog.getValue()) fog.render();
             if(features.values.getValue()) values.render();
+            if(features.light.getValue()) light.render();
             features.render();
         }
 
@@ -366,20 +367,12 @@ public class PokeUtilsGui extends AppBase {
         }
 
         public static class Values {
-            public ImInt skyLight = new ImInt("Sky", 15, 0, 15);
-            public ImInt blockLight = new ImInt("Block", 15, 0, 15);
             public ImInt gBufferDebug = new ImInt("G-Buffer Debug", 0, 0, 3);
 
             public void render() {
 
                 ImGui.begin("Values");
 
-
-
-                ImGui.begin("Light");
-                skyLight.render();
-                blockLight.render();
-                ImGui.end();
                 gBufferDebug.render();
 
                 ImGui.end();
@@ -391,6 +384,7 @@ public class PokeUtilsGui extends AppBase {
             ImBoolean terastalization = new ImBoolean(true);
             ImBoolean fog = new ImBoolean(true);
             ImBoolean values = new ImBoolean(true);
+            ImBoolean light = new ImBoolean(true);
             ImBoolean grid = new ImBoolean(true);
             ImBoolean gizmos = new ImBoolean(true);
             ImBoolean largeUi = new ImBoolean(false);
@@ -403,7 +397,58 @@ public class PokeUtilsGui extends AppBase {
                 grid.render("Grid");
                 gizmos.render("Gizmos");
                 largeUi.render("Large UI");
+                light.render("Light");
                 ImGui.end();
+            }
+        }
+
+        public static class Light {
+            public imgui.type.ImInt selected = new imgui.type.ImInt(0);
+
+            public Standard standard = new Standard();
+            public Minecraft minecraft = new Minecraft();
+
+            public static class Standard {
+                public ImVector3f lightColor = new ImVector3f(1,1,1);
+                public ImFloat lightRange = new ImFloat(20);
+                public ImVector3f ambientColor = new ImVector3f(0.15f, 0.15f, 0.15f);
+                public ImFloat shininess = new ImFloat(32);
+
+                public void render() {
+                    lightColor.render("Light Color");
+                    ambientColor.render("Ambient Color");
+                    ImGui.sliderFloat("Light Range", lightRange.getData(), 1, 100);
+                    ImGui.sliderFloat("Shininess", shininess.getData(), 1, 128);
+                }
+            }
+
+            public static class Minecraft {
+                public ImInt sky = new ImInt("Sky", 15, 0, 15);
+                public ImInt block = new ImInt("block", 15, 0, 15);
+
+                public void render() {
+                    sky.render();
+                    block.render();
+
+                }
+            }
+
+            private static String[] modes = new String[] { "None", "Ambient", "Minecraft", "Diffuse"};
+
+            public void render() {
+                ImGui.begin("Light");
+
+                ImGui.combo("Mode", selected, modes);
+
+                switch (selected.get()) {
+                    case 1,3 -> standard.render();
+                    case 2 -> minecraft.render();
+                    default -> {
+                    }
+                }
+
+                ImGui.end();;
+
             }
         }
 
@@ -412,7 +457,6 @@ public class PokeUtilsGui extends AppBase {
             public ImFloat start = new ImFloat(0f);
             public ImFloat end = new ImFloat(5f);
             transient private Consumer<Fog> consumer;
-
 
             public void setListener(Consumer<Fog> consumer) {
                 this.consumer = consumer;

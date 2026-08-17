@@ -394,8 +394,6 @@ class FogUploader extends UniformBlockUploader {
     }
 
     private void update(PokeUtilsGui.Settings.Fog fog) {
-        var clear = fog.color.getValue();
-
         fog.color.getValue().getToAddress(pointer);
         MemoryUtil.memPutFloat(pointer + 16, fog.start.floatValue());
         MemoryUtil.memPutFloat(pointer + 20, fog.end.floatValue());

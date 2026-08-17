@@ -2,6 +2,7 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.resource.JarResourceReader;
+import gg.generations.rarecandy.renderer.pipeline.ProgramSet;
 import gg.generations.rarecandy.renderer.pipeline.ShaderSource;
 import gg.generations.rarecandy.renderer.pipeline.SnippetFinder;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
@@ -11,11 +12,11 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
+import java.util.function.Function;
+
 public class GuiPipelines {
     public static final Vector3f light0 = new Vector3f(0.5f, 0.5f, -0.5f).normalize();
     public static final Vector3f light1 = new Vector3f(-0.3f, 0.4f, 0.7f).normalize();
-
-    public static final Vector4f colorMOdulator = new Vector4f(1f, 1f, 1f, 1f);
 
     private static final Vector4f ONE_V = new Vector4f(1,1, 1, 1);
 
@@ -28,6 +29,7 @@ public class GuiPipelines {
             .addSnippet("lib", "terastal")
             .addSnippet("lib", "utils")
             .addSnippet("lib", "vertex")
+            .addSnippet("lib", "projection")
             .addSnippet("lib", "guassian");
 
     public static TraditionalPipeline G_BUFFER;
@@ -44,11 +46,11 @@ public class GuiPipelines {
 
         RenderPasses.init(reader, source, canvas, settings, light0, light1);
 
-        G_BUFFER = TraditionalPipeline.builder(source.compileSet(reader, "model"))
+        G_BUFFER = TraditionalPipeline.builder(source.compileSet(reader, "gbuffer/model"))
                 .apply(builder -> GuiPipelines.common(builder, canvas,settings))
                 .build();
 
-        GRID = TraditionalPipeline.builder(source.compileSet(reader, "grid"))
+        GRID = TraditionalPipeline.builder(source.compileSet(reader, "fullscreen", "gbuffer/grid"))
                 .autoMat4(Scope.GLOBAL, "inverseProjectionMatrix", ctx -> canvas.camera.getInverseProjectionMatrix())
                 .autoMat4(Scope.GLOBAL, "inverseViewMatrix", ctx -> canvas.camera.getInverseViewMatrix())
                 .autoMat4(Scope.GLOBAL, "viewMatrix", ctx -> canvas.camera.getViewMatrix())
@@ -60,8 +62,6 @@ public class GuiPipelines {
     private static void common(TraditionalPipeline.Builder builder, RareCandyCanvas canvas, PokeUtilsGui.Settings settings) {
         builder.autoMat4(Scope.GLOBAL, "viewMatrix", (ctx) -> canvas.camera.getViewMatrix())
                 .autoMat4(Scope.GLOBAL, "projectionMatrix", (ctx) -> canvas.camera.getProjectionMatrix())
-                .autoVec4(Scope.GLOBAL, "ColorModulator", (ctx) -> colorMOdulator)
-                .autoVec4(Scope.GLOBAL, "tint", (ctx) -> ONE_V)
 
                 .addUBO(Scope.GLOBAL, "Fog", 0, (ctx) -> canvas.getFogUploader().id)
                 .addSSBORange(Scope.MODEL, "VertexBuffer", 0, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().vertex)

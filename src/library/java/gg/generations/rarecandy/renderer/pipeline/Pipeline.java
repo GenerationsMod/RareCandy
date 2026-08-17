@@ -1,5 +1,6 @@
 package gg.generations.rarecandy.renderer.pipeline;
 
+import gg.generations.rarecandy.renderer.LoggerUtil;
 import gg.generations.rarecandy.renderer.components.MultiRenderObject;
 import gg.generations.rarecandy.renderer.loading.SbboOffset;
 import gg.generations.rarecandy.renderer.pipeline.util.*;
@@ -359,6 +360,11 @@ public class Pipeline {
         GL20C.glCompileShader(shader);
         if (GL20C.glGetShaderi(shader, GL20C.GL_COMPILE_STATUS) == GL11C.GL_FALSE) {
             String log = GL20C.glGetShaderInfoLog(shader, 8192);
+
+            LoggerUtil.printError("Error occured during shader comppiling! Dumping source.");
+
+            LoggerUtil.printError(source);
+
             throw new IllegalStateException("Shader compilation failed for type " + type + ":\n" + log);
         }
         GL20C.glAttachShader(programId, shader);

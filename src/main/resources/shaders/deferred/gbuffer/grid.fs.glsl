@@ -84,7 +84,7 @@ void main() {
     line.a *= 1.0 - smoothstep(FADE_START, FADE_END, distance(cameraPosition, worldPosition));
 
     outColor = vec4(mix(GROUND_COLOR, line.rgb, line.a), 1.0);
-    outNormal = vec4(vec3(0.0, 1.0, 0.0) * 0.5 + 0.5, 1.0);
-    outEmission = vec4(line.a, 0.0, 0.0, 0.0);
+    outNormal = vec4(0.0, 1.0, 0.0, 1.0);
+    outEmission = vec4(0, 0.0, 0.0, 0.0);
     outObject = 0.0;
 }

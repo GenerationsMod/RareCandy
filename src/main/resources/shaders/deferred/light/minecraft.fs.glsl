@@ -1,3 +1,16 @@
+#version 460 core
+
+in vec2 uv;
+out vec4 outColor;
+
+uniform sampler2D inAlbedo;
+uniform sampler2D inNormal;
+uniform sampler2D inEmissive;
+
+ivec2 adjustLight(ivec2 lightCoord) {
+    return ivec2(lightCoord);
+}
+
 #define MINECRAFT_LIGHT_POWER   (0.6)
 #define MINECRAFT_AMBIENT_LIGHT (0.4)
 const vec4 FULL_BRIGHT = vec4(1);
@@ -32,4 +45,12 @@ vec4 applyLight(vec4 outColor, int emission) {
     outColor *= minecraftLight;
 
     return outColor;
+}
+
+void main() {
+    outColor = texture(inAlbedo, uv) * getVertexColor(texture(inNormal, uv).xyz);
+
+    float emission = texture(inEmissive, uv).r;
+
+    outColor = applyLight(outColor, int(emission * 15));
 }

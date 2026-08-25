@@ -7,13 +7,19 @@ plugins {
     `java-library`
     `maven-publish`
     idea
+    kotlin("jvm") version "2.1.0"
     id("com.gradleup.shadow") version "8.3.5" apply false
 }
 
 group = "gg.generations"
 version = "3.1.0"
 
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+kotlin {
+    jvmToolchain(21)
+    compilerOptions {
+        freeCompilerArgs.add("-Xjvm-default=all")
+    }
+}
 
 sourceSets {
     val assetLoading = create("library") {
@@ -34,11 +40,19 @@ sourceSets {
     }
 }
 
+kotlin.sourceSets {
+    named("main")    { kotlin.srcDir("src/main/java") }
+    named("library") { kotlin.srcDir("src/library/java") }
+}
+
 repositories {
     mavenCentral()
     mavenLocal()
     maven("https://jitpack.io")
     maven("https://maven.generations.gg/releases")
+    maven("https://libraries.minecraft.net/") {
+        content { includeGroup("com.mojang") }
+    }
 }
 
 val shadow by configurations.creating
@@ -86,16 +100,13 @@ dependencies {
     shadowTools(implementation("org.slf4j:slf4j-jdk14:2.0.12")!!)
 
     // PokeUtils Libs
-//    shadowTools(implementation("com.github.weisj:darklaf-core:3.0.2")!!)
-//    shadowTools(implementation("com.intellij:forms_rt:7.0.3")!!)
     shadowTools(implementation("org.lwjgl", "lwjgl-nfd"))
-//    shadowTools(implementation("org.lwjglx", "lwjgl3-awt", "0.1.8"))
 
     shadow(implementation("com.google.flatbuffers:flatbuffers-java:23.5.26")!!)
 
     shadowTools(implementation("com.google.code.gson:gson:2.10.1")!!)
 
-
+    shadowTools(implementation(kotlin("stdlib"))!!)
 }
 
 tasks {

@@ -1,12 +1,16 @@
 {
   "urls": {
     "openArchiveUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\articuno",
-    "saveAsUrl": "D:\\Git Repos\\Models.pk",
+    "saveAsUrl": "",
     "createArchiveUrl": "",
-    "sequenceUrl": "D:\\Git Repos\\Models\\Generation Packs\\Generation 1\\assets\\generations_core\\bedrock\\pokemon\\models\\gengar_mega"
+    "sequenceUrl": ""
   },
   "terastalization": {
-    "enabled": false,
+    "enabled": {
+      "data": [
+        false
+      ]
+    },
     "tint": {
       "x": 1.0,
       "y": 1.0,
@@ -14,13 +18,17 @@
     }
   },
   "features": {
-    "terastalization": false,
+    "terastalization": {
+      "data": [
+        true
+      ]
+    },
     "fog": true,
     "values": true,
     "light": true,
     "grid": true,
     "gizmos": true,
-    "largeUi": true
+    "largeUi": false
   },
   "fog": {
     "color": {
@@ -30,13 +38,13 @@
       "w": 1.0
     },
     "start": 0.0,
-    "end": 10.0
+    "end": 5.0
   },
   "values": {
     "gBufferDebug": {
       "value": {
         "data": [
-          3
+          0
         ]
       },
       "min": 0,
@@ -47,16 +55,30 @@
   "light": {
     "selected": {
       "data": [
-        3
+        0
       ]
     },
-    "ambient": {
-      "color": {
+    "standard": {
+      "lightColor": {
         "x": 1.0,
         "y": 1.0,
         "z": 1.0
       },
-      "intensity": 0.0
+      "lightRange": {
+        "data": [
+          20.0
+        ]
+      },
+      "ambientColor": {
+        "x": 0.15,
+        "y": 0.15,
+        "z": 0.15
+      },
+      "shininess": {
+        "data": [
+          32.0
+        ]
+      }
     },
     "minecraft": {
       "sky": {

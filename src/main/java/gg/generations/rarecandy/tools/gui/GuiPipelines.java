@@ -2,7 +2,6 @@ package gg.generations.rarecandy.tools.gui;
 
 import gg.generations.rarecandy.pokeutils.reader.ITextureLoader;
 import gg.generations.rarecandy.pokeutils.resource.JarResourceReader;
-import gg.generations.rarecandy.renderer.pipeline.ProgramSet;
 import gg.generations.rarecandy.renderer.pipeline.ShaderSource;
 import gg.generations.rarecandy.renderer.pipeline.SnippetFinder;
 import gg.generations.rarecandy.renderer.pipeline.traditional.TraditionalPipeline;
@@ -11,8 +10,6 @@ import gg.generations.rarecandy.renderer.pipeline.util.*;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
-
-import java.util.function.Function;
 
 public class GuiPipelines {
     public static final Vector3f light0 = new Vector3f(0.5f, 0.5f, -0.5f).normalize();
@@ -64,16 +61,16 @@ public class GuiPipelines {
                 .autoMat4(Scope.GLOBAL, "projectionMatrix", (ctx) -> canvas.camera.getProjectionMatrix())
 
                 .addUBO(Scope.GLOBAL, "Fog", 0, (ctx) -> canvas.getFogUploader().id)
-                .addSSBORange(Scope.MODEL, "VertexBuffer", 0, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().vertex)
-                .addSSBORange(Scope.MODEL, "IndexBuffer", 1, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().index)
-                .addSSBORange(Scope.MODEL, "MeshOffsetBuffer", 2, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().meshOffsets)
-                .addSSBO(Scope.MODEL, "VariantBuffer", 3, ctx -> ctx.object().variant.getBufferId())
-                .addSSBO(Scope.MODEL, "MaterialBuffer", 4, ctx -> ctx.object().material.getBufferId())
-                .addSSBO(Scope.MODEL, "InstanceBuffer", 5, ctx -> ctx.object().instance.getBufferId())
-                .addSSBO(Scope.MODEL, "DrawInfoBuffer", 6, ctx -> ctx.object().drawInfo.getBufferId())
-                .autoInt(Scope.MODEL, "Selected", ctx -> canvas.selected.getMeshId())
+                .addSSBORange(Scope.MODEL, "VertexBuffer", 0, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().getVertex())
+                .addSSBORange(Scope.MODEL, "IndexBuffer", 1, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().getIndex())
+                .addSSBORange(Scope.MODEL, "MeshOffsetBuffer", 2, ctx -> ctx.object().modelBuffer, ctx -> ctx.object().getMeshOffsets())
+                .addSSBO(Scope.MODEL, "VariantBuffer", 3, ctx -> ctx.object().getVariant().getBufferId())
+                .addSSBO(Scope.MODEL, "MaterialBuffer", 4, ctx -> ctx.object().getMaterial().getBufferId())
+                .addSSBO(Scope.MODEL, "InstanceBuffer", 5, ctx -> ctx.object().getInstance().getBufferId())
+                .addSSBO(Scope.MODEL, "DrawInfoBuffer", 6, ctx -> ctx.object().getDrawInfo().getBufferId())
+                .autoInt(Scope.MODEL, "Selected", ctx -> Selected.INSTANCE.getMeshId())
 
-                .autoSampler2DArray(Scope.MODEL, "images", 0, ctx -> ctx.object().images)
+                .autoSampler2DArray(Scope.MODEL, "images", 0, ctx -> ctx.object().getImages())
 
                 //Terastal
 //                .autoVec3(Scope.GLOBAL, "teraTint", (ctx) -> settings.terastalization.tint.getValue())
@@ -81,22 +78,22 @@ public class GuiPipelines {
 
                 //Paradox
                 .autoInt(Scope.GLOBAL, "frame", (ctx) -> 0) //(int) pingpong(RareCandyCanvas.getTime() % 1d)) TODO: Readd time.
-                .autoSampler2D(Scope.GLOBAL, "paradoxTexture", 1, ctx -> ITextureLoader.instance().getTexture("paradox_mask").id())
+                .autoSampler2D(Scope.GLOBAL, "paradoxTexture", 1, ctx -> ITextureLoader.instance().getTexture("paradox_mask").getId())
 
                 .prePostDraw(material -> {
                     if (material.disableDepth()) {
                         GL11.glDisable(GL11.GL_DEPTH_TEST);
                     }
 
-                    material.cullType().enable();
-                    material.blendType().enable();
+                    material.cullType.enable();
+                    material.blendType.enable();
                 }, material -> {
                     if (material.disableDepth()) {
                         GL11.glEnable(GL11.GL_DEPTH_TEST);
                     }
 
-                    material.cullType().disable();
-                    material.blendType().disable();
+                    material.cullType.disable();
+                    material.blendType.disable();
                 });
         ;
     }

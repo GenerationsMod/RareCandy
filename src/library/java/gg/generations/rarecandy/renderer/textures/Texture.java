@@ -20,7 +20,6 @@ public class Texture implements ITexture {
     private int width;
     private int height;
     private Type type;
-    private boolean resident;
 
     public Texture(TextureDetails textureDetails) {
         this.details = textureDetails;
@@ -43,17 +42,17 @@ public class Texture implements ITexture {
     }
 
     @Override
-    public int width() {
+    public int getWidth() {
         return width;
     }
 
     @Override
-    public int height() {
+    public int getHeight() {
         return height;
     }
 
     @Override
-    public int id() {
+    public int getId() {
         if (details != null) {
             this.id = details.init();
             try {
@@ -69,41 +68,12 @@ public class Texture implements ITexture {
     }
 
     @Override
-    public ITexture.Type type() {
+    public ITexture.Type getType() {
         return type;
     }
 
-    /** Convenience for call sites that do not care about custom descriptors. */
-    public long getLinearRepeatHandle() {
-        return getSamplerHandle(SamplerPresets.TRILINEAR_REPEAT);
-    }
-
     @Override
-    public long getSamplerHandle(SamplerDesc sampler) {
-        BindlessSupport.require();
-        int tex = id();
-        long handle = SamplerCache.getOrCreateHandle(tex, sampler);
-        resident = true;
-        return handle;
-    }
-
-    @Override
-    public long getImageHandle(int level, boolean layered, ITexture.ComputeAccess access) {
-        BindlessSupport.require();
-        int tex = id();
-        long handle = ImageHandleCache.getOrCreate(tex, level, layered, type().internalFormat, access);
-        resident = true;
-        return handle;
-    }
-
-    @Override
-    public void close() throws IOException {
-        // Unresident any bindless handles first
-        if (resident) {
-            SamplerCache.unresidentForTexture(id);
-            ImageHandleCache.unresidentForTexture(id);
-            resident = false;
-        }
+    public void delete() {
         GL11.glDeleteTextures(id);
     }
 

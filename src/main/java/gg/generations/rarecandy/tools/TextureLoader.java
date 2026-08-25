@@ -68,10 +68,7 @@ public class TextureLoader extends ITextureLoader {
     public void remove(String name) {
         var value = MAP.remove(name);
         if (value != null) {
-            try {
-                value.close();
-            } catch (IOException ignored) {
-            }
+            value.delete();
         }
     }
 
@@ -120,9 +117,7 @@ public class TextureLoader extends ITextureLoader {
         while (iterator.hasNext()) {
             var entry = iterator.next();
             if (!systemTextures.contains(entry.getKey())) {
-                try {
-                    entry.getValue().close();
-                } catch (IOException ignored) {}
+                entry.getValue().delete();
                 iterator.remove();
             }
         }
@@ -136,9 +131,7 @@ public class TextureLoader extends ITextureLoader {
         while (iterator.hasNext()) {
             var entry = iterator.next();
             if (entry.getKey().startsWith(prefix)) {
-                try {
-                    entry.getValue().close();
-                } catch (IOException ignored) {}
+                entry.getValue().delete();
                 iterator.remove();
             }
         }

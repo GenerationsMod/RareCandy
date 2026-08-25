@@ -13,7 +13,7 @@ public final class ScreenSpaceGridRenderer implements AutoCloseable {
     }
 
     public void render(PokeUtilsGui.Settings settings, StateManager stateManager) {
-        if (!settings.features.grid.getValue()) {
+        if (!settings.getFeatures().getGrid()) {
             return;
         }
 

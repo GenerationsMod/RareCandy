@@ -9,9 +9,7 @@ import gg.generations.rarecandy.pokeutils.resource.ResourceWriter;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 import static gg.generations.rarecandy.renderer.LoggerUtil.printError;
 
@@ -33,31 +31,6 @@ public class PixelmonArchiveBuilder {
         }
 
         dest.save();
-    }
-
-    //TODO: Add more animations
-    private static Optional<String> processFileName(Path archiveFile, Path relativeFolder) {
-        var fileName = relativeFolder.relativize(archiveFile).getFileName().toString();
-//        if (fileName.startsWith("pm") && !fileName.endsWith("png")) {
-//            var cleanName = fileName.substring("pmxxxx_xx_xx_xxxxx_".length()).replace(".tranm", "").replace(".gfbanm", "");
-//
-//            return Optional.of(switch (cleanName) {
-//                case "defaultwait01_loop" -> "idle";
-//                case "battlewait01_loop" -> "battle_idle";
-//                case "walk01_loop" -> "walk";
-//                case "rest01_start" -> "rest_start";
-//                case "rest01_loop" -> "rest_loop";
-//                case "rest01_end" -> "rest_end";
-//                case "roar01" -> "roar";
-//                case "attack02" -> "attack";
-//                case "damage02" -> "damage";
-//                case "sleep01_loop" -> "sleep";
-//                case "down01_start" -> "faint";
-//
-//                default -> "invalid_" + cleanName;
-//            } + ".tranm").filter(a -> !a.startsWith("invalid"));
-//        }
-        return Optional.of(fileName);
     }
 
     public static void main(String[] args) throws IOException {

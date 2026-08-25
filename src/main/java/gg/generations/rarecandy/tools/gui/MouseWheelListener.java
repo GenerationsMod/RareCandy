@@ -7,7 +7,6 @@ public interface MouseWheelListener {
     void mouseWheelMoved(long window, double xoffset, double yoffset);
 
     static void attach(long window, MouseWheelListener listener) {
-
         GLFW.glfwSetScrollCallback(window, listener::mouseWheelMoved);
     }
 }

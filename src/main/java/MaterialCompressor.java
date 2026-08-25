@@ -1,10 +1,9 @@
 import com.google.gson.*;
 import gg.generations.rarecandy.pokeutils.IModelConfig;
-import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.pokeutils.resource.ResourceLocator;
 import gg.generations.rarecandy.renderer.animation.ITransform;
 import gg.generations.rarecandy.renderer.animation.ITransformSet;
-import gg.generations.rarecandy.renderer.animation.TransformSet;
+import gg.generations.rarecandy.renderer.animation.ITransformSet;
 import gg.generations.rarecandy.tools.gui.DialogueUtils;
 import org.joml.Vector2f;
 
@@ -410,11 +409,11 @@ public final class MaterialCompressor {
 
     /* ===================== ATLAS REMAP ===================== */
 
-    static Map<String, TransformSet> applyAtlasTextures(JsonObject root, AtlasCompacter.AtlasBuild atlasBuild) {
+    static Map<String, ITransformSet> applyAtlasTextures(JsonObject root, AtlasCompacter.AtlasBuild atlasBuild) {
         JsonObject materials = root.getAsJsonObject("materials");
         if (materials == null) return Map.of();
 
-        Map<String, TransformSet> materialTransforms = new LinkedHashMap<>();
+        Map<String, ITransformSet> materialTransforms = new LinkedHashMap<>();
 
         for (String materialName : new ArrayList<>(materials.keySet())) {
             JsonObject material = materials.getAsJsonObject(materialName);
@@ -444,10 +443,10 @@ public final class MaterialCompressor {
             Map<String, AtlasCompacter.PackedTexture> packedTextures
     ) {
         Map<String, String> atlasImages = new LinkedHashMap<>();
-        ModelConfig.Transform diffuseTransform = null;
-        ModelConfig.Transform layerTransform = null;
-        ModelConfig.Transform maskTransform = null;
-        ModelConfig.Transform emissionTransform = null;
+        ITransform diffuseTransform = null;
+        ITransform layerTransform = null;
+        ITransform maskTransform = null;
+        ITransform emissionTransform = null;
 
         for (int i = 0; i < IMAGE_SLOTS.length; i++) {
             var key = IMAGE_SLOTS[i];
@@ -467,7 +466,7 @@ public final class MaterialCompressor {
             }
 
             atlasImages.put(key, packedTexture.atlasFileName());
-            ModelConfig.Transform atlasTransform = toTransform(packedTexture);
+            ITransform atlasTransform = toTransform(packedTexture);
 
             switch (key) {
                 case "diffuse" -> diffuseTransform = atlasTransform;
@@ -483,11 +482,11 @@ public final class MaterialCompressor {
 
         return new MaterialAtlasRemap(
                 atlasImages,
-                new TransformSet(diffuseTransform, layerTransform, maskTransform, emissionTransform)
+                new ITransformSet(diffuseTransform, layerTransform, maskTransform, emissionTransform)
         );
     }
 
-    static void applyAtlasTransformsToDefaultVariant(JsonObject root, Map<String, TransformSet> materialTransforms) {
+    static void applyAtlasTransformsToDefaultVariant(JsonObject root, Map<String, ITransformSet> materialTransforms) {
         JsonObject def = root.getAsJsonObject("defaultVariant");
         if (def == null) return;
 
@@ -498,7 +497,7 @@ public final class MaterialCompressor {
         }
     }
 
-    static void applyAtlasTransformsToAllVariants(JsonObject root, Map<String, TransformSet> materialTransforms) {
+    static void applyAtlasTransformsToAllVariants(JsonObject root, Map<String, ITransformSet> materialTransforms) {
         JsonObject variants = root.getAsJsonObject("variants");
         if (variants == null) return;
 
@@ -515,7 +514,7 @@ public final class MaterialCompressor {
         }
     }
 
-    private static void applyAtlasTransformToSlot(JsonObject slot, Map<String, TransformSet> materialTransforms) {
+    private static void applyAtlasTransformToSlot(JsonObject slot, Map<String, ITransformSet> materialTransforms) {
         if (slot == null || !slot.has("material")) return;
 
         JsonElement materialElement = slot.get("material");
@@ -523,10 +522,10 @@ public final class MaterialCompressor {
             return;
         }
 
-        TransformSet atlasTransform = materialTransforms.get(materialElement.getAsString());
+        ITransformSet atlasTransform = materialTransforms.get(materialElement.getAsString());
         if (atlasTransform == null) return;
 
-        TransformSet combined = combineTransformSets(readTransformSet(slot.get("transform")), atlasTransform);
+        ITransformSet combined = combineTransformSets(readTransformSet(slot.get("transform")), atlasTransform);
         JsonElement transformJson = transformSetToJson(combined);
         if (transformJson.isJsonNull()) {
             slot.remove("transform");
@@ -544,12 +543,12 @@ public final class MaterialCompressor {
             return cloneTransform(atlasTransform);
         }
 
-        Vector2f scale = new Vector2f(existing.scale()).mul(atlasTransform.scale());
-        Vector2f offset = new Vector2f(existing.offset()).mul(atlasTransform.scale()).add(atlasTransform.offset());
-        return new ModelConfig.Transform(scale, offset);
+        Vector2f scale = new Vector2f(existing.getScale()).mul(atlasTransform.getScale());
+        Vector2f offset = new Vector2f(existing.getOffset()).mul(atlasTransform.getScale()).add(atlasTransform.getOffset());
+        return new ITransform(scale, offset);
     }
 
-    private static TransformSet combineTransformSets(ITransformSet existing, ITransformSet atlasTransform) {
+    private static ITransformSet combineTransformSets(ITransformSet existing, ITransformSet atlasTransform) {
         if (existing == null) {
             return cloneTransformSet(atlasTransform);
         }
@@ -558,28 +557,28 @@ public final class MaterialCompressor {
             return cloneTransformSet(existing);
         }
 
-        return new TransformSet(
-                combineTransforms(existing.diffuse(), atlasTransform.diffuse()),
-                combineTransforms(existing.layer(), atlasTransform.layer()),
-                combineTransforms(existing.mask(), atlasTransform.mask()),
-                combineTransforms(existing.emission(), atlasTransform.emission())
+        return new ITransformSet(
+                combineTransforms(existing.getDiffuse(), atlasTransform.getDiffuse()),
+                combineTransforms(existing.getLayer(), atlasTransform.getLayer()),
+                combineTransforms(existing.getMask(), atlasTransform.getMask()),
+                combineTransforms(existing.getEmission(), atlasTransform.getEmission())
         );
     }
 
     private static ITransform cloneTransform(ITransform transform) {
-        return IModelConfig.Factory.ACTIVE_FACTORY.createTransform(new Vector2f(transform.scale()), new Vector2f(transform.offset()));
+        return new ITransform(new Vector2f(transform.getScale()), new Vector2f(transform.getOffset()));
     }
 
-    private static TransformSet cloneTransformSet(ITransformSet transformSet) {
+    private static ITransformSet cloneTransformSet(ITransformSet transformSet) {
         if (transformSet == null) {
             return null;
         }
 
-        return new TransformSet(
-                transformSet.diffuse() != null ? cloneTransform(transformSet.diffuse()) : null,
-                transformSet.layer() != null ? cloneTransform(transformSet.layer()) : null,
-                transformSet.mask() != null ? cloneTransform(transformSet.mask()) : null,
-                transformSet.emission() != null ? cloneTransform(transformSet.emission()) : null
+        return new ITransformSet(
+                transformSet.getDiffuse() != null ? cloneTransform(transformSet.getDiffuse()) : null,
+                transformSet.getLayer() != null ? cloneTransform(transformSet.getLayer()) : null,
+                transformSet.getMask() != null ? cloneTransform(transformSet.getMask()) : null,
+                transformSet.getEmission() != null ? cloneTransform(transformSet.getEmission()) : null
         );
     }
 
@@ -589,25 +588,25 @@ public final class MaterialCompressor {
         if (element.isJsonObject()) {
             JsonObject obj = element.getAsJsonObject();
             if (obj.has("diffuse") || obj.has("layer") || obj.has("mask") || obj.has("emission")) {
-                return ITransformSet.deserialize(element);
+                return ITransformSet.Companion.getCODEC().decode(element);
             }
         }
 
-        ITransform legacy = ITransform.deserialize(element);
-        return legacy == null ? null : new TransformSet(legacy, legacy, legacy, legacy);
+        ITransform legacy = ITransform.Companion.getCODEC().decode(element);
+        return legacy == null ? null : new ITransformSet(legacy, legacy, legacy, legacy);
     }
 
-    private static JsonElement transformSetToJson(TransformSet transformSet) {
+    private static JsonElement transformSetToJson(ITransformSet transformSet) {
         if (transformSet == null || transformSet.isUnit()) return JsonNull.INSTANCE;
-        return ITransformSet.serialize(transformSet);
+        return ITransformSet.Companion.getCODEC().encode(transformSet);
     }
 
-    private static TransformSet promoteTransform(ITransform transform) {
+    private static ITransformSet promoteTransform(ITransform transform) {
         if (transform == null) {
             return null;
         }
 
-        return new TransformSet(
+        return new ITransformSet(
                 cloneTransform(transform),
                 cloneTransform(transform),
                 cloneTransform(transform),
@@ -615,30 +614,8 @@ public final class MaterialCompressor {
         );
     }
 
-    private static ModelConfig.Transform readLegacyTransform(JsonElement element) {
-        if (element == null || element.isJsonNull()) return null;
-
-        if (element.isJsonArray()) {
-            return new ModelConfig.Transform(readVector(element.getAsJsonArray()));
-        }
-
-        if (!element.isJsonObject()) {
-            return null;
-        }
-
-        JsonObject object = element.getAsJsonObject();
-        Vector2f scale = object.has("scale") ? readVector(object.getAsJsonArray("scale")) : new Vector2f(1f, 1f);
-        JsonElement offsetElement = object.has("transform") ? object.get("transform") : object.get("offset");
-        Vector2f offset = offsetElement != null ? readVector(offsetElement.getAsJsonArray()) : new Vector2f();
-        return new ModelConfig.Transform(scale, offset);
-    }
-
-    private static Vector2f readVector(JsonArray array) {
-        return new Vector2f(array.get(0).getAsFloat(), array.get(1).getAsFloat());
-    }
-
-    private static ModelConfig.Transform toTransform(AtlasCompacter.PackedTexture packedTexture) {
-        return new ModelConfig.Transform(
+    private static ITransform toTransform(AtlasCompacter.PackedTexture packedTexture) {
+        return new ITransform(
                 new Vector2f(packedTexture.scaleX(), packedTexture.scaleY()),
                 new Vector2f(packedTexture.offsetX(), packedTexture.offsetY())
         );
@@ -815,6 +792,6 @@ public final class MaterialCompressor {
         return p.getAsString();
     }
 
-    private record MaterialAtlasRemap(Map<String, String> atlasImages, TransformSet transform) {
+    private record MaterialAtlasRemap(Map<String, String> atlasImages, ITransformSet transform) {
     }
 }

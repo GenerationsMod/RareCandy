@@ -1,6 +1,6 @@
 package gg.generations.rarecandy.tools.gui;
 
-import gg.generations.rarecandy.renderer.textures.FrameBuffer;
+import gg.generations.rarecandy.renderer.textures.framebuffer.FrameBuffer;
 import org.joml.Vector4f;
 
 public class DefferedPass {

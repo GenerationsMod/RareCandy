@@ -1,7 +1,6 @@
 package gg.generations.rarecandy.renderer.animation;
 
 import gg.generations.rarecandy.pokeutils.ISkeletalTransform;
-import gg.generations.rarecandy.pokeutils.ModelConfig;
 import gg.generations.rarecandy.pokeutils.ModelNode;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
@@ -41,10 +40,6 @@ public class Animation {
 
     private final Map<String, AnimationNode> animationNodes;
     public Offset[] offsets;
-
-
-    private Matrix4f[] cachedBoneTransforms;
-    private final Matrix4f cachedIdentity = new Matrix4f().identity();
 
     public float ticksPerSecond;
     public boolean loops;
@@ -105,54 +100,12 @@ public class Animation {
         return (float) (ticksPassed % animationDuration);
     }
 
-    public Matrix4f[] getFrameTransform(AnimationInstance instance) {
-
-        if (cachedBoneTransforms == null || cachedBoneTransforms.length != skeleton.jointMap.size()) {
-            cachedBoneTransforms = new Matrix4f[skeleton.jointMap.size()];
-            for (int i = 0; i < cachedBoneTransforms.length; i++) {
-                cachedBoneTransforms[i] = new Matrix4f();
-            }
-        }
-
-        // Reset all transforms to identity before populating
-        for (Matrix4f mat : cachedBoneTransforms) {
+    public void getFrameTransform(double secondsPassed, Matrix4f[] transforms) {
+        for (Matrix4f mat : transforms) {
             mat.identity();
         }
 
-        GLOBAL.identity();
-
-        readNodeHierarchy(instance.getCurrentTime(), skeleton.rootNode, cachedBoneTransforms, false, 0);
-        return cachedBoneTransforms;
-    }
-
-    public void getFrameOffset(AnimationInstance instance) {
-//        TODO: rewrok material animations at a later date.
-
-//        assert instance.offsets.length == offsets.length;
-//
-//        for (int i = 0; i < offsets.length; i++) {
-//            var offsetInstance = instance.offsets[i];
-//            offsetInstance.offset().zero();
-//            offsetInstance.scale().set(1, 1);
-//
-//            if(offsets[i] != null) offsets[i].calcOffset(instance.getCurrentTime(), offsetInstance);
-//        }
-    }
-
-    public Matrix4f[] getFrameTransform(double secondsPassed) {
-        if (cachedBoneTransforms == null || cachedBoneTransforms.length != skeleton.jointMap.size()) {
-            cachedBoneTransforms = new Matrix4f[skeleton.jointMap.size()];
-            for (int i = 0; i < cachedBoneTransforms.length; i++) {
-                cachedBoneTransforms[i] = new Matrix4f();
-            }
-        }
-
-        for (Matrix4f mat : cachedBoneTransforms) {
-            mat.identity();
-        }
-
-        readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, cachedBoneTransforms, false, 0);
-        return cachedBoneTransforms;
+        readNodeHierarchy(getAnimationTime(secondsPassed), skeleton.rootNode, transforms, false, 0);
     }
 
     public void readNodeHierarchy(float animTime, ModelNode node, Matrix4f[] boneTransforms, boolean offsetUsed, int depth) {
@@ -180,8 +133,8 @@ public class Animation {
 
             if (!offsetUsed) {
                 offsetUsed = true;
-                translation.add(rootOffset.position());
-                rotation.mul(rootOffset.rotation());
+                translation.add(rootOffset.getPosition());
+                rotation.mul(rootOffset.getRotation());
             }
 
             if (!isIdentityTransform(translation, scale, rotation, 1e-5f))
@@ -278,15 +231,15 @@ public class Animation {
             return keys.get(0);
         }
 
-        public void calcOffset(float animTime, ModelConfig.Transform instance) {
+        public void calcOffset(float animTime, ITransform instance) {
 
             var uOffset = calcInterpolatedFloat(animTime, this.uOffset(), 0f);
             var vOffset = calcInterpolatedFloat(animTime, this.vOffset(), 0f);
             var uScale = calcInterpolatedFloat(animTime, this.uScale(), 1f);
             var vScale = calcInterpolatedFloat(animTime, this.vScale(), 1f);
 
-            instance.offset().set(uOffset, vOffset);
-            instance.scale().set(uScale, vScale);
+            instance.getOffset().set(uOffset, vOffset);
+            instance.getScale().set(uScale, vScale);
         }
     }
 

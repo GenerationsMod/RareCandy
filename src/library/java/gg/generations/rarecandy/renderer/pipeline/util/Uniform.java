@@ -144,11 +144,11 @@ public class Uniform {
     }
 
     public void uploadImage2D(ITexture texture, int unit, int layer) {
-        uploadImage2D(texture.id(), texture.type(), texture.access(), unit, layer);
+        uploadImage2D(texture.getId(), texture.getType(), texture.getAccess(), unit, layer);
     }
 
     public void uploadImage2D(TextureArray texture, ITexture.ComputeAccess access, int unit, int layer) {
-        uploadImage2D(texture.getId(), texture.getType(), access, unit, layer);
+        uploadImage2D(texture.getId(), texture.type, access, unit, layer);
     }
 
     public void uploadImage2D(int texture, ITexture.Type type, ITexture.ComputeAccess access, int unit, int layer) {
@@ -162,7 +162,7 @@ public class Uniform {
                 0,                     // mip level
                 layered,                 // layered (false for 2D)
                 layer,                     // layer (ignored for 2D)
-                access.getValue(),                // GL_READ_ONLY, GL_WRITE_ONLY, GL_READ_WRITE
+                access.value,                // GL_READ_ONLY, GL_WRITE_ONLY, GL_READ_WRITE
                 type.internalFormat                 // e.g. GL_RGBA8
         );
     }

@@ -5,6 +5,7 @@ import gg.generations.rarecandy.pokeutils.CullType;
 import gg.generations.rarecandy.renderer.model.material.Material;
 
 public enum RenderStage {
+    NONE(false, false, false),
     SOLID_DEPTH_CULL(false, true, true),
     SOLID_DEPTH_NOCULL(false, true, false),
     SOLID_NODEPTH_CULL(false, false, true),
@@ -25,7 +26,11 @@ public enum RenderStage {
     }
 
     public static RenderStage from(Material material) {
-        return from(material.blendType() == BlendType.Regular, !material.disableDepth(), material.cullType() != CullType.None);
+        return from(material.blendType == BlendType.Regular, !material.disableDepth(), material.cullType != CullType.None);
+    }
+
+    public boolean doesNotRender() {
+        return this == NONE;
     }
 
     public boolean isDepthTest() {
